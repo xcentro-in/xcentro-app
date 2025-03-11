@@ -1,4 +1,5 @@
-import { Upload, Plus, Download } from "lucide-react";
+
+import { Upload, Plus, Download, Users } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,9 +45,13 @@ const Payments = () => {
         </div>
         
         <div className="flex gap-3 animate-slide-down" style={{ animationDelay: "100ms" }}>
-          <Button variant="outline" className="h-10 gap-2">
-            <Upload className="h-4 w-4" />
-            Import
+          <Button 
+            variant="outline" 
+            className="h-10 gap-2"
+            onClick={() => navigate('/payees')}
+          >
+            <Users className="h-4 w-4" />
+            Manage Payees
           </Button>
           <Button 
             className="h-10 gap-2"

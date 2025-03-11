@@ -5,7 +5,8 @@ import {
   Gift, 
   BarChart3, 
   Settings,
-  PlusCircle
+  PlusCircle,
+  Users
 } from "lucide-react";
 
 // Main menu items
@@ -24,6 +25,11 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
+  },
+  {
+    title: "Manage Payees",
+    url: "/payees",
+    icon: Users,
   },
   {
     title: "Rewards",

@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
+import PayeeManagement from "./pages/PayeeManagement";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/new-payment" element={<NewPayment />} />
+                <Route path="/payees" element={<PayeeManagement />} />
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/settings" element={<Settings />} />
