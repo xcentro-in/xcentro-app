@@ -33,12 +33,11 @@ export const SidebarMenuItemComponent = ({ title, url, icon: Icon }: SidebarMenu
               "text-primary" : 
               "text-muted-foreground"
           )} />
-          <span className={cn(
-            "transition-opacity duration-200",
-            open ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
-          )}>
-            {title}
-          </span>
+          {open && (
+            <span className="truncate">
+              {title}
+            </span>
+          )}
         </Link>
       </SidebarMenuButton>
     </MenuItem>

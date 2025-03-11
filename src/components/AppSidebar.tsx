@@ -11,7 +11,7 @@ const AppSidebar = () => {
   return (
     <Sidebar className="border-r border-border" collapsible="icon">
       <SidebarHeader />
-      <SidebarContent className="px-2">
+      <SidebarContent className="px-2 mt-2">
         <SidebarMenu />
       </SidebarContent>
       <SidebarFooter />
