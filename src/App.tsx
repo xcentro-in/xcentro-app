@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
+import NewPayment from "./pages/NewPayment";
 
 const queryClient = new QueryClient();
 
