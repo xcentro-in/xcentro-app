@@ -16,6 +16,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
+import UserAccess from "./pages/UserAccess";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
                 <Route path="/new-payment" element={<NewPayment />} />
                 <Route path="/payees" element={<PayeeManagement />} />
                 <Route path="/wallet" element={<WalletManagement />} />
+                <Route path="/user-access" element={<UserAccess />} />
                 <Route path="/rewards" element={<Rewards />} />
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/settings" element={<Settings />} />

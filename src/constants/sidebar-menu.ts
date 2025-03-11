@@ -7,7 +7,8 @@ import {
   Settings,
   PlusCircle,
   Users,
-  Wallet
+  Wallet,
+  Shield
 } from "lucide-react";
 
 // Main menu items
@@ -36,6 +37,11 @@ export const mainMenuItems = [
     title: "Wallet",
     url: "/wallet",
     icon: Wallet,
+  },
+  {
+    title: "User Access",
+    url: "/user-access",
+    icon: Shield,
   },
   {
     title: "Rewards",
