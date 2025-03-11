@@ -1,4 +1,3 @@
-
 import { 
   CreditCard, 
   BanknoteIcon, 
@@ -19,8 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import NewPaymentDialog from "@/components/payments/NewPaymentDialog";
 
-// Mock transaction data
 const transactions = [
   { id: 1, vendor: "Office Supplies Co.", amount: 2499.99, status: "completed", date: "Today, 2:30 PM", method: "credit" },
   { id: 2, vendor: "Cloud Services", amount: 899.00, status: "completed", date: "Yesterday, 10:15 AM", method: "bank" },
@@ -36,6 +35,7 @@ const Payments = () => {
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
+  const [newPaymentOpen, setNewPaymentOpen] = useState(false);
   
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = transaction.vendor.toLowerCase().includes(searchValue.toLowerCase());
@@ -59,13 +59,21 @@ const Payments = () => {
             <Upload className="h-4 w-4" />
             Import
           </Button>
-          <Button className="h-10 gap-2">
+          <Button 
+            className="h-10 gap-2"
+            onClick={() => setNewPaymentOpen(true)}
+          >
             <Plus className="h-4 w-4" />
             New Payment
           </Button>
         </div>
       </div>
 
+      <NewPaymentDialog 
+        open={newPaymentOpen}
+        onOpenChange={setNewPaymentOpen}
+      />
+      
       <Card className="animate-scale-in">
         <CardHeader className="pb-3">
           <Tabs defaultValue="all" className="w-full">
