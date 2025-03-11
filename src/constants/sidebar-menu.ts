@@ -4,7 +4,8 @@ import {
   CreditCard, 
   Gift, 
   BarChart3, 
-  Settings
+  Settings,
+  PlusCircle
 } from "lucide-react";
 
 // Main menu items
@@ -18,6 +19,11 @@ export const mainMenuItems = [
     title: "Payments",
     url: "/payments",
     icon: CreditCard,
+  },
+  {
+    title: "New Payment",
+    url: "/new-payment",
+    icon: PlusCircle,
   },
   {
     title: "Rewards",

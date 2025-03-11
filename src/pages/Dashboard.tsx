@@ -1,4 +1,4 @@
-
+import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ const insights = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -33,7 +35,10 @@ const Dashboard = () => {
             <Plus className="h-4 w-4" />
             Add Account
           </Button>
-          <Button className="h-10 gap-2">
+          <Button 
+            className="h-10 gap-2"
+            onClick={() => navigate("/new-payment")}
+          >
             <Plus className="h-4 w-4" />
             New Payment
           </Button>

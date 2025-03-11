@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -22,17 +21,25 @@ import { cn } from "@/lib/utils";
 
 type PaymentType = "now" | "later" | "recurring";
 
-const SinglePaymentForm = () => {
+interface SinglePaymentFormProps {
+  onStepChange: (step: number) => void;
+}
+
+const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
   
   const handleNext = () => {
-    setStep(step + 1);
+    const nextStep = step + 1;
+    setStep(nextStep);
+    onStepChange(nextStep);
   };
 
   const handleBack = () => {
-    setStep(step - 1);
+    const prevStep = step - 1;
+    setStep(prevStep);
+    onStepChange(prevStep);
   };
 
   return (

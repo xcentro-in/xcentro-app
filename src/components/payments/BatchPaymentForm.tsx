@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,15 +11,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const BatchPaymentForm = () => {
+interface BatchPaymentFormProps {
+  onStepChange: (step: number) => void;
+}
+
+const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   const [step, setStep] = useState(1);
 
   const handleNext = () => {
-    setStep(step + 1);
+    const nextStep = step + 1;
+    setStep(nextStep);
+    onStepChange(nextStep);
   };
 
   const handleBack = () => {
-    setStep(step - 1);
+    const prevStep = step - 1;
+    setStep(prevStep);
+    onStepChange(prevStep);
   };
 
   return (
