@@ -6,8 +6,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PaymentFilters } from "@/components/payments/PaymentFilters";
 import { TransactionList } from "@/components/payments/TransactionList";
-import { PaymentMethodCard } from "@/components/payments/PaymentMethodCard";
-import { RecentVendorsCard } from "@/components/payments/RecentVendorsCard";
+import PaymentMethodCard from "@/components/payments/PaymentMethodCard";
+import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
 
 const transactions = [
   { id: 1, vendor: "Office Supplies Co.", amount: 2499.99, status: "completed", date: "Today, 2:30 PM", method: "credit" },
