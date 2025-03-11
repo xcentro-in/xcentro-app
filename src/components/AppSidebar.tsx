@@ -76,7 +76,7 @@ const insightFeatures = [
 ];
 
 const AppSidebar = () => {
-  const { isOpen } = useSidebar();
+  const { open } = useSidebar();
   const location = useLocation();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     "Payments": false,
@@ -98,14 +98,14 @@ const AppSidebar = () => {
             <CreditCard className="h-5 w-5 text-primary" />
           </div>
           <span className={cn("font-semibold text-lg transition-all", 
-            isOpen ? "opacity-100" : "opacity-0"
+            open ? "opacity-100" : "opacity-0"
           )}>
             PayStrive
           </span>
         </div>
         <SidebarTrigger asChild>
           <button className="rounded-full p-1.5 hover:bg-accent transition-colors">
-            {isOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
         </SidebarTrigger>
       </SidebarHeader>
@@ -128,7 +128,7 @@ const AppSidebar = () => {
                     )} />
                     <span className={cn(
                       "transition-all",
-                      isOpen ? "opacity-100" : "opacity-0 w-0"
+                      open ? "opacity-100" : "opacity-0 w-0"
                     )}>
                       {item.title}
                     </span>
@@ -139,7 +139,7 @@ const AppSidebar = () => {
           </SidebarMenu>
         </SidebarGroup>
 
-        {isOpen && (
+        {open && (
           <>
             <SidebarGroup className="mt-6">
               <SidebarGroupLabel 
@@ -207,7 +207,7 @@ const AppSidebar = () => {
       <SidebarFooter className="mt-auto px-6 py-4">
         <div className={cn(
           "flex items-center gap-3 transition-all",
-          isOpen ? "opacity-100" : "opacity-0"
+          open ? "opacity-100" : "opacity-0"
         )}>
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
             <UserCog className="h-5 w-5 text-primary" />
