@@ -2,6 +2,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { 
   SidebarMenuItem as MenuItem,
+  SidebarMenuButton,
   useSidebar
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -20,28 +21,26 @@ export const SidebarMenuItemComponent = ({ title, url, icon: Icon }: SidebarMenu
 
   return (
     <MenuItem key={title}>
-      <Link 
-        to={url}
-        className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
-          isActive ? 
-            "bg-accent font-medium" : 
-            "hover:bg-accent/50"
-        )}
+      <SidebarMenuButton
+        isActive={isActive}
+        tooltip={!open ? title : undefined}
+        asChild
       >
-        <Icon className={cn(
-          "h-5 w-5",
-          isActive ? 
-            "text-primary" : 
-            "text-muted-foreground"
-        )} />
-        <span className={cn(
-          "transition-all duration-200",
-          open ? "opacity-100" : "opacity-0 w-0"
-        )}>
-          {title}
-        </span>
-      </Link>
+        <Link to={url} className="flex items-center gap-3">
+          <Icon className={cn(
+            "h-5 w-5",
+            isActive ? 
+              "text-primary" : 
+              "text-muted-foreground"
+          )} />
+          <span className={cn(
+            "transition-opacity duration-200",
+            open ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
+          )}>
+            {title}
+          </span>
+        </Link>
+      </SidebarMenuButton>
     </MenuItem>
   );
 };

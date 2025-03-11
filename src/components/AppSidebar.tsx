@@ -9,7 +9,7 @@ import { SidebarFooter } from "./sidebar/SidebarFooter";
 
 const AppSidebar = () => {
   return (
-    <Sidebar className="border-r border-border">
+    <Sidebar className="border-r border-border" collapsible="icon">
       <SidebarHeader />
       <SidebarContent className="px-2">
         <SidebarMenu />
