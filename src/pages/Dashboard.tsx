@@ -9,9 +9,9 @@ import QuickActions from "@/components/dashboard/QuickActions";
 import PaymentCalendar from "@/components/dashboard/PaymentCalendar";
 
 const insights = [
-  { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" },
-  { title: "Reward Points", value: "24,530", change: 8.3, trend: "up" },
-  { title: "Expenses Tracked", value: "94%", change: 3.1, trend: "up" },
+  { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
+  { title: "Reward Points", value: "24,530", change: 8.3, trend: "up" as const },
+  { title: "Expenses Tracked", value: "94%", change: 3.1, trend: "up" as const },
 ];
 
 const Dashboard = () => {
