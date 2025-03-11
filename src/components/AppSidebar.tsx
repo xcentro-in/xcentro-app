@@ -103,7 +103,7 @@ const AppSidebar = () => {
             PayStrive
           </span>
         </div>
-        <SidebarTrigger asChild>
+        <SidebarTrigger>
           <button className="rounded-full p-1.5 hover:bg-accent transition-colors">
             {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </button>
@@ -115,7 +115,7 @@ const AppSidebar = () => {
           <SidebarMenu>
             {mainMenuItems.map((item) => (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild 
+                <SidebarMenuButton
                   className={cn(
                     "group w-full transition-colors",
                     location.pathname === item.url && "bg-accent font-medium"
@@ -158,7 +158,7 @@ const AppSidebar = () => {
                   <SidebarMenu>
                     {paymentFeatures.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild className="group pl-4">
+                        <SidebarMenuButton className="group pl-4">
                           <div className="flex items-center gap-3 px-3 py-2.5">
                             <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                             <span>{item.title}</span>
@@ -188,7 +188,7 @@ const AppSidebar = () => {
                   <SidebarMenu>
                     {insightFeatures.map((item) => (
                       <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild className="group pl-4">
+                        <SidebarMenuButton className="group pl-4">
                           <div className="flex items-center gap-3 px-3 py-2.5">
                             <item.icon className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
                             <span>{item.title}</span>
