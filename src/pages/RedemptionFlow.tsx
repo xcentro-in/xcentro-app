@@ -70,6 +70,10 @@ const RedemptionFlow: React.FC = () => {
             // Default redemption to minimum points needed
             setPointsToRedeem(foundItem.pointsCost || foundCategory.pointsNeeded);
           }
+        } else if (foundCategory.items.length > 0) {
+          // If no itemId is provided, use the first item in the category
+          setItem(foundCategory.items[0]);
+          setPointsToRedeem(foundCategory.items[0].pointsCost || foundCategory.pointsNeeded);
         }
       }
     }
