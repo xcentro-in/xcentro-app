@@ -1,3 +1,4 @@
+
 import { 
   Gift, 
   TrendingUp, 
@@ -22,14 +23,182 @@ import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
+
+// Redemption category type definition
+interface RedemptionCategory {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  pointsNeeded: number;
+  items: RedemptionItem[];
+}
+
+interface RedemptionItem {
+  id: string;
+  title: string;
+  description: string;
+  pointsCost: number;
+  image?: string;
+}
 
 const Rewards = () => {
   const [progress, setProgress] = useState(0);
+  const [openRedemptionDialog, setOpenRedemptionDialog] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
   useEffect(() => {
     const timer = setTimeout(() => setProgress(78), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  // Sample redemption categories data
+  const redemptionCategories: RedemptionCategory[] = [
+    {
+      id: "flights",
+      title: "Flight Partners",
+      description: "Convert points to airline loyalty miles",
+      icon: Plane,
+      pointsNeeded: 10000,
+      items: [
+        { 
+          id: "flight-1", 
+          title: "Emirates Skywards", 
+          description: "10,000 points = 5,000 Skywards Miles",
+          pointsCost: 10000 
+        },
+        { 
+          id: "flight-2", 
+          title: "Star Alliance", 
+          description: "10,000 points = 4,000 Star Alliance Miles",
+          pointsCost: 10000 
+        },
+        { 
+          id: "flight-3", 
+          title: "Delta SkyMiles", 
+          description: "10,000 points = 4,500 SkyMiles",
+          pointsCost: 10000 
+        }
+      ]
+    },
+    {
+      id: "hotels",
+      title: "Hotel Partners",
+      description: "Convert points to hotel loyalty rewards",
+      icon: Hotel,
+      pointsNeeded: 8000,
+      items: [
+        { 
+          id: "hotel-1", 
+          title: "Marriott Bonvoy", 
+          description: "8,000 points = 3,000 Bonvoy Points",
+          pointsCost: 8000 
+        },
+        { 
+          id: "hotel-2", 
+          title: "Hilton Honors", 
+          description: "8,000 points = 3,500 Honors Points",
+          pointsCost: 8000 
+        }
+      ]
+    },
+    {
+      id: "events",
+      title: "VIP Events & Experiences",
+      description: "Exclusive access to premium events",
+      icon: Ticket,
+      pointsNeeded: 15000,
+      items: [
+        { 
+          id: "event-1", 
+          title: "Tech Conference VIP Pass", 
+          description: "Access to VIP lounge and speaker meetings",
+          pointsCost: 15000 
+        },
+        { 
+          id: "event-2", 
+          title: "Business Summit", 
+          description: "Reserved seating and networking cocktail hour",
+          pointsCost: 18000 
+        }
+      ]
+    },
+    {
+      id: "travel",
+      title: "Luxury Travel & Rentals",
+      description: "Business-class transport, chauffeur services",
+      icon: Car,
+      pointsNeeded: 12000,
+      items: [
+        { 
+          id: "travel-1", 
+          title: "Premium Car Rental", 
+          description: "One day luxury car rental",
+          pointsCost: 12000 
+        },
+        { 
+          id: "travel-2", 
+          title: "Airport Chauffeur Service", 
+          description: "Chauffeur pickup and dropoff",
+          pointsCost: 8000 
+        }
+      ]
+    },
+    {
+      id: "business",
+      title: "Business Service Discounts",
+      description: "Exclusive vendor deals, software discounts",
+      icon: Tag,
+      pointsNeeded: 5000,
+      items: [
+        { 
+          id: "business-1", 
+          title: "SaaS Subscription Discount", 
+          description: "30% off annual subscription for business tools",
+          pointsCost: 5000 
+        },
+        { 
+          id: "business-2", 
+          title: "Marketing Services Credit", 
+          description: "$200 credit for digital marketing services",
+          pointsCost: 7500 
+        }
+      ]
+    },
+    {
+      id: "gifts",
+      title: "Curated Luxury Gifts",
+      description: "High-end business merchandise",
+      icon: Package,
+      pointsNeeded: 10000,
+      items: [
+        { 
+          id: "gift-1", 
+          title: "Premium Business Accessories", 
+          description: "Leather portfolio, pen set, and card holder",
+          pointsCost: 10000 
+        },
+        { 
+          id: "gift-2", 
+          title: "Executive Tech Package", 
+          description: "Noise-cancelling headphones and smart accessories",
+          pointsCost: 15000 
+        }
+      ]
+    }
+  ];
+
+  const handleRedeemPoints = (itemId: string, categoryId: string) => {
+    const category = redemptionCategories.find(cat => cat.id === categoryId);
+    const item = category?.items.find(item => item.id === itemId);
+    
+    if (item) {
+      toast.success(`Redeemed: ${item.title} for ${item.pointsCost} points`);
+      setOpenRedemptionDialog(false);
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -57,7 +226,90 @@ const Rewards = () => {
               </div>
               
               <div className="flex gap-4">
-                <Button className="h-10">Redeem Now</Button>
+                <Dialog open={openRedemptionDialog} onOpenChange={setOpenRedemptionDialog}>
+                  <DialogTrigger asChild>
+                    <Button className="h-10">Redeem Now</Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl">
+                    <DialogHeader>
+                      <DialogTitle>Redeem Your Reward Points</DialogTitle>
+                      <DialogDescription>
+                        Choose from premium redemption options below
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    {selectedCategory ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center">
+                          <Button 
+                            variant="ghost" 
+                            className="px-2" 
+                            onClick={() => setSelectedCategory(null)}
+                          >
+                            <ChevronRight className="h-4 w-4 mr-1 rotate-180" />
+                            Back to Categories
+                          </Button>
+                        </div>
+                        
+                        <h3 className="text-lg font-medium">
+                          {redemptionCategories.find(cat => cat.id === selectedCategory)?.title}
+                        </h3>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {redemptionCategories
+                            .find(cat => cat.id === selectedCategory)
+                            ?.items.map(item => (
+                              <Card key={item.id} className="hover:border-primary/50 transition-colors">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base">{item.title}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="pb-3">
+                                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                                </CardContent>
+                                <CardFooter className="flex justify-between items-center pt-0">
+                                  <Badge variant="outline" className="bg-primary/10 text-primary">
+                                    {item.pointsCost.toLocaleString()} points
+                                  </Badge>
+                                  <Button 
+                                    size="sm" 
+                                    onClick={() => handleRedeemPoints(item.id, selectedCategory)}
+                                    disabled={item.pointsCost > 24530}
+                                  >
+                                    Redeem Now
+                                  </Button>
+                                </CardFooter>
+                              </Card>
+                            ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                        {redemptionCategories.map(category => (
+                          <div 
+                            key={category.id}
+                            className="flex flex-col p-4 border rounded-lg hover:border-primary/50 hover:bg-primary/5 transition-colors cursor-pointer"
+                            onClick={() => setSelectedCategory(category.id)}
+                          >
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <category.icon className="h-5 w-5 text-primary" />
+                              </div>
+                              <div className="font-medium">{category.title}</div>
+                            </div>
+                            <p className="text-sm text-muted-foreground mb-3">{category.description}</p>
+                            <div className="mt-auto flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">
+                                Starting from {category.pointsNeeded.toLocaleString()} points
+                              </span>
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </DialogContent>
+                </Dialog>
+                
                 <Button variant="outline" className="h-10 gap-1.5">
                   <Share className="h-4 w-4" />
                   Transfer
@@ -110,7 +362,18 @@ const Rewards = () => {
               { title: "Statement Credit", points: "10,000", cashValue: "$100", icon: CreditCard },
               { title: "Gift Cards", points: "5,000", cashValue: "$50", icon: Gift },
             ].map((option, i) => (
-              <div key={option.title} className="rounded-md border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer">
+              <div 
+                key={option.title} 
+                className="rounded-md border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer"
+                onClick={() => {
+                  setOpenRedemptionDialog(true);
+                  if (option.title === "Travel Credits") {
+                    setSelectedCategory("flights");
+                  } else if (option.title === "Gift Cards") {
+                    setSelectedCategory("gifts");
+                  }
+                }}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -127,7 +390,11 @@ const Rewards = () => {
             ))}
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full gap-1.5">
+            <Button 
+              variant="outline" 
+              className="w-full gap-1.5"
+              onClick={() => setOpenRedemptionDialog(true)}
+            >
               <ExternalLink className="h-4 w-4" />
               View All Options
             </Button>
