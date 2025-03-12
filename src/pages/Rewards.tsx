@@ -1,26 +1,36 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import RewardsSummary from "@/components/rewards/RewardsSummary";
 import RedemptionOptions from "@/components/rewards/RedemptionOptions";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
-import RedemptionDialog from "@/components/rewards/dialog/RedemptionDialog";
 import { redemptionCategories } from "@/data/redemptionCategories";
 
 const Rewards = () => {
-  const [openRedemptionDialog, setOpenRedemptionDialog] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const availablePoints = 24530;
   
-  const handleRedeemPoints = (itemId: string, categoryId: string) => {
-    const category = redemptionCategories.find(cat => cat.id === categoryId);
-    const item = category?.items.find(item => item.id === itemId);
-    
-    if (item) {
-      toast.success(`Redeemed: ${item.title} for ${item.pointsCost} points`);
-      setOpenRedemptionDialog(false);
+  useEffect(() => {
+    // Check if redirected after redemption
+    if (location.state?.redemptionCompleted) {
+      toast.success("Points redemption completed successfully!");
+    }
+  }, [location]);
+  
+  const handleRedeemClick = (categoryId?: string | null) => {
+    // If a specific category is selected, navigate to it
+    if (categoryId) {
+      navigate(`/rewards/redeem/${categoryId}`);
+    } else if (selectedCategory) {
+      navigate(`/rewards/redeem/${selectedCategory}`);
+    } else {
+      // Default to first category if none selected
+      navigate(`/rewards/redeem/${redemptionCategories[0].id}`);
     }
   };
 
@@ -34,11 +44,11 @@ const Rewards = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <RewardsSummary 
           availablePoints={availablePoints}
-          onRedeemClick={() => setOpenRedemptionDialog(true)}
+          onRedeemClick={() => handleRedeemClick()}
         />
         
         <RedemptionOptions 
-          onRedeemClick={() => setOpenRedemptionDialog(true)}
+          onRedeemClick={handleRedeemClick}
           onCategorySelect={setSelectedCategory}
         />
       </div>
@@ -47,16 +57,6 @@ const Rewards = () => {
         <EarningHistory />
         <SpendingRecommendations />
       </div>
-      
-      <RedemptionDialog 
-        open={openRedemptionDialog}
-        onOpenChange={setOpenRedemptionDialog}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        categories={redemptionCategories}
-        onRedeemItem={handleRedeemPoints}
-        availablePoints={availablePoints}
-      />
     </div>
   );
 };

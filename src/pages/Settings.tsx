@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LockIcon, UserCog, CreditCard, BellRing, Globe, Shield, User, Mail, Smartphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import LoyaltyPartnersSettings from "@/components/settings/LoyaltyPartnersSettings";
+import { LoyaltyPartner } from "@/types/rewards";
+import { toast } from "sonner";
 
 const Settings = () => {
   const [notifications, setNotifications] = useState({
@@ -18,6 +20,37 @@ const Settings = () => {
     security: true,
     marketing: false
   });
+  
+  const [loyaltyPartners, setLoyaltyPartners] = useState<LoyaltyPartner[]>([
+    {
+      id: "emirates",
+      name: "Emirates Skywards",
+      type: "airline",
+      conversionRatio: 0.5,
+      category: "flights",
+      membershipDetails: {
+        membershipNumber: "EK123456789",
+        registeredName: "John Doe",
+        email: "john@example.com"
+      }
+    }
+  ]);
+  
+  const handleSavePartner = (partner: LoyaltyPartner) => {
+    const existingIndex = loyaltyPartners.findIndex(p => p.id === partner.id);
+    
+    if (existingIndex >= 0) {
+      const updatedPartners = [...loyaltyPartners];
+      updatedPartners[existingIndex] = partner;
+      setLoyaltyPartners(updatedPartners);
+    } else {
+      setLoyaltyPartners([...loyaltyPartners, partner]);
+    }
+  };
+  
+  const handleDeletePartner = (partnerId: string) => {
+    setLoyaltyPartners(loyaltyPartners.filter(p => p.id !== partnerId));
+  };
 
   return (
     <div className="space-y-8">
@@ -32,6 +65,7 @@ const Settings = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="integration">Integrations</TabsTrigger>
         </TabsList>
@@ -195,6 +229,74 @@ const Settings = () => {
                     />
                   </div>
                 </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button>Save Preferences</Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="rewards" className="space-y-6">
+          <LoyaltyPartnersSettings 
+            savedPartners={loyaltyPartners}
+            onSavePartner={handleSavePartner}
+            onDeletePartner={handleDeletePartner}
+          />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">Rewards Preferences</CardTitle>
+              <CardDescription>
+                Customize how you earn and redeem rewards
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="email-notifications">Email Notifications for Rewards</Label>
+                  <p className="text-sm text-muted-foreground">Receive updates about new reward opportunities</p>
+                </div>
+                <Switch id="email-notifications" defaultChecked />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label htmlFor="auto-redeem">Automatic Redemption</Label>
+                  <p className="text-sm text-muted-foreground">Automatically redeem points when you reach thresholds</p>
+                </div>
+                <Switch id="auto-redeem" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="redemption-threshold">Redemption Threshold</Label>
+                <Select defaultValue="10000">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select threshold" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5000">5,000 points</SelectItem>
+                    <SelectItem value="10000">10,000 points</SelectItem>
+                    <SelectItem value="25000">25,000 points</SelectItem>
+                    <SelectItem value="50000">50,000 points</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="preferred-category">Preferred Redemption Category</Label>
+                <Select defaultValue="flights">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="flights">Flight Partners</SelectItem>
+                    <SelectItem value="hotels">Hotel Partners</SelectItem>
+                    <SelectItem value="events">VIP Events</SelectItem>
+                    <SelectItem value="travel">Luxury Travel</SelectItem>
+                    <SelectItem value="business">Business Services</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardContent>
             <CardFooter className="flex justify-end">

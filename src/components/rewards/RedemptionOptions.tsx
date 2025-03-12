@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 
 interface RedemptionOptionsProps {
-  onRedeemClick: () => void;
+  onRedeemClick: (category: string | null) => void;
   onCategorySelect: (category: string | null) => void;
 }
 
@@ -21,15 +21,15 @@ const RedemptionOptions: React.FC<RedemptionOptionsProps> = ({ onRedeemClick, on
       <CardContent className="space-y-4">
         {[
           { title: "Travel Credits", points: "15,000", cashValue: "$150", icon: ExternalLink, category: "flights" },
-          { title: "Statement Credit", points: "10,000", cashValue: "$100", icon: CreditCard, category: null },
+          { title: "Statement Credit", points: "10,000", cashValue: "$100", icon: CreditCard, category: "business" },
           { title: "Gift Cards", points: "5,000", cashValue: "$50", icon: Gift, category: "gifts" },
         ].map((option) => (
           <div 
             key={option.title} 
             className="rounded-md border p-3 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer"
             onClick={() => {
-              onRedeemClick();
               onCategorySelect(option.category);
+              onRedeemClick(option.category);
             }}
           >
             <div className="flex items-center justify-between">
@@ -51,7 +51,7 @@ const RedemptionOptions: React.FC<RedemptionOptionsProps> = ({ onRedeemClick, on
         <Button 
           variant="outline" 
           className="w-full gap-1.5"
-          onClick={onRedeemClick}
+          onClick={() => onRedeemClick(null)}
         >
           <ExternalLink className="h-4 w-4" />
           View All Options
