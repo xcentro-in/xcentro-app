@@ -25,11 +25,12 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
   
-  const form = useForm({
+  // Update the form's default values to match the LoyaltyPartner type
+  const form = useForm<LoyaltyPartner>({
     defaultValues: {
       id: "",
       name: "",
-      type: "airline" as const,
+      type: "airline",
       conversionRatio: 0.5,
       category: "flights",
       membershipDetails: {
