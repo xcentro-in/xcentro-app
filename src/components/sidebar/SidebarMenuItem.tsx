@@ -12,9 +12,10 @@ interface SidebarMenuItemProps {
   title: string;
   url: string;
   icon: LucideIcon;
+  highlight?: boolean;
 }
 
-export const SidebarMenuItemComponent = ({ title, url, icon: Icon }: SidebarMenuItemProps) => {
+export const SidebarMenuItemComponent = ({ title, url, icon: Icon, highlight }: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
   const isActive = location.pathname === url;
@@ -25,16 +26,23 @@ export const SidebarMenuItemComponent = ({ title, url, icon: Icon }: SidebarMenu
         isActive={isActive}
         tooltip={!open ? title : undefined}
         asChild
+        className={highlight ? "relative" : ""}
       >
         <Link to={url} className="flex items-center gap-3">
+          {highlight && !isActive && (
+            <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+          )}
           <Icon className={cn(
             "h-5 w-5",
             isActive ? 
               "text-primary" : 
-              "text-muted-foreground"
+              highlight && !isActive ? "text-amber-500" : "text-muted-foreground"
           )} />
           {open && (
-            <span className="truncate">
+            <span className={cn(
+              "truncate",
+              highlight && !isActive && "text-amber-500 font-medium"
+            )}>
               {title}
             </span>
           )}

@@ -1,4 +1,3 @@
-
 import { 
   Gift, 
   TrendingUp, 
@@ -6,7 +5,15 @@ import {
   Award, 
   ChevronRight,
   Share,
-  ExternalLink
+  ExternalLink,
+  Star,
+  Plane,
+  Hotel,
+  Ticket,
+  Car,
+  Tag,
+  Package,
+  Plus
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Rewards = () => {
   const [progress, setProgress] = useState(0);

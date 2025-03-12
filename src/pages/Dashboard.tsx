@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -31,10 +32,6 @@ const Dashboard = () => {
         </div>
         
         <div className="flex gap-3 animate-slide-down" style={{ animationDelay: "100ms" }}>
-          <Button variant="outline" className="h-10 gap-2">
-            <Plus className="h-4 w-4" />
-            Add Account
-          </Button>
           <Button 
             className="h-10 gap-2"
             onClick={() => navigate("/new-payment")}
@@ -57,7 +54,9 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <RecentTransactions />
-        <RewardStatus />
+        <div className="col-span-1 md:col-span-2">
+          <RewardStatus />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

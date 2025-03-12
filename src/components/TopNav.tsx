@@ -1,14 +1,16 @@
 
-import { Bell, Search, User } from "lucide-react";
+import { Bell, Search, User, Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const [searchFocused, setSearchFocused] = useState(false);
   const [notifications, setNotifications] = useState(3);
   
@@ -33,6 +35,19 @@ const TopNav = () => {
       </div>
       
       <div className="flex items-center gap-3">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="gap-1.5 pr-3 hidden md:flex"
+          onClick={() => navigate('/rewards')}
+        >
+          <div className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-500/10">
+            <Star className="h-3.5 w-3.5 text-amber-500" />
+          </div>
+          <span className="font-medium">24,530</span>
+          <span className="text-xs text-muted-foreground">points</span>
+        </Button>
+        
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           {notifications > 0 && (
