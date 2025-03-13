@@ -8,7 +8,6 @@ import {
   PlusCircle,
   Users,
   Wallet,
-  Shield,
   Star
 } from "lucide-react";
 
@@ -44,11 +43,6 @@ export const mainMenuItems = [
     url: "/rewards",
     icon: Star,
     highlight: true,
-  },
-  {
-    title: "User Access",
-    url: "/user-access",
-    icon: Shield,
   },
   {
     title: "Insights",

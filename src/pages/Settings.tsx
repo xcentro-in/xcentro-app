@@ -5,11 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LockIcon, UserCog, CreditCard, BellRing, Globe, Shield, User, Mail, Smartphone } from "lucide-react";
+import { LockIcon, UserCog, CreditCard, BellRing, Globe, Shield, User, Mail, Smartphone, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import LoyaltyPartnersSettings from "@/components/settings/LoyaltyPartnersSettings";
+import UserAccessTabs from "@/components/user-access/UserAccessTabs";
 import { LoyaltyPartner } from "@/types/rewards";
+import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
 import { toast } from "sonner";
 
 const Settings = () => {
@@ -66,6 +68,10 @@ const Settings = () => {
           <TabsTrigger value="account">Account</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            User Access
+          </TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="integration">Integrations</TabsTrigger>
         </TabsList>
@@ -302,6 +308,23 @@ const Settings = () => {
             <CardFooter className="flex justify-end">
               <Button>Save Preferences</Button>
             </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="users" className="space-y-6">
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Add, edit, or revoke access for team members across your organization
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserAccessTabs
+                users={mockUsers}
+                pendingInvites={mockPendingInvites}
+              />
+            </CardContent>
           </Card>
         </TabsContent>
         

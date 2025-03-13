@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,7 +17,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
-import UserAccess from "./pages/UserAccess";
 
 const queryClient = new QueryClient();
 
@@ -33,12 +33,11 @@ function App() {
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="payments" element={<Payments />} />
-                  <Route path="payments/new" element={<NewPayment />} />
+                  <Route path="new-payment" element={<NewPayment />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="wallet" element={<WalletManagement />} />
                   <Route path="insights" element={<Insights />} />
                   <Route path="settings" element={<Settings />} />
-                  <Route path="users" element={<UserAccess />} />
                   <Route path="rewards" element={<Rewards />} />
                   <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                   <Route path="rewards/redeem/:categoryId/:itemId" element={<RedemptionFlow />} />
