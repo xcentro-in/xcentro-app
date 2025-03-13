@@ -18,6 +18,7 @@ import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
 import ApprovalInbox from "./pages/ApprovalInbox";
+import TransactionDetails from "./pages/TransactionDetails";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ function App() {
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="payments" element={<Payments />} />
+                  <Route path="payments/:id" element={<TransactionDetails />} />
                   <Route path="new-payment" element={<NewPayment />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="wallet" element={<WalletManagement />} />
@@ -43,6 +45,7 @@ function App() {
                   <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                   <Route path="rewards/redeem/:categoryId/:itemId" element={<RedemptionFlow />} />
                   <Route path="approvals" element={<ApprovalInbox />} />
+                  <Route path="approvals/:id" element={<TransactionDetails />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

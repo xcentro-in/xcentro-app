@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Transaction {
   id: number;
@@ -22,6 +23,12 @@ const transactions: Transaction[] = [
 ];
 
 const RecentTransactions = () => {
+  const navigate = useNavigate();
+  
+  const handleTransactionClick = (transactionId: number) => {
+    navigate(`/payments/${transactionId}`);
+  };
+  
   return (
     <Card className="col-span-1 md:col-span-2 animate-fade-in" style={{ animationDelay: "150ms" }}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -29,14 +36,23 @@ const RecentTransactions = () => {
           <CardTitle className="text-lg font-semibold">Recent Transactions</CardTitle>
           <CardDescription>Your latest financial activities</CardDescription>
         </div>
-        <Button variant="ghost" size="sm" className="gap-1 text-sm h-8 hover:bg-transparent hover:text-primary p-0">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="gap-1 text-sm h-8 hover:bg-transparent hover:text-primary p-0"
+          onClick={() => navigate('/payments')}
+        >
           View All <ChevronRight className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-5">
           {transactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between transition-all hover:bg-muted/50 -mx-3 p-3 rounded-md cursor-pointer group">
+            <div 
+              key={transaction.id}
+              className="flex items-center justify-between transition-all hover:bg-muted/50 -mx-3 p-3 rounded-md cursor-pointer group"
+              onClick={() => handleTransactionClick(transaction.id)}
+            >
               <div className="flex items-center gap-3">
                 <div className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full",

@@ -20,3 +20,4 @@ export interface SupportTicket {
   contactInfo: string;
   attachments?: string[];
 }
+

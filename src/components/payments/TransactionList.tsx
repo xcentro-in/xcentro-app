@@ -2,6 +2,7 @@
 import { CreditCard, BanknoteIcon, CheckCircle2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Transaction {
   id: number;
@@ -17,13 +18,20 @@ interface TransactionListProps {
 }
 
 export const TransactionList = ({ transactions }: TransactionListProps) => {
+  const navigate = useNavigate();
+  
+  const handleTransactionClick = (transactionId: number) => {
+    navigate(`/payments/${transactionId}`);
+  };
+  
   return (
     <div className="divide-y">
       {transactions.length > 0 ? (
         transactions.map((transaction) => (
           <div 
             key={transaction.id}
-            className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto] items-center gap-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+            className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto] items-center gap-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer group"
+            onClick={() => handleTransactionClick(transaction.id)}
           >
             <div className="flex items-center gap-3">
               <div className={cn(

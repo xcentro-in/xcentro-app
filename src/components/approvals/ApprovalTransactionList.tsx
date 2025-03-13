@@ -36,6 +36,7 @@ import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface ApprovalTransactionListProps {
   transactions: ApprovalTransaction[];
@@ -52,6 +53,7 @@ const ApprovalTransactionList = ({
   onFlag,
   onRequestChanges
 }: ApprovalTransactionListProps) => {
+  const navigate = useNavigate();
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
   const [dialogTransaction, setDialogTransaction] = useState<ApprovalTransaction | null>(null);
   const [rejectReason, setRejectReason] = useState("");
@@ -111,6 +113,10 @@ const ApprovalTransactionList = ({
       toast.success(`Changes requested for transaction ${dialogTransaction.id}`);
       setDialogTransaction(null);
     }
+  };
+
+  const navigateToTransactionDetails = (id: string) => {
+    navigate(`/approvals/${id}`);
   };
 
   const getStatusBadge = (status: string) => {
@@ -217,17 +223,18 @@ const ApprovalTransactionList = ({
                     <Checkbox 
                       checked={selectedTransactions.includes(transaction.id)}
                       onCheckedChange={() => handleSelectTransaction(transaction.id)}
+                      onClick={(e) => e.stopPropagation()}
                     />
                   </TableCell>
                   <TableCell 
                     className="font-medium cursor-pointer hover:text-primary"
-                    onClick={() => openDetailsDialog(transaction)}
+                    onClick={() => navigateToTransactionDetails(transaction.id)}
                   >
                     {transaction.id}
                   </TableCell>
                   <TableCell 
                     className="cursor-pointer hover:text-primary"
-                    onClick={() => openDetailsDialog(transaction)}
+                    onClick={() => navigateToTransactionDetails(transaction.id)}
                   >
                     {transaction.payee}
                   </TableCell>
@@ -270,7 +277,7 @@ const ApprovalTransactionList = ({
                           size="sm" 
                           variant="ghost" 
                           className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-                          onClick={() => onApprove(transaction.id)}
+                          onClick={(e) => { e.stopPropagation(); onApprove(transaction.id); }}
                           title="Approve"
                         >
                           <CheckCircle2 className="h-4 w-4" />
@@ -279,7 +286,7 @@ const ApprovalTransactionList = ({
                           size="sm" 
                           variant="ghost" 
                           className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => openRejectDialog(transaction)}
+                          onClick={(e) => { e.stopPropagation(); openRejectDialog(transaction); }}
                           title="Reject"
                         >
                           <X className="h-4 w-4" />
@@ -288,7 +295,7 @@ const ApprovalTransactionList = ({
                           size="sm" 
                           variant="ghost" 
                           className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-                          onClick={() => onFlag(transaction.id)}
+                          onClick={(e) => { e.stopPropagation(); onFlag(transaction.id); }}
                           title="Flag for Review"
                         >
                           <Flag className="h-4 w-4" />
@@ -297,7 +304,7 @@ const ApprovalTransactionList = ({
                           size="sm" 
                           variant="ghost" 
                           className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                          onClick={() => openChangesDialog(transaction)}
+                          onClick={(e) => { e.stopPropagation(); openChangesDialog(transaction); }}
                           title="Request Changes"
                         >
                           <PenLine className="h-4 w-4" />
@@ -438,6 +445,13 @@ const ApprovalTransactionList = ({
                 </Button>
               </>
             )}
+            <Button
+              variant="default"
+              className="ml-auto"
+              onClick={() => navigateToTransactionDetails(dialogTransaction!.id)}
+            >
+              View Full Details
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
