@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -93,7 +92,6 @@ const SupportTicketForm = ({ onCancel }: SupportTicketFormProps) => {
       console.error("Error submitting form:", error);
       toast("Failed to submit ticket", {
         description: "Please try again or contact support directly.",
-        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
