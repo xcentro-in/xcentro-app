@@ -17,6 +17,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
+import ApprovalInbox from "./pages/ApprovalInbox";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function App() {
                   <Route path="rewards" element={<Rewards />} />
                   <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                   <Route path="rewards/redeem/:categoryId/:itemId" element={<RedemptionFlow />} />
+                  <Route path="approvals" element={<ApprovalInbox />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

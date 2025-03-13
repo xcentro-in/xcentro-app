@@ -8,6 +8,8 @@ import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import RewardStatus from "@/components/dashboard/RewardStatus";
 import QuickActions from "@/components/dashboard/QuickActions";
 import PaymentCalendar from "@/components/dashboard/PaymentCalendar";
+import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
+import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 
 const insights = [
   { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
@@ -17,6 +19,15 @@ const insights = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  
+  // Calculate pending and urgent approval counts
+  const pendingCount = mockApprovalTransactions.filter(
+    t => t.status === "pending" || t.status === "urgent" || t.status === "flagged"
+  ).length;
+  
+  const urgentCount = mockApprovalTransactions.filter(
+    t => t.status === "urgent"
+  ).length;
   
   return (
     <div className="space-y-8">
@@ -41,6 +52,8 @@ const Dashboard = () => {
           </Button>
         </div>
       </div>
+
+      <PendingApprovalsBanner pendingCount={pendingCount} urgentCount={urgentCount} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {insights.map((insight, index) => (

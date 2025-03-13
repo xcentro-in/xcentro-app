@@ -8,7 +8,8 @@ import {
   PlusCircle,
   Users,
   Wallet,
-  Star
+  Star,
+  CheckCircle2
 } from "lucide-react";
 
 // Main menu items
@@ -37,6 +38,12 @@ export const mainMenuItems = [
     title: "Wallet",
     url: "/wallet",
     icon: Wallet,
+  },
+  {
+    title: "Approvals",
+    url: "/approvals",
+    icon: CheckCircle2,
+    highlight: true,
   },
   {
     title: "My Rewards",
