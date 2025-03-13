@@ -1,7 +1,19 @@
 
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LockIcon, UserCog, CreditCard, BellRing, Globe, Shield, User, Mail, Smartphone, Users } from "lucide-react";
+import { 
+  LockIcon, 
+  UserCog, 
+  CreditCard, 
+  BellRing, 
+  Globe, 
+  Shield, 
+  User, 
+  Mail, 
+  Smartphone, 
+  Users,
+  HelpCircle
+} from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
 import { toast } from "sonner";
@@ -11,6 +23,7 @@ import RewardPreferences from "@/components/settings/RewardPreferences";
 import SecuritySettings from "@/components/settings/SecuritySettings";
 import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import UserAccessTabs from "@/components/user-access/UserAccessTabs";
+import SupportSettings from "@/components/settings/SupportSettings";
 
 const Settings = () => {
   const [loyaltyPartners, setLoyaltyPartners] = useState<LoyaltyPartner[]>([
@@ -64,6 +77,10 @@ const Settings = () => {
           </TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="integration">Integrations</TabsTrigger>
+          <TabsTrigger value="support" className="flex items-center gap-2">
+            <HelpCircle className="h-4 w-4" />
+            Support
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="account">
@@ -95,6 +112,10 @@ const Settings = () => {
         
         <TabsContent value="integration">
           <IntegrationSettings />
+        </TabsContent>
+        
+        <TabsContent value="support">
+          <SupportSettings />
         </TabsContent>
       </Tabs>
     </div>
