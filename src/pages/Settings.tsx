@@ -12,7 +12,8 @@ import {
   Mail, 
   Smartphone, 
   Users,
-  HelpCircle
+  HelpCircle,
+  Building
 } from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
@@ -24,6 +25,7 @@ import SecuritySettings from "@/components/settings/SecuritySettings";
 import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import UserAccessTabs from "@/components/user-access/UserAccessTabs";
 import SupportSettings from "@/components/settings/SupportSettings";
+import BusinessManagementSettings from "@/components/settings/BusinessManagementSettings";
 
 const Settings = () => {
   const [loyaltyPartners, setLoyaltyPartners] = useState<LoyaltyPartner[]>([
@@ -69,6 +71,10 @@ const Settings = () => {
       <Tabs defaultValue="account" className="w-full animate-fade-in">
         <TabsList className="mb-6">
           <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="business" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            Business
+          </TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
@@ -85,6 +91,10 @@ const Settings = () => {
         
         <TabsContent value="account">
           <AccountSettings />
+        </TabsContent>
+        
+        <TabsContent value="business">
+          <BusinessManagementSettings />
         </TabsContent>
         
         <TabsContent value="notifications">

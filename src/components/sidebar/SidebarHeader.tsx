@@ -1,29 +1,25 @@
 
-import { CreditCard, ChevronLeft, ChevronRight } from "lucide-react";
+import { CreditCard, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { 
   SidebarHeader as Header,
   SidebarTrigger,
   useSidebar
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { BusinessSwitcher } from "./BusinessSwitcher";
 
 export const SidebarHeader = () => {
   const { open } = useSidebar();
 
   return (
-    <Header className="flex items-center justify-between px-4 py-3 border-b border-border">
+    <Header className="flex flex-col py-3 border-b border-border">
       <div className={cn(
-        "flex items-center gap-2",
+        "flex items-center justify-between px-4",
         !open && "w-full justify-center" // Full width and center when collapsed
       )}>
         {open && (
           <>
-            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
-              <CreditCard className="h-5 w-5 text-white" />
-            </div>
-            <span className="font-semibold text-lg">
-              PayStrive
-            </span>
+            <BusinessSwitcher />
           </>
         )}
         <SidebarTrigger className={cn(
