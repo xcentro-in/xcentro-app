@@ -14,16 +14,32 @@ export type PaymentType = "now" | "later" | "recurring";
 interface PaymentDetailsStepProps {
   paymentType: PaymentType;
   scheduledDate?: Date;
+  amount: string;
+  description: string;
+  invoiceReference: string;
+  frequency: string;
   onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
+  onAmountChange: (value: string) => void;
+  onDescriptionChange: (value: string) => void;
+  onInvoiceReferenceChange: (value: string) => void;
+  onFrequencyChange: (value: string) => void;
   onNext: () => void;
 }
 
 export const PaymentDetailsStep = ({
   paymentType,
   scheduledDate,
+  amount,
+  description,
+  invoiceReference,
+  frequency,
   onPaymentTypeChange,
   onScheduledDateChange,
+  onAmountChange,
+  onDescriptionChange,
+  onInvoiceReferenceChange,
+  onFrequencyChange,
   onNext,
 }: PaymentDetailsStepProps) => {
   return (
@@ -74,7 +90,7 @@ export const PaymentDetailsStep = ({
       {paymentType === "recurring" && (
         <div className="space-y-2">
           <Label>Frequency</Label>
-          <Select>
+          <Select value={frequency} onValueChange={onFrequencyChange}>
             <SelectTrigger>
               <SelectValue placeholder="Select frequency" />
             </SelectTrigger>
@@ -90,17 +106,30 @@ export const PaymentDetailsStep = ({
 
       <div className="space-y-2">
         <Label>Amount</Label>
-        <Input type="number" placeholder="Enter amount" />
+        <Input 
+          type="number" 
+          placeholder="Enter amount" 
+          value={amount}
+          onChange={(e) => onAmountChange(e.target.value)}
+        />
       </div>
 
       <div className="space-y-2">
         <Label>Description</Label>
-        <Input placeholder="What is this payment for?" />
+        <Input 
+          placeholder="What is this payment for?" 
+          value={description}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+        />
       </div>
 
       <div className="space-y-2">
         <Label>Invoice Reference (Optional)</Label>
-        <Input placeholder="Enter invoice reference" />
+        <Input 
+          placeholder="Enter invoice reference" 
+          value={invoiceReference}
+          onChange={(e) => onInvoiceReferenceChange(e.target.value)}
+        />
       </div>
 
       <Button onClick={onNext} className="w-full">Continue to Payee Selection</Button>
