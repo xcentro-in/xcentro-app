@@ -22,6 +22,7 @@ import AddPaymentMethod from "./pages/AddPaymentMethod";
 import ApprovalInbox from "./pages/ApprovalInbox";
 import TransactionDetails from "./pages/TransactionDetails";
 import PaymentCalendar from "./pages/PaymentCalendar";
+import BusinessOnboarding from "./pages/BusinessOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ function App() {
                   <Route path="rewards/redeem/:categoryId/:itemId" element={<RedemptionFlow />} />
                   <Route path="approvals" element={<ApprovalInbox />} />
                   <Route path="approvals/:id" element={<TransactionDetails />} />
+                  <Route path="business-onboarding" element={<BusinessOnboarding />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

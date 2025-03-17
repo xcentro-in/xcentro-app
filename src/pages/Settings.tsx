@@ -10,13 +10,17 @@ import {
   Shield, 
   User, 
   Mail, 
-  Smartphone, 
+  Smartphone,
   Users,
-  HelpCircle
+  HelpCircle,
+  Building,
+  Plus
 } from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import AccountSettings from "@/components/settings/AccountSettings";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import RewardPreferences from "@/components/settings/RewardPreferences";
@@ -24,8 +28,10 @@ import SecuritySettings from "@/components/settings/SecuritySettings";
 import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import UserAccessTabs from "@/components/user-access/UserAccessTabs";
 import SupportSettings from "@/components/settings/SupportSettings";
+import BusinessManagement from "@/components/settings/BusinessManagement";
 
 const Settings = () => {
+  const navigate = useNavigate();
   const [loyaltyPartners, setLoyaltyPartners] = useState<LoyaltyPartner[]>([
     {
       id: "emirates",
@@ -57,6 +63,10 @@ const Settings = () => {
     setLoyaltyPartners(loyaltyPartners.filter(p => p.id !== partnerId));
   };
 
+  const handleAddBusiness = () => {
+    navigate("/business-onboarding");
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -69,6 +79,10 @@ const Settings = () => {
       <Tabs defaultValue="account" className="w-full animate-fade-in">
         <TabsList className="mb-6">
           <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsTrigger value="businesses" className="flex items-center gap-2">
+            <Building className="h-4 w-4" />
+            Businesses
+          </TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
@@ -85,6 +99,23 @@ const Settings = () => {
         
         <TabsContent value="account">
           <AccountSettings />
+        </TabsContent>
+        
+        <TabsContent value="businesses">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h2 className="text-2xl font-semibold">Business Management</h2>
+              <p className="text-muted-foreground mt-1">Manage your business profiles and add new businesses</p>
+            </div>
+            <Button 
+              className="flex items-center gap-2" 
+              onClick={handleAddBusiness}
+            >
+              <Plus className="h-4 w-4" />
+              Add New Business
+            </Button>
+          </div>
+          <BusinessManagement />
         </TabsContent>
         
         <TabsContent value="notifications">

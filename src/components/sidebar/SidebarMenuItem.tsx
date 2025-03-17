@@ -21,16 +21,19 @@ export const SidebarMenuItemComponent = ({ title, url, icon: Icon, highlight }: 
   const isActive = location.pathname === url;
 
   return (
-    <MenuItem key={title}>
+    <MenuItem key={title} className="w-full">
       <SidebarMenuButton
         isActive={isActive}
         tooltip={!open ? title : undefined}
         asChild
-        className={highlight ? "relative" : ""}
+        className={cn(
+          highlight ? "relative" : "",
+          "w-full"
+        )}
       >
         <Link to={url} className={cn(
-          "flex items-center gap-3",
-          !open && "justify-center w-full" // Center align and full width when sidebar is collapsed
+          "flex items-center gap-3 w-full",
+          !open && "justify-center" // Center align when sidebar is collapsed
         )}>
           {highlight && !isActive && (
             <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
