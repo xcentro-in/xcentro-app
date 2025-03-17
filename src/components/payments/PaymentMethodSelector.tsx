@@ -2,8 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, Plus } from "lucide-react";
+import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
@@ -67,20 +66,32 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSele
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PaymentMethodType)}>
-        <TabsList className="grid grid-cols-4 mb-4">
-          <TabsTrigger value="card" className="flex flex-col gap-1 py-3 h-auto">
+        <TabsList className="grid grid-cols-4 mb-4 w-full">
+          <TabsTrigger 
+            value="card" 
+            className="flex flex-col gap-1 py-3 h-auto w-full px-2"
+          >
             <CreditCard className="h-5 w-5" />
             <span className="text-xs">Card</span>
           </TabsTrigger>
-          <TabsTrigger value="bank" className="flex flex-col gap-1 py-3 h-auto">
+          <TabsTrigger 
+            value="bank" 
+            className="flex flex-col gap-1 py-3 h-auto w-full px-2"
+          >
             <BanknoteIcon className="h-5 w-5" />
             <span className="text-xs">Bank</span>
           </TabsTrigger>
-          <TabsTrigger value="bnpl" className="flex flex-col gap-1 py-3 h-auto">
+          <TabsTrigger 
+            value="bnpl" 
+            className="flex flex-col gap-1 py-3 h-auto w-full px-2"
+          >
             <IndianRupee className="h-5 w-5" />
             <span className="text-xs">BNPL</span>
           </TabsTrigger>
-          <TabsTrigger value="upi" className="flex flex-col gap-1 py-3 h-auto">
+          <TabsTrigger 
+            value="upi" 
+            className="flex flex-col gap-1 py-3 h-auto w-full px-2"
+          >
             <PhoneIcon className="h-5 w-5" />
             <span className="text-xs">UPI</span>
           </TabsTrigger>
@@ -126,11 +137,6 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSele
                 No {tabType} payment methods found
               </div>
             )}
-            
-            <Button variant="outline" className="w-full flex items-center justify-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add New {activeTab.toUpperCase()} Payment Method
-            </Button>
           </TabsContent>
         ))}
       </Tabs>
