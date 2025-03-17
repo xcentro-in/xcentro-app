@@ -28,7 +28,10 @@ export const SidebarMenuItemComponent = ({ title, url, icon: Icon, highlight }: 
         asChild
         className={highlight ? "relative" : ""}
       >
-        <Link to={url} className="flex items-center gap-3">
+        <Link to={url} className={cn(
+          "flex items-center gap-3",
+          !open && "justify-center" // Center align when sidebar is collapsed
+        )}>
           {highlight && !isActive && (
             <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
           )}

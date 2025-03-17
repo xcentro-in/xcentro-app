@@ -13,15 +13,20 @@ export const SidebarHeader = () => {
   return (
     <Header className="flex items-center justify-between px-4 py-3 border-b border-border">
       <div className="flex items-center gap-2">
-        <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
-          <CreditCard className="h-5 w-5 text-white" />
-        </div>
         {open && (
-          <span className="font-semibold text-lg">
-            PayStrive
-          </span>
+          <>
+            <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
+              <CreditCard className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-semibold text-lg">
+              PayStrive
+            </span>
+          </>
         )}
-        <SidebarTrigger className="flex items-center justify-center p-1 rounded-md hover:bg-accent transition-colors">
+        <SidebarTrigger className={cn(
+          "flex items-center justify-center p-1 rounded-md hover:bg-accent transition-colors",
+          !open && "mx-auto" // Center when collapsed
+        )}>
           {open ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </SidebarTrigger>
       </div>
