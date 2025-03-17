@@ -12,7 +12,10 @@ export const SidebarHeader = () => {
 
   return (
     <Header className="flex items-center justify-between px-4 py-3 border-b border-border">
-      <div className="flex items-center gap-2">
+      <div className={cn(
+        "flex items-center gap-2",
+        !open && "w-full justify-center" // Full width and center when collapsed
+      )}>
         {open && (
           <>
             <div className="h-8 w-8 rounded-md bg-primary flex items-center justify-center">
