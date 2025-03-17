@@ -30,8 +30,9 @@ interface LoyaltyPartnerFormProps {
   onCancel: () => void;
 }
 
-// Sample partner suggestions for each type
-const partnerSuggestions = {
+type PartnerType = "airline" | "hotel" | "car" | "other";
+
+const partnerSuggestions: Record<PartnerType, { value: string, label: string }[]> = {
   airline: [
     { value: "emirates", label: "Emirates Skywards" },
     { value: "delta", label: "Delta SkyMiles" },
@@ -67,7 +68,9 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   onSave, 
   onCancel 
 }) => {
-  const [selectedType, setSelectedType] = useState<string>(initialData?.type || "");
+  const [selectedType, setSelectedType] = useState<PartnerType | undefined>(
+    initialData?.type as PartnerType || undefined
+  );
   const [currentSuggestions, setCurrentSuggestions] = useState<{value: string, label: string}[]>([]);
   const [open, setOpen] = useState(false);
   
@@ -75,8 +78,7 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
     defaultValues: initialData || {
       id: `partner-${Date.now()}`,
       name: "",
-      type: "",
-      conversionRatio: 0.5, // Default value, but removed from UI
+      type: "other",
       category: "",
       membershipDetails: {
         membershipNumber: "",
@@ -86,21 +88,20 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
     }
   });
 
-  // Update suggestions when type changes
   useEffect(() => {
-    if (selectedType && partnerSuggestions[selectedType as keyof typeof partnerSuggestions]) {
-      setCurrentSuggestions(partnerSuggestions[selectedType as keyof typeof partnerSuggestions]);
+    if (selectedType && partnerSuggestions[selectedType]) {
+      setCurrentSuggestions(partnerSuggestions[selectedType]);
     } else {
       setCurrentSuggestions([]);
     }
   }, [selectedType]);
 
   const handleTypeChange = (value: string) => {
-    setSelectedType(value);
-    form.setValue("type", value);
+    const partnerType = value as PartnerType;
+    setSelectedType(partnerType);
+    form.setValue("type", partnerType);
     
-    // Set category based on type
-    switch(value) {
+    switch(partnerType) {
       case "airline":
         form.setValue("category", "flights");
         break;
@@ -121,7 +122,6 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   };
 
   const handleSubmit = (data: LoyaltyPartner) => {
-    // Keep conversionRatio even though it's not in the UI
     onSave({
       ...data,
       conversionRatio: initialData?.conversionRatio || 0.5
@@ -151,7 +151,7 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
               <FormItem>
                 <FormLabel>Partner Type</FormLabel>
                 <Select 
-                  onValueChange={(value) => handleTypeChange(value)} 
+                  onValueChange={handleTypeChange} 
                   defaultValue={field.value}
                 >
                   <FormControl>
