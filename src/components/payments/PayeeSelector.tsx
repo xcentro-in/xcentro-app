@@ -62,22 +62,25 @@ const PayeeSelector = ({
       
       <div className="flex flex-col space-y-4">
         <PayeeTabs activeTab={activeTab} setActiveTab={setActiveTab}>
-          <div className="flex items-center justify-between">
-            <PayeeTypeFilter filterType={filterType} setFilterType={setFilterType} />
-          </div>
-
-          <PayeeSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-          
-          <div className="max-h-[320px] overflow-y-auto border rounded-md">
-            <PayeeList 
-              filteredPayees={filteredPayees}
-              activeTab={activeTab}
-              recentPayeeIds={recentPayeeIds}
-              selectedPayee={selectedPayee}
-              setSelectedPayee={setSelectedPayee}
-              favoritePayees={favoritePayees}
-              toggleFavorite={toggleFavorite}
-            />
+          <div className="flex flex-col space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <PayeeSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+              </div>
+              <PayeeTypeFilter filterType={filterType} setFilterType={setFilterType} />
+            </div>
+            
+            <div className="max-h-[320px] overflow-y-auto border rounded-md">
+              <PayeeList 
+                filteredPayees={filteredPayees}
+                activeTab={activeTab}
+                recentPayeeIds={recentPayeeIds}
+                selectedPayee={selectedPayee}
+                setSelectedPayee={setSelectedPayee}
+                favoritePayees={favoritePayees}
+                toggleFavorite={toggleFavorite}
+              />
+            </div>
           </div>
         </PayeeTabs>
       </div>
