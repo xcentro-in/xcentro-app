@@ -8,6 +8,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import Dashboard from "./pages/Dashboard";
 import Payments from "./pages/Payments";
 import Rewards from "./pages/Rewards";
+import RewardsHistory from "./pages/RewardsHistory";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Insights from "./pages/Insights";
 import Settings from "./pages/Settings";
@@ -42,6 +43,7 @@ function App() {
                   <Route path="insights" element={<Insights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="rewards" element={<Rewards />} />
+                  <Route path="rewards/history" element={<RewardsHistory />} />
                   <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                   <Route path="rewards/redeem/:categoryId/:itemId" element={<RedemptionFlow />} />
                   <Route path="approvals" element={<ApprovalInbox />} />

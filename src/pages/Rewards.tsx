@@ -8,7 +8,6 @@ import RedemptionOptions from "@/components/rewards/RedemptionOptions";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
 import RedemptionCategoryDialog from "@/components/rewards/dialog/RedemptionCategoryDialog";
-import { redemptionCategories } from "@/data/redemptionCategories";
 
 const Rewards = () => {
   const navigate = useNavigate();
@@ -32,6 +31,10 @@ const Rewards = () => {
       // Open category selection dialog if no specific category
       setRedeemDialogOpen(true);
     }
+  };
+
+  const handleViewHistory = () => {
+    navigate("/rewards/history");
   };
 
   return (
