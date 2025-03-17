@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { PaymentDetailsStep, PaymentType } from "./PaymentDetailsStep";
 import { PaymentSummary } from "./PaymentSummary";
+import PaymentMethodSelector from "./PaymentMethodSelector";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;
@@ -14,6 +15,8 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
+  const [selectedPayee, setSelectedPayee] = useState<string>();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
   
   const handleNext = () => {
     const nextStep = step + 1;
@@ -43,7 +46,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Select Payee</Label>
-            <Select>
+            <Select value={selectedPayee} onValueChange={setSelectedPayee}>
               <SelectTrigger>
                 <SelectValue placeholder="Choose a payee" />
               </SelectTrigger>
@@ -58,30 +61,29 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleBack} className="flex-1">Back</Button>
-            <Button onClick={handleNext} className="flex-1">Continue to Payment Method</Button>
+            <Button onClick={handleNext} className="flex-1" disabled={!selectedPayee}>Continue to Payment Method</Button>
           </div>
         </div>
       )}
 
       {step === 3 && (
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Payment Method</Label>
-            <Select>
-              <SelectTrigger>
-                <SelectValue placeholder="Choose payment method" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">+ Add New Payment Method</SelectItem>
-                <SelectItem value="card1">Corporate Visa •••• 4242</SelectItem>
-                <SelectItem value="bank1">Business Checking •••• 8790</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <h3 className="font-medium mb-2">Select Payment Method</h3>
+          
+          <PaymentMethodSelector 
+            onSelect={setSelectedPaymentMethod}
+            selectedMethodId={selectedPaymentMethod}
+          />
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 mt-6">
             <Button variant="outline" onClick={handleBack} className="flex-1">Back</Button>
-            <Button onClick={handleNext} className="flex-1">Review Payment</Button>
+            <Button 
+              onClick={handleNext} 
+              className="flex-1"
+              disabled={!selectedPaymentMethod}
+            >
+              Review Payment
+            </Button>
           </div>
         </div>
       )}
