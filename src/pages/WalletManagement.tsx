@@ -1,10 +1,11 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
+import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, ShieldCheck, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import PaymentMethodCard from "@/components/wallet/PaymentMethodCard";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
@@ -131,12 +132,15 @@ const WalletManagement = () => {
         </CardContent>
       </Card>
       
-      <div className="border-t py-4 mt-4">
-        <p className="text-sm text-muted-foreground">
-          📌 <strong>Note:</strong> For security, card numbers are masked and CVV values are never stored. 
-          All payment data is encrypted and stored in compliance with PCI DSS standards.
-        </p>
-      </div>
+      <Alert className="bg-primary/5 border-primary/20 shadow-sm">
+        <ShieldCheck className="h-5 w-5 text-primary" />
+        <AlertDescription className="flex items-center text-sm font-medium text-primary/90">
+          <span>
+            For security, card numbers are masked and CVV values are never stored. 
+            All payment data is encrypted and stored in compliance with PCI DSS standards.
+          </span>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 };
