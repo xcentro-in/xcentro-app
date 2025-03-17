@@ -1,7 +1,7 @@
 
 import { LoyaltyPartner } from "@/types/rewards";
 
-export type PartnerType = "airline" | "hotel" | "car" | "other";
+export type PartnerType = "airline" | "hotel" | "car";
 
 export const partnerSuggestions: Record<PartnerType, { value: string, label: string }[]> = {
   airline: [
@@ -26,20 +26,14 @@ export const partnerSuggestions: Record<PartnerType, { value: string, label: str
     { value: "enterprise", label: "Enterprise Plus" },
     { value: "budget", label: "Budget Fastbreak" },
   ],
-  other: [
-    { value: "amex", label: "American Express Membership Rewards" },
-    { value: "chase", label: "Chase Ultimate Rewards" },
-    { value: "starbucks", label: "Starbucks Rewards" },
-    { value: "target", label: "Target Circle" },
-  ]
 };
 
 export const getDefaultPartnerValues = (partnerId?: string): Partial<LoyaltyPartner> => {
   return {
     id: partnerId || `partner-${Date.now()}`,
     name: "",
-    type: "other",
-    category: "",
+    type: "airline",
+    category: "flights",
     membershipDetails: {
       membershipNumber: "",
       registeredName: "",
@@ -57,6 +51,6 @@ export const getCategoryFromType = (type: PartnerType): string => {
     case "car":
       return "travel";
     default:
-      return "business";
+      return "travel";
   }
 };

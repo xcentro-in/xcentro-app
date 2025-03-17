@@ -29,7 +29,7 @@ interface PartnerNameSelectorProps {
 
 const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({ 
   form, 
-  suggestions,
+  suggestions = [],
   open,
   setOpen,
   onPartnerSelect
@@ -64,7 +64,7 @@ const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({
                 <CommandInput placeholder="Search partner..." />
                 <CommandEmpty>No partner found.</CommandEmpty>
                 <CommandGroup>
-                  {suggestions.map((partner) => (
+                  {Array.isArray(suggestions) && suggestions.map((partner) => (
                     <CommandItem
                       key={partner.value}
                       value={partner.value}

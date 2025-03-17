@@ -22,8 +22,8 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   onSave, 
   onCancel 
 }) => {
-  const [selectedType, setSelectedType] = useState<PartnerType | undefined>(
-    initialData?.type as PartnerType || undefined
+  const [selectedType, setSelectedType] = useState<PartnerType>(
+    (initialData?.type as PartnerType) || "airline"
   );
   const [currentSuggestions, setCurrentSuggestions] = useState<{value: string, label: string}[]>([]);
   const [open, setOpen] = useState(false);

@@ -39,7 +39,6 @@ const PartnerTypeSelector: React.FC<PartnerTypeSelectorProps> = ({
               <SelectItem value="airline">Airline</SelectItem>
               <SelectItem value="hotel">Hotel</SelectItem>
               <SelectItem value="car">Car Rental</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />
