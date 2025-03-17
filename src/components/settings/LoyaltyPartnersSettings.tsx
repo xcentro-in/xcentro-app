@@ -1,15 +1,11 @@
 
 import React, { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { LoyaltyPartner } from "@/types/rewards";
-import { Plus, Edit, Trash2, Check } from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import LoyaltyPartnerForm from "./LoyaltyPartnerForm";
 
 interface LoyaltyPartnersSettingsProps {
   savedPartners: LoyaltyPartner[];
@@ -25,43 +21,12 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
   
-  // Update the form's default values to match the LoyaltyPartner type
-  const form = useForm<LoyaltyPartner>({
-    defaultValues: {
-      id: "",
-      name: "",
-      type: "airline",
-      conversionRatio: 0.5,
-      category: "flights",
-      membershipDetails: {
-        membershipNumber: "",
-        registeredName: "",
-        email: "",
-        preferredSettings: "",
-      }
-    }
-  });
-
   const handleAddNew = () => {
     setIsAdding(true);
-    form.reset({
-      id: `partner-${Date.now()}`,
-      name: "",
-      type: "airline",
-      conversionRatio: 0.5,
-      category: "flights",
-      membershipDetails: {
-        membershipNumber: "",
-        registeredName: "",
-        email: "",
-        preferredSettings: "",
-      }
-    });
   };
 
-  const handleEdit = (partner: LoyaltyPartner) => {
-    setEditingPartnerId(partner.id);
-    form.reset(partner);
+  const handleEdit = (partnerId: string) => {
+    setEditingPartnerId(partnerId);
   };
 
   const handleSave = (data: LoyaltyPartner) => {
@@ -69,13 +34,11 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
     toast.success(`Partner ${data.name} saved successfully!`);
     setIsAdding(false);
     setEditingPartnerId(null);
-    form.reset();
   };
 
   const handleCancel = () => {
     setIsAdding(false);
     setEditingPartnerId(null);
-    form.reset();
   };
 
   const handleDelete = (partnerId: string) => {
@@ -104,115 +67,11 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
             {savedPartners.map((partner) => (
               <div key={partner.id} className="flex items-center justify-between p-3 rounded-md border">
                 {editingPartnerId === partner.id ? (
-                  <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSave)} className="w-full space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="name"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Partner Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Emirates Skywards" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="type"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Partner Type</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select partner type" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="airline">Airline</SelectItem>
-                                  <SelectItem value="hotel">Hotel</SelectItem>
-                                  <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="conversionRatio"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Conversion Ratio</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  step="0.1" 
-                                  placeholder="0.5" 
-                                  {...field} 
-                                  onChange={e => field.onChange(parseFloat(e.target.value))}
-                                />
-                              </FormControl>
-                              <FormDescription>
-                                Partner points per 1 PaySphere point
-                              </FormDescription>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="membershipDetails.membershipNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Membership Number</FormLabel>
-                              <FormControl>
-                                <Input placeholder="ABC1234567" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="membershipDetails.registeredName"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Registered Name</FormLabel>
-                              <FormControl>
-                                <Input placeholder="John Doe" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="membershipDetails.email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Registered Email</FormLabel>
-                              <FormControl>
-                                <Input type="email" placeholder="john@example.com" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                      
-                      <div className="flex justify-end gap-2 mt-4">
-                        <Button variant="outline" type="button" onClick={handleCancel}>Cancel</Button>
-                        <Button type="submit">Save Changes</Button>
-                      </div>
-                    </form>
-                  </Form>
+                  <LoyaltyPartnerForm
+                    initialData={partner}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                  />
                 ) : (
                   <>
                     <div className="flex items-center gap-3">
@@ -227,7 +86,7 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(partner)}>
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(partner.id)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(partner.id)}>
@@ -242,117 +101,10 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
         )}
 
         {isAdding && (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSave)} className="space-y-4 border rounded-md p-4">
-              <h3 className="font-medium">Add New Partner</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Partner Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Emirates Skywards" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Partner Type</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select partner type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="airline">Airline</SelectItem>
-                          <SelectItem value="hotel">Hotel</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="conversionRatio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Conversion Ratio</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.1" 
-                          placeholder="0.5" 
-                          {...field} 
-                          onChange={e => field.onChange(parseFloat(e.target.value))}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Partner points per 1 PaySphere point
-                      </FormDescription>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="membershipDetails.membershipNumber"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Membership Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ABC1234567" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="membershipDetails.registeredName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registered Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="membershipDetails.email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Registered Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="john@example.com" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              <div className="flex justify-end gap-2 mt-4">
-                <Button variant="outline" type="button" onClick={handleCancel}>Cancel</Button>
-                <Button type="submit">Save Partner</Button>
-              </div>
-            </form>
-          </Form>
+          <LoyaltyPartnerForm
+            onSave={handleSave}
+            onCancel={handleCancel}
+          />
         )}
 
         {savedPartners.length > 0 && !isAdding && !editingPartnerId && (
