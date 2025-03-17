@@ -1,10 +1,13 @@
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { LoyaltyPartner } from "@/types/rewards";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import LoyaltyPartnerForm from "./LoyaltyPartnerForm";
+import PartnerDisplayList from "./loyalty/PartnerDisplayList";
+import EmptyPartnerState from "./loyalty/EmptyPartnerState";
 
 interface LoyaltyPartnersSettingsProps {
   savedPartners: LoyaltyPartner[];
@@ -55,48 +58,18 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         {savedPartners.length === 0 && !isAdding && (
-          <div className="text-center p-6 border border-dashed rounded-md">
-            <p className="text-muted-foreground">No loyalty partners connected yet</p>
-            <Button onClick={handleAddNew} className="mt-4">Add Your First Partner</Button>
-          </div>
+          <EmptyPartnerState onAddNew={handleAddNew} />
         )}
 
         {savedPartners.length > 0 && (
-          <div className="space-y-3">
-            {savedPartners.map((partner) => (
-              <div key={partner.id} className="flex items-center justify-between p-3 rounded-md border">
-                {editingPartnerId === partner.id ? (
-                  <LoyaltyPartnerForm
-                    initialData={partner}
-                    onSave={handleSave}
-                    onCancel={handleCancel}
-                  />
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center font-semibold text-sm">
-                        {partner.name.substring(0, 2)}
-                      </div>
-                      <div>
-                        <div className="font-medium">{partner.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {partner.membershipDetails?.membershipNumber || "No membership number"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(partner.id)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(partner.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
+          <PartnerDisplayList
+            partners={savedPartners}
+            editingPartnerId={editingPartnerId}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            onDelete={handleDelete}
+          />
         )}
 
         {isAdding && (
