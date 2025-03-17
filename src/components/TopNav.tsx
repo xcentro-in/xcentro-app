@@ -1,5 +1,5 @@
 
-import { Bell, Search, LogOut, ChevronDown } from "lucide-react";
+import { Bell, Search, LogOut, ChevronDown, Settings, User, CreditCard, Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Star } from "lucide-react";
 import LogoutConfirmationDialog from "./LogoutConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
 
@@ -86,36 +85,56 @@ const TopNav = () => {
         
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Avatar className="h-8 w-8 transition-transform hover:scale-105">
-                <AvatarFallback className="bg-primary/10 text-primary">JD</AvatarFallback>
-              </Avatar>
-              {!isMobile && (
-                <div className="flex items-center">
-                  <div className="flex flex-col mr-1">
-                    <span className="text-sm font-medium">John Doe</span>
-                    <span className="text-xs text-muted-foreground">ABC Company</span>
+            <Button 
+              variant="ghost" 
+              className="h-9 px-2 py-1.5 rounded-lg hover:bg-accent transition-colors"
+            >
+              <div className="flex items-center gap-2 cursor-pointer">
+                <Avatar className="h-7 w-7 transition-transform hover:scale-105">
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">JD</AvatarFallback>
+                </Avatar>
+                {!isMobile && (
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium leading-none">John Doe</span>
+                    <span className="text-xs text-muted-foreground leading-tight">ABC Company</span>
                   </div>
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                </div>
-              )}
-            </div>
+                )}
+                <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
+              </div>
+            </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate('/settings')}>
+          <DropdownMenuContent 
+            align="end" 
+            className="w-56 bg-popover shadow-lg rounded-lg border border-border p-1 mt-1"
+          >
+            <DropdownMenuLabel className="px-3 py-2 text-sm font-semibold">
+              My Account
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="my-1" />
+            <DropdownMenuItem 
+              className="flex items-center px-3 py-2 cursor-pointer"
+              onClick={() => navigate('/settings')}
+            >
+              <User className="h-4 w-4 mr-2" />
               Profile Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/wallet')}>
+            <DropdownMenuItem 
+              className="flex items-center px-3 py-2 cursor-pointer"
+              onClick={() => navigate('/wallet')}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
               Manage Payment Methods
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/rewards')}>
+            <DropdownMenuItem 
+              className="flex items-center px-3 py-2 cursor-pointer"
+              onClick={() => navigate('/rewards')}
+            >
+              <Star className="h-4 w-4 mr-2" />
               My Rewards
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem 
-              className="text-destructive focus:text-destructive"
+              className="flex items-center px-3 py-2 cursor-pointer text-destructive hover:text-destructive focus:text-destructive"
               onClick={() => setLogoutDialogOpen(true)}
             >
               <LogOut className="h-4 w-4 mr-2" />
