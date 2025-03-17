@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Building, Check, Upload, FileText } from "lucide-react";
@@ -75,13 +74,21 @@ const BusinessOnboarding = () => {
   };
   
   const updateNestedFormData = (parent: string, field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [parent]: {
-        ...prev[parent as keyof BusinessFormData],
-        [field]: value
+    setFormData(prev => {
+      // Using type assertion to avoid spread type error
+      const parentObj = prev[parent as keyof typeof prev];
+      
+      if (typeof parentObj === 'object' && parentObj !== null) {
+        return {
+          ...prev,
+          [parent]: {
+            ...parentObj,
+            [field]: value
+          }
+        };
       }
-    }));
+      return prev;
+    });
   };
   
   return (
