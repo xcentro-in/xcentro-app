@@ -6,7 +6,7 @@ import { ApprovalTransaction } from "@/types/approval";
 interface ApprovalTransactionActionsProps {
   transaction: ApprovalTransaction;
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (transaction: ApprovalTransaction) => void;
   onFlag: (id: string) => void;
   onRequestChanges: (transaction: ApprovalTransaction) => void;
 }
@@ -39,7 +39,7 @@ const ApprovalTransactionActions = ({
         size="sm" 
         variant="ghost" 
         className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-        onClick={(e) => { e.stopPropagation(); onReject(transaction.id); }}
+        onClick={(e) => { e.stopPropagation(); onReject(transaction); }}
         title="Reject"
       >
         <X className="h-4 w-4" />
