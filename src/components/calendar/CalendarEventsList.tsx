@@ -39,7 +39,7 @@ const CalendarEventsList: React.FC<CalendarEventsListProps> = ({
           <TooltipTrigger asChild>
             <div 
               className={`
-                p-2 rounded border text-sm cursor-pointer
+                p-1.5 rounded border text-xs cursor-pointer
                 ${getStatusColor(event.status)}
                 hover:shadow-sm transition-shadow
               `}
@@ -51,13 +51,13 @@ const CalendarEventsList: React.FC<CalendarEventsListProps> = ({
                   <span className="truncate">{event.title}</span>
                 </div>
                 {event.time && (
-                  <div className="text-xs opacity-80">{event.time}</div>
+                  <div className="text-[10px] opacity-80">{event.time}</div>
                 )}
               </div>
-              <div className="font-semibold mt-1">
+              <div className="font-semibold mt-0.5">
                 ${event.amount.toLocaleString()}
               </div>
-              <div className="flex items-center justify-between mt-1 text-xs">
+              <div className="flex items-center justify-between mt-0.5 text-[10px]">
                 <span className="capitalize">{event.status.replace('_', ' ')}</span>
                 <span className="capitalize">{event.type}</span>
               </div>
