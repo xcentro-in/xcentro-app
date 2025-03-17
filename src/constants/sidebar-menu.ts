@@ -9,7 +9,8 @@ import {
   Users,
   Wallet,
   Star,
-  CheckCircle2
+  CheckCircle2,
+  CalendarDays
 } from "lucide-react";
 
 // Main menu items
@@ -28,6 +29,11 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
+  },
+  {
+    title: "Payment Calendar",
+    url: "/payment-calendar",
+    icon: CalendarDays,
   },
   {
     title: "Manage Payees",

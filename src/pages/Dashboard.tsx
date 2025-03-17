@@ -7,9 +7,10 @@ import InsightCard from "@/components/dashboard/InsightCard";
 import RecentTransactions from "@/components/dashboard/RecentTransactions";
 import RewardStatus from "@/components/dashboard/RewardStatus";
 import QuickActions from "@/components/dashboard/QuickActions";
-import PaymentCalendar from "@/components/dashboard/PaymentCalendar";
+import DashboardCalendarWidget from "@/components/calendar/DashboardCalendarWidget";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
+import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 
 const insights = [
   { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
@@ -74,7 +75,9 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <QuickActions />
-        <PaymentCalendar />
+        <div className="col-span-1 md:col-span-2">
+          <DashboardCalendarWidget transactions={mockCalendarTransactions} />
+        </div>
       </div>
     </div>
   );

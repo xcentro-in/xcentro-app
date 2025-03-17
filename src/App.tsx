@@ -20,6 +20,7 @@ import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
 import ApprovalInbox from "./pages/ApprovalInbox";
 import TransactionDetails from "./pages/TransactionDetails";
+import PaymentCalendar from "./pages/PaymentCalendar";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ function App() {
                   <Route path="payments" element={<Payments />} />
                   <Route path="payments/:id" element={<TransactionDetails />} />
                   <Route path="new-payment" element={<NewPayment />} />
+                  <Route path="payment-calendar" element={<PaymentCalendar />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="wallet" element={<WalletManagement />} />
                   <Route path="insights" element={<Insights />} />
