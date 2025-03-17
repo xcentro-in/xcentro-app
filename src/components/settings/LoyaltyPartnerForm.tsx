@@ -1,67 +1,21 @@
+
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { LoyaltyPartner } from "@/types/rewards";
 import { X } from "lucide-react";
-import { toast } from "sonner";
-import { 
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { PartnerType, partnerSuggestions, getDefaultPartnerValues, getCategoryFromType } from "./loyalty/partnerData";
+import PartnerTypeSelector from "./loyalty/PartnerTypeSelector";
+import PartnerNameSelector from "./loyalty/PartnerNameSelector";
+import MembershipDetailsForm from "./loyalty/MembershipDetailsForm";
 
 interface LoyaltyPartnerFormProps {
   initialData?: LoyaltyPartner;
   onSave: (partner: LoyaltyPartner) => void;
   onCancel: () => void;
 }
-
-type PartnerType = "airline" | "hotel" | "car" | "other";
-
-const partnerSuggestions: Record<PartnerType, { value: string, label: string }[]> = {
-  airline: [
-    { value: "emirates", label: "Emirates Skywards" },
-    { value: "delta", label: "Delta SkyMiles" },
-    { value: "airIndia", label: "Air India Flying Returns" },
-    { value: "united", label: "United MileagePlus" },
-    { value: "lufthansa", label: "Lufthansa Miles & More" },
-    { value: "british", label: "British Airways Executive Club" },
-  ],
-  hotel: [
-    { value: "marriott", label: "Marriott Bonvoy" },
-    { value: "hilton", label: "Hilton Honors" },
-    { value: "hyatt", label: "World of Hyatt" },
-    { value: "ihg", label: "IHG One Rewards" },
-    { value: "accor", label: "Accor Live Limitless" },
-    { value: "radisson", label: "Radisson Rewards" },
-  ],
-  car: [
-    { value: "hertz", label: "Hertz Gold Plus Rewards" },
-    { value: "avis", label: "Avis Preferred" },
-    { value: "enterprise", label: "Enterprise Plus" },
-    { value: "budget", label: "Budget Fastbreak" },
-  ],
-  other: [
-    { value: "amex", label: "American Express Membership Rewards" },
-    { value: "chase", label: "Chase Ultimate Rewards" },
-    { value: "starbucks", label: "Starbucks Rewards" },
-    { value: "target", label: "Target Circle" },
-  ]
-};
 
 const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({ 
   initialData, 
@@ -75,17 +29,7 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   const [open, setOpen] = useState(false);
   
   const form = useForm<LoyaltyPartner>({
-    defaultValues: initialData || {
-      id: `partner-${Date.now()}`,
-      name: "",
-      type: "other",
-      category: "",
-      membershipDetails: {
-        membershipNumber: "",
-        registeredName: "",
-        email: ""
-      }
-    }
+    defaultValues: initialData || getDefaultPartnerValues()
   });
 
   useEffect(() => {
@@ -96,24 +40,10 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
     }
   }, [selectedType]);
 
-  const handleTypeChange = (value: string) => {
-    const partnerType = value as PartnerType;
-    setSelectedType(partnerType);
-    form.setValue("type", partnerType);
-    
-    switch(partnerType) {
-      case "airline":
-        form.setValue("category", "flights");
-        break;
-      case "hotel":
-        form.setValue("category", "hotels");
-        break;
-      case "car":
-        form.setValue("category", "travel");
-        break;
-      default:
-        form.setValue("category", "business");
-    }
+  const handleTypeChange = (type: PartnerType) => {
+    setSelectedType(type);
+    form.setValue("type", type);
+    form.setValue("category", getCategoryFromType(type));
   };
 
   const handlePartnerSelect = (value: string, label: string) => {
@@ -144,134 +74,20 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
             </Button>
           </div>
           
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Partner Type</FormLabel>
-                <Select 
-                  onValueChange={handleTypeChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select partner type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="airline">Airline</SelectItem>
-                    <SelectItem value="hotel">Hotel</SelectItem>
-                    <SelectItem value="car">Car Rental</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <PartnerTypeSelector form={form} onTypeChange={handleTypeChange} />
 
           {selectedType && (
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Partner Name</FormLabel>
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={open}
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value
-                            ? field.value
-                            : "Select partner"}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[300px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search partner..." />
-                        <CommandEmpty>No partner found.</CommandEmpty>
-                        <CommandGroup>
-                          {currentSuggestions.map((partner) => (
-                            <CommandItem
-                              key={partner.value}
-                              value={partner.value}
-                              onSelect={() => handlePartnerSelect(partner.value, partner.label)}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  field.value === partner.label
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {partner.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <PartnerNameSelector 
+              form={form} 
+              suggestions={currentSuggestions}
+              open={open}
+              setOpen={setOpen}
+              onPartnerSelect={handlePartnerSelect}
             />
           )}
 
           {selectedType && form.watch("name") && (
-            <>
-              <FormField
-                control={form.control}
-                name="membershipDetails.membershipNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Membership Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ABC1234567" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="membershipDetails.registeredName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registered Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="membershipDetails.email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Registered Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="john@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </>
+            <MembershipDetailsForm form={form} />
           )}
           
           <div className="flex justify-end gap-2 mt-4">
