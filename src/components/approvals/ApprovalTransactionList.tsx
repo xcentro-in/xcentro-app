@@ -110,6 +110,12 @@ const ApprovalTransactionList = ({
     }
   };
 
+  // These wrapper functions ensure we're passing the correct parameter types
+  const handleRowApprove = (id: string) => onApprove(id);
+  const handleRowReject = (transaction: ApprovalTransaction) => openRejectDialog(transaction);
+  const handleRowFlag = (id: string) => onFlag(id);
+  const handleRowRequestChanges = (transaction: ApprovalTransaction) => openChangesDialog(transaction);
+
   return (
     <>
       {transactions.length > 0 ? (
@@ -145,10 +151,10 @@ const ApprovalTransactionList = ({
                   isSelected={selectedTransactions.includes(transaction.id)}
                   onSelectTransaction={handleSelectTransaction}
                   onRowClick={openDetailsDialog}
-                  onApprove={onApprove}
-                  onReject={openRejectDialog}
-                  onFlag={onFlag}
-                  onRequestChanges={openChangesDialog}
+                  onApprove={handleRowApprove}
+                  onReject={handleRowReject}
+                  onFlag={handleRowFlag}
+                  onRequestChanges={handleRowRequestChanges}
                 />
               ))}
             </TableBody>

@@ -12,9 +12,9 @@ interface ApprovalTransactionRowProps {
   transaction: ApprovalTransaction;
   isSelected: boolean;
   onSelectTransaction: (id: string) => void;
-  onRowClick: (id: string) => void;
+  onRowClick: (transaction: ApprovalTransaction) => void;
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
+  onReject: (transaction: ApprovalTransaction) => void;
   onFlag: (id: string) => void;
   onRequestChanges: (transaction: ApprovalTransaction) => void;
 }
@@ -46,13 +46,13 @@ const ApprovalTransactionRow = ({
       </TableCell>
       <TableCell 
         className="font-medium cursor-pointer hover:text-primary"
-        onClick={() => onRowClick(transaction.id)}
+        onClick={() => onRowClick(transaction)}
       >
         {transaction.id}
       </TableCell>
       <TableCell 
         className="cursor-pointer hover:text-primary"
-        onClick={() => onRowClick(transaction.id)}
+        onClick={() => onRowClick(transaction)}
       >
         {transaction.payee}
       </TableCell>
