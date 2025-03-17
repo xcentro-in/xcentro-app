@@ -69,39 +69,31 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSele
         <TabsList className="grid grid-cols-4 mb-4 w-full">
           <TabsTrigger 
             value="card" 
-            className="flex items-center gap-2 py-2 h-auto w-full"
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
           >
-            <div className="flex items-center gap-1">
-              <CreditCard className="h-4 w-4" />
-              <span>Card</span>
-            </div>
+            <CreditCard className="h-4 w-4" />
+            <span className="text-xs">Card</span>
           </TabsTrigger>
           <TabsTrigger 
             value="bank" 
-            className="flex items-center gap-2 py-2 h-auto w-full"
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
           >
-            <div className="flex items-center gap-1">
-              <BanknoteIcon className="h-4 w-4" />
-              <span>Bank</span>
-            </div>
+            <BanknoteIcon className="h-4 w-4" />
+            <span className="text-xs">Bank</span>
           </TabsTrigger>
           <TabsTrigger 
             value="bnpl" 
-            className="flex items-center gap-2 py-2 h-auto w-full"
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
           >
-            <div className="flex items-center gap-1">
-              <IndianRupee className="h-4 w-4" />
-              <span>BNPL</span>
-            </div>
+            <IndianRupee className="h-4 w-4" />
+            <span className="text-xs">BNPL</span>
           </TabsTrigger>
           <TabsTrigger 
             value="upi" 
-            className="flex items-center gap-2 py-2 h-auto w-full"
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
           >
-            <div className="flex items-center gap-1">
-              <PhoneIcon className="h-4 w-4" />
-              <span>UPI</span>
-            </div>
+            <PhoneIcon className="h-4 w-4" />
+            <span className="text-xs">UPI</span>
           </TabsTrigger>
         </TabsList>
         
