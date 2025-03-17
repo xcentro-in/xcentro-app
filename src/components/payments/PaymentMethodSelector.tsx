@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
+import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, Check } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
@@ -102,12 +102,13 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSele
             {filteredMethods.length > 0 ? (
               filteredMethods.map((method) => {
                 const details = getMethodDetails(method);
+                const isSelected = selectedMethodId === method.id;
                 return (
                   <Card 
                     key={method.id}
                     className={cn(
-                      "border transition-all cursor-pointer hover:shadow-md",
-                      selectedMethodId === method.id ? "ring-2 ring-primary" : ""
+                      "border transition-all cursor-pointer hover:shadow-md relative",
+                      isSelected ? "ring-2 ring-primary" : ""
                     )}
                     onClick={() => onSelect(method.id)}
                   >
@@ -127,6 +128,14 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSele
                           </div>
                           <div className="text-xs text-muted-foreground">{details.subtitle}</div>
                         </div>
+                        {isSelected && (
+                          <div className="absolute right-4 flex items-center">
+                            <div className="bg-green-500 text-white rounded-full p-1">
+                              <Check className="h-4 w-4" />
+                            </div>
+                            <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
