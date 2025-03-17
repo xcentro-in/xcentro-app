@@ -25,7 +25,9 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   const [selectedType, setSelectedType] = useState<PartnerType>(
     (initialData?.type as PartnerType) || "airline"
   );
-  const [currentSuggestions, setCurrentSuggestions] = useState<{value: string, label: string}[]>([]);
+  const [currentSuggestions, setCurrentSuggestions] = useState<{value: string, label: string}[]>(
+    partnerSuggestions[selectedType] || []
+  );
   const [open, setOpen] = useState(false);
   
   const form = useForm<LoyaltyPartner>({
@@ -33,6 +35,7 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
   });
 
   useEffect(() => {
+    // Ensure we always set a valid array of suggestions
     if (selectedType && partnerSuggestions[selectedType]) {
       setCurrentSuggestions(partnerSuggestions[selectedType]);
     } else {
@@ -44,6 +47,8 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
     setSelectedType(type);
     form.setValue("type", type);
     form.setValue("category", getCategoryFromType(type));
+    // Clear the partner name when type changes
+    form.setValue("name", "");
   };
 
   const handlePartnerSelect = (value: string, label: string) => {
@@ -76,17 +81,15 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
           
           <PartnerTypeSelector form={form} onTypeChange={handleTypeChange} />
 
-          {selectedType && (
-            <PartnerNameSelector 
-              form={form} 
-              suggestions={currentSuggestions}
-              open={open}
-              setOpen={setOpen}
-              onPartnerSelect={handlePartnerSelect}
-            />
-          )}
+          <PartnerNameSelector 
+            form={form} 
+            suggestions={currentSuggestions}
+            open={open}
+            setOpen={setOpen}
+            onPartnerSelect={handlePartnerSelect}
+          />
 
-          {selectedType && form.watch("name") && (
+          {form.watch("name") && (
             <MembershipDetailsForm form={form} />
           )}
           
@@ -94,7 +97,7 @@ const LoyaltyPartnerForm: React.FC<LoyaltyPartnerFormProps> = ({
             <Button variant="outline" type="button" onClick={onCancel}>Cancel</Button>
             <Button 
               type="submit"
-              disabled={!selectedType || !form.watch("name")}
+              disabled={!form.watch("name")}
             >
               Save Partner
             </Button>
