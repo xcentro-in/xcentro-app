@@ -20,7 +20,7 @@ export interface RedemptionCategory {
 export interface LoyaltyPartner {
   id: string;
   name: string;
-  type: 'airline' | 'hotel' | 'other';
+  type: 'airline' | 'hotel' | 'car' | 'event' | 'other';
   conversionRatio: number; // How many partner points per 1 PaySphere point
   category: string; // Maps to a category ID in redemptionCategories
   membershipDetails?: {
