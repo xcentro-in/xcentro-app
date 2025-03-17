@@ -1,20 +1,19 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PaymentMethodCard from "@/components/wallet/PaymentMethodCard";
-import AddPaymentMethodForm from "@/components/wallet/AddPaymentMethodForm";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
 import { toast } from "sonner";
 
 const WalletManagement = () => {
+  const navigate = useNavigate();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
   const [activeTab, setActiveTab] = useState<PaymentMethodType | "all">("all");
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
   
   const filteredPaymentMethods = activeTab === "all" 
     ? paymentMethods 
@@ -47,11 +46,6 @@ const WalletManagement = () => {
     );
   };
   
-  const handlePaymentMethodAdded = () => {
-    setAddDialogOpen(false);
-    // In a real app, this would update the payment methods from the backend
-  };
-  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -62,23 +56,14 @@ const WalletManagement = () => {
           </p>
         </div>
         
-        <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2 animate-slide-down" style={{ animationDelay: "100ms" }}>
-              <Plus className="h-4 w-4" />
-              Add New Payment Method
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add New Payment Method</DialogTitle>
-              <DialogDescription>
-                Add a new payment source to use for your business transactions.
-              </DialogDescription>
-            </DialogHeader>
-            <AddPaymentMethodForm onPaymentMethodAdded={handlePaymentMethodAdded} />
-          </DialogContent>
-        </Dialog>
+        <Button 
+          className="gap-2 animate-slide-down" 
+          style={{ animationDelay: "100ms" }}
+          onClick={() => navigate("/wallet/add")}
+        >
+          <Plus className="h-4 w-4" />
+          Add New Payment Method
+        </Button>
       </div>
       
       <Card className="animate-scale-in">
@@ -136,7 +121,7 @@ const WalletManagement = () => {
               <Button 
                 variant="outline" 
                 className="mt-4"
-                onClick={() => setAddDialogOpen(true)}
+                onClick={() => navigate("/wallet/add")}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Payment Method

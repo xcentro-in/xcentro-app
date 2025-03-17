@@ -18,6 +18,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
 import WalletManagement from "./pages/WalletManagement";
+import AddPaymentMethod from "./pages/AddPaymentMethod";
 import ApprovalInbox from "./pages/ApprovalInbox";
 import TransactionDetails from "./pages/TransactionDetails";
 import PaymentCalendar from "./pages/PaymentCalendar";
@@ -42,6 +43,7 @@ function App() {
                   <Route path="payment-calendar" element={<PaymentCalendar />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="wallet" element={<WalletManagement />} />
+                  <Route path="wallet/add" element={<AddPaymentMethod />} />
                   <Route path="insights" element={<Insights />} />
                   <Route path="settings" element={<Settings />} />
                   <Route path="rewards" element={<Rewards />} />
