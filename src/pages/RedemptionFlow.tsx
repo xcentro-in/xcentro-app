@@ -9,12 +9,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { RedemptionCategory, RedemptionItem, LoyaltyPartner } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
 
-// Mock data for loyalty partners
+// Enhanced mock data for loyalty partners with images
 const mockPartners: LoyaltyPartner[] = [
   {
     id: "emirates",
@@ -24,6 +25,30 @@ const mockPartners: LoyaltyPartner[] = [
     category: "flights",
     membershipDetails: {
       membershipNumber: "EK123456789",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "delta",
+    name: "Delta SkyMiles",
+    type: "airline",
+    conversionRatio: 0.6,
+    category: "flights",
+    membershipDetails: {
+      membershipNumber: "DL987654321",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "united",
+    name: "United MileagePlus",
+    type: "airline",
+    conversionRatio: 0.7,
+    category: "flights",
+    membershipDetails: {
+      membershipNumber: "UA567891234",
       registeredName: "John Doe",
       email: "john@example.com"
     }
@@ -39,8 +64,119 @@ const mockPartners: LoyaltyPartner[] = [
       registeredName: "John Doe",
       email: "john@example.com"
     }
+  },
+  {
+    id: "hilton",
+    name: "Hilton Honors",
+    type: "hotel",
+    conversionRatio: 0.4,
+    category: "hotels",
+    membershipDetails: {
+      membershipNumber: "HH555123789",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "hyatt",
+    name: "World of Hyatt",
+    type: "hotel",
+    conversionRatio: 0.5,
+    category: "hotels",
+    membershipDetails: {
+      membershipNumber: "WH421987654",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "avis",
+    name: "Avis Preferred",
+    type: "car",
+    conversionRatio: 0.4,
+    category: "travel",
+    membershipDetails: {
+      membershipNumber: "AP846271539",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "hertz",
+    name: "Hertz Gold Plus",
+    type: "car",
+    conversionRatio: 0.3,
+    category: "travel",
+    membershipDetails: {
+      membershipNumber: "HG732914856",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise Plus",
+    type: "car",
+    conversionRatio: 0.35,
+    category: "travel",
+    membershipDetails: {
+      membershipNumber: "EP123459876",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "ticketmaster",
+    name: "Ticketmaster VIP",
+    type: "event",
+    conversionRatio: 0.25,
+    category: "events",
+    membershipDetails: {
+      membershipNumber: "TM458976231",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "stubhub",
+    name: "StubHub Rewards",
+    type: "event",
+    conversionRatio: 0.3,
+    category: "events",
+    membershipDetails: {
+      membershipNumber: "SH987123456",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
+  },
+  {
+    id: "livenation",
+    name: "Live Nation Premium",
+    type: "event",
+    conversionRatio: 0.35,
+    category: "events",
+    membershipDetails: {
+      membershipNumber: "LN753159624",
+      registeredName: "John Doe",
+      email: "john@example.com"
+    }
   }
 ];
+
+const getPartnerIcon = (type: string): string => {
+  switch (type) {
+    case 'airline':
+      return 'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
+    case 'hotel':
+      return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
+    case 'car':
+      return 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
+    case 'event':
+      return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
+    default:
+      return 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
+  }
+};
 
 const RedemptionFlow: React.FC = () => {
   const navigate = useNavigate();
@@ -51,7 +187,7 @@ const RedemptionFlow: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [category, setCategory] = useState<RedemptionCategory | null>(null);
   const [item, setItem] = useState<RedemptionItem | null>(null);
-  const [partners, setPartners] = useState<LoyaltyPartner[]>(mockPartners);
+  const [partners, setPartners] = useState<LoyaltyPartner[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<LoyaltyPartner | null>(null);
   
   const availablePoints = 24530; // This would come from your app state or API
@@ -163,7 +299,9 @@ const RedemptionFlow: React.FC = () => {
           {step > 1 ? "Previous Step" : "Back to Rewards"}
         </Button>
         
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Redeem Your Points</h1>
+        <h1 className="text-3xl font-bold tracking-tight animate-slide-up bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          Redeem Your Points
+        </h1>
         <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
           Convert your PaySphere points to premium rewards
         </p>
@@ -177,7 +315,8 @@ const RedemptionFlow: React.FC = () => {
               className={`flex items-center ${idx + 1 === step ? "text-primary font-medium" : "text-muted-foreground"}`}
             >
               <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 
-                ${idx + 1 === step ? "bg-primary text-white" : idx + 1 < step ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                ${idx + 1 === step ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" : 
+                  idx + 1 < step ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
                 {idx + 1 < step ? <Check className="h-4 w-4" /> : idx + 1}
               </div>
               <span className="hidden sm:inline">{stepName}</span>
@@ -187,8 +326,8 @@ const RedemptionFlow: React.FC = () => {
         <Progress value={(step / 3) * 100} className="h-2" />
       </div>
       
-      <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-        <CardHeader>
+      <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
+        <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/20">
           <CardTitle className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
               {React.createElement(category.icon, { className: "h-5 w-5 text-primary" })}
@@ -202,40 +341,55 @@ const RedemptionFlow: React.FC = () => {
           </CardDescription>
         </CardHeader>
         
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 p-6">
           {step === 1 && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-3">Select Your Loyalty Program</h3>
-                <div className="space-y-3">
+                <h3 className="font-medium text-lg mb-4">Select Your Loyalty Program</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {partners.length > 0 ? (
                     partners.map(partner => (
                       <div 
                         key={partner.id} 
-                        className={`p-4 rounded-md border cursor-pointer transition-all
-                          ${selectedPartner?.id === partner.id ? 'border-primary bg-primary/5' : 'hover:border-primary/30 hover:bg-primary/5'}`}
+                        className={`group rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md
+                          ${selectedPartner?.id === partner.id ? 'border-primary shadow-md bg-primary/5' : 'hover:border-primary/30 hover:bg-primary/5'}`}
                         onClick={() => handlePartnerSelect(partner.id)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-lg">
-                              {partner.name.substring(0, 2)}
-                            </div>
-                            <div>
-                              <div className="font-medium">{partner.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {partner.membershipDetails?.membershipNumber || "No membership number"}
-                              </div>
+                        <div className="h-36 relative overflow-hidden">
+                          <img 
+                            src={getPartnerIcon(partner.type)} 
+                            alt={partner.name} 
+                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                            <div className="font-medium text-white">{partner.name}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm font-medium">Conversion Rate</div>
+                            <div className="text-sm">1:{partner.conversionRatio}</div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center">
+                            <div className="text-sm font-medium">Membership</div>
+                            <div className="text-sm text-muted-foreground truncate max-w-[120px]">
+                              {partner.membershipDetails?.membershipNumber || "Not linked"}
                             </div>
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            1 PaySphere Point = {partner.conversionRatio} {partner.name} Points
-                          </div>
+                          
+                          {selectedPartner?.id === partner.id && (
+                            <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1 mt-3 text-center">
+                              Selected
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-center p-8 border border-dashed rounded-md">
+                    <div className="text-center p-8 border border-dashed rounded-md col-span-3">
                       <p className="text-muted-foreground mb-2">No linked loyalty programs found</p>
                       <Button onClick={() => navigate("/settings")}>
                         Set Up Partners in Settings
@@ -246,8 +400,8 @@ const RedemptionFlow: React.FC = () => {
               </div>
               
               {selectedPartner && (
-                <div className="p-4 bg-primary/5 rounded-md">
-                  <h4 className="font-medium mb-2">Your {selectedPartner.name} Details</h4>
+                <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border mt-4">
+                  <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label className="text-xs text-muted-foreground">Membership Number</Label>
@@ -263,7 +417,7 @@ const RedemptionFlow: React.FC = () => {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Conversion Rate</Label>
-                      <p className="font-medium">1:${selectedPartner.conversionRatio}</p>
+                      <p className="font-medium">1:{selectedPartner.conversionRatio}</p>
                     </div>
                   </div>
                 </div>
@@ -274,61 +428,79 @@ const RedemptionFlow: React.FC = () => {
           {step === 2 && (
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium mb-3">Choose Points to Convert</h3>
-                <div className="bg-primary/5 p-4 rounded-md mb-4">
-                  <div className="flex justify-between mb-1">
-                    <span className="text-sm text-muted-foreground">Your Available Points</span>
-                    <span className="font-medium">{availablePoints.toLocaleString()}</span>
+                <h3 className="font-medium text-lg mb-4">Redeem Your Points</h3>
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Your Available Points</div>
+                      <div className="text-2xl font-bold">{availablePoints.toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Minimum Required</div>
+                      <div className="text-xl font-medium">{item.pointsCost.toLocaleString()}</div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-muted-foreground">Minimum Required</span>
-                    <span className="font-medium">{item.pointsCost.toLocaleString()}</span>
-                  </div>
+                  
+                  <Progress value={(availablePoints / 30000) * 100} className="h-2 mb-2" />
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <Label htmlFor="pointsToRedeem">Points to Redeem</Label>
-                    <div className="flex items-center mt-1.5 space-x-2">
-                      <Input 
-                        id="pointsToRedeem" 
-                        type="number" 
-                        value={pointsToRedeem}
-                        onChange={handlePointsChange}
-                        min={item.pointsCost}
-                        max={availablePoints}
-                        className="text-right"
-                      />
+                    <Label htmlFor="pointsToRedeem" className="text-base font-medium mb-2 block">
+                      Points to Redeem
+                    </Label>
+                    <div className="flex items-center mt-2 space-x-3">
+                      <div className="flex-1 relative">
+                        <Input 
+                          id="pointsToRedeem" 
+                          type="number" 
+                          value={pointsToRedeem}
+                          onChange={handlePointsChange}
+                          min={item.pointsCost}
+                          max={availablePoints}
+                          className="text-right pr-12 text-lg font-medium h-12"
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                          pts
+                        </div>
+                      </div>
                       <Button 
                         variant="outline" 
                         onClick={() => setPointsToRedeem(availablePoints)}
+                        className="h-12 px-5"
                       >
                         Max
                       </Button>
                     </div>
                     {pointsToRedeem > availablePoints && (
-                      <p className="text-destructive text-sm mt-1">
+                      <p className="text-destructive text-sm mt-2">
                         You don't have enough points
                       </p>
                     )}
                   </div>
                   
-                  <div className="p-4 bg-primary/5 rounded-md">
-                    <h4 className="font-medium mb-3">Conversion Preview</h4>
-                    <div className="flex items-center justify-center space-x-6 p-4">
+                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden">
+                    <div className="p-4 border-b bg-white/50 dark:bg-black/10">
+                      <h4 className="font-medium">Conversion Preview</h4>
+                    </div>
+                    
+                    <div className="flex items-center justify-center gap-10 p-6">
                       <div className="text-center">
-                        <div className="text-3xl font-bold">{pointsToRedeem.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground">PaySphere Points</div>
+                        <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
                       </div>
                       <div className="text-primary">
-                        <ArrowRight className="h-6 w-6" />
+                        <ArrowRight className="h-8 w-8" />
                       </div>
                       <div className="text-center">
-                        <div className="text-3xl font-bold">{getConvertedPoints().toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground">{selectedPartner?.name} Points</div>
+                        <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                          {getConvertedPoints().toLocaleString()}
+                        </div>
+                        <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
                       </div>
                     </div>
-                    <div className="text-center text-sm text-muted-foreground mt-2">
+                    
+                    <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
                       Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
                     </div>
                   </div>
@@ -339,55 +511,66 @@ const RedemptionFlow: React.FC = () => {
           
           {step === 3 && (
             <div className="space-y-5">
-              <h3 className="font-medium mb-3">Confirm Your Redemption</h3>
+              <h3 className="font-medium text-lg mb-4">Confirm Your Redemption</h3>
               
-              <div className="rounded-md border p-4 space-y-4">
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Selected Partner</span>
-                  <span className="font-medium">{selectedPartner?.name}</span>
+              <div className="rounded-lg border overflow-hidden bg-white dark:bg-slate-800">
+                <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 border-b">
+                  <h4 className="font-medium">Redemption Summary</h4>
                 </div>
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Membership Number</span>
-                  <span className="font-medium">{selectedPartner?.membershipDetails?.membershipNumber}</span>
-                </div>
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">Points to Redeem</span>
-                  <span className="font-medium">{pointsToRedeem.toLocaleString()} PaySphere Points</span>
-                </div>
-                <div className="flex justify-between pb-2 border-b">
-                  <span className="text-muted-foreground">You'll Receive</span>
-                  <span className="font-medium">{getConvertedPoints().toLocaleString()} {selectedPartner?.name} Points</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Remaining Balance</span>
-                  <span className="font-medium">{(availablePoints - pointsToRedeem).toLocaleString()} PaySphere Points</span>
+                
+                <div className="p-5 space-y-4">
+                  <div className="flex justify-between pb-3 border-b">
+                    <span className="text-muted-foreground">Selected Partner</span>
+                    <span className="font-medium">{selectedPartner?.name}</span>
+                  </div>
+                  <div className="flex justify-between pb-3 border-b">
+                    <span className="text-muted-foreground">Membership Number</span>
+                    <span className="font-medium">{selectedPartner?.membershipDetails?.membershipNumber}</span>
+                  </div>
+                  <div className="flex justify-between pb-3 border-b">
+                    <span className="text-muted-foreground">Points to Redeem</span>
+                    <span className="font-medium">{pointsToRedeem.toLocaleString()} PaySphere Points</span>
+                  </div>
+                  <div className="flex justify-between pb-3 border-b">
+                    <span className="text-muted-foreground">You'll Receive</span>
+                    <span className="font-medium">{getConvertedPoints().toLocaleString()} {selectedPartner?.name} Points</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Remaining Balance</span>
+                    <span className="font-medium">{(availablePoints - pointsToRedeem).toLocaleString()} PaySphere Points</span>
+                  </div>
                 </div>
               </div>
               
-              <div className="pt-2">
-                <div className="flex items-center space-x-2 mb-4">
+              <div className="mt-6 p-5 border rounded-lg bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20">
+                <div className="flex items-start space-x-3 mb-1">
                   <Checkbox 
                     id="terms" 
                     checked={agreementChecked}
                     onCheckedChange={(checked) => setAgreementChecked(checked as boolean)}
+                    className="mt-1"
                   />
-                  <label 
+                  <Label 
                     htmlFor="terms" 
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    className="text-base leading-relaxed cursor-pointer"
                   >
                     I understand that this conversion is final and cannot be reversed. Points will be 
                     transferred to my loyalty account within 3-5 business days.
-                  </label>
+                  </Label>
+                </div>
+                <div className={`ml-7 text-sm ${agreementChecked ? 'text-muted-foreground' : 'text-amber-600'}`}>
+                  Please check this box to proceed with your redemption
                 </div>
               </div>
             </div>
           )}
         </CardContent>
         
-        <CardFooter className="flex justify-between">
+        <CardFooter className="flex justify-between p-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 border-t">
           <Button 
             variant="outline" 
             onClick={handlePreviousStep}
+            className="border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
           >
             {step > 1 ? "Previous" : "Cancel"}
           </Button>
@@ -396,6 +579,7 @@ const RedemptionFlow: React.FC = () => {
             <Button 
               onClick={handleNextStep}
               disabled={step === 1 && !selectedPartner || step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints)}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[120px]"
             >
               Continue
             </Button>
@@ -403,7 +587,7 @@ const RedemptionFlow: React.FC = () => {
             <Button 
               onClick={handleSubmit}
               disabled={!agreementChecked || isSubmitting || pointsToRedeem > availablePoints}
-              className="min-w-[120px]"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[150px]"
             >
               {isSubmitting ? (
                 <>

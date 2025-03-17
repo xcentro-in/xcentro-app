@@ -7,12 +7,14 @@ import RewardsSummary from "@/components/rewards/RewardsSummary";
 import RedemptionOptions from "@/components/rewards/RedemptionOptions";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
+import RedemptionCategoryDialog from "@/components/rewards/dialog/RedemptionCategoryDialog";
 import { redemptionCategories } from "@/data/redemptionCategories";
 
 const Rewards = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [redeemDialogOpen, setRedeemDialogOpen] = useState<boolean>(false);
   const availablePoints = 24530;
   
   useEffect(() => {
@@ -26,11 +28,9 @@ const Rewards = () => {
     // If a specific category is selected, navigate to it
     if (categoryId) {
       navigate(`/rewards/redeem/${categoryId}`);
-    } else if (selectedCategory) {
-      navigate(`/rewards/redeem/${selectedCategory}`);
     } else {
-      // Default to first category if none selected
-      navigate(`/rewards/redeem/${redemptionCategories[0].id}`);
+      // Open category selection dialog if no specific category
+      setRedeemDialogOpen(true);
     }
   };
 
@@ -38,7 +38,7 @@ const Rewards = () => {
     <div className="space-y-8">
       <RewardsHeader 
         title="Rewards Dashboard" 
-        description="Track and redeem your business rewards" 
+        description="Track and redeem your premium business rewards" 
       />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -57,6 +57,11 @@ const Rewards = () => {
         <EarningHistory />
         <SpendingRecommendations />
       </div>
+
+      <RedemptionCategoryDialog
+        open={redeemDialogOpen}
+        onOpenChange={setRedeemDialogOpen}
+      />
     </div>
   );
 };
