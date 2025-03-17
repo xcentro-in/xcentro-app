@@ -12,3 +12,16 @@ export const getPayeeIcon = (type: PayeeType) => {
       return <UsersIcon className="h-4 w-4 text-green-500" />;
   }
 };
+
+export const getPayeeTypeLabel = (type: PayeeType): string => {
+  switch (type) {
+    case "bank":
+      return "Vendors";
+    case "biller":
+      return "Billers";
+    case "payroll":
+      return "Employees";
+    default:
+      return "Unknown";
+  }
+};
