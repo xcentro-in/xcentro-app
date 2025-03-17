@@ -17,6 +17,7 @@ const NewPayment = () => {
 
   const totalSteps = steps[activeTab as keyof typeof steps].length;
   const progress = (step / totalSteps) * 100;
+  const currentSteps = steps[activeTab as keyof typeof steps];
 
   return (
     <div className="space-y-8">
@@ -29,16 +30,17 @@ const NewPayment = () => {
 
       <Card className="animate-scale-in">
         <CardContent className="pt-6">
-          <div className="mb-8 space-y-2">
-            <div className="flex justify-between text-sm mb-2">
-              <div className="space-y-1">
-                <p className="font-medium">
-                  Step {step} of {totalSteps}: {steps[activeTab as keyof typeof steps][step - 1]}
-                </p>
-              </div>
+          <div className="mb-8">
+            <div className="flex justify-end text-sm mb-2">
               <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
             </div>
-            <Progress value={progress} className="h-2" />
+            <Progress 
+              value={progress} 
+              className="h-2" 
+              showMilestones={true} 
+              milestones={currentSteps} 
+              currentStep={step} 
+            />
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
