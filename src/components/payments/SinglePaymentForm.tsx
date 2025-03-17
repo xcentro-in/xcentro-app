@@ -109,7 +109,11 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     
     // Then add other payees by type
     filteredPayees.forEach(payee => {
-      if (!activeTab !== "recent" && recentPayeeIds.includes(payee.id)) {
+      // Fix the comparison issue - activeTab is a string, so we can't use "!=" directly with a boolean
+      // Change from:
+      // if (!activeTab !== "recent" && recentPayeeIds.includes(payee.id)) {
+      // To:
+      if (activeTab !== "recent" && recentPayeeIds.includes(payee.id)) {
         // Skip if already in recent (to avoid duplicates)
         return;
       }
