@@ -17,12 +17,12 @@ const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="calendar-month-view bg-gradient-to-br from-white/50 to-blue-50/30 p-4 rounded-lg backdrop-blur-sm">
-      <div className="grid grid-cols-7 gap-1 mb-2">
+    <div className="calendar-month-view">
+      <div className="grid grid-cols-7 gap-1 mb-1">
         {weekdays.map((day) => (
           <div 
             key={day} 
-            className="text-sm font-medium text-center py-2 text-primary"
+            className="text-sm font-medium text-center py-2 text-muted-foreground"
           >
             {day}
           </div>
