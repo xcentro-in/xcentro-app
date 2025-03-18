@@ -10,7 +10,12 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Clock,
-  Filter
+  Filter,
+  SlidersHorizontal,
+  ChevronUp,
+  ChevronDown,
+  CreditCardIcon,
+  ChevronRight
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +23,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
+import { mockCreditCardBills } from "@/data/mockCreditCardBills";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -53,9 +63,157 @@ const categoryData = [
   { name: "Travel", value: 10 },
 ];
 
-const COLORS = ["#0088FE", "#6366F1", "#8884D8", "#5551FF", "#4F46E5"];
+// Define improved color palette for charts
+const COLORS = ["#6366F1", "#8B5CF6", "#EC4899", "#F97316", "#10B981"];
+const CHART_COLORS = {
+  primary: "#6366F1",
+  secondary: "#8B5CF6",
+  tertiary: "#EC4899",
+  success: "#10B981",
+  warning: "#F97316",
+  danger: "#EF4444",
+  info: "#0EA5E9"
+};
+
+// Simple component for the collapsible credit card insights panel
+const QuickCreditCardInsightsPanel = () => {
+  // Identify the card with highest spending
+  const sortedBills = [...mockCreditCardBills].sort((a, b) => b.totalDueAmount - a.totalDueAmount);
+  const topCards = sortedBills.slice(0, 3);
+  
+  // Find cards with high fees or high utilization (would be dynamic in a real app)
+  const cardsWithHighFees = [sortedBills[0]]; // Pretend this card has high fees
+  const cardsWithHighUtilization = [sortedBills[1]]; // Pretend this card has high utilization
+  
+  return (
+    <Card className="mb-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg flex items-center">
+          <BarChart2 className="h-5 w-5 mr-2 text-primary" />
+          Quick Credit Card Insights
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h4 className="font-medium mb-2">Top Cards by Spending</h4>
+          <div className="space-y-2">
+            {topCards.map((card, index) => (
+              <div key={card.id} className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-sm font-medium mr-3">
+                    {index + 1}
+                  </span>
+                  <span>{card.cardIssuer} •••• {card.lastFourDigits}</span>
+                </div>
+                <span className="font-medium">
+                  ₹{card.totalDueAmount.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {cardsWithHighFees.length > 0 && (
+          <div className="bg-red-50 dark:bg-red-950/30 p-3 rounded-md border border-red-100 dark:border-red-900">
+            <div className="flex gap-2 text-red-700 dark:text-red-400">
+              <div className="flex-shrink-0">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">{cardsWithHighFees[0].cardIssuer} card has excessive late fees</p>
+                <p className="text-sm mt-1">Consider setting up auto-payment to avoid future charges.</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {cardsWithHighUtilization.length > 0 && (
+          <div className="bg-amber-50 dark:bg-amber-950/30 p-3 rounded-md border border-amber-100 dark:border-amber-900">
+            <div className="flex gap-2 text-amber-700 dark:text-amber-400">
+              <div className="flex-shrink-0">
+                <CreditCard className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-medium">{cardsWithHighUtilization[0].cardIssuer} card is above 80% utilization</p>
+                <p className="text-sm mt-1">High utilization may impact your business credit score.</p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        <Button asChild variant="outline" className="w-full">
+          <Link to="/credit-card-analytics" className="flex items-center justify-center gap-1">
+            <BarChart2 className="h-4 w-4" />
+            View Full Analytics
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+const CustomizeViewDialog = ({ open, onOpenChange }) => {
+  return (
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>Customize View</DialogTitle>
+      </DialogHeader>
+      <div className="space-y-4 py-4">
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Chart Display Options</h4>
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-primary" defaultChecked />
+              <span>Show Spending Trend</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-primary" defaultChecked />
+              <span>Show Category Breakdown</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-primary" defaultChecked />
+              <span>Show Tax Compliance</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-primary" defaultChecked />
+              <span>Show Cash Flow Forecast</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" className="rounded text-primary" defaultChecked />
+              <span>Show Credit Card Insights</span>
+            </label>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium">Time Period</h4>
+          <Select defaultValue="thisMonth">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="thisMonth">This Month</SelectItem>
+              <SelectItem value="lastMonth">Last Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+              <SelectItem value="ytd">Year to Date</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="pt-4 flex justify-end">
+          <Button onClick={() => onOpenChange(false)}>Apply Changes</Button>
+        </div>
+      </div>
+    </DialogContent>
+  );
+};
 
 const Insights = () => {
+  const [showInsights, setShowInsights] = useState(true);
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -85,8 +243,40 @@ const Insights = () => {
             <Download className="h-4 w-4" />
             Export
           </Button>
+          
+          <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="h-10 gap-2">
+                <SlidersHorizontal className="h-4 w-4" />
+                Customize View
+              </Button>
+            </DialogTrigger>
+            <CustomizeViewDialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen} />
+          </Dialog>
         </div>
       </div>
+      
+      <Collapsible
+        open={showInsights}
+        onOpenChange={setShowInsights}
+        className="w-full"
+      >
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="text-sm font-medium text-muted-foreground">Credit Card Insights</h3>
+          <CollapsibleTrigger asChild>
+            <Button variant="ghost" size="sm">
+              {showInsights ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent>
+          <QuickCreditCardInsightsPanel />
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         {[
@@ -149,15 +339,15 @@ const Insights = () => {
           <CardContent>
             <Tabs defaultValue="spend">
               <TabsContent value="spend" className="mt-0 space-y-4">
-                <div className="h-[300px]">
+                <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={spendingData}
                       margin={{
                         top: 20,
-                        right: 30,
+                        right: 20,
                         left: 20,
-                        bottom: 5,
+                        bottom: 10,
                       }}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -177,7 +367,7 @@ const Insights = () => {
                       />
                       <Bar 
                         dataKey="amount" 
-                        fill="rgba(79, 70, 229, 0.8)" 
+                        fill={CHART_COLORS.primary}
                         radius={[4, 4, 0, 0]}
                         barSize={30}
                       />
@@ -196,15 +386,15 @@ const Insights = () => {
                 </div>
               </TabsContent>
               <TabsContent value="rewards" className="mt-0">
-                <div className="h-[300px]">
+                <div className="h-[300px] w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart
                       data={spendingData.map(item => ({ ...item, rewards: Math.round(item.amount * 0.025) }))}
                       margin={{
                         top: 20,
-                        right: 30,
+                        right: 20,
                         left: 20,
-                        bottom: 5,
+                        bottom: 10,
                       }}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -224,7 +414,7 @@ const Insights = () => {
                       <Line 
                         type="monotone" 
                         dataKey="rewards" 
-                        stroke="#4F46E5" 
+                        stroke={CHART_COLORS.primary}
                         strokeWidth={3}
                         dot={{ r: 4, strokeWidth: 3 }}
                         activeDot={{ r: 8 }}
@@ -245,9 +435,9 @@ const Insights = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px]">
+            <div className="h-[250px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+                <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
                   <Pie
                     data={categoryData}
                     cx="50%"
@@ -337,7 +527,7 @@ const Insights = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="h-[200px]">
+            <div className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={[
@@ -350,9 +540,9 @@ const Insights = () => {
                   ]}
                   margin={{
                     top: 20,
-                    right: 30,
+                    right: 20,
                     left: 20,
-                    bottom: 5,
+                    bottom: 10,
                   }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -373,7 +563,7 @@ const Insights = () => {
                   <Line 
                     type="monotone" 
                     dataKey="balance" 
-                    stroke="#10B981" 
+                    stroke={CHART_COLORS.success}
                     strokeWidth={3}
                     dot={{ r: 4, strokeWidth: 3 }}
                   />
