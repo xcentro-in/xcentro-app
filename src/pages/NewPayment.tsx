@@ -6,7 +6,6 @@ import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst";
 
@@ -17,13 +16,11 @@ const steps = {
 };
 
 const NewPayment = () => {
-  const [activeTab, setActiveTab] = useState("single");
   const [step, setStep] = useState(0);
   const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("selection");
 
   const handleCategorySelect = (category: PaymentCategory) => {
     setPaymentCategory(category);
-    setActiveTab(category);
     setStep(1);
   };
 
@@ -73,25 +70,11 @@ const NewPayment = () => {
           {paymentCategory === "selection" ? (
             <PaymentCategorySelection onSelect={handleCategorySelect} />
           ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="single">Single Payment</TabsTrigger>
-                <TabsTrigger value="batch">Batch Payment</TabsTrigger>
-                <TabsTrigger value="gst">GST Payment</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="single" className="mt-4">
-                <SinglePaymentForm onStepChange={setStep} />
-              </TabsContent>
-
-              <TabsContent value="batch" className="mt-4">
-                <BatchPaymentForm onStepChange={setStep} />
-              </TabsContent>
-
-              <TabsContent value="gst" className="mt-4">
-                <GSTPaymentForm onStepChange={setStep} />
-              </TabsContent>
-            </Tabs>
+            <>
+              {paymentCategory === "single" && <SinglePaymentForm onStepChange={setStep} />}
+              {paymentCategory === "batch" && <BatchPaymentForm onStepChange={setStep} />}
+              {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
+            </>
           )}
         </CardContent>
       </Card>
