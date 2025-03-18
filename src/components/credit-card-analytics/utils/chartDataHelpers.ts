@@ -1,5 +1,4 @@
-
-import { CARD_COLORS } from "../ChartComponents";
+import { CARD_COLORS } from "./chartUtils";
 
 export interface CardData {
   cardName: string;

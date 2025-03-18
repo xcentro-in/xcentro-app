@@ -15,7 +15,7 @@ import {
   UtilizationChart, 
   LatePaymentChart,
   RewardsLeaderboard 
-} from "@/components/credit-card-analytics/ChartComponents";
+} from "@/components/credit-card-analytics";
 
 // Import utilities and data
 import { generateMockCardSpendData } from "@/components/credit-card-analytics/mockDataGenerator";
