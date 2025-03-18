@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -12,6 +11,7 @@ import {
   PieChart,
   XAxis,
   YAxis,
+  TooltipProps,
 } from "recharts";
 import {
   ChartContainer,
@@ -30,12 +30,17 @@ export const CARD_COLORS = [
 ];
 
 // Function to format currency
-export const formatCurrency = (value: number) => {
+export const formatCurrency = (value: number | string) => {
+  // Make sure the value is a number
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  // Check if value is a valid number
+  if (isNaN(numValue)) return '₹0';
+  
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(numValue);
 };
 
 interface SpendingChartProps {
@@ -276,6 +281,7 @@ export const LatePaymentChart: React.FC<LatePaymentChartProps> = ({ data, cardNa
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => `₹${value}`}
+              tick={{ fontSize: 12 }}
               width={60}
             />
             <ChartTooltip 
