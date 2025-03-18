@@ -24,7 +24,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
   });
 
   const dayClasses = `
-    h-32 p-1 border rounded-md transition-all z-[-1]
+    h-32 p-1 border rounded-md transition-all
     ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
     ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''}
     hover:border-primary hover:shadow-sm cursor-pointer
@@ -62,7 +62,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
                 </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right" className="p-3 max-w-xs">
+            <TooltipContent side="right" className="p-3 max-w-xs z-50">
               <div className="font-semibold mb-1">{filteredEvents[0].title}</div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Amount:</span>
