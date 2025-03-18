@@ -64,7 +64,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
                   </div>
                 </div>
               </TooltipTrigger>
-              <TooltipContent side="right" align="start" sideOffset={16} alignOffset={-8} className="p-3 max-w-xs bg-white/95 backdrop-blur-sm border-primary/20 z-50">
+              <TooltipContent side="right" align="start" sideOffset={16} alignOffset={-8} className="p-3 max-w-xs bg-white/95 backdrop-blur-sm border-primary/20 z-100">
                 <div className="font-semibold mb-1">{filteredEvents[0].title}</div>
                 <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                   <span className="text-muted-foreground">Amount:</span>
