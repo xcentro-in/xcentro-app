@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   SidebarMenuItem as MenuItem,
@@ -6,20 +7,125 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
-interface SidebarMenuItemProps {
+interface SubmenuItem {
   title: string;
   url: string;
   icon: LucideIcon;
   highlight?: boolean;
 }
 
-export const SidebarMenuItemComponent = ({ title, url, icon: Icon, highlight }: SidebarMenuItemProps) => {
+interface SidebarMenuItemProps {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  highlight?: boolean;
+  submenu?: SubmenuItem[];
+}
+
+export const SidebarMenuItemComponent = ({ 
+  title, 
+  url, 
+  icon: Icon, 
+  highlight, 
+  submenu 
+}: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
-  const isActive = location.pathname === url;
+  const isActive = location.pathname === url || 
+                  (submenu && submenu.some(item => location.pathname === item.url));
+  const [isSubmenuOpen, setIsSubmenuOpen] = useState(isActive);
 
+  // If this is a menu with submenu items
+  if (submenu && submenu.length > 0) {
+    return (
+      <MenuItem key={title} className="w-full">
+        <Collapsible
+          open={isSubmenuOpen}
+          onOpenChange={setIsSubmenuOpen}
+          className="w-full"
+        >
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton
+              isActive={isActive}
+              tooltip={!open ? title : undefined}
+              className={cn(
+                highlight ? "relative" : "",
+                "w-full",
+                !open && "justify-center"
+              )}
+            >
+              <div className={cn(
+                "flex items-center gap-3 w-full",
+                !open && "justify-center"
+              )}>
+                {highlight && !isActive && (
+                  <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                )}
+                <Icon className={cn(
+                  "h-5 w-5",
+                  isActive ? 
+                    "text-primary" : 
+                    highlight && !isActive ? "text-amber-500" : "text-muted-foreground"
+                )} />
+                {open && (
+                  <span className={cn(
+                    "truncate flex-grow",
+                    highlight && !isActive && "text-amber-500 font-medium"
+                  )}>
+                    {title}
+                  </span>
+                )}
+                {open && (
+                  isSubmenuOpen ? (
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )
+                )}
+              </div>
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className={cn(
+            "pl-3 mt-1 space-y-1",
+            !open && "pl-0"
+          )}>
+            {submenu.map((item) => (
+              <SidebarMenuButton
+                key={item.title}
+                isActive={location.pathname === item.url}
+                tooltip={!open ? item.title : undefined}
+                asChild
+                className="w-full"
+              >
+                <Link to={item.url} className={cn(
+                  "flex items-center gap-3 w-full",
+                  !open && "justify-center"
+                )}>
+                  <item.icon className={cn(
+                    "h-4 w-4",
+                    location.pathname === item.url ? 
+                      "text-primary" : 
+                      "text-muted-foreground"
+                  )} />
+                  {open && (
+                    <span className="truncate text-sm">
+                      {item.title}
+                    </span>
+                  )}
+                </Link>
+              </SidebarMenuButton>
+            ))}
+          </CollapsibleContent>
+        </Collapsible>
+      </MenuItem>
+    );
+  }
+
+  // Regular menu item without submenu
   return (
     <MenuItem key={title} className="w-full">
       <SidebarMenuButton

@@ -24,6 +24,7 @@ import TransactionDetails from "./pages/TransactionDetails";
 import PaymentCalendar from "./pages/PaymentCalendar";
 import BusinessOnboarding from "./pages/BusinessOnboarding";
 import CreditCardBills from "./pages/CreditCardBills";
+import CreditCardAnalytics from "./pages/CreditCardAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ function App() {
                   <Route path="new-payment" element={<NewPayment />} />
                   <Route path="payment-calendar" element={<PaymentCalendar />} />
                   <Route path="credit-card-bills" element={<CreditCardBills />} />
+                  <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="wallet" element={<WalletManagement />} />
                   <Route path="wallet/add" element={<AddPaymentMethod />} />
