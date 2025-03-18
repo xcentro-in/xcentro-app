@@ -42,7 +42,7 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
                 onSelect={(id) => {
                   setSelectedCardId(id);
                   // Find the selected method from the mock data
-                  const cardBill = mockCreditCardBills.find(bill => bill.id === "ccb-001");
+                  const cardBill = mockCreditCardBills.find(bill => bill.id === id);
                   if (cardBill) {
                     setCardDetails({
                       cardIssuer: cardBill.cardIssuer,
