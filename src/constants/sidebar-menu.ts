@@ -10,7 +10,8 @@ import {
   Wallet,
   Star,
   CheckCircle2,
-  CalendarDays
+  CalendarDays,
+  Receipt
 } from "lucide-react";
 
 // Main menu items
@@ -29,6 +30,11 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
+  },
+  {
+    title: "Credit Card Bills",
+    url: "/credit-card-bills",
+    icon: Receipt,
   },
   {
     title: "Payment Calendar",

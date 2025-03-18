@@ -5,14 +5,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
+import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard";
 
 const steps = {
   single: ["Details", "Payee", "Payment Method", "Review"],
   batch: ["Upload", "Validate", "Payment Method", "Review"],
   gst: ["Upload/Details", "Payment Method", "Review"],
+  creditcard: ["Bill Upload/Details", "Payment Method", "Review"],
 };
 
 const NewPayment = () => {
@@ -74,6 +76,7 @@ const NewPayment = () => {
               {paymentCategory === "single" && <SinglePaymentForm onStepChange={setStep} />}
               {paymentCategory === "batch" && <BatchPaymentForm onStepChange={setStep} />}
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
+              {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} />}
             </>
           )}
         </CardContent>

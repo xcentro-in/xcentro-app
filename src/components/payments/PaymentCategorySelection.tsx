@@ -1,9 +1,9 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Files, FileSpreadsheet } from "lucide-react";
+import { FileText, Files, FileSpreadsheet, Receipt } from "lucide-react";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard";
 
 interface PaymentCategorySelectionProps {
   onSelect: (category: PaymentCategory) => void;
@@ -29,13 +29,19 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       description: "Upload GST challan or pay GST taxes directly",
       icon: <FileSpreadsheet className="h-10 w-10 text-primary" />,
     },
+    {
+      id: "creditcard",
+      title: "Credit Card Bill",
+      description: "Pay your credit card bills quickly",
+      icon: <Receipt className="h-10 w-10 text-primary" />,
+    },
   ];
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-center mb-6">Select Payment Type</h2>
       
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {categories.map((category) => (
           <Card 
             key={category.id}
