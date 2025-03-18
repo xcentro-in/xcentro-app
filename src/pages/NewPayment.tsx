@@ -4,20 +4,39 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
+import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
+import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+type PaymentCategory = "selection" | "single" | "batch" | "gst";
 
 const steps = {
   single: ["Details", "Payee", "Payment Method", "Review"],
   batch: ["Upload", "Validate", "Payment Method", "Review"],
+  gst: ["Upload/Details", "Payment Method", "Review"],
 };
 
 const NewPayment = () => {
   const [activeTab, setActiveTab] = useState("single");
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0);
+  const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("selection");
 
-  const totalSteps = steps[activeTab as keyof typeof steps].length;
+  const handleCategorySelect = (category: PaymentCategory) => {
+    setPaymentCategory(category);
+    setActiveTab(category);
+    setStep(1);
+  };
+
+  // Reset to category selection
+  const handleReset = () => {
+    setPaymentCategory("selection");
+    setStep(0);
+  };
+
+  // Only calculate progress if we've selected a category
+  const totalSteps = paymentCategory !== "selection" ? steps[paymentCategory as keyof typeof steps].length : 1;
   const progress = (step / totalSteps) * 100;
-  const currentSteps = steps[activeTab as keyof typeof steps];
+  const currentSteps = paymentCategory !== "selection" ? steps[paymentCategory as keyof typeof steps] : ["Category Selection"];
 
   return (
     <div className="space-y-8">
@@ -30,33 +49,50 @@ const NewPayment = () => {
 
       <Card className="animate-scale-in">
         <CardContent className="pt-6">
-          <div className="mb-8">
-            <div className="flex justify-end text-sm mb-2">
-              <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
+          {paymentCategory !== "selection" && (
+            <div className="mb-8">
+              <div className="flex justify-between text-sm mb-2">
+                <button 
+                  onClick={handleReset} 
+                  className="text-primary text-sm hover:underline"
+                >
+                  ← Change payment type
+                </button>
+                <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
+              </div>
+              <Progress 
+                value={progress} 
+                className="h-2" 
+                showMilestones={true} 
+                milestones={currentSteps} 
+                currentStep={step}
+              />
             </div>
-            <Progress 
-              value={progress} 
-              className="h-2" 
-              showMilestones={true} 
-              milestones={currentSteps} 
-              currentStep={step} 
-            />
-          </div>
+          )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="single">Single Payment</TabsTrigger>
-              <TabsTrigger value="batch">Batch Payment</TabsTrigger>
-            </TabsList>
+          {paymentCategory === "selection" ? (
+            <PaymentCategorySelection onSelect={handleCategorySelect} />
+          ) : (
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="single">Single Payment</TabsTrigger>
+                <TabsTrigger value="batch">Batch Payment</TabsTrigger>
+                <TabsTrigger value="gst">GST Payment</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="single" className="mt-4">
-              <SinglePaymentForm onStepChange={setStep} />
-            </TabsContent>
+              <TabsContent value="single" className="mt-4">
+                <SinglePaymentForm onStepChange={setStep} />
+              </TabsContent>
 
-            <TabsContent value="batch" className="mt-4">
-              <BatchPaymentForm onStepChange={setStep} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="batch" className="mt-4">
+                <BatchPaymentForm onStepChange={setStep} />
+              </TabsContent>
+
+              <TabsContent value="gst" className="mt-4">
+                <GSTPaymentForm onStepChange={setStep} />
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
