@@ -2,7 +2,7 @@
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, Plane, Hotel, Ticket, Car, Tag, Package, X } from "lucide-react";
+import { ChevronRight, Plane, Hotel, Ticket, Car, Tag, Package } from "lucide-react";
 import { RedemptionCategory } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
 import { useNavigate } from "react-router-dom";
@@ -29,9 +29,6 @@ const RedemptionCategoryDialog: React.FC<RedemptionCategoryDialogProps> = ({
         <DialogHeader className="pb-4 border-b">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold">Redeem Your Points</DialogTitle>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8">
-              <X className="h-4 w-4" />
-            </Button>
           </div>
           <DialogDescription className="pt-2">
             Choose a redemption category to begin your premium experience
