@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -30,9 +31,19 @@ export const CARD_COLORS = [
 ];
 
 // Function to format currency
-export const formatCurrency = (value: number | string) => {
-  // Make sure the value is a number
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+export const formatCurrency = (value: unknown): string => {
+  // Handle array case (as ValueType can be an array)
+  if (Array.isArray(value)) {
+    // If it's an array, take the first value if it exists
+    if (value.length > 0) {
+      return formatCurrency(value[0]);
+    }
+    return '₹0';
+  }
+  
+  // Convert string to number if needed
+  const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
+  
   // Check if value is a valid number
   if (isNaN(numValue)) return '₹0';
   
