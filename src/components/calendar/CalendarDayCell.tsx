@@ -24,10 +24,10 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
   });
 
   const dayClasses = `
-    h-32 p-1 border rounded-md transition-all
+    -z-5 h-32 p-1 border rounded-md transition-all
     ${isCurrentMonth ? 'bg-white/95 backdrop-blur-sm' : 'bg-gray-50/90 text-gray-400'}
     ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''}
-    hover:border-primary hover:shadow-md cursor-pointer -z-1
+    hover:border-primary hover:shadow-md cursor-pointer
   `;
 
   return (
