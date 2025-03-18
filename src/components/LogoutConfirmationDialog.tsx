@@ -24,6 +24,7 @@ const LogoutConfirmationDialog = ({
 }: LogoutConfirmationDialogProps) => {
   const handleConfirm = () => {
     onConfirm();
+    onOpenChange(false);
   };
 
   const handleCancel = () => {
@@ -40,8 +41,12 @@ const LogoutConfirmationDialog = ({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>Logout</AlertDialogAction>
+          <AlertDialogCancel asChild onClick={handleCancel}>
+            <button>Cancel</button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild onClick={handleConfirm}>
+            <button>Logout</button>
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
