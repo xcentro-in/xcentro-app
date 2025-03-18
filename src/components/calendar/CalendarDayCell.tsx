@@ -44,56 +44,66 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
       </div>
       
       <div className="mt-1 space-y-1 overflow-hidden">
-        {filteredEvents.slice(0, 3).map((event, index) => (
-          <Tooltip key={`${event.id}-${index}`} delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div 
-                className={`
-                  text-[10px] px-1.5 py-0.5 rounded truncate border shadow-sm
-                  ${getStatusColor(event.status)}
-                `}
-              >
-                <div className="flex items-center gap-1">
-                  <span>{getMethodIcon(event.method)}</span>
-                  <span className="truncate">{event.title}</span>
+        {filteredEvents.length > 0 && (
+          <>
+            {/* Always show the first event */}
+            <Tooltip key={`${filteredEvents[0].id}`} delayDuration={300}>
+              <TooltipTrigger asChild>
+                <div 
+                  className={`
+                    text-[10px] px-1.5 py-0.5 rounded truncate border shadow-sm
+                    ${getStatusColor(filteredEvents[0].status)}
+                  `}
+                >
+                  <div className="flex items-center gap-1">
+                    <span>{getMethodIcon(filteredEvents[0].method)}</span>
+                    <span className="truncate">{filteredEvents[0].title}</span>
+                  </div>
+                  <div className="font-semibold mt-0.5 truncate">
+                    ${filteredEvents[0].amount.toLocaleString()}
+                  </div>
                 </div>
-                <div className="font-semibold mt-0.5 truncate">
-                  ${event.amount.toLocaleString()}
+              </TooltipTrigger>
+              <TooltipContent side="right" align="start" sideOffset={16} alignOffset={-8} className="p-3 max-w-xs bg-white/95 backdrop-blur-sm border-primary/20 z-50">
+                <div className="font-semibold mb-1">{filteredEvents[0].title}</div>
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="font-medium">${filteredEvents[0].amount.toLocaleString()}</span>
+                  
+                  <span className="text-muted-foreground">Method:</span>
+                  <span className="font-medium">{filteredEvents[0].method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>
+                  
+                  <span className="text-muted-foreground">Type:</span>
+                  <span className="font-medium capitalize">{filteredEvents[0].type}</span>
+                  
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className="font-medium capitalize">{filteredEvents[0].status.replace('_', ' ')}</span>
+                  
+                  {filteredEvents[0].initiatedBy && (
+                    <>
+                      <span className="text-muted-foreground">Initiated By:</span>
+                      <span className="font-medium">{filteredEvents[0].initiatedBy}</span>
+                    </>
+                  )}
+                  
+                  {filteredEvents[0].time && (
+                    <>
+                      <span className="text-muted-foreground">Time:</span>
+                      <span className="font-medium">{filteredEvents[0].time}</span>
+                    </>
+                  )}
                 </div>
+              </TooltipContent>
+            </Tooltip>
+            
+            {/* If there are more events, show a "+X more" indicator */}
+            {filteredEvents.length > 1 && (
+              <div className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-center border border-gray-200">
+                +{filteredEvents.length - 1} more
               </div>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="p-3 max-w-xs bg-white/95 backdrop-blur-sm border-primary/20">
-              <div className="font-semibold mb-1">{event.title}</div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
-                <span className="text-muted-foreground">Amount:</span>
-                <span className="font-medium">${event.amount.toLocaleString()}</span>
-                
-                <span className="text-muted-foreground">Method:</span>
-                <span className="font-medium">{event.method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>
-                
-                <span className="text-muted-foreground">Type:</span>
-                <span className="font-medium capitalize">{event.type}</span>
-                
-                <span className="text-muted-foreground">Status:</span>
-                <span className="font-medium capitalize">{event.status.replace('_', ' ')}</span>
-                
-                {event.initiatedBy && (
-                  <>
-                    <span className="text-muted-foreground">Initiated By:</span>
-                    <span className="font-medium">{event.initiatedBy}</span>
-                  </>
-                )}
-                
-                {event.time && (
-                  <>
-                    <span className="text-muted-foreground">Time:</span>
-                    <span className="font-medium">{event.time}</span>
-                  </>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        ))}
+            )}
+          </>
+        )}
       </div>
     </div>
   );

@@ -17,7 +17,6 @@ interface CalendarHeaderProps {
   onViewChange: (view: CalendarViewType) => void;
   onFilterChange: (filter: CalendarFilterType) => void;
   onMonthSelect: (value: string) => void;
-  onExport: () => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({

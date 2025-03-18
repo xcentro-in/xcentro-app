@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { format, parse, startOfWeek, endOfWeek, isSameMonth, getMonth, getYear } from "date-fns";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarDay, CalendarViewType, CalendarFilterType, MonthData } from "@/types/calendar";
@@ -74,13 +73,6 @@ const PaymentCalendar = () => {
     setDetailsOpen(true);
   };
   
-  const handleExport = () => {
-    toast.success(
-      "Calendar data exported successfully", 
-      { description: `Payments for ${format(currentDate, 'MMMM yyyy')}` }
-    );
-  };
-  
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -112,7 +104,6 @@ const PaymentCalendar = () => {
           onViewChange={handleViewChange}
           onFilterChange={handleFilterChange}
           onMonthSelect={handleMonthSelect}
-          onExport={handleExport}
         />
         
         <div className="mt-6">
