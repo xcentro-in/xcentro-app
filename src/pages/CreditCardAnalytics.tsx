@@ -8,12 +8,26 @@ import {
   CreditCardIcon,
   ChevronRight, 
   ArrowRight,
-  SlidersHorizontal
+  SlidersHorizontal,
+  X,
+  Check
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockCreditCardBills } from "@/data/mockCreditCardBills";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 // Import recharts components
 import {
@@ -40,7 +54,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-// Define some colors for our charts
+// Define vibrant colors for our charts
 const CARD_COLORS = [
   "#3b82f6", // blue-500
   "#ef4444", // red-500
@@ -152,6 +166,16 @@ const formatCurrency = (value) => {
 export default function CreditCardAnalytics() {
   const [period, setPeriod] = useState("3m");
   const [cardData] = useState(generateMockCardSpendData());
+  const [viewOptions, setViewOptions] = useState({
+    showSpendingChart: true,
+    showHiddenChargesChart: true,
+    showUtilizationChart: true,
+    showLatePaymentChart: true,
+    showRewardsChart: true,
+    showRecommendations: true,
+    compactView: false,
+  });
+  const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
   
   const utilizationData = generateUtilizationData(cardData);
   const hiddenChargesData = generateHiddenChargesData(cardData);
@@ -198,10 +222,111 @@ export default function CreditCardAnalytics() {
           </TabsList>
         </Tabs>
         
-        <Button variant="outline" className="flex items-center gap-2">
-          <SlidersHorizontal className="h-4 w-4" /> 
-          Customize View
-        </Button>
+        <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" className="flex items-center gap-2">
+              <SlidersHorizontal className="h-4 w-4" /> 
+              Customize View
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Customize Analytics View</DialogTitle>
+              <DialogDescription>
+                Select which charts and information you want to see in your dashboard.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="spending" 
+                    checked={viewOptions.showSpendingChart} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showSpendingChart: !!checked})} 
+                  />
+                  <Label htmlFor="spending">Total Spend Per Card</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">Spending comparison across cards</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="hidden-charges" 
+                    checked={viewOptions.showHiddenChargesChart} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showHiddenChargesChart: !!checked})} 
+                  />
+                  <Label htmlFor="hidden-charges">Hidden Charges Breakdown</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">All fees and penalties</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="utilization" 
+                    checked={viewOptions.showUtilizationChart} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showUtilizationChart: !!checked})} 
+                  />
+                  <Label htmlFor="utilization">Credit Utilization</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">Percentage of credit limit used</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="late-payment" 
+                    checked={viewOptions.showLatePaymentChart} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showLatePaymentChart: !!checked})} 
+                  />
+                  <Label htmlFor="late-payment">Late Fee Trends</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">Historical late payment patterns</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="rewards" 
+                    checked={viewOptions.showRewardsChart} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showRewardsChart: !!checked})} 
+                  />
+                  <Label htmlFor="rewards">Rewards Leaderboard</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">Cards ranked by rewards earned</div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="recommendations" 
+                    checked={viewOptions.showRecommendations} 
+                    onCheckedChange={(checked) => setViewOptions({...viewOptions, showRecommendations: !!checked})} 
+                  />
+                  <Label htmlFor="recommendations">Smart Recommendations</Label>
+                </div>
+                <div className="text-xs text-muted-foreground">AI-powered insights and tips</div>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-4 mt-4">
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="compact-view">Compact View</Label>
+                </div>
+                <Switch 
+                  id="compact-view" 
+                  checked={viewOptions.compactView} 
+                  onCheckedChange={(checked) => setViewOptions({...viewOptions, compactView: checked})} 
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCustomizeDialogOpen(false)}>
+                <Check className="mr-2 h-4 w-4" /> Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
       
       {/* Key Insights Cards */}
@@ -313,28 +438,27 @@ export default function CreditCardAnalytics() {
       
       {/* Charts Section */}
       <div className="space-y-6">
-        {/* Total Spend Per Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Total Spend Per Card</CardTitle>
-            <CardDescription>Compare spending across all credit cards</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
+        {viewOptions.showSpendingChart && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Total Spend Per Card</CardTitle>
+              <CardDescription>Compare spending across all credit cards</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[400px] w-full">
               <ChartContainer
                 config={{
                   "Total Spend": {
                     label: "Total Spend",
                     theme: {
-                      light: "#3b82f6",
-                      dark: "#60a5fa",
+                      light: "#3b82f6", // blue-500
+                      dark: "#60a5fa", // blue-400
                     },
                   },
                   "Rewards Earned": {
                     label: "Rewards Earned",
                     theme: {
-                      light: "#10b981",
-                      dark: "#34d399",
+                      light: "#10b981", // emerald-500
+                      dark: "#34d399", // emerald-400
                     },
                   },
                 }}
@@ -346,12 +470,16 @@ export default function CreditCardAnalytics() {
                     tickLine={false}
                     axisLine={false}
                     tick={{ fontSize: 12 }}
+                    height={60}
+                    angle={-45}
+                    textAnchor="end"
                   />
                   <YAxis 
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(value) => `₹${value/1000}k`}
                     tick={{ fontSize: 12 }}
+                    width={80}
                   />
                   <ChartTooltip
                     content={
@@ -360,43 +488,42 @@ export default function CreditCardAnalytics() {
                       />
                     }
                   />
-                  <Bar dataKey="Total Spend" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Rewards Earned" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Total Spend" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="Rewards Earned" radius={[4, 4, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ChartContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
-        {/* Hidden Charges Breakdown */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Hidden Charges Breakdown</CardTitle>
-            <CardDescription>Late fees, interest, and other penalties by card</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-80">
+        {viewOptions.showHiddenChargesChart && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Hidden Charges Breakdown</CardTitle>
+              <CardDescription>Late fees, interest, and other penalties by card</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[400px] w-full">
               <ChartContainer
                 config={{
                   "Late Fees": {
                     label: "Late Fees",
                     theme: {
-                      light: "#ef4444",
-                      dark: "#f87171",
+                      light: "#ef4444", // red-500
+                      dark: "#f87171", // red-400
                     },
                   },
                   "Interest Charged": {
                     label: "Interest Charged",
                     theme: {
-                      light: "#f59e0b",
-                      dark: "#fbbf24",
+                      light: "#f59e0b", // amber-500
+                      dark: "#fbbf24", // amber-400
                     },
                   },
                   "Other Penalties": {
                     label: "Other Penalties",
                     theme: {
-                      light: "#eab308",
-                      dark: "#facc15",
+                      light: "#eab308", // yellow-500
+                      dark: "#facc15", // yellow-400
                     },
                   },
                 }}
@@ -408,12 +535,16 @@ export default function CreditCardAnalytics() {
                     tickLine={false}
                     axisLine={false}
                     tick={{ fontSize: 12 }}
+                    height={60}
+                    angle={-45}
+                    textAnchor="end"
                   />
                   <YAxis 
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(value) => `₹${value}`}
                     tick={{ fontSize: 12 }}
+                    width={80}
                   />
                   <ChartTooltip
                     content={
@@ -422,24 +553,23 @@ export default function CreditCardAnalytics() {
                       />
                     }
                   />
-                  <Bar dataKey="Late Fees" stackId="a" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="Interest Charged" stackId="a" radius={[0, 0, 0, 0]} />
-                  <Bar dataKey="Other Penalties" stackId="a" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Late Fees" stackId="a" radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="Interest Charged" stackId="a" radius={[0, 0, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="Other Penalties" stackId="a" radius={[4, 4, 0, 0]} maxBarSize={60} />
                 </BarChart>
               </ChartContainer>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
         
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Utilization Rate Per Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Credit Utilization by Card</CardTitle>
-              <CardDescription>Percentage of credit limit used</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
+          {viewOptions.showUtilizationChart && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Credit Utilization by Card</CardTitle>
+                <CardDescription>Percentage of credit limit used</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[400px] w-full">
                 <ChartContainer config={{}}>
                   <PieChart>
                     <Pie
@@ -470,18 +600,17 @@ export default function CreditCardAnalytics() {
                     />
                   </PieChart>
                 </ChartContainer>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
           
-          {/* Late Payment Trends */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Late Fee Trends (Last 6 Months)</CardTitle>
-              <CardDescription>Track late payment patterns by card</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
+          {viewOptions.showLatePaymentChart && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Late Fee Trends (Last 6 Months)</CardTitle>
+                <CardDescription>Track late payment patterns by card</CardDescription>
+              </CardHeader>
+              <CardContent className="h-[400px] w-full">
                 <ChartContainer 
                   config={
                     Object.fromEntries(
@@ -509,6 +638,7 @@ export default function CreditCardAnalytics() {
                       tickLine={false}
                       axisLine={false}
                       tickFormatter={(value) => `₹${value}`}
+                      width={60}
                     />
                     <ChartTooltip 
                       content={
@@ -529,107 +659,110 @@ export default function CreditCardAnalytics() {
                     ))}
                   </LineChart>
                 </ChartContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+        
+        {viewOptions.showRewardsChart && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Rewards Earned Per Card</CardTitle>
+              <CardDescription>Cards ranked by total rewards earned</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {rewardsData.map((card, index) => (
+                  <div key={card.name} className="flex items-center gap-4">
+                    <div className="flex-shrink-0 w-8 text-center font-bold">
+                      #{index + 1}
+                    </div>
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" 
+                      style={{ backgroundColor: card.fill }}>
+                      <CreditCardIcon className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex-grow">
+                      <div className="text-sm font-medium">{card.name}</div>
+                      <div className="w-full bg-muted rounded-full h-2.5 mt-1">
+                        <div 
+                          className="h-2.5 rounded-full" 
+                          style={{ 
+                            width: `${(card.value / rewardsData[0].value) * 100}%`,
+                            backgroundColor: card.fill
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="text-right font-semibold">
+                      {formatCurrency(card.value)}
+                    </div>
+                  </div>
+                ))}
               </div>
             </CardContent>
           </Card>
-        </div>
-        
-        {/* Rewards Leaderboard */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Rewards Earned Per Card</CardTitle>
-            <CardDescription>Cards ranked by total rewards earned</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {rewardsData.map((card, index) => (
-                <div key={card.name} className="flex items-center gap-4">
-                  <div className="flex-shrink-0 w-8 text-center font-bold">
-                    #{index + 1}
-                  </div>
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center" 
-                    style={{ backgroundColor: card.fill }}>
-                    <CreditCardIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <div className="flex-grow">
-                    <div className="text-sm font-medium">{card.name}</div>
-                    <div className="w-full bg-muted rounded-full h-2.5 mt-1">
-                      <div 
-                        className="h-2.5 rounded-full" 
-                        style={{ 
-                          width: `${(card.value / rewardsData[0].value) * 100}%`,
-                          backgroundColor: card.fill
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="text-right font-semibold">
-                    {formatCurrency(card.value)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        )}
       </div>
       
       {/* Recommendations Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Smart Recommendations</CardTitle>
-          <CardDescription>AI-powered insights to optimize your credit card usage</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg">
-            <div className="mt-0.5">
-              <CreditCard className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">Consider using {bestCard.cardName} for large purchases</p>
-              <p className="text-sm text-muted-foreground mt-1">
-                This card offers the best rewards-to-fee ratio in your wallet, making it ideal for major expenses.
-              </p>
-              <Button variant="link" className="px-0 h-auto py-1 text-primary flex items-center gap-1">
-                Switch spending to this card <ChevronRight className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-          
-          {worstCard.lateFees > 0 && (
-            <div className="flex items-start gap-3 p-3 bg-red-500/5 rounded-lg">
+      {viewOptions.showRecommendations && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Smart Recommendations</CardTitle>
+            <CardDescription>AI-powered insights to optimize your credit card usage</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-lg">
               <div className="mt-0.5">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <CreditCard className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="font-medium">High late fees detected on {worstCard.cardName}</p>
+                <p className="font-medium">Consider using {bestCard.cardName} for large purchases</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  You've paid {formatCurrency(worstCard.lateFees)} in late fees on this card. Consider setting up auto-payments to avoid these charges.
+                  This card offers the best rewards-to-fee ratio in your wallet, making it ideal for major expenses.
                 </p>
                 <Button variant="link" className="px-0 h-auto py-1 text-primary flex items-center gap-1">
-                  Set up auto-payment <ChevronRight className="h-3 w-3" />
+                  Switch spending to this card <ChevronRight className="h-3 w-3" />
                 </Button>
               </div>
             </div>
-          )}
-          
-          {highUtilizationCard.utilizationRate > 70 && (
-            <div className="flex items-start gap-3 p-3 bg-amber-500/5 rounded-lg">
-              <div className="mt-0.5">
-                <CreditCardIcon className="h-5 w-5 text-amber-500" />
+            
+            {worstCard.lateFees > 0 && (
+              <div className="flex items-start gap-3 p-3 bg-red-500/5 rounded-lg">
+                <div className="mt-0.5">
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="font-medium">High late fees detected on {worstCard.cardName}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    You've paid {formatCurrency(worstCard.lateFees)} in late fees on this card. Consider setting up auto-payments to avoid these charges.
+                  </p>
+                  <Button variant="link" className="px-0 h-auto py-1 text-primary flex items-center gap-1">
+                    Set up auto-payment <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-              <div>
-                <p className="font-medium">High utilization on {highUtilizationCard.cardName}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Your card is at {highUtilizationCard.utilizationRate}% of its limit. Consider making a partial payment before the statement date to reduce utilization.
-                </p>
-                <Button variant="link" className="px-0 h-auto py-1 text-primary flex items-center gap-1">
-                  Make a partial payment <ChevronRight className="h-3 w-3" />
-                </Button>
+            )}
+            
+            {highUtilizationCard.utilizationRate > 70 && (
+              <div className="flex items-start gap-3 p-3 bg-amber-500/5 rounded-lg">
+                <div className="mt-0.5">
+                  <CreditCardIcon className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="font-medium">High utilization on {highUtilizationCard.cardName}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Your card is at {highUtilizationCard.utilizationRate}% of its limit. Consider making a partial payment before the statement date to reduce utilization.
+                  </p>
+                  <Button variant="link" className="px-0 h-auto py-1 text-primary flex items-center gap-1">
+                    Make a partial payment <ChevronRight className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
