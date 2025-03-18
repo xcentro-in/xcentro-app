@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { format, parse, startOfWeek, endOfWeek, isSameMonth, getMonth, getYear } from "date-fns";
-import { CalendarDays, Download } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CalendarDay, CalendarViewType, CalendarFilterType, MonthData } from "@/types/calendar";
 import { generateMonthData, navigateMonth } from "@/utils/calendarUtils";
@@ -85,7 +85,7 @@ const PaymentCalendar = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Payment Calendar</h1>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Payment Calendar</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             View and manage all your scheduled payments in one place
           </p>
@@ -93,15 +93,7 @@ const PaymentCalendar = () => {
         
         <div className="flex gap-3 animate-slide-down" style={{ animationDelay: "100ms" }}>
           <Button 
-            variant="outline" 
-            className="h-10 gap-2"
-            onClick={handleExport}
-          >
-            <Download className="h-4 w-4" />
-            Export Calendar
-          </Button>
-          <Button 
-            className="h-10 gap-2"
+            className="h-10 gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all shadow-sm hover:shadow-md"
             onClick={() => navigate("/new-payment")}
           >
             <CalendarDays className="h-4 w-4" />
@@ -110,7 +102,7 @@ const PaymentCalendar = () => {
         </div>
       </div>
       
-      <div className="calendar-container rounded-xl border p-4 bg-white animate-fade-in">
+      <div className="calendar-container rounded-xl border p-4 bg-gradient-to-br from-slate-50 to-blue-50/70 shadow-sm animate-fade-in">
         <CalendarHeader 
           currentDate={currentDate}
           viewType={viewType}

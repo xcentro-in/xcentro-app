@@ -25,9 +25,9 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
 
   const dayClasses = `
     h-32 p-1 border rounded-md transition-all
-    ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
+    ${isCurrentMonth ? 'bg-white/95 backdrop-blur-sm' : 'bg-gray-50/90 text-gray-400'}
     ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''}
-    hover:border-primary hover:shadow-sm cursor-pointer
+    hover:border-primary hover:shadow-md cursor-pointer
   `;
 
   return (
@@ -36,20 +36,20 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
         <span className={`text-sm font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center ${isToday ? 'bg-primary text-white' : ''}`}>
           {format(date, 'd')}
         </span>
-        {filteredEvents.length > 2 && (
-          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-full text-gray-700">
+        {filteredEvents.length > 0 && (
+          <span className="text-xs bg-primary/10 px-1.5 py-0.5 rounded-full text-primary font-medium">
             {filteredEvents.length}
           </span>
         )}
       </div>
       
       <div className="mt-1 space-y-1 overflow-hidden">
-        {filteredEvents.slice(0, 2).map((event, index) => (
+        {filteredEvents.slice(0, 3).map((event, index) => (
           <Tooltip key={`${event.id}-${index}`} delayDuration={300}>
             <TooltipTrigger asChild>
               <div 
                 className={`
-                  text-[10px] px-1.5 py-0.5 rounded truncate border
+                  text-[10px] px-1.5 py-0.5 rounded truncate border shadow-sm
                   ${getStatusColor(event.status)}
                 `}
               >
@@ -62,7 +62,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
                 </div>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right" className="p-3 max-w-xs">
+            <TooltipContent side="right" className="p-3 max-w-xs bg-white/95 backdrop-blur-sm border-primary/20">
               <div className="font-semibold mb-1">{event.title}</div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Amount:</span>
@@ -94,12 +94,6 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
             </TooltipContent>
           </Tooltip>
         ))}
-        
-        {filteredEvents.length > 2 && (
-          <div className="text-[10px] py-0.5 text-center text-muted-foreground bg-gray-50 rounded">
-            +{filteredEvents.length - 2} more
-          </div>
-        )}
       </div>
     </div>
   );
