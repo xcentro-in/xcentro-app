@@ -24,7 +24,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
   });
 
   const dayClasses = `
-    h-32 p-1 border rounded-md transition-all
+    h-32 p-1 border rounded-md transition-all z-[-1]
     ${isCurrentMonth ? 'bg-white' : 'bg-gray-50 text-gray-400'}
     ${isToday ? 'ring-2 ring-primary ring-offset-1' : ''}
     hover:border-primary hover:shadow-sm cursor-pointer
@@ -36,7 +36,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
         <span className={`text-sm font-medium p-1 rounded-full w-6 h-6 flex items-center justify-center ${isToday ? 'bg-primary text-white' : ''}`}>
           {format(date, 'd')}
         </span>
-        {filteredEvents.length > 2 && (
+        {filteredEvents.length > 0 && (
           <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-full text-gray-700">
             {filteredEvents.length}
           </span>
@@ -44,60 +44,60 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
       </div>
       
       <div className="mt-1 space-y-1 overflow-hidden">
-        {filteredEvents.slice(0, 2).map((event, index) => (
-          <Tooltip key={`${event.id}-${index}`} delayDuration={300}>
+        {filteredEvents.length > 0 && (
+          <Tooltip key={`${filteredEvents[0].id}`} delayDuration={300}>
             <TooltipTrigger asChild>
               <div 
                 className={`
                   text-[10px] px-1.5 py-0.5 rounded truncate border
-                  ${getStatusColor(event.status)}
+                  ${getStatusColor(filteredEvents[0].status)}
                 `}
               >
                 <div className="flex items-center gap-1">
-                  <span>{getMethodIcon(event.method)}</span>
-                  <span className="truncate">{event.title}</span>
+                  <span>{getMethodIcon(filteredEvents[0].method)}</span>
+                  <span className="truncate">{filteredEvents[0].title}</span>
                 </div>
                 <div className="font-semibold mt-0.5 truncate">
-                  ${event.amount.toLocaleString()}
+                  ${filteredEvents[0].amount.toLocaleString()}
                 </div>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" className="p-3 max-w-xs">
-              <div className="font-semibold mb-1">{event.title}</div>
+              <div className="font-semibold mb-1">{filteredEvents[0].title}</div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Amount:</span>
-                <span className="font-medium">${event.amount.toLocaleString()}</span>
+                <span className="font-medium">${filteredEvents[0].amount.toLocaleString()}</span>
                 
                 <span className="text-muted-foreground">Method:</span>
-                <span className="font-medium">{event.method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>
+                <span className="font-medium">{filteredEvents[0].method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>
                 
                 <span className="text-muted-foreground">Type:</span>
-                <span className="font-medium capitalize">{event.type}</span>
+                <span className="font-medium capitalize">{filteredEvents[0].type}</span>
                 
                 <span className="text-muted-foreground">Status:</span>
-                <span className="font-medium capitalize">{event.status.replace('_', ' ')}</span>
+                <span className="font-medium capitalize">{filteredEvents[0].status.replace('_', ' ')}</span>
                 
-                {event.initiatedBy && (
+                {filteredEvents[0].initiatedBy && (
                   <>
                     <span className="text-muted-foreground">Initiated By:</span>
-                    <span className="font-medium">{event.initiatedBy}</span>
+                    <span className="font-medium">{filteredEvents[0].initiatedBy}</span>
                   </>
                 )}
                 
-                {event.time && (
+                {filteredEvents[0].time && (
                   <>
                     <span className="text-muted-foreground">Time:</span>
-                    <span className="font-medium">{event.time}</span>
+                    <span className="font-medium">{filteredEvents[0].time}</span>
                   </>
                 )}
               </div>
             </TooltipContent>
           </Tooltip>
-        ))}
+        )}
         
-        {filteredEvents.length > 2 && (
-          <div className="text-[10px] py-0.5 text-center text-muted-foreground bg-gray-50 rounded">
-            +{filteredEvents.length - 2} more
+        {filteredEvents.length > 1 && (
+          <div className="text-[10px] py-0.5 text-center text-muted-foreground bg-gray-50 rounded w-fit px-1.5 mx-auto">
+            +{filteredEvents.length - 1} more
           </div>
         )}
       </div>
