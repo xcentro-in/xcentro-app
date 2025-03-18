@@ -17,6 +17,7 @@ export const SidebarMenu = () => {
             url={item.url} 
             icon={item.icon}
             highlight={item.highlight}
+            submenu={item.submenu}
           />
         ))}
       </Menu>

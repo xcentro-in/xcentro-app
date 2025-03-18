@@ -12,8 +12,8 @@ import {
   CheckCircle2,
   CalendarDays,
   Receipt,
-  CreditCardIcon, // New import for submenu icon
-  BarChart2, // New import for analytics icon
+  BarChart2,
+  CreditCardIcon, 
 } from "lucide-react";
 
 // Main menu items
@@ -36,7 +36,7 @@ export const mainMenuItems = [
   {
     title: "Credit Cards",
     url: "/credit-cards",
-    icon: CreditCard,
+    icon: CreditCardIcon,
     submenu: [
       {
         title: "Card Bill Payment",
