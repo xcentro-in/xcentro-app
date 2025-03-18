@@ -11,9 +11,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardBill } from "@/types/credit-card-bill";
-import { format, parseISO } from "date-fns";
 import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
 import PaymentOptions from "./PaymentOptions";
+import BillSummary from "./BillSummary";
+import PaymentSummary from "./PaymentSummary";
 
 interface BillPaymentDialogProps {
   bill: CreditCardBill | null;
@@ -67,22 +68,7 @@ export default function BillPaymentDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4 py-2">
-            <div>
-              <p className="text-sm text-muted-foreground">Statement Date</p>
-              <p className="font-medium">
-                {bill.statementDate 
-                  ? format(parseISO(bill.statementDate), "dd MMM yyyy") 
-                  : "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Due Date</p>
-              <p className="font-medium">
-                {format(parseISO(bill.dueDate), "dd MMM yyyy")}
-              </p>
-            </div>
-          </div>
+          <BillSummary bill={bill} />
           
           <Separator />
           
@@ -103,33 +89,12 @@ export default function BillPaymentDialog({
           
           <Separator />
           
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Payment Summary</h3>
-            
-            <div className="bg-muted p-3 rounded-md space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Bill Amount</span>
-                <span className="font-medium">₹{paymentAmount.toLocaleString()}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Platform Fee (0.5%)</span>
-                <span>₹{platformFee.toFixed(2)}</span>
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Payment Gateway Fee</span>
-                <span>₹{gatewayFee.toFixed(2)}</span>
-              </div>
-              
-              <Separator className="my-1" />
-              
-              <div className="flex justify-between items-center font-medium">
-                <span>Total Payable</span>
-                <span>₹{totalPayable.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-          </div>
+          <PaymentSummary 
+            paymentAmount={paymentAmount}
+            platformFee={platformFee}
+            gatewayFee={gatewayFee}
+            totalPayable={totalPayable}
+          />
         </div>
         
         <DialogFooter>
