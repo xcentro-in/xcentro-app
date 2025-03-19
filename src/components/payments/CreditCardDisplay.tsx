@@ -12,7 +12,7 @@ interface CreditCardDisplayProps {
   onClick: () => void;
 }
 
-const CreditCardDisplay = ({ card, isSelected, onClick }: CreditCardDisplayProps) => {
+const CreditCardDisplay: React.FC<CreditCardDisplayProps> = ({ card, isSelected, onClick }) => {
   // Last four digits with masked prefix
   const maskedNumber = `•••• •••• •••• ${card.lastFourDigits}`;
 
@@ -29,7 +29,7 @@ const CreditCardDisplay = ({ card, isSelected, onClick }: CreditCardDisplayProps
     >
       <Cards
         number={maskedNumber}
-        preview=true
+        preview={true}
         issuer={card.cardType}
         expiry={expiry}
         cvc="***"
