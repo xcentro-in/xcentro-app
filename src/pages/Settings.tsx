@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -13,7 +14,8 @@ import {
   Users,
   HelpCircle,
   Building,
-  Plus
+  Plus,
+  BadgeCheck
 } from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
@@ -28,6 +30,7 @@ import IntegrationSettings from "@/components/settings/IntegrationSettings";
 import UserAccessTabs from "@/components/user-access/UserAccessTabs";
 import SupportSettings from "@/components/settings/SupportSettings";
 import BusinessManagement from "@/components/settings/BusinessManagement";
+import SubscriptionSettings from "@/components/settings/SubscriptionSettings";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -82,6 +85,10 @@ const Settings = () => {
             <Building className="h-4 w-4" />
             Businesses
           </TabsTrigger>
+          <TabsTrigger value="subscription" className="flex items-center gap-2">
+            <BadgeCheck className="h-4 w-4" />
+            Pricing & Subscription
+          </TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
           <TabsTrigger value="users" className="flex items-center gap-2">
@@ -115,6 +122,10 @@ const Settings = () => {
             </Button>
           </div>
           <BusinessManagement />
+        </TabsContent>
+        
+        <TabsContent value="subscription">
+          <SubscriptionSettings />
         </TabsContent>
         
         <TabsContent value="notifications">
