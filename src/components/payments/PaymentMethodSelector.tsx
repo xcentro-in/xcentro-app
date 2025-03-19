@@ -10,20 +10,12 @@ import { cn } from "@/lib/utils";
 interface PaymentMethodSelectorProps {
   onSelect: (paymentMethodId: string) => void;
   selectedMethodId?: string;
-  showOnlyCards?: boolean; // New prop to only show credit cards
 }
 
-const PaymentMethodSelector = ({ onSelect, selectedMethodId, showOnlyCards = false }: PaymentMethodSelectorProps) => {
+const PaymentMethodSelector = ({ onSelect, selectedMethodId }: PaymentMethodSelectorProps) => {
   const [activeTab, setActiveTab] = useState<PaymentMethodType>("card");
   
-  // If showOnlyCards is true, only show card payment methods
-  const availableMethods = showOnlyCards
-    ? mockPaymentMethods.filter(method => method.type === "card")
-    : mockPaymentMethods;
-    
-  const filteredMethods = showOnlyCards
-    ? availableMethods // If showing only cards, we already filtered above
-    : availableMethods.filter(method => method.type === activeTab);
+  const filteredMethods = mockPaymentMethods.filter(method => method.type === activeTab);
   
   const getMethodIcon = (type: PaymentMethodType) => {
     switch (type) {
@@ -73,115 +65,92 @@ const PaymentMethodSelector = ({ onSelect, selectedMethodId, showOnlyCards = fal
 
   return (
     <div className="space-y-4">
-      {/* Show tabs only if not restricting to cards */}
-      {!showOnlyCards && (
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PaymentMethodType)}>
-          <TabsList className="grid grid-cols-4 mb-4 w-full">
-            <TabsTrigger 
-              value="card" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span className="text-xs">Card</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bank" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <BanknoteIcon className="h-4 w-4" />
-              <span className="text-xs">Bank</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bnpl" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <IndianRupee className="h-4 w-4" />
-              <span className="text-xs">BNPL</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="upi" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              <span className="text-xs">UPI</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          {["card", "bank", "bnpl", "upi"].map((tabType) => (
-            <TabsContent key={tabType} value={tabType} className="space-y-3">
-              {renderPaymentMethods(filteredMethods, selectedMethodId, onSelect, getMethodIcon, getMethodDetails)}
-            </TabsContent>
-          ))}
-        </Tabs>
-      )}
-      
-      {/* When only showing cards, just render the cards without tabs */}
-      {showOnlyCards && (
-        <div className="space-y-3">
-          {renderPaymentMethods(filteredMethods, selectedMethodId, onSelect, getMethodIcon, getMethodDetails)}
-        </div>
-      )}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PaymentMethodType)}>
+        <TabsList className="grid grid-cols-4 mb-4 w-full">
+          <TabsTrigger 
+            value="card" 
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
+          >
+            <CreditCard className="h-4 w-4" />
+            <span className="text-xs">Card</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="bank" 
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
+          >
+            <BanknoteIcon className="h-4 w-4" />
+            <span className="text-xs">Bank</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="bnpl" 
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
+          >
+            <IndianRupee className="h-4 w-4" />
+            <span className="text-xs">BNPL</span>
+          </TabsTrigger>
+          <TabsTrigger 
+            value="upi" 
+            className="flex items-center gap-2 py-2 h-auto w-full px-2"
+          >
+            <PhoneIcon className="h-4 w-4" />
+            <span className="text-xs">UPI</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        {["card", "bank", "bnpl", "upi"].map((tabType) => (
+          <TabsContent key={tabType} value={tabType} className="space-y-3">
+            {filteredMethods.length > 0 ? (
+              filteredMethods.map((method) => {
+                const details = getMethodDetails(method);
+                const isSelected = selectedMethodId === method.id;
+                return (
+                  <Card 
+                    key={method.id}
+                    className={cn(
+                      "border transition-all cursor-pointer hover:shadow-md relative",
+                      isSelected ? "ring-2 ring-primary" : ""
+                    )}
+                    onClick={() => onSelect(method.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-full ${details.bgColor} flex items-center justify-center`}>
+                          {getMethodIcon(method.type)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex items-center gap-2">
+                            {details.title}
+                            {method.isDefault && (
+                              <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground">{details.subtitle}</div>
+                        </div>
+                        {isSelected && (
+                          <div className="absolute right-4 flex items-center">
+                            <div className="bg-green-500 text-white rounded-full p-1">
+                              <Check className="h-4 w-4" />
+                            </div>
+                            <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="text-center py-6 text-muted-foreground">
+                <p>No {tabType} payment methods found</p>
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
-};
-
-// Helper function to render the payment methods
-const renderPaymentMethods = (
-  methods: PaymentMethod[],
-  selectedMethodId: string | undefined,
-  onSelect: (id: string) => void,
-  getMethodIcon: (type: PaymentMethodType) => JSX.Element,
-  getMethodDetails: (method: PaymentMethod) => { title: string; subtitle: string; bgColor: string; textColor: string }
-) => {
-  if (methods.length > 0) {
-    return methods.map((method) => {
-      const details = getMethodDetails(method);
-      const isSelected = selectedMethodId === method.id;
-      return (
-        <Card 
-          key={method.id}
-          className={cn(
-            "border transition-all cursor-pointer hover:shadow-md relative",
-            isSelected ? "ring-2 ring-primary bg-green-50" : ""
-          )}
-          onClick={() => onSelect(method.id)}
-        >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-full ${details.bgColor} flex items-center justify-center`}>
-                {getMethodIcon(method.type)}
-              </div>
-              <div className="flex-1">
-                <div className="font-medium flex items-center gap-2">
-                  {details.title}
-                  {method.isDefault && (
-                    <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
-                      Default
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs text-muted-foreground">{details.subtitle}</div>
-              </div>
-              {isSelected && (
-                <div className="absolute right-4 flex items-center">
-                  <div className="bg-green-500 text-white rounded-full p-1">
-                    <Check className="h-4 w-4" />
-                  </div>
-                  <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      );
-    });
-  } else {
-    return (
-      <div className="text-center py-6 text-muted-foreground">
-        <p>No payment methods found</p>
-      </div>
-    );
-  }
 };
 
 export default PaymentMethodSelector;

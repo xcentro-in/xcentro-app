@@ -14,7 +14,6 @@ interface QuickPayTabProps {
 
 export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
   const [amount, setAmount] = useState<string>("");
-  const [selectedCardId, setSelectedCardId] = useState<string>("");
   const [cardDetails, setCardDetails] = useState({
     cardIssuer: "",
     lastFourDigits: "",
@@ -40,7 +39,6 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
             <div className="mt-2">
               <PaymentMethodSelector
                 onSelect={(id) => {
-                  setSelectedCardId(id);
                   // Find the selected method from the mock data
                   const cardBill = mockCreditCardBills.find(bill => bill.id === "ccb-001");
                   if (cardBill) {
@@ -53,8 +51,6 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
                     });
                   }
                 }}
-                selectedMethodId={selectedCardId}
-                showOnlyCards={true} // New prop to only show credit cards
               />
             </div>
           </div>
@@ -89,7 +85,7 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
         <div className="flex justify-end mt-6">
           <Button
             onClick={() => onContinue(amount, cardDetails)}
-            disabled={!amount || parseFloat(amount) <= 0 || !selectedCardId}
+            disabled={!amount || parseFloat(amount) <= 0}
           >
             Continue to Payment Method
           </Button>
