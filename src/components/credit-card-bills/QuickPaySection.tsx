@@ -28,8 +28,8 @@ export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionPro
   };
   
   const handleRedirectToPaymentFlow = () => {
-    // Navigate to the credit card payment flow
-    navigate("/new-payment?type=creditcard");
+    // Navigate to the credit card payment flow with quick pay method
+    navigate("/new-payment?type=creditcard&method=quick");
   };
   
   const isAmountTooLow = parseFloat(amount) < 1000 && amount !== "";
