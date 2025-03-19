@@ -14,7 +14,7 @@ interface CreditCardDisplayProps {
 
 const CreditCardDisplay = ({ card, isSelected, onClick }: CreditCardDisplayProps) => {
   // Last four digits with masked prefix
-  const maskedNumber = `•••• •••• •••• ${card.lastFourDigits}`;
+  const maskedNumber = `000 000 000 ${card.lastFourDigits}`;
 
   // Format MM/YY from card expiry date
   const expiry = card.expiryDate;
@@ -29,7 +29,7 @@ const CreditCardDisplay = ({ card, isSelected, onClick }: CreditCardDisplayProps
     >
       <Cards
         number={maskedNumber}
-        preview=true
+        preview={true}
         issuer={card.cardType}
         expiry={expiry}
         cvc="***"
