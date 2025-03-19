@@ -4,8 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, Check } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
+import { PaymentMethod, PaymentMethodType, CardPaymentMethod } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
+import CreditCardDisplay from "./CreditCardDisplay";
 
 interface PaymentMethodSelectorProps {
   onSelect: (paymentMethodId: string) => void;
@@ -70,6 +71,91 @@ const PaymentMethodSelector = ({
     }
   };
 
+  // Render card methods using the new CreditCardDisplay component
+  const renderCardMethods = () => {
+    const cardMethods = filteredMethods.filter(method => method.type === "card") as CardPaymentMethod[];
+    
+    if (cardMethods.length === 0) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>No credit card payment methods found</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {cardMethods.map((card) => (
+          <CreditCardDisplay
+            key={card.id}
+            card={card}
+            isSelected={selectedMethodId === card.id}
+            onClick={() => onSelect(card.id)}
+          />
+        ))}
+      </div>
+    );
+  };
+
+  // Render other payment methods (bank, bnpl, upi)
+  const renderOtherMethods = () => {
+    const otherMethods = filteredMethods.filter(method => method.type === activeTab && method.type !== "card");
+    
+    if (otherMethods.length === 0) {
+      return (
+        <div className="text-center py-6 text-muted-foreground">
+          <p>No {activeTab} payment methods found</p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-3">
+        {otherMethods.map((method) => {
+          const details = getMethodDetails(method);
+          const isSelected = selectedMethodId === method.id;
+          return (
+            <Card 
+              key={method.id}
+              className={cn(
+                "border transition-all cursor-pointer hover:shadow-md relative",
+                isSelected ? "ring-2 ring-primary bg-green-50" : ""
+              )}
+              onClick={() => onSelect(method.id)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={`h-10 w-10 rounded-full ${details.bgColor} flex items-center justify-center`}>
+                    {getMethodIcon(method.type)}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium flex items-center gap-2">
+                      {details.title}
+                      {method.isDefault && (
+                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
+                          Default
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{details.subtitle}</div>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute right-4 flex items-center">
+                      <div className="bg-green-500 text-white rounded-full p-1">
+                        <Check className="h-4 w-4" />
+                      </div>
+                      <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {!showOnlyCards && (
@@ -107,55 +193,8 @@ const PaymentMethodSelector = ({
         </Tabs>
       )}
 
-      <div className="space-y-3">
-        {filteredMethods.length > 0 ? (
-          filteredMethods.map((method) => {
-            const details = getMethodDetails(method);
-            const isSelected = selectedMethodId === method.id;
-            return (
-              <Card 
-                key={method.id}
-                className={cn(
-                  "border transition-all cursor-pointer hover:shadow-md relative",
-                  isSelected ? "ring-2 ring-primary bg-green-50" : ""
-                )}
-                onClick={() => onSelect(method.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-10 w-10 rounded-full ${details.bgColor} flex items-center justify-center`}>
-                      {getMethodIcon(method.type)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="font-medium flex items-center gap-2">
-                        {details.title}
-                        {method.isDefault && (
-                          <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
-                            Default
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{details.subtitle}</div>
-                    </div>
-                    {isSelected && (
-                      <div className="absolute right-4 flex items-center">
-                        <div className="bg-green-500 text-white rounded-full p-1">
-                          <Check className="h-4 w-4" />
-                        </div>
-                        <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        ) : (
-          <div className="text-center py-6 text-muted-foreground">
-            <p>No {showOnlyCards ? "credit card" : activeTab} payment methods found</p>
-          </div>
-        )}
-      </div>
+      {/* Render either card view or other payment methods view */}
+      {(showOnlyCards || activeTab === "card") ? renderCardMethods() : renderOtherMethods()}
     </div>
   );
 };
