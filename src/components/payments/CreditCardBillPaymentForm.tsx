@@ -8,20 +8,20 @@ import UploadBillTab from "./credit-card-bill/UploadBillTab";
 import QuickPayTab from "./credit-card-bill/QuickPayTab";
 import BillDetailsCard from "./credit-card-bill/BillDetailsCard";
 import PaymentReviewCard from "./credit-card-bill/PaymentReviewCard";
-import { useSearchParams } from "react-router-dom";
 
 interface CreditCardBillPaymentFormProps {
   onStepChange: (step: number) => void;
+  initialMethod?: "upload" | "quick";
 }
 
-export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBillPaymentFormProps) {
-  const [searchParams] = useSearchParams();
-  const initialTab = searchParams.get('method') === 'quick' ? 'quick' : 'upload';
-  
+export default function CreditCardBillPaymentForm({ 
+  onStepChange, 
+  initialMethod = "upload" 
+}: CreditCardBillPaymentFormProps) {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [selectedMethod, setSelectedMethod] = useState<"upload" | "quick">(initialTab as "upload" | "quick");
+  const [selectedMethod, setSelectedMethod] = useState<"upload" | "quick">(initialMethod);
   const [cardDetails, setCardDetails] = useState({
     cardIssuer: "",
     lastFourDigits: "",
@@ -67,7 +67,7 @@ export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBi
           <h3 className="font-medium mb-4">Credit Card Bill Payment</h3>
           
           <Tabs 
-            defaultValue={initialTab} 
+            defaultValue={initialMethod} 
             value={selectedMethod}
             onValueChange={(value) => setSelectedMethod(value as "upload" | "quick")}
             className="w-full"

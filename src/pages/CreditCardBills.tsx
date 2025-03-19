@@ -61,7 +61,13 @@ export default function CreditCardBills() {
   };
 
   const handleGoToQuickPay = () => {
-    navigate("/new-payment?type=creditcard&method=quick");
+    // Navigate to the payment page with state indicating we want credit card quick pay
+    navigate("/new-payment", { 
+      state: { 
+        paymentCategory: "creditcard",
+        paymentMethod: "quick" 
+      } 
+    });
   };
   
   return (

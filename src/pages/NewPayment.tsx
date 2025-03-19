@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
@@ -7,6 +7,7 @@ import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
+import { useLocation } from "react-router-dom";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard";
 
@@ -18,8 +19,27 @@ const steps = {
 };
 
 const NewPayment = () => {
+  const location = useLocation();
+  const locationState = location.state as { 
+    paymentCategory?: PaymentCategory;
+    paymentMethod?: string; 
+  } | null;
+
   const [step, setStep] = useState(0);
-  const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>("selection");
+  const [paymentCategory, setPaymentCategory] = useState<PaymentCategory>(
+    locationState?.paymentCategory || "selection"
+  );
+  const [paymentMethod, setPaymentMethod] = useState<string | undefined>(
+    locationState?.paymentMethod
+  );
+
+  // Set initial state based on location state
+  useEffect(() => {
+    if (locationState?.paymentCategory) {
+      setPaymentCategory(locationState.paymentCategory);
+      setStep(1);
+    }
+  }, [locationState]);
 
   const handleCategorySelect = (category: PaymentCategory) => {
     setPaymentCategory(category);
@@ -76,7 +96,12 @@ const NewPayment = () => {
               {paymentCategory === "single" && <SinglePaymentForm onStepChange={setStep} />}
               {paymentCategory === "batch" && <BatchPaymentForm onStepChange={setStep} />}
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
-              {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} />}
+              {paymentCategory === "creditcard" && (
+                <CreditCardBillPaymentForm 
+                  onStepChange={setStep} 
+                  initialMethod={paymentMethod === "quick" ? "quick" : "upload"}
+                />
+              )}
             </>
           )}
         </CardContent>
