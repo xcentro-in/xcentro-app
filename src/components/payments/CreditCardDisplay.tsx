@@ -29,6 +29,8 @@ const CreditCardDisplay = ({ card, isSelected, onClick }: CreditCardDisplayProps
     >
       <Cards
         number={maskedNumber}
+        preview=true
+        issuer={card.cardType}
         expiry={expiry}
         cvc="***"
         name={card.cardholderName}
