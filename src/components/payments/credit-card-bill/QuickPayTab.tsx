@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import { PaymentMethodSelector } from "@/components/payments/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
 import { mockCreditCardBills } from "@/data/mockCreditCardBills";
 
 interface QuickPayTabProps {
@@ -14,7 +14,6 @@ interface QuickPayTabProps {
 
 export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
   const [amount, setAmount] = useState<string>("");
-  const [selectedCardId, setSelectedCardId] = useState<string>("");
   const [cardDetails, setCardDetails] = useState({
     cardIssuer: "",
     lastFourDigits: "",
@@ -40,9 +39,8 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
             <div className="mt-2">
               <PaymentMethodSelector
                 onSelect={(id) => {
-                  setSelectedCardId(id);
                   // Find the selected method from the mock data
-                  const cardBill = mockCreditCardBills.find(bill => bill.id === id);
+                  const cardBill = mockCreditCardBills.find(bill => bill.id === "ccb-001");
                   if (cardBill) {
                     setCardDetails({
                       cardIssuer: cardBill.cardIssuer,
@@ -53,8 +51,6 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
                     });
                   }
                 }}
-                selectedMethodId={selectedCardId}
-                showOnlyCards={true}
               />
             </div>
           </div>
@@ -89,7 +85,7 @@ export default function QuickPayTab({ onContinue }: QuickPayTabProps) {
         <div className="flex justify-end mt-6">
           <Button
             onClick={() => onContinue(amount, cardDetails)}
-            disabled={!amount || parseFloat(amount) <= 0 || !selectedCardId}
+            disabled={!amount || parseFloat(amount) <= 0}
           >
             Continue to Payment Method
           </Button>
