@@ -5,19 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PaymentMethod } from "@/types/payment-method";
-import { CreditCard, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
+import { useNavigate } from "react-router-dom";
 
 interface QuickPaySectionProps {
   onPaymentSuccess: () => void;
 }
 
 export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionProps) {
+  const navigate = useNavigate();
   const [amount, setAmount] = useState<string>("");
   const [selectedCard, setSelectedCard] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Only allow numbers and a single decimal point
@@ -27,23 +27,9 @@ export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionPro
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!amount || parseFloat(amount) <= 0 || !selectedCard) {
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setAmount("");
-      setSelectedCard("");
-      setDescription("");
-      onPaymentSuccess();
-    }, 1500);
+  const handleRedirectToPaymentFlow = () => {
+    // Navigate to the credit card payment flow
+    navigate("/new-payment?type=creditcard");
   };
   
   const isAmountTooLow = parseFloat(amount) < 1000 && amount !== "";
@@ -57,7 +43,7 @@ export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionPro
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form className="space-y-6">
           <div className="space-y-4">
             <div>
               <Label htmlFor="card">Select Credit Card</Label>
@@ -65,6 +51,7 @@ export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionPro
                 <PaymentMethodSelector
                   onSelect={setSelectedCard}
                   selectedMethodId={selectedCard}
+                  showOnlyCards={true}
                 />
               </div>
             </div>
@@ -116,10 +103,11 @@ export default function QuickPaySection({ onPaymentSuccess }: QuickPaySectionPro
           
           <div className="flex justify-end">
             <Button 
-              type="submit" 
-              disabled={!amount || parseFloat(amount) <= 0 || !selectedCard || isSubmitting}
+              type="button" 
+              onClick={handleRedirectToPaymentFlow}
+              disabled={!amount || parseFloat(amount) <= 0 || !selectedCard}
             >
-              {isSubmitting ? "Processing..." : "Make Payment"}
+              Go to Payment Flow
             </Button>
           </div>
         </form>

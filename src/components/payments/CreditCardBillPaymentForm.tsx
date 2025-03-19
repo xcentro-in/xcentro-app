@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Upload } from "lucide-react";
@@ -8,16 +8,20 @@ import UploadBillTab from "./credit-card-bill/UploadBillTab";
 import QuickPayTab from "./credit-card-bill/QuickPayTab";
 import BillDetailsCard from "./credit-card-bill/BillDetailsCard";
 import PaymentReviewCard from "./credit-card-bill/PaymentReviewCard";
+import { useSearchParams } from "react-router-dom";
 
 interface CreditCardBillPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
 export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBillPaymentFormProps) {
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get('method') === 'quick' ? 'quick' : 'upload';
+  
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
-  const [selectedMethod, setSelectedMethod] = useState<"upload" | "quick">("upload");
+  const [selectedMethod, setSelectedMethod] = useState<"upload" | "quick">(initialTab as "upload" | "quick");
   const [cardDetails, setCardDetails] = useState({
     cardIssuer: "",
     lastFourDigits: "",
@@ -25,6 +29,10 @@ export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBi
     totalDue: "",
     minimumDue: "",
   });
+  
+  useEffect(() => {
+    onStepChange(step);
+  }, [step, onStepChange]);
   
   const handleAmountChange = (newAmount: string) => {
     setAmount(newAmount);
@@ -34,26 +42,22 @@ export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBi
     setCardDetails(extractedData);
     setAmount(extractedData.totalDue);
     setStep(2);
-    onStepChange(2);
   };
   
   const handleQuickPayContinue = (amount: string, cardDetails: any) => {
     setAmount(amount);
     setCardDetails(cardDetails);
     setStep(2);
-    onStepChange(2);
   };
   
   const handleNext = () => {
     const nextStep = step + 1;
     setStep(nextStep);
-    onStepChange(nextStep);
   };
   
   const handleBack = () => {
     const prevStep = step - 1;
     setStep(prevStep);
-    onStepChange(prevStep);
   };
   
   return (
@@ -63,7 +67,7 @@ export default function CreditCardBillPaymentForm({ onStepChange }: CreditCardBi
           <h3 className="font-medium mb-4">Credit Card Bill Payment</h3>
           
           <Tabs 
-            defaultValue="upload" 
+            defaultValue={initialTab} 
             value={selectedMethod}
             onValueChange={(value) => setSelectedMethod(value as "upload" | "quick")}
             className="w-full"

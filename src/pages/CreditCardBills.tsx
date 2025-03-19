@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Grid2X2, List, Upload, CreditCard, BarChart2, ChevronRight } from "lucide-react";
+import { Grid2X2, List, Upload, CreditCard, BarChart2 } from "lucide-react";
 import { mockCreditCardBills } from "@/data/mockCreditCardBills";
 import { CreditCardBill } from "@/types/credit-card-bill";
 import BillCard from "@/components/credit-card-bills/BillCard";
@@ -11,9 +11,10 @@ import UploadBillSection from "@/components/credit-card-bills/UploadBillSection"
 import QuickPaySection from "@/components/credit-card-bills/QuickPaySection";
 import BillPaymentDialog from "@/components/credit-card-bills/BillPaymentDialog";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function CreditCardBills() {
+  const navigate = useNavigate();
   const [bills, setBills] = useState<CreditCardBill[]>(mockCreditCardBills);
   const [showUploadBill, setShowUploadBill] = useState(false);
   const [showQuickPay, setShowQuickPay] = useState(false);
@@ -58,6 +59,10 @@ export default function CreditCardBills() {
       description: "Your credit card bill payment has been processed."
     });
   };
+
+  const handleGoToQuickPay = () => {
+    navigate("/new-payment?type=creditcard&method=quick");
+  };
   
   return (
     <div className="space-y-8">
@@ -81,7 +86,7 @@ export default function CreditCardBills() {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2"
-                onClick={() => setShowQuickPay(true)}
+                onClick={handleGoToQuickPay}
               >
                 <CreditCard className="h-4 w-4" /> Quick Pay
               </Button>
