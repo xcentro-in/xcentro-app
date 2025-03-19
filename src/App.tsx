@@ -26,6 +26,8 @@ import BusinessOnboarding from "./pages/BusinessOnboarding";
 import CreditCardBills from "./pages/CreditCardBills";
 import CreditCardAnalytics from "./pages/CreditCardAnalytics";
 import CreditCards from "./pages/CreditCards";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,11 @@ function App() {
           <SidebarProvider>
             <BrowserRouter>
               <Routes>
+                {/* Auth Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                
+                {/* App Routes */}
                 <Route path="/" element={<Layout />}>
                   <Route index element={<Dashboard />} />
                   <Route path="payments" element={<Payments />} />
