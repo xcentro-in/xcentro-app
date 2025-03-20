@@ -189,6 +189,7 @@ const RedemptionFlow: React.FC = () => {
   const [item, setItem] = useState<RedemptionItem | null>(null);
   const [partners, setPartners] = useState<LoyaltyPartner[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<LoyaltyPartner | null>(null);
+  const [pointsError, setPointsError] = useState<string | null>(null);
   
   const availablePoints = 24530; // This would come from your app state or API
   
@@ -231,6 +232,13 @@ const RedemptionFlow: React.FC = () => {
     const value = parseInt(e.target.value, 10);
     if (!isNaN(value)) {
       setPointsToRedeem(value);
+      
+      // Validate minimum points
+      if (item && value < item.pointsCost) {
+        setPointsError(`Minimum should be ${item.pointsCost.toLocaleString()} points`);
+      } else {
+        setPointsError(null);
+      }
     }
   };
   
@@ -309,7 +317,7 @@ const RedemptionFlow: React.FC = () => {
       
       <div className="w-full mb-8">
         <div className="flex justify-between mb-2">
-          {["Select Partner", "Choose Amount", "Confirm Redemption"].map((stepName, idx) => (
+          {["Select Partner", "Redeem Points", "Confirm Redemption"].map((stepName, idx) => (
             <div 
               key={stepName} 
               className={`flex items-center ${idx + 1 === step ? "text-primary font-medium" : "text-muted-foreground"}`}
@@ -368,16 +376,9 @@ const RedemptionFlow: React.FC = () => {
                         </div>
                         
                         <div className="p-4">
-                          <div className="flex justify-between items-center mb-2">
+                          <div className="flex justify-between items-center">
                             <div className="text-sm font-medium">Conversion Rate</div>
                             <div className="text-sm">1:{partner.conversionRatio}</div>
-                          </div>
-                          
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm font-medium">Membership</div>
-                            <div className="text-sm text-muted-foreground truncate max-w-[120px]">
-                              {partner.membershipDetails?.membershipNumber || "Not linked"}
-                            </div>
                           </div>
                           
                           {selectedPartner?.id === partner.id && (
@@ -398,37 +399,38 @@ const RedemptionFlow: React.FC = () => {
                   )}
                 </div>
               </div>
-              
-              {selectedPartner && (
-                <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border mt-4">
-                  <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Membership Number</Label>
-                      <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Registered Name</Label>
-                      <p className="font-medium">{selectedPartner.membershipDetails?.registeredName || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Registered Email</Label>
-                      <p className="font-medium">{selectedPartner.membershipDetails?.email || "Not provided"}</p>
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground">Conversion Rate</Label>
-                      <p className="font-medium">1:{selectedPartner.conversionRatio}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
           
           {step === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <h3 className="font-medium text-lg mb-4">Redeem Your Points</h3>
+                <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
+                
+                {selectedPartner && (
+                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border mb-5">
+                    <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Membership Number</Label>
+                        <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Registered Name</Label>
+                        <p className="font-medium">{selectedPartner.membershipDetails?.registeredName || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Registered Email</Label>
+                        <p className="font-medium">{selectedPartner.membershipDetails?.email || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Conversion Rate</Label>
+                        <p className="font-medium">1:{selectedPartner.conversionRatio}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border mb-6">
                   <div className="flex justify-between items-center mb-4">
                     <div>
@@ -444,13 +446,13 @@ const RedemptionFlow: React.FC = () => {
                   <Progress value={(availablePoints / 30000) * 100} className="h-2 mb-2" />
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="pointsToRedeem" className="text-base font-medium mb-2 block">
+                    <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
                       Points to Redeem
                     </Label>
                     <div className="flex items-center mt-2 space-x-3">
-                      <div className="flex-1 relative">
+                      <div className="relative w-64">
                         <Input 
                           id="pointsToRedeem" 
                           type="number" 
@@ -458,7 +460,7 @@ const RedemptionFlow: React.FC = () => {
                           onChange={handlePointsChange}
                           min={item.pointsCost}
                           max={availablePoints}
-                          className="text-right pr-12 text-lg font-medium h-12"
+                          className="text-left pr-12 h-10"
                         />
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
                           pts
@@ -466,12 +468,20 @@ const RedemptionFlow: React.FC = () => {
                       </div>
                       <Button 
                         variant="outline" 
-                        onClick={() => setPointsToRedeem(availablePoints)}
-                        className="h-12 px-5"
+                        onClick={() => {
+                          setPointsToRedeem(availablePoints);
+                          setPointsError(null);
+                        }}
+                        className="h-10"
                       >
                         Max
                       </Button>
                     </div>
+                    {pointsError && (
+                      <p className="text-destructive text-sm mt-2">
+                        {pointsError}
+                      </p>
+                    )}
                     {pointsToRedeem > availablePoints && (
                       <p className="text-destructive text-sm mt-2">
                         You don't have enough points
@@ -479,7 +489,7 @@ const RedemptionFlow: React.FC = () => {
                     )}
                   </div>
                   
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden">
+                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
                     <div className="p-4 border-b bg-white/50 dark:bg-black/10">
                       <h4 className="font-medium">Conversion Preview</h4>
                     </div>
@@ -578,7 +588,10 @@ const RedemptionFlow: React.FC = () => {
           {step < 3 ? (
             <Button 
               onClick={handleNextStep}
-              disabled={step === 1 && !selectedPartner || step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints)}
+              disabled={
+                (step === 1 && !selectedPartner) || 
+                (step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints))
+              }
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[120px]"
             >
               Continue
