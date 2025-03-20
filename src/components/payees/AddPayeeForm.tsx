@@ -27,7 +27,8 @@ import {
   LightbulbIcon, 
   UsersIcon, 
   CheckCircle,
-  ArrowRight
+  ArrowRight,
+  ArrowLeft
 } from "lucide-react";
 import { PayeeType } from "@/types/payee";
 import BankPayeeForm from "./forms/BankPayeeForm";
@@ -105,7 +106,12 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-medium">Step 2: Fill Payee Details</h3>
-            <Button variant="ghost" onClick={handleBack}>
+            <Button 
+              variant="outline" 
+              onClick={handleBack} 
+              className="flex items-center gap-2 font-medium text-primary"
+            >
+              <ArrowLeft className="h-4 w-4" />
               Back to Payee Types
             </Button>
           </div>
