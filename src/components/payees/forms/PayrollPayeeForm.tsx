@@ -1,208 +1,98 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { CheckCircle, Loader2, Upload } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Upload, Loader2 } from "lucide-react";
+import ManualPayrollForm from "./components/ManualPayrollForm";
+import BulkUploadPayrollForm from "./components/BulkUploadPayrollForm";
 
 interface PayrollPayeeFormProps {
   onSubmit: () => void;
 }
 
 const PayrollPayeeForm = ({ onSubmit }: PayrollPayeeFormProps) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [accountNumber, setAccountNumber] = useState("");
-  const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
-  const [accountNumberMatch, setAccountNumberMatch] = useState(true);
-  const [salaryType, setSalaryType] = useState<"fixed" | "variable">("fixed");
-  const [ifscCode, setIfscCode] = useState("");
-  const [isValidatingIfsc, setIsValidatingIfsc] = useState(false);
-  const [ifscValid, setIfscValid] = useState<boolean | null>(null);
-  const [bankName, setBankName] = useState("");
-
-  const handleIfscChange = (value: string) => {
-    setIfscCode(value);
-    if (value.length === 11) { // IFSC codes are 11 characters
-      setIsValidatingIfsc(true);
-      // Simulate IFSC validation
-      setTimeout(() => {
-        setIsValidatingIfsc(false);
-        setIfscValid(true);
-        setBankName("National Bank - Mumbai Branch"); // Auto-populated based on IFSC
-      }, 1000);
-    } else {
-      setIfscValid(null);
-      setBankName("");
-    }
-  };
-
-  const handleConfirmAccountChange = (value: string) => {
-    setConfirmAccountNumber(value);
-    setAccountNumberMatch(value === accountNumber || value === "");
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmit();
-    }, 1000);
-  };
+  const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | null>(null);
+  
+  if (entryMethod === null) {
+    return (
+      <div className="space-y-6">
+        <h3 className="text-lg font-medium mb-4">Select Entry Method</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card 
+            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
+            onClick={() => setEntryMethod("manual")}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="text-blue-600"
+                >
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  <path d="M12 11h4"></path>
+                  <path d="M12 16h4"></path>
+                  <path d="M8 11h.01"></path>
+                  <path d="M8 16h.01"></path>
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium">Manual Entry</h3>
+              <p className="text-sm text-muted-foreground">
+                Add a single employee to payroll by filling out a form
+              </p>
+            </div>
+          </Card>
+          
+          <Card 
+            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
+            onClick={() => setEntryMethod("bulk")}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <Upload className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-medium">Bulk Upload</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload a CSV file with multiple employees' payroll details
+              </p>
+            </div>
+          </Card>
+        </div>
+        
+        <div className="flex justify-end mt-6">
+          <Button variant="outline" onClick={() => onSubmit()}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="employeeName">Employee Full Name</Label>
-              <Input id="employeeName" placeholder="Enter employee name" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" placeholder="For payslip notifications" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="accountNumber">Bank Account Number</Label>
-              <Input 
-                id="accountNumber" 
-                placeholder="Enter account number" 
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                required 
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmAccountNumber" className={!accountNumberMatch ? "text-destructive" : ""}>
-                Confirm Account Number
-              </Label>
-              <Input 
-                id="confirmAccountNumber" 
-                placeholder="Re-enter account number" 
-                value={confirmAccountNumber}
-                onChange={(e) => handleConfirmAccountChange(e.target.value)}
-                className={!accountNumberMatch ? "border-destructive" : ""}
-                required 
-              />
-              {!accountNumberMatch && confirmAccountNumber && (
-                <p className="text-xs text-destructive">Account numbers do not match</p>
-              )}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="ifscCode">IFSC Code</Label>
-              <div className="relative">
-                <Input 
-                  id="ifscCode" 
-                  placeholder="Enter IFSC code" 
-                  value={ifscCode}
-                  onChange={(e) => handleIfscChange(e.target.value)}
-                  className={ifscValid === true ? "pr-10 border-green-500" : "pr-10"}
-                  required 
-                />
-                {isValidatingIfsc && (
-                  <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />
-                )}
-                {ifscValid === true && (
-                  <CheckCircle className="absolute right-3 top-2.5 h-5 w-5 text-green-500" />
-                )}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bankName">Bank Name</Label>
-              <Input 
-                id="bankName" 
-                placeholder="Auto-populated from IFSC" 
-                value={bankName}
-                readOnly
-                className="bg-muted"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="contactNumber">Contact Number</Label>
-              <Input id="contactNumber" placeholder="For payment notifications" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="payrollCycle">Payroll Cycle</Label>
-              <Select defaultValue="monthly">
-                <SelectTrigger id="payrollCycle">
-                  <SelectValue placeholder="Select payroll cycle" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="bi-weekly">Bi-Weekly</SelectItem>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="custom">Custom Date</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <Label htmlFor="salaryAmount">Salary Amount</Label>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="salary-type"
-                    checked={salaryType === "variable"}
-                    onCheckedChange={(checked) => setSalaryType(checked ? "variable" : "fixed")}
-                  />
-                  <Label htmlFor="salary-type" className="text-sm cursor-pointer">
-                    {salaryType === "fixed" ? "Fixed" : "Variable"}
-                  </Label>
-                </div>
-              </div>
-              <Input 
-                id="salaryAmount" 
-                type="number" 
-                placeholder="Enter salary amount" 
-                required 
-              />
-            </div>
-          </div>
-
-          <div className="border-t pt-4 mt-4">
-            <Button type="button" variant="outline" className="w-full flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Bulk Upload Employee Payroll Data
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Upload multiple employees at once using our CSV template
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting || !accountNumberMatch}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-              Saving Payee...
-            </>
-          ) : (
-            <>Save Payroll Payee</>
-          )}
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-medium">
+          {entryMethod === "manual" ? "Manual Payroll Entry" : "Bulk Upload Payroll Data"}
+        </h3>
+        <Button variant="outline" onClick={() => setEntryMethod(null)}>
+          Change Entry Method
         </Button>
       </div>
-    </form>
+      
+      {entryMethod === "manual" ? (
+        <ManualPayrollForm onSubmit={onSubmit} />
+      ) : (
+        <BulkUploadPayrollForm onSubmit={onSubmit} />
+      )}
+    </>
   );
 };
 
