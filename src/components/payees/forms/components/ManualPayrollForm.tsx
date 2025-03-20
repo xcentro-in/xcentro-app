@@ -13,7 +13,6 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { CheckCircle, Loader2, Upload } from "lucide-react";
-import BulkUploadPayrollForm from "./BulkUploadPayrollForm";
 
 interface ManualPayrollFormProps {
   onSubmit: () => void;
@@ -176,10 +175,10 @@ const ManualPayrollForm = ({ onSubmit }: ManualPayrollFormProps) => {
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-              Saving Payee...
+              Processing Salary...
             </>
           ) : (
-            <>Save Payroll Payee</>
+            <>Dispatch Salary</>
           )}
         </Button>
       </div>

@@ -6,16 +6,18 @@ import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
+import PayrollPaymentForm from "@/components/payments/PayrollPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
 import { useLocation } from "react-router-dom";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll";
 
 const steps = {
   single: ["Details", "Payee", "Payment Method", "Review"],
   batch: ["Upload", "Validate", "Payment Method", "Review"],
   gst: ["Upload/Details", "Payment Method", "Review"],
   creditcard: ["Bill Upload/Details", "Payment Method", "Review"],
+  payroll: ["Entry Method", "Details/Selection", "Review"],
 };
 
 const NewPayment = () => {
@@ -102,6 +104,7 @@ const NewPayment = () => {
                   initialMethod={paymentMethod === "quick" ? "quick" : "upload"}
                 />
               )}
+              {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
             </>
           )}
         </CardContent>
