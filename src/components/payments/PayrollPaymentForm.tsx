@@ -2,12 +2,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2, ArrowRight } from "lucide-react";
+import { Upload, Loader2, ArrowRight, Users } from "lucide-react";
 import ManualPayrollForm from "../payees/forms/components/ManualPayrollForm";
 import BulkUploadPayrollForm from "../payees/forms/components/BulkUploadPayrollForm";
 import PaymentMethodStep from "./PaymentMethodStep";
 import { PaymentSummary } from "./PaymentSummary";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
+import ExistingEmployeesPayment from "./payroll/ExistingEmployeesPayment";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -15,50 +16,62 @@ interface PayrollPaymentFormProps {
 
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'review'>('selection');
-  const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | null>(null);
+  const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | "existing" | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
+  const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
   
   // Mock employee data for bulk upload (in a real app, this would come from the actual upload)
   const mockEmployees = [
     {
+      id: "emp-001",
       name: "John Doe",
       email: "john.doe@example.com",
       accountNumber: "1234567890",
       bankName: "HDFC Bank",
       salaryAmount: 45000,
+      contactNumber: "9876543210",
     },
     {
+      id: "emp-002",
       name: "Jane Smith",
       email: "jane.smith@example.com",
       accountNumber: "2345678901",
       bankName: "ICICI Bank",
       salaryAmount: 52000,
+      contactNumber: "9876543211",
     },
     {
+      id: "emp-003",
       name: "Raj Patel",
       email: "raj.patel@example.com",
       accountNumber: "3456789012",
       bankName: "SBI Bank",
       salaryAmount: 38000,
+      contactNumber: "9876543212",
     },
     {
+      id: "emp-004",
       name: "Priya Sharma",
       email: "priya.sharma@example.com",
       accountNumber: "4567890123",
       bankName: "Axis Bank",
       salaryAmount: 48000,
+      contactNumber: "9876543213",
     },
     {
+      id: "emp-005",
       name: "David Wilson",
       email: "david.wilson@example.com",
       accountNumber: "5678901234",
       bankName: "HDFC Bank",
       salaryAmount: 55000,
+      contactNumber: "9876543214",
     }
   ];
   
   // Handle the completion of the payroll details form (manual or bulk)
-  const handleDetailsComplete = () => {
+  const handleDetailsComplete = (selectedEmps = []) => {
+    setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
     onStepChange(2); // Update the progress indicator
   };
@@ -94,7 +107,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     return (
       <div className="space-y-6">
         <h3 className="text-lg font-medium mb-4">Select Entry Method</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card 
             className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
             onClick={() => {
@@ -150,6 +163,25 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
               </p>
             </div>
           </Card>
+
+          <Card 
+            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
+            onClick={() => {
+              setEntryMethod("existing");
+              setCurrentStep('details');
+              onStepChange(1);
+            }}
+          >
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-medium">Pay Existing Employees</h3>
+              <p className="text-sm text-muted-foreground">
+                Select employees from your existing records
+              </p>
+            </div>
+          </Card>
         </div>
       </div>
     );
@@ -161,7 +193,11 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
       <>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-medium">
-            {entryMethod === "manual" ? "Manual Payroll Entry" : "Bulk Upload Payroll Data"}
+            {entryMethod === "manual" 
+              ? "Manual Payroll Entry" 
+              : entryMethod === "bulk" 
+                ? "Bulk Upload Payroll Data" 
+                : "Pay Existing Employees"}
           </h3>
           <Button variant="outline" onClick={handleBack}>
             Change Entry Method
@@ -170,8 +206,13 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         
         {entryMethod === "manual" ? (
           <ManualPayrollForm onSubmit={handleDetailsComplete} />
-        ) : (
+        ) : entryMethod === "bulk" ? (
           <BulkUploadPayrollForm onSubmit={handleDetailsComplete} />
+        ) : (
+          <ExistingEmployeesPayment 
+            employees={mockEmployees} 
+            onSubmit={(selectedEmployees) => handleDetailsComplete(selectedEmployees)} 
+          />
         )}
       </>
     );
@@ -194,15 +235,25 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     // Find the selected payment method from the mock data
     const paymentMethod = mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
     
+    const employeesToProcess = entryMethod === "existing" 
+      ? selectedEmployees 
+      : entryMethod === "bulk" 
+        ? mockEmployees 
+        : [];
+
     return (
       <PaymentSummary
         paymentType="now"
-        amount={entryMethod === "bulk" ? mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) : 15000} // Calculate total for bulk
+        amount={entryMethod === "manual" 
+          ? 15000 
+          : employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0)} 
         description="Payroll payment"
         invoiceReference="PR-2023-001"
         payee={{
           id: "payroll-1",
-          name: entryMethod === "manual" ? "John Doe" : "Multiple Employees",
+          name: entryMethod === "manual" 
+            ? "John Doe" 
+            : `Multiple Employees (${employeesToProcess.length})`,
           email: entryMethod === "manual" ? "john.doe@example.com" : "",
           contactNumber: entryMethod === "manual" ? "9876543210" : "",
           type: "payroll",
@@ -218,11 +269,13 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         paymentMethod={paymentMethod}
         platformFee={150}
         gatewayFee={50}
-        totalAmount={entryMethod === "bulk" ? 
-          mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200 : 15200}
-        rewardPoints={entryMethod === "bulk" ? 
-          Math.floor((mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200) / 100) : 152}
-        employees={entryMethod === "bulk" ? mockEmployees : undefined}
+        totalAmount={entryMethod === "manual" 
+          ? 15200 
+          : employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200}
+        rewardPoints={entryMethod === "manual" 
+          ? 152 
+          : Math.floor((employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200) / 100)}
+        employees={entryMethod === "manual" ? undefined : employeesToProcess}
         onBack={handleBack}
       />
     );
