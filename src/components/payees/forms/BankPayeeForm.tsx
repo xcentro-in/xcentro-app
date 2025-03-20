@@ -28,8 +28,6 @@ const BankPayeeForm = ({
 }: BankPayeeFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [accountNumber, setAccountNumber] = useState("");
-  const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
-  const [accountNumberMatch, setAccountNumberMatch] = useState(true);
   const [bankName, setBankName] = useState("");
   const [ifscCode, setIfscCode] = useState("");
   const [isValidatingIfsc, setIsValidatingIfsc] = useState(false);
@@ -54,11 +52,6 @@ const BankPayeeForm = ({
       setIfscValid(null);
       setBankName("");
     }
-  };
-  
-  const handleConfirmAccountChange = (value: string) => {
-    setConfirmAccountNumber(value);
-    setAccountNumberMatch(value === accountNumber || value === "");
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,61 +133,73 @@ const BankPayeeForm = ({
       </Card>
       
       <Card>
-        <CardContent className="p-6 space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="payeeName">Payee Name (Business/Individual)</Label>
-              <Input id="payeeName" placeholder="Enter payee name" required />
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="space-y-2.5">
+              <Label htmlFor="payeeName" className="text-sm font-medium">Payee Name (Business/Individual)</Label>
+              <Input id="payeeName" placeholder="Enter payee name" required className="h-11" />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="gstin">GSTIN</Label>
-              <Input id="gstin" placeholder="Enter GSTIN number" />
+            <div className="space-y-2.5">
+              <Label htmlFor="gstin" className="text-sm font-medium">GSTIN</Label>
+              <Input id="gstin" placeholder="Enter GSTIN number" className="h-11" />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="accountNumber">Bank Account Number</Label>
-              <Input id="accountNumber" placeholder="Enter account number" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} required />
+            <div className="space-y-2.5">
+              <Label htmlFor="accountNumber" className="text-sm font-medium">Bank Account Number</Label>
+              <Input 
+                id="accountNumber" 
+                placeholder="Enter account number" 
+                value={accountNumber} 
+                onChange={e => setAccountNumber(e.target.value)} 
+                required 
+                className="h-11"
+              />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="confirmAccountNumber" className={!accountNumberMatch ? "text-destructive" : ""}>
-                Confirm Account Number
-              </Label>
-              <Input id="confirmAccountNumber" placeholder="Re-enter account number" value={confirmAccountNumber} onChange={e => handleConfirmAccountChange(e.target.value)} className={!accountNumberMatch ? "border-destructive" : ""} required />
-              {!accountNumberMatch && confirmAccountNumber && <p className="text-xs text-destructive">Account numbers do not match</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="ifscCode">IFSC Code</Label>
+            <div className="space-y-2.5">
+              <Label htmlFor="ifscCode" className="text-sm font-medium">IFSC Code</Label>
               <div className="relative">
-                <Input id="ifscCode" placeholder="Enter IFSC code" value={ifscCode} onChange={e => handleIfscChange(e.target.value)} className={ifscValid === true ? "pr-10 border-green-500" : "pr-10"} required />
-                {isValidatingIfsc && <Loader2 className="absolute right-3 top-2.5 h-5 w-5 animate-spin text-muted-foreground" />}
-                {ifscValid === true && <CheckCircle className="absolute right-3 top-2.5 h-5 w-5 text-green-500" />}
+                <Input 
+                  id="ifscCode" 
+                  placeholder="Enter IFSC code" 
+                  value={ifscCode} 
+                  onChange={e => handleIfscChange(e.target.value)} 
+                  className={`h-11 pr-10 ${ifscValid === true ? "border-green-500" : ""}`} 
+                  required 
+                />
+                {isValidatingIfsc && <Loader2 className="absolute right-3 top-3 h-5 w-5 animate-spin text-muted-foreground" />}
+                {ifscValid === true && <CheckCircle className="absolute right-3 top-3 h-5 w-5 text-green-500" />}
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="bankName">Bank Name</Label>
-              <Input id="bankName" placeholder="Auto-populated from IFSC" value={bankName} readOnly className="bg-muted" />
-              <p className="text-xs text-muted-foreground">This will be auto-filled based on IFSC code</p>
+            <div className="space-y-2.5">
+              <Label htmlFor="bankName" className="text-sm font-medium">Bank Name</Label>
+              <Input 
+                id="bankName" 
+                placeholder="Auto-populated from IFSC" 
+                value={bankName} 
+                readOnly 
+                className="h-11 bg-muted" 
+              />
+              <p className="text-xs text-muted-foreground mt-1">This will be auto-filled based on IFSC code</p>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address (Optional)</Label>
-              <Input id="email" type="email" placeholder="For payment notifications" />
+            <div className="space-y-2.5">
+              <Label htmlFor="email" className="text-sm font-medium">Email Address (Optional)</Label>
+              <Input id="email" type="email" placeholder="For payment notifications" className="h-11" />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="contactNumber">Contact Number (Optional)</Label>
-              <Input id="contactNumber" placeholder="For payment notifications" />
+            <div className="space-y-2.5">
+              <Label htmlFor="contactNumber" className="text-sm font-medium">Contact Number (Optional)</Label>
+              <Input id="contactNumber" placeholder="For payment notifications" className="h-11" />
             </div>
           </div>
         </CardContent>
       </Card>
       
       <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting || !accountNumberMatch}>
+        <Button type="submit" disabled={isSubmitting} className="h-11 px-6">
           {isSubmitting ? <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
               Saving Payee...
