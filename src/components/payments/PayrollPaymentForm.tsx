@@ -18,6 +18,45 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   
+  // Mock employee data for bulk upload (in a real app, this would come from the actual upload)
+  const mockEmployees = [
+    {
+      name: "John Doe",
+      email: "john.doe@example.com",
+      accountNumber: "1234567890",
+      bankName: "HDFC Bank",
+      salaryAmount: 45000,
+    },
+    {
+      name: "Jane Smith",
+      email: "jane.smith@example.com",
+      accountNumber: "2345678901",
+      bankName: "ICICI Bank",
+      salaryAmount: 52000,
+    },
+    {
+      name: "Raj Patel",
+      email: "raj.patel@example.com",
+      accountNumber: "3456789012",
+      bankName: "SBI Bank",
+      salaryAmount: 38000,
+    },
+    {
+      name: "Priya Sharma",
+      email: "priya.sharma@example.com",
+      accountNumber: "4567890123",
+      bankName: "Axis Bank",
+      salaryAmount: 48000,
+    },
+    {
+      name: "David Wilson",
+      email: "david.wilson@example.com",
+      accountNumber: "5678901234",
+      bankName: "HDFC Bank",
+      salaryAmount: 55000,
+    }
+  ];
+  
   // Handle the completion of the payroll details form (manual or bulk)
   const handleDetailsComplete = () => {
     setCurrentStep('payment');
@@ -158,7 +197,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     return (
       <PaymentSummary
         paymentType="now"
-        amount={15000} // Example amount
+        amount={entryMethod === "bulk" ? mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) : 15000} // Calculate total for bulk
         description="Payroll payment"
         invoiceReference="PR-2023-001"
         payee={{
@@ -169,18 +208,21 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
           type: "payroll",
           bankName: "HDFC Bank",
           accountNumber: entryMethod === "manual" ? "1234567890" : "Multiple Accounts",
-          ifscCode: "HDFC0001234", // Adding required ifscCode
-          salaryAmount: entryMethod === "manual" ? 15000 : 0, // Adding required salaryAmount
-          salaryType: "fixed", // Adding required salaryType
-          payrollCycle: "monthly", // Adding required payrollCycle
+          ifscCode: "HDFC0001234",
+          salaryAmount: entryMethod === "manual" ? 15000 : 0,
+          salaryType: "fixed",
+          payrollCycle: "monthly",
           createdAt: new Date().toISOString(),
           isDefault: false
         }}
         paymentMethod={paymentMethod}
         platformFee={150}
         gatewayFee={50}
-        totalAmount={15200}
-        rewardPoints={152}
+        totalAmount={entryMethod === "bulk" ? 
+          mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200 : 15200}
+        rewardPoints={entryMethod === "bulk" ? 
+          Math.floor((mockEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200) / 100) : 152}
+        employees={entryMethod === "bulk" ? mockEmployees : undefined}
         onBack={handleBack}
       />
     );

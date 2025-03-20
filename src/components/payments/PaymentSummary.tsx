@@ -4,9 +4,19 @@ import { format } from "date-fns";
 import { PaymentType } from "./PaymentDetailsStep";
 import { Payee } from "@/types/payee";
 import { PaymentMethod } from "@/types/payment-method";
-import { CreditCard, FileText, User, Wallet, DollarSign, Award } from "lucide-react";
+import { CreditCard, FileText, User, Wallet, DollarSign, Award, Table, Eye } from "lucide-react";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+
+interface Employee {
+  name: string;
+  email: string;
+  accountNumber: string;
+  bankName: string;
+  salaryAmount: number;
+}
 
 interface PaymentSummaryProps {
   paymentType: PaymentType;
@@ -21,6 +31,7 @@ interface PaymentSummaryProps {
   gatewayFee: number;
   totalAmount: number;
   rewardPoints: number;
+  employees?: Employee[];
   onBack: () => void;
 }
 
@@ -37,8 +48,13 @@ export const PaymentSummary = ({
   gatewayFee,
   totalAmount,
   rewardPoints,
+  employees = [],
   onBack,
 }: PaymentSummaryProps) => {
+  const [showEmployeesDialog, setShowEmployeesDialog] = useState(false);
+  const isPayroll = payee?.type === "payroll";
+  const isBulkPayroll = isPayroll && employees.length > 0;
+
   return (
     <div className="space-y-6">
       <h3 className="font-medium text-lg">Review Payment</h3>
@@ -102,9 +118,12 @@ export const PaymentSummary = ({
       {/* Payee Section */}
       <TransactionDetailCard title="Payee Information" className="mt-4">
         {payee ? (
-          <div className="flex items-start gap-3 p-2">
+          <div 
+            className={`flex items-start gap-3 p-2 ${isBulkPayroll ? "cursor-pointer hover:bg-muted/50 rounded-md" : ""}`}
+            onClick={() => isBulkPayroll && setShowEmployeesDialog(true)}
+          >
             <User className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 flex-1">
               <p className="text-sm font-medium">{payee.name}</p>
               <p className="text-sm text-muted-foreground">
                 {payee.email}<br />
@@ -121,9 +140,17 @@ export const PaymentSummary = ({
                 </p>
               )}
               {payee.type === "payroll" && (
-                <p className="text-sm text-muted-foreground">
-                  {payee.bankName} - Account ending with {payee.accountNumber.slice(-4)}
-                </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    {payee.bankName} - Account ending with {payee.accountNumber.slice(-4)}
+                  </p>
+                  {isBulkPayroll && (
+                    <div className="flex items-center mt-2 text-primary">
+                      <Eye className="h-4 w-4 mr-1" /> 
+                      <span className="text-sm">View all {employees.length} employees</span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -225,6 +252,51 @@ export const PaymentSummary = ({
         <Button variant="outline" onClick={onBack} className="flex-1">Back</Button>
         <Button className="flex-1">Confirm Payment</Button>
       </div>
+
+      {/* Employees Dialog */}
+      <Dialog open={showEmployeesDialog} onOpenChange={setShowEmployeesDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Employee Payment Details</DialogTitle>
+          </DialogHeader>
+          
+          <div className="border rounded-md overflow-x-auto mt-4">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="text-left p-2 font-medium text-sm">Name</th>
+                  <th className="text-left p-2 font-medium text-sm">Email</th>
+                  <th className="text-left p-2 font-medium text-sm">Bank Account</th>
+                  <th className="text-left p-2 font-medium text-sm">Bank Name</th>
+                  <th className="text-right p-2 font-medium text-sm">Salary Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {employees.map((employee, index) => (
+                  <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-muted/20"}>
+                    <td className="p-2 text-sm">{employee.name}</td>
+                    <td className="p-2 text-sm">{employee.email}</td>
+                    <td className="p-2 text-sm">
+                      {employee.accountNumber.slice(0, -4).replace(/./g, '•') + employee.accountNumber.slice(-4)}
+                    </td>
+                    <td className="p-2 text-sm">{employee.bankName}</td>
+                    <td className="p-2 text-sm text-right">₹{employee.salaryAmount.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="flex justify-between items-center mt-4">
+            <p className="text-sm text-muted-foreground">
+              Total Employees: {employees.length}
+            </p>
+            <p className="text-sm font-medium">
+              Total Amount: ₹{employees.reduce((sum, emp) => sum + emp.salaryAmount, 0).toLocaleString()}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
