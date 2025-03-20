@@ -112,18 +112,7 @@ const BankPayeeForm = ({
               <Input id="contactNumber" placeholder="For payment notifications" required />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="paymentMode">Default Payment Mode</Label>
-              <Select defaultValue="bank">
-                <SelectTrigger id="paymentMode">
-                  <SelectValue placeholder="Select payment mode" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="credit">Credit Card</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            
           </div>
           
           <div className="space-y-2">
