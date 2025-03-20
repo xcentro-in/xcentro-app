@@ -169,6 +169,10 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
           type: "payroll",
           bankName: "HDFC Bank",
           accountNumber: entryMethod === "manual" ? "1234567890" : "Multiple Accounts",
+          ifscCode: "HDFC0001234", // Adding required ifscCode
+          salaryAmount: entryMethod === "manual" ? 15000 : 0, // Adding required salaryAmount
+          salaryType: "fixed", // Adding required salaryType
+          payrollCycle: "monthly", // Adding required payrollCycle
           createdAt: new Date().toISOString(),
           isDefault: false
         }}
