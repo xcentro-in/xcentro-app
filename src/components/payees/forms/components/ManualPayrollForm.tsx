@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,13 +44,8 @@ const ManualPayrollForm = ({ onSubmit }: ManualPayrollFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      onSubmit();
-    }, 1000);
+    // Directly submit without setting isSubmitting
+    onSubmit();
   };
 
   return (
@@ -171,15 +165,8 @@ const ManualPayrollForm = ({ onSubmit }: ManualPayrollFormProps) => {
       </Card>
       
       <div className="flex justify-end">
-        <Button type="submit" disabled={isSubmitting} className="h-11">
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
-              Processing Salary...
-            </>
-          ) : (
-            <>Dispatch Salary</>
-          )}
+        <Button type="submit" className="h-11">
+          Choose Payment Method
         </Button>
       </div>
     </form>
