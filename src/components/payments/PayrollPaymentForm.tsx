@@ -169,8 +169,8 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
           type: "payroll",
           bankName: "HDFC Bank",
           accountNumber: entryMethod === "manual" ? "1234567890" : "Multiple Accounts",
-          status: "active",
           createdAt: new Date().toISOString(),
+          isDefault: false
         }}
         paymentMethod={paymentMethod}
         platformFee={150}
