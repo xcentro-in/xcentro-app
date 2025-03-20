@@ -90,7 +90,7 @@ const Payments = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
+  const [showCustomDateRange, setShowCustomDateRange] = useState(false);
   
   useEffect(() => {
     // Initialize default date range based on the dateFilter
@@ -101,6 +101,7 @@ const Payments = () => {
     const today = new Date();
     let from: Date | undefined;
     let to: Date | undefined = today;
+    let showDatePicker = false;
 
     switch (filter) {
       case "7days":
@@ -113,8 +114,14 @@ const Payments = () => {
         from = startOfQuarter(today);
         break;
       case "custom":
-        setShowDateRangePicker(true);
-        return;
+        showDatePicker = true;
+        if (!dateRange?.from) {
+          from = subDays(today, 7);
+        } else {
+          from = dateRange.from;
+          to = dateRange.to || today;
+        }
+        break;
       case "all":
         from = undefined;
         to = undefined;
@@ -124,7 +131,7 @@ const Payments = () => {
     }
 
     setDateRange({ from, to });
-    setShowDateRangePicker(filter === "custom");
+    setShowCustomDateRange(showDatePicker);
   };
 
   // Handle filter changes
@@ -187,6 +194,7 @@ const Payments = () => {
       case "date":
         setDateFilter(defaultValue);
         setDateRange(undefined);
+        setShowCustomDateRange(false);
         break;
       case "status":
         setStatusFilter(defaultValue);
@@ -217,6 +225,7 @@ const Payments = () => {
     setMethodFilter("all");
     setCategoryFilter("all");
     setSearchValue("");
+    setShowCustomDateRange(false);
   };
   
   // Handle sorting
@@ -295,6 +304,11 @@ const Payments = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+
+  // Handle transaction row click
+  const handleTransactionClick = (transactionId: number) => {
+    navigate(`/payments/${transactionId}`);
+  };
   
   return (
     <div className="space-y-6">
@@ -331,31 +345,34 @@ const Payments = () => {
             {/* Horizontal Filter Bar */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Date Filter */}
-              {showDateRangePicker ? (
-                <DateRangePicker 
-                  dateRange={dateRange}
-                  onDateRangeChange={handleDateRangeChange}
-                />
-              ) : (
-                <Select value={dateFilter} onValueChange={(value) => {
-                  setDateFilter(value);
-                  const selectedOption = dateFilterOptions.find(option => option.value === value);
-                  if (selectedOption) {
-                    applyFilter("date", value, selectedOption.label);
-                  }
-                  updateDateRangeFromFilter(value);
-                }}>
-                  <SelectTrigger className="w-[140px] h-9">
-                    <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Dates" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Dates</SelectItem>
-                    {dateFilterOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <Select value={dateFilter} onValueChange={(value) => {
+                setDateFilter(value);
+                const selectedOption = dateFilterOptions.find(option => option.value === value);
+                if (selectedOption) {
+                  applyFilter("date", value, selectedOption.label);
+                }
+                updateDateRangeFromFilter(value);
+              }}>
+                <SelectTrigger className="w-[140px] h-9">
+                  <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Dates" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Dates</SelectItem>
+                  {dateFilterOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Custom Date Range Picker - Only show when custom is selected */}
+              {showCustomDateRange && (
+                <div className="min-w-[300px]">
+                  <DateRangePicker 
+                    dateRange={dateRange}
+                    onDateRangeChange={handleDateRangeChange}
+                  />
+                </div>
               )}
               
               {/* Status Filter */}
@@ -414,25 +431,6 @@ const Payments = () => {
                 </SelectContent>
               </Select>
               
-              {/* Search Bar */}
-              <div className="relative flex-1 min-w-[200px]">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="Search payee name..." 
-                  className="pl-9 h-9 w-full"
-                  value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
-                />
-                {searchValue && (
-                  <button 
-                    className="absolute right-2.5 top-2.5" 
-                    onClick={() => setSearchValue("")}
-                  >
-                    <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                  </button>
-                )}
-              </div>
-              
               {/* Items per page */}
               <div className="ml-auto flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Number of rows per page:</span>
@@ -452,10 +450,28 @@ const Payments = () => {
               </div>
             </div>
             
+            {/* Search Bar - Moved to a separate row */}
+            <div className="relative w-full max-w-md">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search payee name..." 
+                className="pl-9 h-9 w-full"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
+              {searchValue && (
+                <button 
+                  className="absolute right-2.5 top-2.5" 
+                  onClick={() => setSearchValue("")}
+                >
+                  <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                </button>
+              )}
+            </div>
+            
             {/* Applied Filters Section */}
             <div className="flex flex-wrap items-center gap-2 pt-2">
               <div className="flex items-center gap-1">
-                <span className="text-sm text-muted-foreground">Applied filters:</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -466,6 +482,7 @@ const Payments = () => {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
+                <span className="text-sm text-muted-foreground">Applied filters:</span>
               </div>
               
               {activeFilters.map((filter, index) => (
@@ -504,7 +521,7 @@ const Payments = () => {
           {/* Transactions Table */}
           <div className="rounded-md border overflow-hidden">
             {/* Table Header */}
-            <div className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr_0.6fr] gap-4 p-4 bg-muted/50 text-sm font-medium">
+            <div className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr] gap-4 p-4 bg-muted/50 text-sm font-medium">
               <div 
                 className="flex items-center gap-1 cursor-pointer"
                 onClick={() => handleSort("vendor")}
@@ -512,10 +529,10 @@ const Payments = () => {
                 Payee Name
                 {sortField === "vendor" ? (
                   sortDirection === "asc" ? 
-                  <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
-                  <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                  <ArrowUp className="h-3.5 w-3.5 ml-1 text-black" /> : 
+                  <ArrowDown className="h-3.5 w-3.5 ml-1 text-black" />
                 ) : (
-                  <div className="flex flex-col ml-1 opacity-30">
+                  <div className="flex flex-col ml-1 text-black">
                     <ArrowUp className="h-2 w-2" />
                     <ArrowDown className="h-2 w-2" />
                   </div>
@@ -528,10 +545,10 @@ const Payments = () => {
                 Date & Time
                 {sortField === "date" ? (
                   sortDirection === "asc" ? 
-                  <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
-                  <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                  <ArrowUp className="h-3.5 w-3.5 ml-1 text-black" /> : 
+                  <ArrowDown className="h-3.5 w-3.5 ml-1 text-black" />
                 ) : (
-                  <div className="flex flex-col ml-1 opacity-30">
+                  <div className="flex flex-col ml-1 text-black">
                     <ArrowUp className="h-2 w-2" />
                     <ArrowDown className="h-2 w-2" />
                   </div>
@@ -544,10 +561,10 @@ const Payments = () => {
                 Amount
                 {sortField === "amount" ? (
                   sortDirection === "asc" ? 
-                  <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
-                  <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                  <ArrowUp className="h-3.5 w-3.5 ml-1 text-black" /> : 
+                  <ArrowDown className="h-3.5 w-3.5 ml-1 text-black" />
                 ) : (
-                  <div className="flex flex-col ml-1 opacity-30">
+                  <div className="flex flex-col ml-1 text-black">
                     <ArrowUp className="h-2 w-2" />
                     <ArrowDown className="h-2 w-2" />
                   </div>
@@ -555,7 +572,6 @@ const Payments = () => {
               </div>
               <div className="text-center">Category</div>
               <div className="text-center">Status</div>
-              <div className="text-right">Actions</div>
             </div>
             
             {/* Transaction Rows */}
@@ -564,7 +580,8 @@ const Payments = () => {
                 paginatedTransactions.map((transaction) => (
                   <div 
                     key={transaction.id}
-                    className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr_0.6fr] gap-4 p-4 hover:bg-muted/50 transition-colors"
+                    className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr] gap-4 p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                    onClick={() => handleTransactionClick(transaction.id)}
                   >
                     <div className="flex items-center gap-2">
                       <div className={cn(
@@ -620,26 +637,6 @@ const Payments = () => {
                           Failed
                         </Badge>
                       )}
-                    </div>
-                    
-                    <div className="flex items-center justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                        onClick={() => navigate(`/payments/${transaction.id}`)}
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span className="sr-only">View Details</span>
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span className="sr-only">Download Invoice</span>
-                      </Button>
                     </div>
                   </div>
                 ))
