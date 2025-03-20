@@ -103,12 +103,12 @@ const BankPayeeForm = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email Address (Optional)</Label>
               <Input id="email" type="email" placeholder="For payment notifications" required />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="contactNumber">Contact Number</Label>
+              <Label htmlFor="contactNumber">Contact Number (Optional)</Label>
               <Input id="contactNumber" placeholder="For payment notifications" required />
             </div>
             
