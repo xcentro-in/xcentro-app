@@ -71,7 +71,7 @@ const BankPayeeForm = ({
             <div className="space-y-2">
               <Label htmlFor="gstin">GSTIN</Label>
               <Input id="gstin" placeholder="Enter GSTIN number" />
-              <p className="text-xs text-muted-foreground">For tax-compliant invoicing</p>
+              
             </div>
             
             <div className="space-y-2">
