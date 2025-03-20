@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
-  Search, Plus, Download, Users, Calendar, ArrowUp, ArrowDown, 
-  CreditCard, BanknoteIcon, Eye, Filter, X, Clock
+  Search, Plus, Download, Users, ArrowUp, ArrowDown, Info,
+  CreditCard, BanknoteIcon, Eye, X, Clock, Calendar
 } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,10 @@ import {
 } from "@/components/ui/pagination";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { DateRangePicker } from "@/components/payments/DateRangePicker";
+import { DateRange } from "react-day-picker";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { subDays, startOfQuarter, endOfDay } from "date-fns";
 
 // Mock transaction data - would be replaced with an API call in a real application
 const transactions = [
@@ -68,22 +72,65 @@ interface ActiveFilter {
 const Payments = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("7days");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 7),
+    to: new Date()
+  });
   const [statusFilter, setStatusFilter] = useState("all");
   const [methodFilter, setMethodFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([
+    { type: "date", value: "7days", label: "Last 7 Days" },
+    { type: "status", value: "all", label: "All Statuses" },
+    { type: "method", value: "all", label: "All Methods" },
+    { type: "category", value: "all", label: "All Categories" }
+  ]);
   const [sortField, setSortField] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDateRangePicker, setShowDateRangePicker] = useState(false);
   
+  useEffect(() => {
+    // Initialize default date range based on the dateFilter
+    updateDateRangeFromFilter(dateFilter);
+  }, []);
+
+  const updateDateRangeFromFilter = (filter: string) => {
+    const today = new Date();
+    let from: Date | undefined;
+    let to: Date | undefined = today;
+
+    switch (filter) {
+      case "7days":
+        from = subDays(today, 7);
+        break;
+      case "30days":
+        from = subDays(today, 30);
+        break;
+      case "quarter":
+        from = startOfQuarter(today);
+        break;
+      case "custom":
+        setShowDateRangePicker(true);
+        return;
+      case "all":
+        from = undefined;
+        to = undefined;
+        break;
+      default:
+        from = subDays(today, 7);
+    }
+
+    setDateRange({ from, to });
+    setShowDateRangePicker(filter === "custom");
+  };
+
   // Handle filter changes
   const applyFilter = (type: string, value: string, label: string) => {
-    if (value === "all") {
-      // Remove this filter type
-      setActiveFilters(activeFilters.filter(filter => filter.type !== type));
-      return;
+    if (type === "date") {
+      updateDateRangeFromFilter(value);
     }
     
     // Check if filter of this type already exists
@@ -102,33 +149,70 @@ const Payments = () => {
   
   // Handle removing a filter
   const removeFilter = (filterToRemove: ActiveFilter) => {
-    setActiveFilters(activeFilters.filter(filter => 
+    const defaultValue = "all";
+    const updatedFilters = activeFilters.filter(filter => 
       !(filter.type === filterToRemove.type && filter.value === filterToRemove.value)
-    ));
+    );
+    
+    // Add default filter if not present
+    if (!updatedFilters.some(filter => filter.type === filterToRemove.type)) {
+      let defaultLabel = "All";
+      
+      switch (filterToRemove.type) {
+        case "date":
+          defaultLabel = "All Dates";
+          break;
+        case "status":
+          defaultLabel = "All Statuses";
+          break;
+        case "method":
+          defaultLabel = "All Methods";
+          break;
+        case "category":
+          defaultLabel = "All Categories";
+          break;
+      }
+      
+      updatedFilters.push({
+        type: filterToRemove.type,
+        value: defaultValue,
+        label: defaultLabel
+      });
+    }
+    
+    setActiveFilters(updatedFilters);
     
     // Reset the corresponding filter state
     switch (filterToRemove.type) {
       case "date":
-        setDateFilter("all");
+        setDateFilter(defaultValue);
+        setDateRange(undefined);
         break;
       case "status":
-        setStatusFilter("all");
+        setStatusFilter(defaultValue);
         break;
       case "method":
-        setMethodFilter("all");
+        setMethodFilter(defaultValue);
         break;
       case "category":
-        setCategoryFilter("all");
+        setCategoryFilter(defaultValue);
         break;
       default:
         break;
     }
   };
   
-  // Clear all filters
-  const clearAllFilters = () => {
-    setActiveFilters([]);
-    setDateFilter("all");
+  // Reset to default filters
+  const resetToDefaultFilters = () => {
+    setActiveFilters([
+      { type: "date", value: "7days", label: "Last 7 Days" },
+      { type: "status", value: "all", label: "All Statuses" },
+      { type: "method", value: "all", label: "All Methods" },
+      { type: "category", value: "all", label: "All Categories" }
+    ]);
+    
+    setDateFilter("7days");
+    updateDateRangeFromFilter("7days");
     setStatusFilter("all");
     setMethodFilter("all");
     setCategoryFilter("all");
@@ -144,6 +228,20 @@ const Payments = () => {
       // Set new sort field and default to descending
       setSortField(field);
       setSortDirection("desc");
+    }
+  };
+  
+  // Handle date range change
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    
+    if (range?.from && range?.to) {
+      const formattedFrom = range.from.toLocaleDateString();
+      const formattedTo = range.to.toLocaleDateString();
+      
+      const rangeLabel = `${formattedFrom} - ${formattedTo}`;
+      
+      applyFilter("date", "custom", rangeLabel);
     }
   };
   
@@ -233,24 +331,32 @@ const Payments = () => {
             {/* Horizontal Filter Bar */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Date Filter */}
-              <Select value={dateFilter} onValueChange={(value) => {
-                setDateFilter(value);
-                const selectedOption = dateFilterOptions.find(option => option.value === value);
-                if (selectedOption) {
-                  applyFilter("date", value, selectedOption.label);
-                }
-              }}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Date" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Dates</SelectItem>
-                  {dateFilterOptions.map(option => (
-                    <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {showDateRangePicker ? (
+                <DateRangePicker 
+                  dateRange={dateRange}
+                  onDateRangeChange={handleDateRangeChange}
+                />
+              ) : (
+                <Select value={dateFilter} onValueChange={(value) => {
+                  setDateFilter(value);
+                  const selectedOption = dateFilterOptions.find(option => option.value === value);
+                  if (selectedOption) {
+                    applyFilter("date", value, selectedOption.label);
+                  }
+                  updateDateRangeFromFilter(value);
+                }}>
+                  <SelectTrigger className="w-[140px] h-9">
+                    <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Dates" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Dates</SelectItem>
+                    {dateFilterOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               
               {/* Status Filter */}
               <Select value={statusFilter} onValueChange={(value) => {
@@ -262,7 +368,7 @@ const Payments = () => {
               }}>
                 <SelectTrigger className="w-[150px] h-9">
                   <Clock className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder="Statuses" />
                 </SelectTrigger>
                 <SelectContent>
                   {statusFilterOptions.map(option => (
@@ -281,7 +387,7 @@ const Payments = () => {
               }}>
                 <SelectTrigger className="w-[150px] h-9">
                   <CreditCard className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Payment Mode" />
+                  <SelectValue placeholder="Methods" />
                 </SelectTrigger>
                 <SelectContent>
                   {methodFilterOptions.map(option => (
@@ -299,8 +405,7 @@ const Payments = () => {
                 }
               }}>
                 <SelectTrigger className="w-[150px] h-9">
-                  <Filter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder="Categories" />
                 </SelectTrigger>
                 <SelectContent>
                   {categoryFilterOptions.map(option => (
@@ -330,7 +435,7 @@ const Payments = () => {
               
               {/* Items per page */}
               <div className="ml-auto flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Show:</span>
+                <span className="text-sm text-muted-foreground">Number of rows per page:</span>
                 <Select 
                   value={String(itemsPerPage)} 
                   onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -348,35 +453,50 @@ const Payments = () => {
             </div>
             
             {/* Applied Filters Section */}
-            {activeFilters.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 pt-2">
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <div className="flex items-center gap-1">
                 <span className="text-sm text-muted-foreground">Applied filters:</span>
-                {activeFilters.map((filter, index) => (
-                  <Badge 
-                    key={`${filter.type}-${index}`} 
-                    variant="outline" 
-                    className="flex items-center gap-1 pl-2"
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>If a filter is removed, the default value 'All' will be applied</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              
+              {activeFilters.map((filter, index) => (
+                <Badge 
+                  key={`${filter.type}-${index}`} 
+                  variant="outline" 
+                  className="flex items-center gap-1 pl-2"
+                >
+                  {filter.type === "date" && dateRange?.from && dateRange?.to && filter.value === "custom" 
+                    ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}` 
+                    : filter.label}
+                  <button 
+                    className="ml-1 rounded-full hover:bg-muted"
+                    onClick={() => removeFilter(filter)}
                   >
-                    {filter.label}
-                    <button 
-                      className="ml-1 rounded-full hover:bg-muted"
-                      onClick={() => removeFilter(filter)}
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-                
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+              
+              {activeFilters.length > 0 && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   className="h-7 text-xs"
-                  onClick={clearAllFilters}
+                  onClick={resetToDefaultFilters}
                 >
-                  Clear all
+                  Reset to defaults
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </CardHeader>
         
@@ -390,10 +510,15 @@ const Payments = () => {
                 onClick={() => handleSort("vendor")}
               >
                 Payee Name
-                {sortField === "vendor" && (
+                {sortField === "vendor" ? (
                   sortDirection === "asc" ? 
                   <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
                   <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                ) : (
+                  <div className="flex flex-col ml-1 opacity-30">
+                    <ArrowUp className="h-2 w-2" />
+                    <ArrowDown className="h-2 w-2" />
+                  </div>
                 )}
               </div>
               <div 
@@ -401,10 +526,15 @@ const Payments = () => {
                 onClick={() => handleSort("date")}
               >
                 Date & Time
-                {sortField === "date" && (
+                {sortField === "date" ? (
                   sortDirection === "asc" ? 
                   <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
                   <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                ) : (
+                  <div className="flex flex-col ml-1 opacity-30">
+                    <ArrowUp className="h-2 w-2" />
+                    <ArrowDown className="h-2 w-2" />
+                  </div>
                 )}
               </div>
               <div 
@@ -412,10 +542,15 @@ const Payments = () => {
                 onClick={() => handleSort("amount")}
               >
                 Amount
-                {sortField === "amount" && (
+                {sortField === "amount" ? (
                   sortDirection === "asc" ? 
                   <ArrowUp className="h-3.5 w-3.5 ml-1" /> : 
                   <ArrowDown className="h-3.5 w-3.5 ml-1" />
+                ) : (
+                  <div className="flex flex-col ml-1 opacity-30">
+                    <ArrowUp className="h-2 w-2" />
+                    <ArrowDown className="h-2 w-2" />
+                  </div>
                 )}
               </div>
               <div className="text-center">Category</div>
