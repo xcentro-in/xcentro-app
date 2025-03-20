@@ -9,6 +9,7 @@ import RewardStatus from "@/components/dashboard/RewardStatus";
 import QuickActions from "@/components/dashboard/QuickActions";
 import DashboardCalendarWidget from "@/components/calendar/DashboardCalendarWidget";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
+import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 
@@ -77,7 +78,10 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <QuickActions />
-        <div className="col-span-1 md:col-span-2">
+        <div className="col-span-1 md:col-span-1">
+          <RecentVendorsCard />
+        </div>
+        <div className="col-span-1 md:col-span-1">
           <DashboardCalendarWidget transactions={mockCalendarTransactions} />
         </div>
       </div>

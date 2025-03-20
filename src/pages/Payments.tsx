@@ -7,8 +7,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PaymentFilters } from "@/components/payments/PaymentFilters";
 import { TransactionList } from "@/components/payments/TransactionList";
-import PaymentMethodCard from "@/components/payments/PaymentMethodCard";
-import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
 
 const transactions = [
   { id: 1, vendor: "Office Supplies Co.", amount: 2499.99, status: "completed", date: "Today, 2:30 PM", method: "credit" },
@@ -109,11 +107,6 @@ const Payments = () => {
           </div>
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PaymentMethodCard />
-        <RecentVendorsCard />
-      </div>
     </div>
   );
 };
