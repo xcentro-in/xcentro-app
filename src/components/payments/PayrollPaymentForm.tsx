@@ -2,31 +2,67 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, ArrowRight } from "lucide-react";
 import ManualPayrollForm from "../payees/forms/components/ManualPayrollForm";
 import BulkUploadPayrollForm from "../payees/forms/components/BulkUploadPayrollForm";
+import PaymentMethodStep from "./PaymentMethodStep";
+import { PaymentSummary } from "./PaymentSummary";
+import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
+  const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'review'>('selection');
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   
-  const handleSubmit = () => {
-    // In a real implementation, this would handle the salary dispatch
-    // and move to the success screen or next step
-    onStepChange(4); // Move to the last step (Review)
+  // Handle the completion of the payroll details form (manual or bulk)
+  const handleDetailsComplete = () => {
+    setCurrentStep('payment');
+    onStepChange(2); // Update the progress indicator
   };
   
-  if (entryMethod === null) {
+  // Handle payment method selection
+  const handlePaymentMethodSelected = (methodId: string) => {
+    setSelectedPaymentMethod(methodId);
+  };
+  
+  // Move to the review step
+  const handleGoToReview = () => {
+    setCurrentStep('review');
+    onStepChange(3); // Update the progress indicator
+  };
+  
+  // Go back to the previous step
+  const handleBack = () => {
+    if (currentStep === 'payment') {
+      setCurrentStep('details');
+      onStepChange(1);
+    } else if (currentStep === 'review') {
+      setCurrentStep('payment');
+      onStepChange(2);
+    } else if (currentStep === 'details') {
+      setCurrentStep('selection');
+      setEntryMethod(null);
+      onStepChange(0);
+    }
+  };
+  
+  // Render the entry method selection screen
+  if (currentStep === 'selection') {
     return (
       <div className="space-y-6">
         <h3 className="text-lg font-medium mb-4">Select Entry Method</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card 
             className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
-            onClick={() => setEntryMethod("manual")}
+            onClick={() => {
+              setEntryMethod("manual");
+              setCurrentStep('details');
+              onStepChange(1);
+            }}
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
@@ -59,7 +95,11 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
           
           <Card 
             className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
-            onClick={() => setEntryMethod("bulk")}
+            onClick={() => {
+              setEntryMethod("bulk");
+              setCurrentStep('details');
+              onStepChange(1);
+            }}
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -76,24 +116,74 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     );
   }
 
-  return (
-    <>
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-medium">
-          {entryMethod === "manual" ? "Manual Payroll Entry" : "Bulk Upload Payroll Data"}
-        </h3>
-        <Button variant="outline" onClick={() => setEntryMethod(null)}>
-          Change Entry Method
-        </Button>
-      </div>
-      
-      {entryMethod === "manual" ? (
-        <ManualPayrollForm onSubmit={handleSubmit} />
-      ) : (
-        <BulkUploadPayrollForm onSubmit={handleSubmit} />
-      )}
-    </>
-  );
+  // Render the payment details form
+  if (currentStep === 'details') {
+    return (
+      <>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-medium">
+            {entryMethod === "manual" ? "Manual Payroll Entry" : "Bulk Upload Payroll Data"}
+          </h3>
+          <Button variant="outline" onClick={handleBack}>
+            Change Entry Method
+          </Button>
+        </div>
+        
+        {entryMethod === "manual" ? (
+          <ManualPayrollForm onSubmit={handleDetailsComplete} />
+        ) : (
+          <BulkUploadPayrollForm onSubmit={handleDetailsComplete} />
+        )}
+      </>
+    );
+  }
+  
+  // Render the payment method selection step
+  if (currentStep === 'payment') {
+    return (
+      <PaymentMethodStep 
+        selectedPaymentMethod={selectedPaymentMethod}
+        onSelect={handlePaymentMethodSelected}
+        onBack={handleBack}
+        onNext={handleGoToReview}
+      />
+    );
+  }
+  
+  // Render the review step
+  if (currentStep === 'review') {
+    // Find the selected payment method from the mock data
+    const paymentMethod = mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
+    
+    return (
+      <PaymentSummary
+        paymentType="now"
+        amount={15000} // Example amount
+        description="Payroll payment"
+        invoiceReference="PR-2023-001"
+        payee={{
+          id: "payroll-1",
+          name: entryMethod === "manual" ? "John Doe" : "Multiple Employees",
+          email: entryMethod === "manual" ? "john.doe@example.com" : "",
+          contactNumber: entryMethod === "manual" ? "9876543210" : "",
+          type: "payroll",
+          bankName: "HDFC Bank",
+          accountNumber: entryMethod === "manual" ? "1234567890" : "Multiple Accounts",
+          status: "active",
+          createdAt: new Date().toISOString(),
+        }}
+        paymentMethod={paymentMethod}
+        platformFee={150}
+        gatewayFee={50}
+        totalAmount={15200}
+        rewardPoints={152}
+        onBack={handleBack}
+      />
+    );
+  }
+  
+  // Fallback (shouldn't reach here with proper state management)
+  return null;
 };
 
 export default PayrollPaymentForm;
