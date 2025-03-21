@@ -18,13 +18,6 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       icon: <FileText className="h-10 w-10 text-primary" />,
     },
     {
-      id: "invoice",
-      title: "Invoice Payment",
-      description: "Upload and pay vendor invoices",
-      icon: <File className="h-10 w-10 text-primary" />,
-      highlight: true,
-    },
-    {
       id: "batch",
       title: "Batch Payment",
       description: "Pay multiple vendors at once with a batch upload",
@@ -47,6 +40,13 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       title: "Payroll",
       description: "Process employee salary payments",
       icon: <Users className="h-10 w-10 text-primary" />,
+    },
+    {
+      id: "invoice",
+      title: "Invoice Payment",
+      description: "Upload and pay vendor invoices",
+      icon: <File className="h-10 w-10 text-primary" />,
+      highlight: true,
     },
   ];
 

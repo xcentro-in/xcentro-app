@@ -166,7 +166,7 @@ const UploadInvoiceStep = ({
                 Supports PDF and image files
               </p>
             </div>
-            <div className="flex justify-center gap-4 mt-6">
+            <div className="flex justify-center mt-6">
               <Button 
                 variant="outline" 
                 className="gap-2"
@@ -174,16 +174,6 @@ const UploadInvoiceStep = ({
               >
                 <FilePlus className="h-4 w-4" />
                 Browse Files
-              </Button>
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={() => {
-                  // This would open the camera on mobile devices
-                  toast.info("Camera capture feature coming soon");
-                }}
-              >
-                Take Photo
               </Button>
             </div>
           </div>

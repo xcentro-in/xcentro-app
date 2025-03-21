@@ -9,7 +9,6 @@ import {
   FileText, 
   Building, 
   DollarSign, 
-  CalendarDays,
   Save,
   Check,
   AlertCircle,
@@ -18,6 +17,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+
+export type PaymentType = "now" | "later" | "recurring";
 
 interface ReviewInvoiceStepProps {
   invoiceDetails: InvoiceDetails;
@@ -34,11 +39,24 @@ const ReviewInvoiceStep = ({
 }: ReviewInvoiceStepProps) => {
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails>(initialDetails);
   const [isVendorSaved, setIsVendorSaved] = useState(false);
+  const [paymentType, setPaymentType] = useState<PaymentType>("now");
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [frequency, setFrequency] = useState<string>("monthly");
   
   const handleInputChange = (field: keyof InvoiceDetails, value: string | number) => {
     setInvoiceDetails(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handlePaymentInstructionsChange = (field: string, value: string) => {
+    setInvoiceDetails(prev => ({
+      ...prev,
+      paymentInstructions: {
+        ...(prev.paymentInstructions || {}),
+        [field]: value
+      }
     }));
   };
   
@@ -85,6 +103,95 @@ const ReviewInvoiceStep = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div className="space-y-2">
+            <Label htmlFor="paymentType">Payment Type</Label>
+            <Select value={paymentType} onValueChange={(value: PaymentType) => setPaymentType(value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select payment type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="now">Pay Now</SelectItem>
+                <SelectItem value="later">Pay Later</SelectItem>
+                <SelectItem value="recurring">Recurring Payment</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {paymentType === "later" && (
+            <div className="space-y-2">
+              <Label>Schedule Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduledDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {scheduledDate ? format(scheduledDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={setScheduledDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
+
+          {paymentType === "recurring" && (
+            <div className="space-y-2">
+              <Label>Frequency & Start Date</Label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <Select value={frequency} onValueChange={setFrequency}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex-1">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !scheduledDate && "text-muted-foreground"
+                        )}
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {scheduledDate ? format(scheduledDate, "PPP") : <span>Start date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={scheduledDate}
+                        onSelect={setScheduledDate}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
             <Label htmlFor="invoiceNumber">Invoice Number</Label>
             <Input
               id="invoiceNumber"
@@ -125,32 +232,78 @@ const ReviewInvoiceStep = ({
               onChange={(e) => handleInputChange('vendorName', e.target.value)}
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="accountNumber">Account Number</Label>
+            <Input
+              id="accountNumber"
+              value={invoiceDetails.paymentInstructions?.bankAccount || ""}
+              onChange={(e) => handlePaymentInstructionsChange('bankAccount', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ifscCode">IFSC Code</Label>
+            <Input
+              id="ifscCode"
+              value={invoiceDetails.paymentInstructions?.ifscCode || ""}
+              onChange={(e) => handlePaymentInstructionsChange('ifscCode', e.target.value)}
+            />
+          </div>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="invoiceDate">Invoice Date</Label>
-              <div className="relative">
-                <Input
-                  id="invoiceDate"
-                  value={invoiceDetails.invoiceDate}
-                  onChange={(e) => handleInputChange('invoiceDate', e.target.value)}
-                  type="date"
-                />
-                <Calendar className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      "text-base"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {formatDate(invoiceDetails.invoiceDate)}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={new Date(invoiceDetails.invoiceDate)}
+                    onSelect={(date) => date && handleInputChange('invoiceDate', date.toISOString().split('T')[0])}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="dueDate">Due Date</Label>
-              <div className="relative">
-                <Input
-                  id="dueDate"
-                  value={invoiceDetails.dueDate}
-                  onChange={(e) => handleInputChange('dueDate', e.target.value)}
-                  type="date"
-                />
-                <CalendarDays className="absolute right-3 top-2.5 h-5 w-5 text-muted-foreground pointer-events-none" />
-              </div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      "text-base"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {formatDate(invoiceDetails.dueDate)}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={new Date(invoiceDetails.dueDate)}
+                    onSelect={(date) => date && handleInputChange('dueDate', date.toISOString().split('T')[0])}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           
