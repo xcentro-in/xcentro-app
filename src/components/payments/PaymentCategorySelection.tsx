@@ -1,9 +1,9 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Files, FileSpreadsheet, Receipt, Users } from "lucide-react";
+import { FileText, Files, FileSpreadsheet, Receipt, Users, File } from "lucide-react";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
 interface PaymentCategorySelectionProps {
   onSelect: (category: PaymentCategory) => void;
@@ -41,6 +41,12 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       description: "Process employee salary payments",
       icon: <Users className="h-10 w-10 text-primary" />,
     },
+    {
+      id: "invoice",
+      title: "Invoice Payment",
+      description: "Upload and pay vendor invoices",
+      icon: <File className="h-10 w-10 text-primary" />,
+    },
   ];
 
   return (
@@ -55,7 +61,7 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
             onClick={() => onSelect(category.id as PaymentCategory)}
           >
             <CardContent className="flex flex-col items-center text-center p-6 h-full">
-              <div className="bg-primary/10 p-4 rounded-full mb-4">
+              <div className="p-4 rounded-full mb-4 bg-primary/10">
                 {category.icon}
               </div>
               <h3 className="font-medium text-lg mb-2">{category.title}</h3>

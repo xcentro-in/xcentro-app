@@ -13,11 +13,27 @@ import {
   CalendarDays,
   Receipt,
   BarChart2,
-  CreditCardIcon, 
+  CreditCardIcon,
+  FileText,
 } from "lucide-react";
 
+// Define interface for the menu items
+interface SidebarMenuItem {
+  title: string;
+  url: string;
+  icon: any; // Using 'any' here to accommodate Lucide icons
+  highlight?: boolean;
+  highlightColor?: "amber" | "green";
+  state?: any;
+  submenu?: Array<{
+    title: string;
+    url: string;
+    icon: any;
+  }>;
+}
+
 // Main menu items
-export const mainMenuItems = [
+export const mainMenuItems: SidebarMenuItem[] = [
   {
     title: "Dashboard",
     url: "/",
@@ -32,6 +48,8 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
+    highlight: true,
+    highlightColor: "green" as const,
   },
   {
     title: "Credit Cards",
