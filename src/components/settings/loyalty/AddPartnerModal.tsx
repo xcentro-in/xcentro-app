@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   Dialog, 
   DialogContent, 
@@ -30,7 +30,6 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<PartnerType>("airline");
   const [selectedPartnerName, setSelectedPartnerName] = useState<string>("");
-  const [open, setOpen] = useState(false);
   
   const form = useForm<LoyaltyPartner>({
     defaultValues: getDefaultPartnerValues()
@@ -48,7 +47,6 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
   const handlePartnerSelect = (value: string, label: string) => {
     form.setValue("name", label);
     setSelectedPartnerName(label);
-    setOpen(false);
   };
 
   const handleSubmit = (data: LoyaltyPartner) => {
@@ -74,8 +72,6 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
             <PartnerNameSelector 
               form={form} 
               suggestions={partnerSuggestions[selectedType] || []}
-              open={open}
-              setOpen={setOpen}
               onPartnerSelect={handlePartnerSelect}
             />
 
