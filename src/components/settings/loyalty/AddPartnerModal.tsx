@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle,
-  DialogFooter
+  DialogFooter,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -30,6 +31,7 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<PartnerType>("airline");
   const [selectedPartnerName, setSelectedPartnerName] = useState<string>("");
+  const [showResults, setShowResults] = useState(false);
   
   const form = useForm<LoyaltyPartner>({
     defaultValues: getDefaultPartnerValues()
@@ -63,6 +65,9 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Add New Partner</DialogTitle>
+          <DialogDescription>
+            Connect your loyalty accounts to earn more rewards.
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
@@ -73,6 +78,8 @@ const AddPartnerModal: React.FC<AddPartnerModalProps> = ({
               form={form} 
               suggestions={partnerSuggestions[selectedType] || []}
               onPartnerSelect={handlePartnerSelect}
+              open={showResults}
+              setOpen={setShowResults}
             />
 
             <MembershipIDField 

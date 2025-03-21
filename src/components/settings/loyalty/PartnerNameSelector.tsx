@@ -11,16 +11,25 @@ interface PartnerNameSelectorProps {
   form: UseFormReturn<LoyaltyPartner>;
   suggestions: { value: string, label: string }[];
   onPartnerSelect: (value: string, label: string) => void;
+  open?: boolean;
+  setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({ 
   form, 
   suggestions = [], 
-  onPartnerSelect 
+  onPartnerSelect,
+  open: externalOpen,
+  setOpen: setExternalOpen
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState(suggestions);
+  
+  // Use internal state if external state is not provided
+  const isControlled = externalOpen !== undefined && setExternalOpen !== undefined;
+  const showResultsValue = isControlled ? externalOpen : showResults;
+  const setShowResultsValue = isControlled ? setExternalOpen : setShowResults;
   
   // Update filtered suggestions when search term or suggestions change
   useEffect(() => {
@@ -37,7 +46,7 @@ const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setSearchTerm(value);
-    setShowResults(true);
+    setShowResultsValue(true);
     
     // If the input is cleared, also clear the form value
     if (value === "") {
@@ -48,7 +57,7 @@ const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({
   const handleSelectPartner = (value: string, label: string) => {
     onPartnerSelect(value, label);
     setSearchTerm(label);
-    setShowResults(false);
+    setShowResultsValue(false);
   };
 
   return (
@@ -66,17 +75,17 @@ const PartnerNameSelector: React.FC<PartnerNameSelectorProps> = ({
                   placeholder="Search partner name"
                   value={searchTerm}
                   onChange={handleInputChange}
-                  onFocus={() => setShowResults(true)}
+                  onFocus={() => setShowResultsValue(true)}
                   onBlur={() => {
                     // Delay hiding results to allow for click
-                    setTimeout(() => setShowResults(false), 200);
+                    setTimeout(() => setShowResultsValue(false), 200);
                   }}
                   className="pl-9"
                 />
               </div>
             </FormControl>
             
-            {showResults && (
+            {showResultsValue && (
               <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
                 {filteredSuggestions.length > 0 ? (
                   filteredSuggestions.map((partner) => (
