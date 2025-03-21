@@ -1,9 +1,9 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Files, FileSpreadsheet, Receipt, Users } from "lucide-react";
+import { FileText, Files, FileSpreadsheet, Receipt, Users, File } from "lucide-react";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
 interface PaymentCategorySelectionProps {
   onSelect: (category: PaymentCategory) => void;
@@ -16,6 +16,13 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       title: "Single Payment",
       description: "Make a payment to a single vendor or payee",
       icon: <FileText className="h-10 w-10 text-primary" />,
+    },
+    {
+      id: "invoice",
+      title: "Invoice Payment",
+      description: "Upload and pay vendor invoices",
+      icon: <File className="h-10 w-10 text-primary" />,
+      highlight: true,
     },
     {
       id: "batch",
@@ -51,11 +58,22 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
         {categories.map((category) => (
           <Card 
             key={category.id}
-            className="hover:border-primary hover:shadow-md transition-all cursor-pointer"
-            onClick={() => onSelect(category.id as PaymentCategory)}
+            className={`hover:border-primary hover:shadow-md transition-all cursor-pointer ${
+              category.highlight ? 'border-primary/50 bg-primary/5' : ''
+            }`}
+            onClick={() => {
+              if (category.id === "invoice") {
+                // For invoice payments, navigate to the dedicated page
+                window.location.href = "/pay-invoice";
+              } else {
+                onSelect(category.id as PaymentCategory);
+              }
+            }}
           >
             <CardContent className="flex flex-col items-center text-center p-6 h-full">
-              <div className="bg-primary/10 p-4 rounded-full mb-4">
+              <div className={`p-4 rounded-full mb-4 ${
+                category.highlight ? 'bg-primary/20' : 'bg-primary/10'
+              }`}>
                 {category.icon}
               </div>
               <h3 className="font-medium text-lg mb-2">{category.title}</h3>

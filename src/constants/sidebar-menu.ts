@@ -13,7 +13,8 @@ import {
   CalendarDays,
   Receipt,
   BarChart2,
-  CreditCardIcon, 
+  CreditCardIcon,
+  FileText,
 } from "lucide-react";
 
 // Main menu items
@@ -32,6 +33,12 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
+  },
+  {
+    title: "Pay Invoice",
+    url: "/pay-invoice",
+    icon: FileText,
+    highlight: true,
   },
   {
     title: "Credit Cards",

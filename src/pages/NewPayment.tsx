@@ -8,9 +8,9 @@ import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
 import PayrollPaymentForm from "@/components/payments/PayrollPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
-type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll";
+type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
 const steps = {
   single: ["Details", "Payee", "Payment Method", "Review"],
@@ -22,6 +22,7 @@ const steps = {
 
 const NewPayment = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const locationState = location.state as { 
     paymentCategory?: PaymentCategory;
     paymentMethod?: string; 
@@ -38,12 +39,24 @@ const NewPayment = () => {
   // Set initial state based on location state
   useEffect(() => {
     if (locationState?.paymentCategory) {
+      // If the payment category is "invoice", redirect to the dedicated page
+      if (locationState.paymentCategory === "invoice") {
+        navigate("/pay-invoice");
+        return;
+      }
+      
       setPaymentCategory(locationState.paymentCategory);
       setStep(1);
     }
-  }, [locationState]);
+  }, [locationState, navigate]);
 
   const handleCategorySelect = (category: PaymentCategory) => {
+    // If the user selects "invoice", redirect to the dedicated page
+    if (category === "invoice") {
+      navigate("/pay-invoice");
+      return;
+    }
+    
     setPaymentCategory(category);
     setStep(1);
   };
