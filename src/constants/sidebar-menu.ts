@@ -33,13 +33,8 @@ export const mainMenuItems = [
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
-  },
-  {
-    title: "Pay Invoice",
-    url: "/new-payment",
-    icon: FileText,
-    state: { paymentCategory: "invoice" },
     highlight: true,
+    highlightColor: "green",
   },
   {
     title: "Credit Cards",

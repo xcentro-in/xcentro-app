@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -21,6 +22,7 @@ interface SidebarMenuItemProps {
   url: string;
   icon: LucideIcon;
   highlight?: boolean;
+  highlightColor?: "amber" | "green";
   state?: any;
   submenu?: SubmenuItem[];
 }
@@ -30,6 +32,7 @@ export const SidebarMenuItemComponent = ({
   url, 
   icon: Icon, 
   highlight, 
+  highlightColor = "amber",
   state,
   submenu 
 }: SidebarMenuItemProps) => {
@@ -44,6 +47,14 @@ export const SidebarMenuItemComponent = ({
                   (submenu && submenu.some(item => location.pathname === item.url));
                   
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(isActive);
+
+  // Helper to get the highlight color classes
+  const getHighlightColorClasses = (isTextColor = false) => {
+    if (highlightColor === "green") {
+      return isTextColor ? "text-green-500" : "bg-green-500";
+    }
+    return isTextColor ? "text-amber-500" : "bg-amber-500";
+  };
 
   // If this is a menu with submenu items
   if (submenu && submenu.length > 0) {
@@ -69,18 +80,18 @@ export const SidebarMenuItemComponent = ({
                 !open && "justify-center"
               )}>
                 {highlight && !isActive && (
-                  <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                  <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full", getHighlightColorClasses())}></span>
                 )}
                 <Icon className={cn(
                   "h-5 w-5",
                   isActive ? 
                     "text-primary" : 
-                    highlight && !isActive ? "text-amber-500" : "text-muted-foreground"
+                    highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
                 )} />
                 {open && (
                   <span className={cn(
                     "truncate flex-grow",
-                    highlight && !isActive && "text-amber-500 font-medium"
+                    highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
                   )}>
                     {title}
                   </span>
@@ -153,18 +164,18 @@ export const SidebarMenuItemComponent = ({
           )}
         >
           {highlight && !isActive && (
-            <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+            <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full", getHighlightColorClasses())}></span>
           )}
           <Icon className={cn(
             "h-5 w-5",
             isActive ? 
               "text-primary" : 
-              highlight && !isActive ? "text-amber-500" : "text-muted-foreground"
+              highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
           )} />
           {open && (
             <span className={cn(
               "truncate",
-              highlight && !isActive && "text-amber-500 font-medium"
+              highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
             )}>
               {title}
             </span>
