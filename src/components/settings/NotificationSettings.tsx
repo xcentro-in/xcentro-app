@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Mail, Smartphone, CreditCard, Shield, BellRing } from "lucide-react";
+import { toast } from "sonner";
 
 const NotificationSettings = () => {
   const [notifications, setNotifications] = useState({
@@ -14,6 +15,30 @@ const NotificationSettings = () => {
     security: true,
     marketing: false
   });
+  
+  // Store the initial state to compare for changes
+  const [initialNotifications, setInitialNotifications] = useState({...notifications});
+  
+  // Track if any changes have been made
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  // Check for changes when notifications state updates
+  useEffect(() => {
+    const changed = Object.keys(notifications).some(
+      key => notifications[key as keyof typeof notifications] !== 
+             initialNotifications[key as keyof typeof initialNotifications]
+    );
+    setHasChanges(changed);
+  }, [notifications, initialNotifications]);
+  
+  const handleSavePreferences = () => {
+    // Save the current state as the new initial state
+    setInitialNotifications({...notifications});
+    setHasChanges(false);
+    
+    // Show success message
+    toast.success("Notification preferences saved successfully");
+  };
 
   return (
     <div className="space-y-6">
@@ -97,7 +122,12 @@ const NotificationSettings = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end">
-          <Button>Save Preferences</Button>
+          <Button 
+            onClick={handleSavePreferences} 
+            disabled={!hasChanges}
+          >
+            Save Preferences
+          </Button>
         </CardFooter>
       </Card>
     </div>
