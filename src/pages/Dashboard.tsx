@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { Plus, ShoppingBag, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import InsightCard from "@/components/dashboard/InsightCard";
@@ -12,11 +12,11 @@ import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanne
 import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
+import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCard";
+import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePaymentsCard";
 
 const insights = [
   { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
-  { title: "Reward Points", value: "24,530", change: 8.3, trend: "up" as const },
-  { title: "Expenses Tracked", value: "94%", change: 3.1, trend: "up" as const },
 ];
 
 const Dashboard = () => {
@@ -65,6 +65,8 @@ const Dashboard = () => {
             delay={index * 50}
           />
         ))}
+        <TopExpenseCategoryCard />
+        <UpcomingLargePaymentsCard />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
