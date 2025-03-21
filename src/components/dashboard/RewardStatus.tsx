@@ -1,4 +1,3 @@
-
 import { DollarSign, Gift, TrendingUp, Star, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -6,22 +5,19 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-
 const RewardStatus = () => {
   const [progress, setProgress] = useState(0);
   const navigate = useNavigate();
-  
   useEffect(() => {
     const timer = setTimeout(() => setProgress(78), 500);
     return () => clearTimeout(timer);
   }, []);
-
   const handleRedeemClick = () => {
     navigate('/rewards');
   };
-
-  return (
-    <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{ animationDelay: "200ms" }}>
+  return <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{
+    animationDelay: "200ms"
+  }}>
       <CardHeader className="border-b border-white/10">
         <div className="flex items-center justify-between">
           <div>
@@ -39,13 +35,10 @@ const RewardStatus = () => {
           <div>
             <div className="text-gray-300 text-sm">Available Points</div>
             <div className="text-3xl font-bold text-white mt-1">24,530</div>
-            <div className="text-xs text-gray-300 mt-1">Approx. value: $245</div>
+            
           </div>
           
-          <Button 
-            className="gap-2 bg-amber-500 hover:bg-amber-600 text-black"
-            onClick={handleRedeemClick}
-          >
+          <Button className="gap-2 bg-amber-500 hover:bg-amber-600 text-black" onClick={handleRedeemClick}>
             Redeem Now <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
@@ -97,8 +90,6 @@ const RewardStatus = () => {
           </Badge>
         </div>
       </CardFooter>
-    </Card>
-  );
+    </Card>;
 };
-
 export default RewardStatus;
