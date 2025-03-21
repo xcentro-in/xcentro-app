@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LoyaltyPartner } from "@/types/rewards";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import LoyaltyPartnerForm from "./LoyaltyPartnerForm";
+import AddPartnerModal from "./loyalty/AddPartnerModal";
 import PartnerDisplayList from "./loyalty/PartnerDisplayList";
 import EmptyPartnerState from "./loyalty/EmptyPartnerState";
 
@@ -20,11 +20,15 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
   onSavePartner, 
   onDeletePartner 
 }) => {
-  const [isAdding, setIsAdding] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
   
-  const handleAddNew = () => {
-    setIsAdding(true);
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
   };
 
   const handleEdit = (partnerId: string) => {
@@ -34,12 +38,11 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
   const handleSave = (data: LoyaltyPartner) => {
     onSavePartner(data);
     toast.success(`Partner ${data.name} saved successfully!`);
-    setIsAdding(false);
+    setIsModalOpen(false);
     setEditingPartnerId(null);
   };
 
   const handleCancel = () => {
-    setIsAdding(false);
     setEditingPartnerId(null);
   };
 
@@ -50,18 +53,21 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Loyalty Program Partners</CardTitle>
-        <CardDescription>
-          Link your loyalty accounts for seamless points conversion
-        </CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle className="text-lg font-semibold">Loyalty Program Partners</CardTitle>
+          <CardDescription>
+            Link your loyalty accounts for seamless points conversion
+          </CardDescription>
+        </div>
+        <Button onClick={handleOpenModal} className="h-9 gap-1">
+          <Plus className="h-4 w-4" /> Add Partner
+        </Button>
       </CardHeader>
       <CardContent className="space-y-4">
-        {savedPartners.length === 0 && !isAdding && (
-          <EmptyPartnerState onAddNew={handleAddNew} />
-        )}
-
-        {savedPartners.length > 0 && (
+        {savedPartners.length === 0 ? (
+          <EmptyPartnerState onAddNew={handleOpenModal} />
+        ) : (
           <PartnerDisplayList
             partners={savedPartners}
             editingPartnerId={editingPartnerId}
@@ -72,18 +78,11 @@ const LoyaltyPartnersSettings: React.FC<LoyaltyPartnersSettingsProps> = ({
           />
         )}
 
-        {isAdding && (
-          <LoyaltyPartnerForm
-            onSave={handleSave}
-            onCancel={handleCancel}
-          />
-        )}
-
-        {savedPartners.length > 0 && !isAdding && !editingPartnerId && (
-          <Button onClick={handleAddNew} className="w-full">
-            <Plus className="h-4 w-4 mr-2" /> Add New Partner
-          </Button>
-        )}
+        <AddPartnerModal 
+          isOpen={isModalOpen} 
+          onClose={handleCloseModal} 
+          onSave={handleSave} 
+        />
       </CardContent>
     </Card>
   );
