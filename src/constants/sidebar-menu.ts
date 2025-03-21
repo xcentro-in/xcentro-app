@@ -34,7 +34,7 @@ export const mainMenuItems = [
     url: "/new-payment",
     icon: PlusCircle,
     highlight: true,
-    highlightColor: "green",
+    highlightColor: "green" as const,
   },
   {
     title: "Credit Cards",

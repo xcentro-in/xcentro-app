@@ -46,7 +46,6 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
       title: "Invoice Payment",
       description: "Upload and pay vendor invoices",
       icon: <File className="h-10 w-10 text-primary" />,
-      highlight: true,
     },
   ];
 
@@ -58,15 +57,11 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
         {categories.map((category) => (
           <Card 
             key={category.id}
-            className={`hover:border-primary hover:shadow-md transition-all cursor-pointer ${
-              category.highlight ? 'border-primary/50 bg-primary/5' : ''
-            }`}
+            className="hover:border-primary hover:shadow-md transition-all cursor-pointer"
             onClick={() => onSelect(category.id as PaymentCategory)}
           >
             <CardContent className="flex flex-col items-center text-center p-6 h-full">
-              <div className={`p-4 rounded-full mb-4 ${
-                category.highlight ? 'bg-primary/20' : 'bg-primary/10'
-              }`}>
+              <div className="p-4 rounded-full mb-4 bg-primary/10">
                 {category.icon}
               </div>
               <h3 className="font-medium text-lg mb-2">{category.title}</h3>
