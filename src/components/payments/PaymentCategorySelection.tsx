@@ -61,14 +61,7 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
             className={`hover:border-primary hover:shadow-md transition-all cursor-pointer ${
               category.highlight ? 'border-primary/50 bg-primary/5' : ''
             }`}
-            onClick={() => {
-              if (category.id === "invoice") {
-                // For invoice payments, navigate to the dedicated page
-                window.location.href = "/pay-invoice";
-              } else {
-                onSelect(category.id as PaymentCategory);
-              }
-            }}
+            onClick={() => onSelect(category.id as PaymentCategory)}
           >
             <CardContent className="flex flex-col items-center text-center p-6 h-full">
               <div className={`p-4 rounded-full mb-4 ${

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -22,6 +21,7 @@ interface SidebarMenuItemProps {
   url: string;
   icon: LucideIcon;
   highlight?: boolean;
+  state?: any;
   submenu?: SubmenuItem[];
 }
 
@@ -30,12 +30,19 @@ export const SidebarMenuItemComponent = ({
   url, 
   icon: Icon, 
   highlight, 
+  state,
   submenu 
 }: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
+  
+  // Check if this item is active based on URL or state
   const isActive = location.pathname === url || 
+                  (url === '/new-payment' && 
+                   location.pathname === '/new-payment' && 
+                   state?.paymentCategory === location.state?.paymentCategory) ||
                   (submenu && submenu.some(item => location.pathname === item.url));
+                  
   const [isSubmenuOpen, setIsSubmenuOpen] = useState(isActive);
 
   // If this is a menu with submenu items
@@ -137,10 +144,14 @@ export const SidebarMenuItemComponent = ({
           "w-full"
         )}
       >
-        <Link to={url} className={cn(
-          "flex items-center gap-3 w-full",
-          !open && "justify-center" // Center align when sidebar is collapsed
-        )}>
+        <Link 
+          to={url} 
+          state={state}
+          className={cn(
+            "flex items-center gap-3 w-full",
+            !open && "justify-center" // Center align when sidebar is collapsed
+          )}
+        >
           {highlight && !isActive && (
             <span className="absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
           )}

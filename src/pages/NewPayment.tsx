@@ -8,6 +8,7 @@ import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
 import PayrollPaymentForm from "@/components/payments/PayrollPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
+import PayInvoice from "./PayInvoice";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
@@ -18,6 +19,7 @@ const steps = {
   gst: ["Upload/Details", "Payment Method", "Review"],
   creditcard: ["Bill Upload/Details", "Payment Method", "Review"],
   payroll: ["Entry Method", "Details/Selection", "Review"],
+  invoice: ["Upload Invoice", "Review Details", "Payment Method", "Confirmation"],
 };
 
 const NewPayment = () => {
@@ -39,24 +41,12 @@ const NewPayment = () => {
   // Set initial state based on location state
   useEffect(() => {
     if (locationState?.paymentCategory) {
-      // If the payment category is "invoice", redirect to the dedicated page
-      if (locationState.paymentCategory === "invoice") {
-        navigate("/pay-invoice");
-        return;
-      }
-      
       setPaymentCategory(locationState.paymentCategory);
       setStep(1);
     }
-  }, [locationState, navigate]);
+  }, [locationState]);
 
   const handleCategorySelect = (category: PaymentCategory) => {
-    // If the user selects "invoice", redirect to the dedicated page
-    if (category === "invoice") {
-      navigate("/pay-invoice");
-      return;
-    }
-    
     setPaymentCategory(category);
     setStep(1);
   };
@@ -68,9 +58,9 @@ const NewPayment = () => {
   };
 
   // Only calculate progress if we've selected a category
-  const totalSteps = paymentCategory !== "selection" ? steps[paymentCategory as keyof typeof steps].length : 1;
+  const totalSteps = paymentCategory !== "selection" ? steps[paymentCategory].length : 1;
   const progress = (step / totalSteps) * 100;
-  const currentSteps = paymentCategory !== "selection" ? steps[paymentCategory as keyof typeof steps] : ["Category Selection"];
+  const currentSteps = paymentCategory !== "selection" ? steps[paymentCategory] : ["Category Selection"];
 
   return (
     <div className="space-y-8">
@@ -118,6 +108,7 @@ const NewPayment = () => {
                 />
               )}
               {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
+              {paymentCategory === "invoice" && <PayInvoice />}
             </>
           )}
         </CardContent>

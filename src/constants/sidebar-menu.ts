@@ -36,8 +36,9 @@ export const mainMenuItems = [
   },
   {
     title: "Pay Invoice",
-    url: "/pay-invoice",
+    url: "/new-payment",
     icon: FileText,
+    state: { paymentCategory: "invoice" },
     highlight: true,
   },
   {
