@@ -1,4 +1,3 @@
-
 import { DollarSign, Gift, TrendingUp, Star, ChevronRight, Plane, Award, Lock, CheckCircle2, CreditCard, Calendar, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -7,12 +6,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-
 const RewardStatus = () => {
   const [progress, setProgress] = useState(0);
   const [goalProgress, setGoalProgress] = useState(0);
   const navigate = useNavigate();
-  
   useEffect(() => {
     const timer = setTimeout(() => {
       setProgress(78);
@@ -20,19 +17,19 @@ const RewardStatus = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, []);
-  
   const handleRedeemClick = () => {
     navigate('/rewards');
   };
-
   const handlePayNowClick = () => {
-    navigate('/new-payment', { state: { paymentType: 'gst' } });
+    navigate('/new-payment', {
+      state: {
+        paymentType: 'gst'
+      }
+    });
   };
-  
-  return (
-    <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{
-      animationDelay: "200ms"
-    }}>
+  return <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{
+    animationDelay: "200ms"
+  }}>
       <CardHeader className="border-b border-white/10">
         <div className="flex items-center justify-between">
           <div>
@@ -83,7 +80,7 @@ const RewardStatus = () => {
             </div>
             <p className="text-xs text-gray-300">Pay your upcoming GST invoice through credit card</p>
           </div>
-          <Button size="sm" variant="outline" className="border-white/20 hover:bg-white/20 h-8" onClick={handlePayNowClick}>
+          <Button size="sm" variant="outline" onClick={handlePayNowClick} className="border-white/20 h-8 bg-teal-700 hover:bg-teal-600">
             Pay Now
           </Button>
         </div>
@@ -172,8 +169,6 @@ const RewardStatus = () => {
           </Badge>
         </div>
       </CardFooter>
-    </Card>
-  );
+    </Card>;
 };
-
 export default RewardStatus;
