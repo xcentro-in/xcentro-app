@@ -87,29 +87,9 @@ const RewardStatus = () => {
         
         {/* Monthly Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-amber-400" />
-              </div>
-              <div>
-                <div className="text-sm font-medium text-white">This Month</div>
-                <div className="text-base font-semibold text-white">3,840 <span className="text-xs text-green-400">+12%</span></div>
-              </div>
-            </div>
-          </div>
           
-          <div className="rounded-lg border border-white/10 bg-white/5 p-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                <Gift className="h-4 w-4 text-purple-400" />
-              </div>
-              <div>
-                <div className="text-sm font-medium text-white">Redeemed</div>
-                <div className="text-base font-semibold text-white">114,000 <span className="text-xs text-gray-400">points</span></div>
-              </div>
-            </div>
-          </div>
+          
+          
         </div>
 
         {/* Reward Milestone Shelf */}
