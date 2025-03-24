@@ -1,23 +1,20 @@
 
 import { useState, useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { format } from "date-fns";
-import { Search, ArrowUp, ArrowDown } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { 
   Table, 
   TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
 import { DateRange } from "react-day-picker";
-import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
-import { TransactionMethodBadge } from "@/components/payee-history/TransactionMethodBadge";
+
+// Import new components
+import { TableSearchBar } from "./TableSearchBar";
+import { TransactionTableHeader } from "./TransactionTableHeader";
+import { TransactionTableRow } from "./TransactionTableRow";
+import { EmptyTransactionsState } from "./EmptyTransactionsState";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -35,7 +32,6 @@ export const TransactionsTable = ({
   onResetFilters
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
-  const { payeeId } = useParams<{ payeeId: string }>();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -117,98 +113,42 @@ export const TransactionsTable = ({
     return filtered;
   }, [transactions, searchTerm, appliedFilters, sortColumn, sortDirection]);
 
+  // Check if there are any active filters
+  const hasActiveFilters = appliedFilters.status !== "all" || 
+                           appliedFilters.method !== "all" || 
+                           !!appliedFilters.dateRange?.from;
+
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="mb-4 relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by invoice, reference or description..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <TableSearchBar 
+          searchTerm={searchTerm} 
+          onSearchChange={setSearchTerm} 
+        />
         
         <div className="rounded-md border overflow-hidden">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort("invoice")}
-                >
-                  Invoice/Reference
-                  {sortColumn === "invoice" && (
-                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer text-right"
-                  onClick={() => handleSort("amount")}
-                >
-                  Amount
-                  {sortColumn === "amount" && (
-                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort("date")}
-                >
-                  Payment Date
-                  {sortColumn === "date" && (
-                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
-                  )}
-                </TableHead>
-                <TableHead>Payment Status</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Description</TableHead>
-              </TableRow>
-            </TableHeader>
+            <TransactionTableHeader 
+              sortColumn={sortColumn}
+              sortDirection={sortDirection}
+              onSort={handleSort}
+            />
             <TableBody>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
-                  <TableRow 
+                  <TransactionTableRow 
                     key={transaction.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleRowClick(transaction.transactionId)}
-                  >
-                    <TableCell className="font-medium">
-                      {transaction.invoice || transaction.transactionId}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ₹{transaction.amount.toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(transaction.date), 'dd MMM yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      <TransactionStatusBadge status={transaction.status} />
-                    </TableCell>
-                    <TableCell>
-                      <TransactionMethodBadge method={transaction.method} />
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {transaction.description || "N/A"}
-                    </TableCell>
-                  </TableRow>
+                    transaction={transaction} 
+                    onRowClick={handleRowClick}
+                  />
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    <p className="text-muted-foreground">No transactions found matching your criteria.</p>
-                    {(searchTerm || appliedFilters.status !== "all" || appliedFilters.method !== "all" || appliedFilters.dateRange?.from) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={onResetFilters}
-                      >
-                        Clear Filters
-                      </Button>
-                    )}
-                  </TableCell>
+                  <EmptyTransactionsState 
+                    searchTerm={searchTerm}
+                    hasActiveFilters={hasActiveFilters}
+                    onResetFilters={onResetFilters}
+                  />
                 </TableRow>
               )}
             </TableBody>
