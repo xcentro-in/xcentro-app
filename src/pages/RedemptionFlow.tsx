@@ -336,19 +336,7 @@ const RedemptionFlow: React.FC = () => {
       </div>
       
       <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
-        <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/20">
-          <CardTitle className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              {React.createElement(category.icon, { className: "h-5 w-5 text-primary" })}
-            </div>
-            <div>
-              {category.title} <span className="text-muted-foreground font-normal">/ {item.title}</span>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            {item.description}
-          </CardDescription>
-        </CardHeader>
+        
         
         <CardContent className="space-y-6 p-6">
           {step === 1 && (
@@ -370,16 +358,11 @@ const RedemptionFlow: React.FC = () => {
                             alt={partner.name} 
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80"></div>
-                          
-                          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                            <div className="font-bold text-lg">{partner.name}</div>
-                            <div className="text-sm opacity-90">{partner.type.charAt(0).toUpperCase() + partner.type.slice(1)}</div>
-                          </div>
                         </div>
                         
                         <div className="p-3 bg-white dark:bg-slate-800">
-                          <div className="text-xs text-muted-foreground truncate">
+                        <div className="font-bold text-lg">{partner.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
                             {partner.membershipDetails?.membershipNumber || "Not linked"}
                           </div>
                         </div>
