@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { ApprovalTransaction } from "@/types/approval";
 import ApprovalStatusBadge from "./ApprovalStatusBadge";
 import ApprovalTransactionActions from "./ApprovalTransactionActions";
-import { TransactionPaymentMethodIcon } from "../transactions/TransactionPaymentMethodIcon";
+import { TransactionPaymentMethod } from "@/components/transactions/TransactionPaymentMethod";
 
 interface ApprovalTransactionRowProps {
   transaction: ApprovalTransaction;
@@ -64,7 +64,7 @@ const ApprovalTransactionRow = ({
       </TableCell>
       <TableCell className="text-right font-medium">
         <div className="flex items-center justify-end gap-2">
-          <TransactionPaymentMethodIcon method={transaction.paymentMethod} size="sm" />
+          <TransactionPaymentMethod method={transaction.paymentMethod} variant="icon" size="sm" />
           ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </div>
       </TableCell>
