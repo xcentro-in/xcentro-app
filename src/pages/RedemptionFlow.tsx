@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftIcon, ArrowRight, Check, RefreshCw } from "lucide-react";
@@ -375,17 +374,13 @@ const RedemptionFlow: React.FC = () => {
                           
                           <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                             <div className="font-bold text-lg">{partner.name}</div>
-                            <div className="text-sm opacity-90">{partner.type.charAt(0).toUpperCase() + partner.type.slice(1)} Partner</div>
-                          </div>
-                          
-                          <div className="absolute top-3 right-3 bg-white/90 text-primary font-medium text-xs rounded-full px-2 py-1">
-                            1:{partner.conversionRatio}
+                            <div className="text-sm opacity-90">{partner.type.charAt(0).toUpperCase() + partner.type.slice(1)}</div>
                           </div>
                         </div>
                         
                         <div className="p-3 bg-white dark:bg-slate-800">
                           <div className="text-xs text-muted-foreground truncate">
-                            Membership ID: {partner.membershipDetails?.membershipNumber || "Not linked"}
+                            {partner.membershipDetails?.membershipNumber || "Not linked"}
                           </div>
                         </div>
                         
