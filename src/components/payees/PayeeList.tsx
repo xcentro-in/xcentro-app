@@ -130,11 +130,9 @@ const PayeeList = () => {
               {filteredPayees.map((payee) => (
                 <TableRow key={payee.id}>
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2 justify-between">
-                      <div className="flex items-center gap-2">
-                        {getPayeeIcon(payee.type)}
-                        <span>{payee.name}</span>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      {getPayeeIcon(payee.type)}
+                      <span>{payee.name}</span>
                       
                       <TooltipProvider>
                         <Tooltip>
@@ -142,7 +140,7 @@ const PayeeList = () => {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-6 w-6" 
+                              className="h-6 w-6 ml-2" 
                               onClick={() => handleSetDefault(payee.id)}
                             >
                               {payee.isDefault ? (
