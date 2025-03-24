@@ -1,9 +1,8 @@
-
 import { format } from "date-fns";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Transaction } from "@/types/transaction";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
-import { TransactionMethodBadge } from "@/components/payee-history/TransactionMethodBadge";
+import { TransactionPaymentMethod } from "@/components/transactions/TransactionPaymentMethod";
 
 interface TransactionTableRowProps {
   transaction: Transaction;
@@ -33,7 +32,7 @@ export const TransactionTableRow = ({
         <TransactionStatusBadge status={transaction.status} />
       </TableCell>
       <TableCell>
-        <TransactionMethodBadge method={transaction.method} />
+        <TransactionPaymentMethod method={transaction.method} variant="badge" />
       </TableCell>
       <TableCell className="max-w-[200px] truncate">
         {transaction.description || "N/A"}
