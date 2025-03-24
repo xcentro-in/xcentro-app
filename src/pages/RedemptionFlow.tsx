@@ -246,6 +246,8 @@ const RedemptionFlow: React.FC = () => {
     const partner = partners.find(p => p.id === partnerId);
     if (partner) {
       setSelectedPartner(partner);
+      // Automatically proceed to the next step when a partner is selected
+      handleNextStep();
     }
   };
   
@@ -360,32 +362,38 @@ const RedemptionFlow: React.FC = () => {
                     partners.map(partner => (
                       <div 
                         key={partner.id} 
-                        className={`group rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md
-                          ${selectedPartner?.id === partner.id ? 'border-primary shadow-md bg-primary/5' : 'hover:border-primary/30 hover:bg-primary/5'}`}
+                        className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                         onClick={() => handlePartnerSelect(partner.id)}
                       >
-                        <div className="h-36 relative overflow-hidden">
+                        <div className="h-44 relative overflow-hidden">
                           <img 
                             src={getPartnerIcon(partner.type)} 
                             alt={partner.name} 
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                            <div className="font-medium text-white">{partner.name}</div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80"></div>
+                          
+                          <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                            <div className="font-bold text-lg">{partner.name}</div>
+                            <div className="text-sm opacity-90">{partner.type.charAt(0).toUpperCase() + partner.type.slice(1)} Partner</div>
+                          </div>
+                          
+                          <div className="absolute top-3 right-3 bg-white/90 text-primary font-medium text-xs rounded-full px-2 py-1">
+                            1:{partner.conversionRatio}
                           </div>
                         </div>
                         
-                        <div className="p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm font-medium">Conversion Rate</div>
-                            <div className="text-sm">1:{partner.conversionRatio}</div>
+                        <div className="p-3 bg-white dark:bg-slate-800">
+                          <div className="text-xs text-muted-foreground truncate">
+                            Membership ID: {partner.membershipDetails?.membershipNumber || "Not linked"}
                           </div>
-                          
-                          {selectedPartner?.id === partner.id && (
-                            <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1 mt-3 text-center">
-                              Selected
-                            </div>
-                          )}
+                        </div>
+                        
+                        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="bg-white/90 dark:bg-slate-800/90 rounded-full p-3 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                            <ArrowRight className="h-5 w-5 text-primary" />
+                          </div>
                         </div>
                       </div>
                     ))
@@ -585,11 +593,14 @@ const RedemptionFlow: React.FC = () => {
             {step > 1 ? "Previous" : "Cancel"}
           </Button>
           
-          {step < 3 ? (
+          {step === 1 ? (
+            <div className="text-sm text-muted-foreground italic">
+              Click on a partner card to continue
+            </div>
+          ) : step < 3 ? (
             <Button 
               onClick={handleNextStep}
               disabled={
-                (step === 1 && !selectedPartner) || 
                 (step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints))
               }
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[120px]"
