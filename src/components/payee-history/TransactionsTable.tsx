@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { 
@@ -35,6 +35,7 @@ export const TransactionsTable = ({
   onResetFilters
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
+  const { payeeId } = useParams<{ payeeId: string }>();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -51,6 +52,7 @@ export const TransactionsTable = ({
 
   // Handle row click to navigate to transaction details
   const handleRowClick = (transactionId: string) => {
+    // Now navigate to the correct route
     navigate(`/transactions/${transactionId}`);
   };
   

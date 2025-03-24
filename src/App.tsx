@@ -58,6 +58,8 @@ function App() {
                   <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
                   <Route path="payees" element={<PayeeManagement />} />
                   <Route path="payee-history/:payeeId" element={<PayeeHistory />} />
+                  {/* Add route for transaction details in the context of a payee */}
+                  <Route path="transactions/:id" element={<TransactionDetails />} />
                   <Route path="wallet" element={<WalletManagement />} />
                   <Route path="wallet/add" element={<AddPaymentMethod />} />
                   <Route path="insights" element={<Insights />} />
