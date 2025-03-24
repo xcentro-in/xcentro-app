@@ -17,6 +17,7 @@ import Layout from "./components/Layout";
 import ErrorBoundary from "./components/ErrorBoundary";
 import NewPayment from "./pages/NewPayment";
 import PayeeManagement from "./pages/PayeeManagement";
+import PayeeHistory from "./pages/PayeeHistory";
 import WalletManagement from "./pages/WalletManagement";
 import AddPaymentMethod from "./pages/AddPaymentMethod";
 import ApprovalInbox from "./pages/ApprovalInbox";
@@ -56,6 +57,7 @@ function App() {
                   <Route path="credit-card-bills" element={<CreditCardBills />} />
                   <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
                   <Route path="payees" element={<PayeeManagement />} />
+                  <Route path="payee-history/:payeeId" element={<PayeeHistory />} />
                   <Route path="wallet" element={<WalletManagement />} />
                   <Route path="wallet/add" element={<AddPaymentMethod />} />
                   <Route path="insights" element={<Insights />} />

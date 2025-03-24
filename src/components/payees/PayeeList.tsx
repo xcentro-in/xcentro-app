@@ -19,14 +19,17 @@ import {
   Edit, 
   Trash, 
   Star, 
-  StarIcon
+  StarIcon,
+  History
 } from "lucide-react";
 import { mockPayees } from "@/data/mockPayees";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const PayeeList = () => {
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [payees, setPayees] = useState(mockPayees);
@@ -44,6 +47,10 @@ const PayeeList = () => {
   const handleDelete = (id: string) => {
     setPayees(prev => prev.filter(payee => payee.id !== id));
     toast.success("Payee deleted successfully");
+  };
+
+  const handleViewHistory = (payeeId: string) => {
+    navigate(`/payee-history/${payeeId}`);
   };
 
   const filteredPayees = useMemo(() => {
@@ -135,6 +142,14 @@ const PayeeList = () => {
                   <TableCell className="hidden lg:table-cell">{new Date(payee.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleViewHistory(payee.id)}
+                        title="View Transaction History"
+                      >
+                        <History className="h-4 w-4" />
+                      </Button>
                       {!payee.isDefault && (
                         <Button variant="ghost" size="icon" onClick={() => handleSetDefault(payee.id)}>
                           <Star className="h-4 w-4" />
