@@ -7,12 +7,13 @@ import { Transaction, TransactionStatus } from "@/types/transaction";
 import { format } from "date-fns";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
-import { TransactionPaymentMethodIcon } from "@/components/transactions/TransactionPaymentMethodIcon";
+import { TransactionPaymentMethod } from "@/components/transactions/TransactionPaymentMethod";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 import { TransactionAuditTrail } from "@/components/transactions/TransactionAuditTrail";
 import { toast } from "sonner";
+
 const TransactionDetails = () => {
   const {
     id
@@ -22,6 +23,7 @@ const TransactionDetails = () => {
   const navigate = useNavigate();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     if (id) {
       try {
@@ -34,42 +36,54 @@ const TransactionDetails = () => {
       }
     }
   }, [id]);
+
   const handlePrint = () => {
     window.print();
   };
+
   const handleDownloadPdf = () => {
     toast.success("Transaction summary downloaded successfully");
   };
+
   const handleViewInvoice = () => {
     toast.success("Opening invoice...");
   };
+
   const calculateTotalWithFees = (transaction: Transaction): number => {
     const fees = transaction.fees?.reduce((sum, fee) => sum + fee.amount, 0) || 0;
     return transaction.amount + fees;
   };
+
   const canApprove = (status: TransactionStatus): boolean => {
     return status === "pending_approval";
   };
+
   const canReject = (status: TransactionStatus): boolean => {
     return status === "pending_approval";
   };
+
   const canCancel = (status: TransactionStatus): boolean => {
     return status === "upcoming" || status === "pending_approval" || status === "pending";
   };
+
   const handleApprove = () => {
     toast.success("Transaction approved successfully");
   };
+
   const handleReject = () => {
     toast.error("Transaction rejected");
   };
+
   const handleCancel = () => {
     toast.success("Transaction cancelled successfully");
   };
+
   if (loading) {
     return <div className="flex items-center justify-center h-64">
         <div className="text-lg text-muted-foreground">Loading transaction details...</div>
       </div>;
   }
+
   if (!transaction) {
     return <div className="space-y-6">
         <div className="flex items-center">
@@ -89,6 +103,7 @@ const TransactionDetails = () => {
         </div>
       </div>;
   }
+
   return <div className="space-y-6 pb-12 print:p-6">
       <div className="flex items-center justify-between print:hidden">
         <Button variant="ghost" className="gap-1" onClick={() => navigate(-1)}>
@@ -384,4 +399,5 @@ const TransactionDetails = () => {
         </TransactionDetailCard>}
     </div>;
 };
+
 export default TransactionDetails;

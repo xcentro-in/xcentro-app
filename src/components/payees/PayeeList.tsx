@@ -19,14 +19,18 @@ import {
   Edit, 
   Trash, 
   Star, 
-  StarIcon
+  StarIcon,
+  History
 } from "lucide-react";
 import { mockPayees } from "@/data/mockPayees";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const PayeeList = () => {
+  const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [payees, setPayees] = useState(mockPayees);
@@ -44,6 +48,10 @@ const PayeeList = () => {
   const handleDelete = (id: string) => {
     setPayees(prev => prev.filter(payee => payee.id !== id));
     toast.success("Payee deleted successfully");
+  };
+
+  const handleViewHistory = (payeeId: string) => {
+    navigate(`/payee-history/${payeeId}`);
   };
 
   const filteredPayees = useMemo(() => {
@@ -125,9 +133,28 @@ const PayeeList = () => {
                     <div className="flex items-center gap-2">
                       {getPayeeIcon(payee.type)}
                       <span>{payee.name}</span>
-                      {payee.isDefault && (
-                        <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      )}
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 ml-2" 
+                              onClick={() => handleSetDefault(payee.id)}
+                            >
+                              {payee.isDefault ? (
+                                <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                              ) : (
+                                <Star className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {payee.isDefault ? "Favourite payee" : "Make it favourite"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                   <TableCell>{getPayeeTypeBadge(payee.type)}</TableCell>
@@ -135,11 +162,14 @@ const PayeeList = () => {
                   <TableCell className="hidden lg:table-cell">{new Date(payee.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      {!payee.isDefault && (
-                        <Button variant="ghost" size="icon" onClick={() => handleSetDefault(payee.id)}>
-                          <Star className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => handleViewHistory(payee.id)}
+                        title="View Transaction History"
+                      >
+                        <History className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
                       </Button>
