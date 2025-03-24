@@ -153,7 +153,7 @@ const PayeeList = () => {
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            {payee.isDefault ? "Default payee" : "Make default payee"}
+                            {payee.isDefault ? "Favourite payee" : "Make it favourite"}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
