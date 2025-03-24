@@ -1,5 +1,6 @@
 
 import { Button } from "@/components/ui/button";
+import { TableCell } from "@/components/ui/table";
 
 interface EmptyTransactionsStateProps {
   searchTerm: string;
