@@ -52,7 +52,7 @@ export const TransactionsTable = ({
 
   // Handle row click to navigate to transaction details
   const handleRowClick = (transactionId: string) => {
-    // Now navigate to the correct route
+    // Navigate to the transaction details page
     navigate(`/transactions/${transactionId}`);
   };
   

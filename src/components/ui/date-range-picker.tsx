@@ -23,9 +23,26 @@ export function DatePickerWithRange({
   setDate,
   className,
 }: DatePickerWithRangeProps) {
+  const [open, setOpen] = React.useState(false);
+
+  // Format date in a more compact way
+  const formatDateDisplay = (date: Date) => {
+    return format(date, "dd/MM/yy");
+  };
+
+  // Handle date selection
+  const handleSelect = (selectedDate: DateRange | undefined) => {
+    setDate(selectedDate);
+    
+    // Auto-close the calendar when a complete range is selected
+    if (selectedDate?.from && selectedDate?.to) {
+      setOpen(false);
+    }
+  };
+
   return (
     <div className={cn("grid gap-2", className)}>
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             id="date"
@@ -39,11 +56,10 @@ export function DatePickerWithRange({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
+                  {formatDateDisplay(date.from)} - {formatDateDisplay(date.to)}
                 </>
               ) : (
-                format(date.from, "LLL dd, y")
+                formatDateDisplay(date.from)
               )
             ) : (
               <span>Select date range</span>
@@ -56,8 +72,9 @@ export function DatePickerWithRange({
             mode="range"
             defaultMonth={date?.from}
             selected={date}
-            onSelect={setDate}
+            onSelect={handleSelect}
             numberOfMonths={2}
+            className="pointer-events-auto"
           />
         </PopoverContent>
       </Popover>

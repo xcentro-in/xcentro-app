@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card"; 
@@ -119,9 +119,12 @@ const PayeeHistory = () => {
       
       <Separator />
       
-      {/* Filters Section - Title moved outside card */}
+      {/* Filters Section - Title moved outside card with an icon */}
       <div>
-        <h3 className="text-lg font-medium mb-2">Filters</h3>
+        <h3 className="text-lg font-medium mb-2 flex items-center">
+          <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+          Filters
+        </h3>
         <FilterCard onApplyFilters={handleApplyFilters} />
       </div>
       

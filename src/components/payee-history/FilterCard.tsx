@@ -1,13 +1,15 @@
+
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
 import { startOfQuarter, endOfQuarter } from "date-fns";
 import { Filter } from "lucide-react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionStatus, PaymentMethod } from "@/types/transaction";
 import { toast } from "sonner";
+
 interface FilterCardProps {
   onApplyFilters: (filters: {
     status: TransactionStatus | "all";
@@ -15,6 +17,7 @@ interface FilterCardProps {
     dateRange: DateRange | undefined;
   }) => void;
 }
+
 export const FilterCard = ({
   onApplyFilters
 }: FilterCardProps) => {
@@ -81,8 +84,8 @@ export const FilterCard = ({
     setFiltersChanged(false);
     onApplyFilters(resetFilters);
   };
+  
   return <Card>
-      
       <CardContent className="my-0 py-[11px]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
