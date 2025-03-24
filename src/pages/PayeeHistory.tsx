@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { format } from "date-fns";
+import { format, startOfQuarter, endOfQuarter } from "date-fns";
 import { 
   ArrowLeft, 
   Download, 
@@ -51,8 +51,15 @@ const PayeeHistory = () => {
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | "all">("all");
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRangeType, setDateRangeType] = useState<"custom" | "thisQuarter">("custom");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [filtersChanged, setFiltersChanged] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState({
+    status: "all" as TransactionStatus | "all",
+    method: "all" as PaymentMethod | "all",
+    dateRange: undefined as DateRange | undefined,
+  });
   
   // Load payee and transaction data
   useEffect(() => {
@@ -65,6 +72,56 @@ const PayeeHistory = () => {
       setTransactions(payeeTransactions);
     }
   }, [payeeId]);
+
+  // Handle applying this quarter date range
+  useEffect(() => {
+    if (dateRangeType === "thisQuarter") {
+      const now = new Date();
+      const start = startOfQuarter(now);
+      const end = endOfQuarter(now);
+      setDateRange({ from: start, to: end });
+    }
+  }, [dateRangeType]);
+  
+  // Track filter changes
+  useEffect(() => {
+    if (
+      statusFilter !== appliedFilters.status ||
+      methodFilter !== appliedFilters.method ||
+      dateRange !== appliedFilters.dateRange
+    ) {
+      setFiltersChanged(true);
+    } else {
+      setFiltersChanged(false);
+    }
+  }, [statusFilter, methodFilter, dateRange, appliedFilters]);
+
+  // Handle apply filters
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      status: statusFilter,
+      method: methodFilter,
+      dateRange: dateRange,
+    });
+    setFiltersChanged(false);
+    toast.success("Filters applied", {
+      description: "Transaction list has been updated"
+    });
+  };
+  
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setStatusFilter("all");
+    setMethodFilter("all");
+    setDateRange(undefined);
+    setDateRangeType("custom");
+    setAppliedFilters({
+      status: "all",
+      method: "all",
+      dateRange: undefined,
+    });
+    setFiltersChanged(false);
+  };
   
   // Handle sorting
   const handleSort = (column: string) => {
@@ -89,22 +146,22 @@ const PayeeHistory = () => {
       );
     }
     
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(t => t.status === statusFilter);
+    // Apply status filter from applied filters
+    if (appliedFilters.status !== "all") {
+      filtered = filtered.filter(t => t.status === appliedFilters.status);
     }
     
-    // Apply payment method filter
-    if (methodFilter !== "all") {
-      filtered = filtered.filter(t => t.method === methodFilter);
+    // Apply payment method filter from applied filters
+    if (appliedFilters.method !== "all") {
+      filtered = filtered.filter(t => t.method === appliedFilters.method);
     }
     
-    // Apply date range filter
-    if (dateRange?.from) {
+    // Apply date range filter from applied filters
+    if (appliedFilters.dateRange?.from) {
       filtered = filtered.filter(t => {
         const transactionDate = new Date(t.date);
-        if (dateRange.from && transactionDate < dateRange.from) return false;
-        if (dateRange.to && transactionDate > dateRange.to) return false;
+        if (appliedFilters.dateRange?.from && transactionDate < appliedFilters.dateRange.from) return false;
+        if (appliedFilters.dateRange?.to && transactionDate > appliedFilters.dateRange.to) return false;
         return true;
       });
     }
@@ -135,7 +192,7 @@ const PayeeHistory = () => {
     });
     
     return filtered;
-  }, [transactions, searchTerm, statusFilter, methodFilter, dateRange, sortColumn, sortDirection]);
+  }, [transactions, searchTerm, appliedFilters, sortColumn, sortDirection]);
   
   // Calculate totals
   const totalPaid = getPayeeTotalPayments(payeeId || "");
@@ -315,21 +372,11 @@ const PayeeHistory = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center">
             <Filter className="h-4 w-4 mr-2" />
-            Filters and Search
+            Filters
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by invoice, reference..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="status-filter" className="text-sm font-medium">Payment Status</label>
               <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TransactionStatus | "all")}>
@@ -362,105 +409,145 @@ const PayeeHistory = () => {
             
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">Date Range</label>
-              <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+              <div className="flex gap-2">
+                <Select value={dateRangeType} onValueChange={(value) => setDateRangeType(value as "custom" | "thisQuarter")}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Date Range Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="custom">Custom Range</SelectItem>
+                    <SelectItem value="thisQuarter">This Quarter</SelectItem>
+                  </SelectContent>
+                </Select>
+                {dateRangeType === "custom" && (
+                  <DatePickerWithRange 
+                    date={dateRange} 
+                    setDate={setDateRange} 
+                    className="flex-1"
+                  />
+                )}
+              </div>
             </div>
+          </div>
+          
+          <div className="flex justify-end gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              onClick={handleResetFilters}
+            >
+              Reset
+            </Button>
+            <Button 
+              variant="default" 
+              onClick={handleApplyFilters}
+              disabled={!filtersChanged}
+            >
+              Apply Filters
+            </Button>
           </div>
         </CardContent>
       </Card>
       
-      {/* Transactions Table */}
+      {/* Search and Transactions Table */}
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort("invoice")}
-                >
-                  Invoice/Reference
-                  {sortColumn === "invoice" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer text-right"
-                  onClick={() => handleSort("amount")}
-                >
-                  Amount
-                  {sortColumn === "amount" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                  )}
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer"
-                  onClick={() => handleSort("date")}
-                >
-                  Payment Date
-                  {sortColumn === "date" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
-                  )}
-                </TableHead>
-                <TableHead>Payment Status</TableHead>
-                <TableHead>Payment Method</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
-                    <TableCell className="font-medium">
-                      {transaction.invoice || transaction.transactionId}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      ₹{transaction.amount.toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(transaction.date), 'dd MMM yyyy')}
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(transaction.status)}
-                    </TableCell>
-                    <TableCell>
-                      {getMethodBadge(transaction.method)}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {transaction.description || "N/A"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="h-8 px-2">
-                        <FileText className="h-3.5 w-3.5 mr-1" />
-                        View Details
-                      </Button>
+        <CardContent className="p-4">
+          <div className="mb-4 relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by invoice, reference or description..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="rounded-md border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead 
+                    className="cursor-pointer"
+                    onClick={() => handleSort("invoice")}
+                  >
+                    Invoice/Reference
+                    {sortColumn === "invoice" && (
+                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer text-right"
+                    onClick={() => handleSort("amount")}
+                  >
+                    Amount
+                    {sortColumn === "amount" && (
+                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </TableHead>
+                  <TableHead 
+                    className="cursor-pointer"
+                    onClick={() => handleSort("date")}
+                  >
+                    Payment Date
+                    {sortColumn === "date" && (
+                      <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Payment Method</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell className="font-medium">
+                        {transaction.invoice || transaction.transactionId}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ₹{transaction.amount.toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        {format(new Date(transaction.date), 'dd MMM yyyy')}
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(transaction.status)}
+                      </TableCell>
+                      <TableCell>
+                        {getMethodBadge(transaction.method)}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate">
+                        {transaction.description || "N/A"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm" className="h-8 px-2">
+                          <FileText className="h-3.5 w-3.5 mr-1" />
+                          View Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <p className="text-muted-foreground">No transactions found matching your criteria.</p>
+                      {(searchTerm || appliedFilters.status !== "all" || appliedFilters.method !== "all" || appliedFilters.dateRange?.from) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={handleResetFilters}
+                        >
+                          Clear Filters
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <p className="text-muted-foreground">No transactions found matching your criteria.</p>
-                    {(searchTerm || statusFilter !== "all" || methodFilter !== "all" || dateRange?.from) && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={() => {
-                          setSearchTerm("");
-                          setStatusFilter("all");
-                          setMethodFilter("all");
-                          setDateRange(undefined);
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
