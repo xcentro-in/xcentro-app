@@ -1,7 +1,8 @@
 
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { Search, FileText } from "lucide-react";
+import { Search, ArrowUp, ArrowDown } from "lucide-react";
 import { 
   Table, 
   TableBody, 
@@ -33,6 +34,7 @@ export const TransactionsTable = ({
   appliedFilters,
   onResetFilters
 }: TransactionsTableProps) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -45,6 +47,11 @@ export const TransactionsTable = ({
       setSortColumn(column);
       setSortDirection("desc");
     }
+  };
+
+  // Handle row click to navigate to transaction details
+  const handleRowClick = (transactionId: string) => {
+    navigate(`/transactions/${transactionId}`);
   };
   
   // Filter and sort transactions
@@ -131,7 +138,7 @@ export const TransactionsTable = ({
                 >
                   Invoice/Reference
                   {sortColumn === "invoice" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
                   )}
                 </TableHead>
                 <TableHead 
@@ -140,7 +147,7 @@ export const TransactionsTable = ({
                 >
                   Amount
                   {sortColumn === "amount" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
                   )}
                 </TableHead>
                 <TableHead 
@@ -149,19 +156,22 @@ export const TransactionsTable = ({
                 >
                   Payment Date
                   {sortColumn === "date" && (
-                    <span className="ml-1">{sortDirection === "asc" ? "↑" : "↓"}</span>
+                    <span className="ml-1">{sortDirection === "asc" ? <ArrowUp className="inline h-3 w-3" /> : <ArrowDown className="inline h-3 w-3" />}</span>
                   )}
                 </TableHead>
                 <TableHead>Payment Status</TableHead>
                 <TableHead>Payment Method</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredTransactions.length > 0 ? (
                 filteredTransactions.map((transaction) => (
-                  <TableRow key={transaction.id}>
+                  <TableRow 
+                    key={transaction.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleRowClick(transaction.transactionId)}
+                  >
                     <TableCell className="font-medium">
                       {transaction.invoice || transaction.transactionId}
                     </TableCell>
@@ -180,17 +190,11 @@ export const TransactionsTable = ({
                     <TableCell className="max-w-[200px] truncate">
                       {transaction.description || "N/A"}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="h-8 px-2">
-                        <FileText className="h-3.5 w-3.5 mr-1" />
-                        View Details
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <p className="text-muted-foreground">No transactions found matching your criteria.</p>
                     {(searchTerm || appliedFilters.status !== "all" || appliedFilters.method !== "all" || appliedFilters.dateRange?.from) && (
                       <Button

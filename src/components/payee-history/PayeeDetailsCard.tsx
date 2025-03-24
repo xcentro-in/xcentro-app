@@ -58,7 +58,7 @@ export const PayeeDetailsCard = ({
   };
 
   return (
-    <div className="flex flex-col md:flex-row justify-between gap-4">
+    <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
           {payee.name}
@@ -71,14 +71,6 @@ export const PayeeDetailsCard = ({
         </div>
         <div className="mt-2">
           {getPayeeDetails()}
-        </div>
-      </div>
-      
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col p-4 rounded-lg border bg-muted/30">
-          <span className="text-sm text-muted-foreground">Total Amount Paid</span>
-          <span className="text-2xl font-bold">₹{totalPaid.toLocaleString()}</span>
-          <span className="text-xs text-muted-foreground">Last payment: {lastTransactionDate ? format(new Date(lastTransactionDate), 'dd MMM yyyy') : 'N/A'}</span>
         </div>
       </div>
     </div>

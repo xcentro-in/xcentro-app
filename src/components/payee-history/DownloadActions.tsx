@@ -1,6 +1,12 @@
 
 import { Download, FileText, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 interface DownloadActionsProps {
@@ -24,29 +30,31 @@ export const DownloadActions = ({ payeeName }: DownloadActionsProps) => {
 
   return (
     <div className="flex gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Export
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => handleDownload("pdf")}>
+            <FileText className="h-4 w-4 mr-2" />
+            <span>PDF</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleDownload("csv")}>
+            <FileText className="h-4 w-4 mr-2" />
+            <span>CSV</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
       <Button 
         variant="outline" 
-        className="flex items-center gap-2"
-        onClick={() => handleDownload("pdf")}
-      >
-        <Download className="h-4 w-4" />
-        Export PDF
-      </Button>
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2"
-        onClick={() => handleDownload("csv")}
-      >
-        <FileText className="h-4 w-4" />
-        Export CSV
-      </Button>
-      <Button 
-        variant="outline" 
-        className="flex items-center gap-2"
+        size="icon"
         onClick={handlePrint}
       >
         <Printer className="h-4 w-4" />
-        Print
       </Button>
     </div>
   );
