@@ -27,6 +27,7 @@ import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const PayeeList = () => {
   const navigate = useNavigate();
@@ -129,12 +130,33 @@ const PayeeList = () => {
               {filteredPayees.map((payee) => (
                 <TableRow key={payee.id}>
                   <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {getPayeeIcon(payee.type)}
-                      <span>{payee.name}</span>
-                      {payee.isDefault && (
-                        <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      )}
+                    <div className="flex items-center gap-2 justify-between">
+                      <div className="flex items-center gap-2">
+                        {getPayeeIcon(payee.type)}
+                        <span>{payee.name}</span>
+                      </div>
+                      
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6" 
+                              onClick={() => handleSetDefault(payee.id)}
+                            >
+                              {payee.isDefault ? (
+                                <StarIcon className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                              ) : (
+                                <Star className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {payee.isDefault ? "Default payee" : "Make default payee"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </TableCell>
                   <TableCell>{getPayeeTypeBadge(payee.type)}</TableCell>
@@ -150,11 +172,6 @@ const PayeeList = () => {
                       >
                         <History className="h-4 w-4" />
                       </Button>
-                      {!payee.isDefault && (
-                        <Button variant="ghost" size="icon" onClick={() => handleSetDefault(payee.id)}>
-                          <Star className="h-4 w-4" />
-                        </Button>
-                      )}
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
                       </Button>
