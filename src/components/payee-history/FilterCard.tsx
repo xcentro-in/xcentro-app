@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
 import { startOfQuarter, endOfQuarter } from "date-fns";
@@ -9,7 +8,6 @@ import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TransactionStatus, PaymentMethod } from "@/types/transaction";
 import { toast } from "sonner";
-
 interface FilterCardProps {
   onApplyFilters: (filters: {
     status: TransactionStatus | "all";
@@ -17,8 +15,9 @@ interface FilterCardProps {
     dateRange: DateRange | undefined;
   }) => void;
 }
-
-export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
+export const FilterCard = ({
+  onApplyFilters
+}: FilterCardProps) => {
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | "all">("all");
   const [methodFilter, setMethodFilter] = useState<PaymentMethod | "all">("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -27,7 +26,7 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
   const [appliedFilters, setAppliedFilters] = useState({
     status: "all" as TransactionStatus | "all",
     method: "all" as PaymentMethod | "all",
-    dateRange: undefined as DateRange | undefined,
+    dateRange: undefined as DateRange | undefined
   });
 
   // Handle applying this quarter date range
@@ -36,17 +35,16 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
       const now = new Date();
       const start = startOfQuarter(now);
       const end = endOfQuarter(now);
-      setDateRange({ from: start, to: end });
+      setDateRange({
+        from: start,
+        to: end
+      });
     }
   }, [dateRangeType]);
-  
+
   // Track filter changes
   useEffect(() => {
-    if (
-      statusFilter !== appliedFilters.status ||
-      methodFilter !== appliedFilters.method ||
-      dateRange !== appliedFilters.dateRange
-    ) {
+    if (statusFilter !== appliedFilters.status || methodFilter !== appliedFilters.method || dateRange !== appliedFilters.dateRange) {
       setFiltersChanged(true);
     } else {
       setFiltersChanged(false);
@@ -58,49 +56,38 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
     const newFilters = {
       status: statusFilter,
       method: methodFilter,
-      dateRange: dateRange,
+      dateRange: dateRange
     };
-    
     setAppliedFilters(newFilters);
     setFiltersChanged(false);
     onApplyFilters(newFilters);
-    
     toast.success("Filters applied", {
       description: "Transaction list has been updated"
     });
   };
-  
+
   // Handle reset filters
   const handleResetFilters = () => {
     setStatusFilter("all");
     setMethodFilter("all");
     setDateRange(undefined);
     setDateRangeType("custom");
-    
     const resetFilters = {
       status: "all" as TransactionStatus | "all",
       method: "all" as PaymentMethod | "all",
-      dateRange: undefined,
+      dateRange: undefined
     };
-    
     setAppliedFilters(resetFilters);
     setFiltersChanged(false);
     onApplyFilters(resetFilters);
   };
-
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center">
-          <Filter className="h-4 w-4 mr-2" />
-          Filters
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+  return <Card>
+      
+      <CardContent className="my-0 py-[11px]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="status-filter" className="text-sm font-medium">Payment Status</label>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TransactionStatus | "all")}>
+            <Select value={statusFilter} onValueChange={value => setStatusFilter(value as TransactionStatus | "all")}>
               <SelectTrigger id="status-filter">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
@@ -116,7 +103,7 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
           
           <div className="flex flex-col gap-1.5">
             <label htmlFor="method-filter" className="text-sm font-medium">Payment Method</label>
-            <Select value={methodFilter} onValueChange={(value) => setMethodFilter(value as PaymentMethod | "all")}>
+            <Select value={methodFilter} onValueChange={value => setMethodFilter(value as PaymentMethod | "all")}>
               <SelectTrigger id="method-filter">
                 <SelectValue placeholder="All Methods" />
               </SelectTrigger>
@@ -131,7 +118,7 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium">Date Range</label>
             <div className="flex gap-2">
-              <Select value={dateRangeType} onValueChange={(value) => setDateRangeType(value as "custom" | "thisQuarter")}>
+              <Select value={dateRangeType} onValueChange={value => setDateRangeType(value as "custom" | "thisQuarter")}>
                 <SelectTrigger>
                   <SelectValue placeholder="Date Range Type" />
                 </SelectTrigger>
@@ -140,33 +127,19 @@ export const FilterCard = ({ onApplyFilters }: FilterCardProps) => {
                   <SelectItem value="thisQuarter">This Quarter</SelectItem>
                 </SelectContent>
               </Select>
-              {dateRangeType === "custom" && (
-                <DatePickerWithRange 
-                  date={dateRange} 
-                  setDate={setDateRange} 
-                  className="flex-1"
-                />
-              )}
+              {dateRangeType === "custom" && <DatePickerWithRange date={dateRange} setDate={setDateRange} className="flex-1" />}
             </div>
           </div>
         </div>
         
         <div className="flex justify-end gap-2 mt-4">
-          <Button 
-            variant="outline" 
-            onClick={handleResetFilters}
-          >
+          <Button variant="outline" onClick={handleResetFilters}>
             Reset
           </Button>
-          <Button 
-            variant="default" 
-            onClick={handleApplyFilters}
-            disabled={!filtersChanged}
-          >
+          <Button variant="default" onClick={handleApplyFilters} disabled={!filtersChanged}>
             Apply Filters
           </Button>
         </div>
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
