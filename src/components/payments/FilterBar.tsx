@@ -3,6 +3,7 @@ import { Calendar, Clock, CreditCard } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/payments/DateRangePicker";
 import { DateRange } from "react-day-picker";
+import { Button } from "@/components/ui/button";
 
 interface FilterBarProps {
   dateFilter: string;
@@ -10,14 +11,15 @@ interface FilterBarProps {
   statusFilter: string;
   methodFilter: string;
   categoryFilter: string;
-  itemsPerPage: number;
   showCustomDateRange: boolean;
+  filtersChanged: boolean;
   onDateFilterChange: (value: string) => void;
   onStatusFilterChange: (value: string) => void;
   onMethodFilterChange: (value: string) => void;
   onCategoryFilterChange: (value: string) => void;
-  onItemsPerPageChange: (value: number) => void;
   onDateRangeChange: (range: DateRange | undefined) => void;
+  onApplyFilters: () => void;
+  onResetFilters: () => void;
 }
 
 // Options for filters
@@ -56,34 +58,83 @@ const FilterBar = ({
   statusFilter,
   methodFilter,
   categoryFilter,
-  itemsPerPage,
   showCustomDateRange,
+  filtersChanged,
   onDateFilterChange,
   onStatusFilterChange,
   onMethodFilterChange,
   onCategoryFilterChange,
-  onItemsPerPageChange,
-  onDateRangeChange
+  onDateRangeChange,
+  onApplyFilters,
+  onResetFilters
 }: FilterBarProps) => {
   return (
-    <div className="flex flex-wrap items-center gap-3">
-      {/* Date Filter */}
-      <Select value={dateFilter} onValueChange={onDateFilterChange}>
-        <SelectTrigger className="w-[140px] h-9">
-          <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Dates" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All Dates</SelectItem>
-          {dateFilterOptions.map(option => (
-            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {/* Date Filter */}
+        <div className="space-y-1">
+          <Select value={dateFilter} onValueChange={onDateFilterChange}>
+            <SelectTrigger className="w-full h-9">
+              <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Dates" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Dates</SelectItem>
+              {dateFilterOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Status Filter */}
+        <div className="space-y-1">
+          <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+            <SelectTrigger className="w-full h-9">
+              <Clock className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusFilterOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Payment Method Filter */}
+        <div className="space-y-1">
+          <Select value={methodFilter} onValueChange={onMethodFilterChange}>
+            <SelectTrigger className="w-full h-9">
+              <CreditCard className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Methods" />
+            </SelectTrigger>
+            <SelectContent>
+              {methodFilterOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        {/* Category Filter */}
+        <div className="space-y-1">
+          <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
+            <SelectTrigger className="w-full h-9">
+              <SelectValue placeholder="Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryFilterOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       
       {/* Custom Date Range Picker - Only show when custom is selected */}
       {showCustomDateRange && (
-        <div className="min-w-[300px]">
+        <div className="w-full md:w-auto">
           <DateRangePicker 
             dateRange={dateRange}
             onDateRangeChange={onDateRangeChange}
@@ -91,60 +142,17 @@ const FilterBar = ({
         </div>
       )}
       
-      {/* Status Filter */}
-      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-        <SelectTrigger className="w-[150px] h-9">
-          <Clock className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Statuses" />
-        </SelectTrigger>
-        <SelectContent>
-          {statusFilterOptions.map(option => (
-            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {/* Payment Method Filter */}
-      <Select value={methodFilter} onValueChange={onMethodFilterChange}>
-        <SelectTrigger className="w-[150px] h-9">
-          <CreditCard className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-          <SelectValue placeholder="Methods" />
-        </SelectTrigger>
-        <SelectContent>
-          {methodFilterOptions.map(option => (
-            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {/* Category Filter */}
-      <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-        <SelectTrigger className="w-[150px] h-9">
-          <SelectValue placeholder="Categories" />
-        </SelectTrigger>
-        <SelectContent>
-          {categoryFilterOptions.map(option => (
-            <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      
-      {/* Items per page */}
-      <div className="ml-auto flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Number of rows per page:</span>
-        <Select 
-          value={String(itemsPerPage)} 
-          onValueChange={(value) => onItemsPerPageChange(Number(value))}
+      {/* Filter Action Buttons */}
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={onResetFilters}>
+          Reset Filters
+        </Button>
+        <Button 
+          disabled={!filtersChanged} 
+          onClick={onApplyFilters}
         >
-          <SelectTrigger className="w-[80px] h-9">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="10">10</SelectItem>
-            <SelectItem value="25">25</SelectItem>
-            <SelectItem value="50">50</SelectItem>
-          </SelectContent>
-        </Select>
+          Apply Filters
+        </Button>
       </div>
     </div>
   );

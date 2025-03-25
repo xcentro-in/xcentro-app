@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import { subDays, startOfQuarter, endOfDay } from "date-fns";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
+import { Filter } from "lucide-react";
 
 // Import the new components
 import PaymentsHeader from "@/components/payments/PaymentsHeader";
 import FilterBar from "@/components/payments/FilterBar";
-import SearchBar from "@/components/payments/SearchBar";
 import AppliedFilters, { ActiveFilter } from "@/components/payments/AppliedFilters";
 import TransactionsTable from "@/components/payments/TransactionsTable";
 
@@ -43,11 +43,31 @@ const Payments = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showCustomDateRange, setShowCustomDateRange] = useState(false);
+  const [filtersChanged, setFiltersChanged] = useState(false);
+  const [appliedDateFilter, setAppliedDateFilter] = useState(dateFilter);
+  const [appliedStatusFilter, setAppliedStatusFilter] = useState(statusFilter);
+  const [appliedMethodFilter, setAppliedMethodFilter] = useState(methodFilter);
+  const [appliedCategoryFilter, setAppliedCategoryFilter] = useState(categoryFilter);
+  const [appliedDateRange, setAppliedDateRange] = useState(dateRange);
   
   useEffect(() => {
     // Initialize default date range based on the dateFilter
     updateDateRangeFromFilter(dateFilter);
   }, []);
+
+  // Check if filters have changed from applied state
+  useEffect(() => {
+    if (dateFilter !== appliedDateFilter || 
+        statusFilter !== appliedStatusFilter || 
+        methodFilter !== appliedMethodFilter || 
+        categoryFilter !== appliedCategoryFilter ||
+        JSON.stringify(dateRange) !== JSON.stringify(appliedDateRange)) {
+      setFiltersChanged(true);
+    } else {
+      setFiltersChanged(false);
+    }
+  }, [dateFilter, statusFilter, methodFilter, categoryFilter, dateRange, 
+      appliedDateFilter, appliedStatusFilter, appliedMethodFilter, appliedCategoryFilter, appliedDateRange]);
 
   const updateDateRangeFromFilter = (filter: string) => {
     const today = new Date();
@@ -86,24 +106,82 @@ const Payments = () => {
     setShowCustomDateRange(showDatePicker);
   };
 
+  // Apply filters - this will now be called when the Apply button is clicked
+  const applyFilters = () => {
+    // Update the applied filter states
+    setAppliedDateFilter(dateFilter);
+    setAppliedStatusFilter(statusFilter);
+    setAppliedMethodFilter(methodFilter);
+    setAppliedCategoryFilter(categoryFilter);
+    setAppliedDateRange(dateRange);
+    
+    // Update active filters
+    const updatedFilters = [...activeFilters];
+    
+    // Update date filter
+    const dateFilterOption = dateFilterOptions.find(option => option.value === dateFilter);
+    if (dateFilterOption) {
+      const existingDateIndex = updatedFilters.findIndex(filter => filter.type === "date");
+      if (existingDateIndex >= 0) {
+        updatedFilters[existingDateIndex] = { type: "date", value: dateFilter, label: dateFilterOption.label };
+      } else {
+        updatedFilters.push({ type: "date", value: dateFilter, label: dateFilterOption.label });
+      }
+    }
+    
+    // Update status filter
+    const statusFilterOption = statusFilterOptions.find(option => option.value === statusFilter);
+    if (statusFilterOption) {
+      const existingStatusIndex = updatedFilters.findIndex(filter => filter.type === "status");
+      if (existingStatusIndex >= 0) {
+        updatedFilters[existingStatusIndex] = { type: "status", value: statusFilter, label: statusFilterOption.label };
+      } else {
+        updatedFilters.push({ type: "status", value: statusFilter, label: statusFilterOption.label });
+      }
+    }
+    
+    // Update method filter
+    const methodFilterOption = methodFilterOptions.find(option => option.value === methodFilter);
+    if (methodFilterOption) {
+      const existingMethodIndex = updatedFilters.findIndex(filter => filter.type === "method");
+      if (existingMethodIndex >= 0) {
+        updatedFilters[existingMethodIndex] = { type: "method", value: methodFilter, label: methodFilterOption.label };
+      } else {
+        updatedFilters.push({ type: "method", value: methodFilter, label: methodFilterOption.label });
+      }
+    }
+    
+    // Update category filter
+    const categoryFilterOption = categoryFilterOptions.find(option => option.value === categoryFilter);
+    if (categoryFilterOption) {
+      const existingCategoryIndex = updatedFilters.findIndex(filter => filter.type === "category");
+      if (existingCategoryIndex >= 0) {
+        updatedFilters[existingCategoryIndex] = { type: "category", value: categoryFilter, label: categoryFilterOption.label };
+      } else {
+        updatedFilters.push({ type: "category", value: categoryFilter, label: categoryFilterOption.label });
+      }
+    }
+    
+    setActiveFilters(updatedFilters);
+    setFiltersChanged(false);
+  };
+
   // Handle filter changes
-  const applyFilter = (type: string, value: string, label: string) => {
-    if (type === "date") {
-      updateDateRangeFromFilter(value);
-    }
-    
-    // Check if filter of this type already exists
-    const existingFilterIndex = activeFilters.findIndex(filter => filter.type === type);
-    
-    if (existingFilterIndex >= 0) {
-      // Update existing filter
-      const updatedFilters = [...activeFilters];
-      updatedFilters[existingFilterIndex] = { type, value, label };
-      setActiveFilters(updatedFilters);
-    } else {
-      // Add new filter
-      setActiveFilters([...activeFilters, { type, value, label }]);
-    }
+  const handleDateFilterChange = (value: string) => {
+    setDateFilter(value);
+    updateDateRangeFromFilter(value);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+  };
+
+  const handleMethodFilterChange = (value: string) => {
+    setMethodFilter(value);
+  };
+
+  const handleCategoryFilterChange = (value: string) => {
+    setCategoryFilter(value);
   };
   
   // Handle removing a filter
@@ -145,17 +223,22 @@ const Payments = () => {
     switch (filterToRemove.type) {
       case "date":
         setDateFilter(defaultValue);
+        setAppliedDateFilter(defaultValue);
         setDateRange(undefined);
+        setAppliedDateRange(undefined);
         setShowCustomDateRange(false);
         break;
       case "status":
         setStatusFilter(defaultValue);
+        setAppliedStatusFilter(defaultValue);
         break;
       case "method":
         setMethodFilter(defaultValue);
+        setAppliedMethodFilter(defaultValue);
         break;
       case "category":
         setCategoryFilter(defaultValue);
+        setAppliedCategoryFilter(defaultValue);
         break;
       default:
         break;
@@ -164,20 +247,27 @@ const Payments = () => {
   
   // Reset to default filters
   const resetToDefaultFilters = () => {
+    const defaultDateFilter = "7days";
+    
     setActiveFilters([
-      { type: "date", value: "7days", label: "Last 7 Days" },
+      { type: "date", value: defaultDateFilter, label: "Last 7 Days" },
       { type: "status", value: "all", label: "All Statuses" },
       { type: "method", value: "all", label: "All Methods" },
       { type: "category", value: "all", label: "All Categories" }
     ]);
     
-    setDateFilter("7days");
-    updateDateRangeFromFilter("7days");
+    setDateFilter(defaultDateFilter);
+    setAppliedDateFilter(defaultDateFilter);
+    updateDateRangeFromFilter(defaultDateFilter);
     setStatusFilter("all");
+    setAppliedStatusFilter("all");
     setMethodFilter("all");
+    setAppliedMethodFilter("all");
     setCategoryFilter("all");
+    setAppliedCategoryFilter("all");
     setSearchValue("");
     setShowCustomDateRange(false);
+    setFiltersChanged(false);
   };
   
   // Handle sorting
@@ -195,15 +285,6 @@ const Payments = () => {
   // Handle date range change
   const handleDateRangeChange = (range: DateRange | undefined) => {
     setDateRange(range);
-    
-    if (range?.from && range?.to) {
-      const formattedFrom = range.from.toLocaleDateString();
-      const formattedTo = range.to.toLocaleDateString();
-      
-      const rangeLabel = `${formattedFrom} - ${formattedTo}`;
-      
-      applyFilter("date", "custom", rangeLabel);
-    }
   };
   
   // Apply filters and sort to transactions
@@ -213,13 +294,13 @@ const Payments = () => {
       const matchesSearch = transaction.vendor.toLowerCase().includes(searchValue.toLowerCase());
       
       // Apply status filter
-      const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
+      const matchesStatus = appliedStatusFilter === "all" || transaction.status === appliedStatusFilter;
       
       // Apply method filter
-      const matchesMethod = methodFilter === "all" || transaction.method === methodFilter;
+      const matchesMethod = appliedMethodFilter === "all" || transaction.method === appliedMethodFilter;
       
       // Apply category filter
-      const matchesCategory = categoryFilter === "all" || transaction.category === categoryFilter;
+      const matchesCategory = appliedCategoryFilter === "all" || transaction.category === appliedCategoryFilter;
       
       // Date filter would be implemented with actual dates
       // For this mock, we'll assume all transactions match the date filter
@@ -249,40 +330,6 @@ const Payments = () => {
       
       return 0;
     });
-  
-  // Handle filter changes
-  const handleDateFilterChange = (value: string) => {
-    setDateFilter(value);
-    const selectedOption = dateFilterOptions.find(option => option.value === value);
-    if (selectedOption) {
-      applyFilter("date", value, selectedOption.label);
-    }
-    updateDateRangeFromFilter(value);
-  };
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    const selectedOption = statusFilterOptions.find(option => option.value === value);
-    if (selectedOption) {
-      applyFilter("status", value, selectedOption.label);
-    }
-  };
-
-  const handleMethodFilterChange = (value: string) => {
-    setMethodFilter(value);
-    const selectedOption = methodFilterOptions.find(option => option.value === value);
-    if (selectedOption) {
-      applyFilter("method", value, selectedOption.label);
-    }
-  };
-
-  const handleCategoryFilterChange = (value: string) => {
-    setCategoryFilter(value);
-    const selectedOption = categoryFilterOptions.find(option => option.value === value);
-    if (selectedOption) {
-      applyFilter("category", value, selectedOption.label);
-    }
-  };
 
   // Filter options
   const dateFilterOptions = [
@@ -320,49 +367,51 @@ const Payments = () => {
       <PaymentsHeader />
 
       <Card className="animate-scale-in">
-        <CardHeader className="pb-2">
-          <div className="flex flex-col space-y-4">
-            {/* Horizontal Filter Bar */}
-            <FilterBar 
-              dateFilter={dateFilter}
-              dateRange={dateRange}
-              statusFilter={statusFilter}
-              methodFilter={methodFilter}
-              categoryFilter={categoryFilter}
-              itemsPerPage={itemsPerPage}
-              showCustomDateRange={showCustomDateRange}
-              onDateFilterChange={handleDateFilterChange}
-              onStatusFilterChange={handleStatusFilterChange}
-              onMethodFilterChange={handleMethodFilterChange}
-              onCategoryFilterChange={handleCategoryFilterChange}
-              onItemsPerPageChange={setItemsPerPage}
-              onDateRangeChange={handleDateRangeChange}
-            />
-            
-            {/* Search Bar - Moved to a separate row */}
-            <SearchBar 
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-            />
-            
-            {/* Applied Filters Section */}
-            <AppliedFilters 
-              activeFilters={activeFilters}
-              dateRange={dateRange}
-              onRemoveFilter={removeFilter}
-              onResetFilters={resetToDefaultFilters}
-            />
+        {/* Filter Section */}
+        <CardHeader className="pb-2 space-y-4">
+          <div className="flex items-center space-x-2 text-lg font-semibold text-foreground mb-1">
+            <Filter className="h-5 w-5" />
+            <span>Filters</span>
           </div>
+          
+          {/* Horizontal Filter Bar */}
+          <FilterBar 
+            dateFilter={dateFilter}
+            dateRange={dateRange}
+            statusFilter={statusFilter}
+            methodFilter={methodFilter}
+            categoryFilter={categoryFilter}
+            showCustomDateRange={showCustomDateRange}
+            filtersChanged={filtersChanged}
+            onDateFilterChange={handleDateFilterChange}
+            onStatusFilterChange={handleStatusFilterChange}
+            onMethodFilterChange={handleMethodFilterChange}
+            onCategoryFilterChange={handleCategoryFilterChange}
+            onDateRangeChange={handleDateRangeChange}
+            onApplyFilters={applyFilters}
+            onResetFilters={resetToDefaultFilters}
+          />
+          
+          {/* Applied Filters Section */}
+          <AppliedFilters 
+            activeFilters={activeFilters}
+            dateRange={appliedDateRange}
+            onRemoveFilter={removeFilter}
+            onResetFilters={resetToDefaultFilters}
+          />
         </CardHeader>
         
         <CardContent>
-          {/* Transactions Table */}
+          {/* Transactions Table with Search and Rows per Page */}
           <TransactionsTable 
             transactions={filteredAndSortedTransactions}
+            searchValue={searchValue}
+            onSearchChange={setSearchValue}
             sortField={sortField}
             sortDirection={sortDirection}
             onSort={handleSort}
             itemsPerPage={itemsPerPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         </CardContent>
       </Card>
