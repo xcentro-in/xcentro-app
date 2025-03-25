@@ -57,12 +57,12 @@ export const SidebarMenuItemComponent = ({
     return isTextColor ? "text-amber-500" : "bg-amber-500";
   };
 
-  // Handle navigation with reset for New Payment
+  // Handle navigation with state reset for New Payment
   const handleNavigation = (e: React.MouseEvent) => {
     if (url === '/new-payment' && location.pathname === '/new-payment') {
       e.preventDefault();
+      // Navigate to the same page but with null state to reset the payment flow
       navigate(url, { state: null, replace: true });
-      window.location.reload(); // Force a reload to reset all state
     }
   };
 
