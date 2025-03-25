@@ -46,28 +46,12 @@ const FilterBar = ({
 }: FilterBarProps) => {
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-        {/* Date Filter */}
-        <div className="space-y-1">
-          <Select value={dateFilter} onValueChange={onDateFilterChange}>
-            <SelectTrigger className="w-full h-9">
-              <Calendar className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Dates" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Dates</SelectItem>
-              {dateFilterOptions.map(option => (
-                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        {/* Status Filter */}
-        <div className="space-y-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Payment Status Filter */}
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Payment Status</div>
           <Select value={statusFilter} onValueChange={onStatusFilterChange}>
-            <SelectTrigger className="w-full h-9">
-              <Clock className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+            <SelectTrigger className="w-full h-10 rounded-lg">
               <SelectValue placeholder="Statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -79,10 +63,10 @@ const FilterBar = ({
         </div>
         
         {/* Payment Method Filter */}
-        <div className="space-y-1">
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Payment Method</div>
           <Select value={methodFilter} onValueChange={onMethodFilterChange}>
-            <SelectTrigger className="w-full h-9">
-              <CreditCard className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+            <SelectTrigger className="w-full h-10 rounded-lg">
               <SelectValue placeholder="Methods" />
             </SelectTrigger>
             <SelectContent>
@@ -93,10 +77,38 @@ const FilterBar = ({
           </Select>
         </div>
         
-        {/* Category Filter */}
-        <div className="space-y-1">
+        {/* Date Range Filter */}
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Date Range</div>
+          <div className="flex gap-2">
+            <Select value={dateFilter} onValueChange={onDateFilterChange}>
+              <SelectTrigger className="w-full h-10 rounded-lg">
+                <SelectValue placeholder="Dates" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Dates</SelectItem>
+                {dateFilterOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            {showCustomDateRange && (
+              <DateRangePicker 
+                dateRange={dateRange}
+                onDateRangeChange={onDateRangeChange}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Category Filter - Now in its own row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-2">
+          <div className="text-sm font-medium">Category</div>
           <Select value={categoryFilter} onValueChange={onCategoryFilterChange}>
-            <SelectTrigger className="w-full h-9">
+            <SelectTrigger className="w-full h-10 rounded-lg">
               <SelectValue placeholder="Categories" />
             </SelectTrigger>
             <SelectContent>
@@ -106,29 +118,27 @@ const FilterBar = ({
             </SelectContent>
           </Select>
         </div>
-      </div>
-      
-      {/* Custom Date Range Picker - Only show when custom is selected */}
-      {showCustomDateRange && (
-        <div className="w-full md:w-auto">
-          <DateRangePicker 
-            dateRange={dateRange}
-            onDateRangeChange={onDateRangeChange}
-          />
+        
+        {/* Empty div for spacing */}
+        <div className="hidden md:block"></div>
+        
+        {/* Filter Action Buttons */}
+        <div className="flex justify-end gap-4 items-end">
+          <Button 
+            variant="outline" 
+            onClick={onResetFilters}
+            className="h-10 px-6 rounded-lg"
+          >
+            Reset
+          </Button>
+          <Button 
+            disabled={!filtersChanged} 
+            onClick={onApplyFilters}
+            className="h-10 px-6 rounded-lg bg-blue-500 hover:bg-blue-600"
+          >
+            Apply Filters
+          </Button>
         </div>
-      )}
-      
-      {/* Filter Action Buttons */}
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={onResetFilters}>
-          Reset Filters
-        </Button>
-        <Button 
-          disabled={!filtersChanged} 
-          onClick={onApplyFilters}
-        >
-          Apply Filters
-        </Button>
       </div>
     </div>
   );
