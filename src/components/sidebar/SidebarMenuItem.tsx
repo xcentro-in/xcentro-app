@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { 
   SidebarMenuItem as MenuItem,
   SidebarMenuButton,
@@ -38,7 +38,6 @@ export const SidebarMenuItemComponent = ({
 }: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
-  const navigate = useNavigate();
   
   // Check if this item is active based on URL or state
   const isActive = location.pathname === url || 
@@ -55,15 +54,6 @@ export const SidebarMenuItemComponent = ({
       return isTextColor ? "text-green-500" : "bg-green-500";
     }
     return isTextColor ? "text-amber-500" : "bg-amber-500";
-  };
-
-  // Handle navigation with state reset for New Payment
-  const handleNavigation = (e: React.MouseEvent) => {
-    if (url === '/new-payment' && location.pathname === '/new-payment') {
-      e.preventDefault();
-      // Navigate to the same page but with null state to reset the payment flow
-      navigate(url, { state: null, replace: true });
-    }
   };
 
   // If this is a menu with submenu items
@@ -168,7 +158,6 @@ export const SidebarMenuItemComponent = ({
         <Link 
           to={url} 
           state={state}
-          onClick={handleNavigation}
           className={cn(
             "flex items-center gap-3 w-full",
             !open && "justify-center" // Center align when sidebar is collapsed

@@ -40,15 +40,11 @@ const NewPayment = () => {
     locationState?.paymentMethod
   );
 
-  // Set initial state based on location state and reset when location.state is null
+  // Set initial state based on location state
   useEffect(() => {
     if (locationState?.paymentCategory) {
       setPaymentCategory(locationState.paymentCategory);
       setStep(1);
-    } else {
-      // Reset to selection when location.state is null
-      setPaymentCategory("selection");
-      setStep(0);
     }
   }, [locationState]);
 
@@ -61,8 +57,6 @@ const NewPayment = () => {
   const handleReset = () => {
     setPaymentCategory("selection");
     setStep(0);
-    // Update the URL state to match the UI state
-    navigate('/new-payment', { state: null, replace: true });
   };
 
   // Only calculate progress if we've selected a category
