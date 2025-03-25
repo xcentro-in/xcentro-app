@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
@@ -64,11 +66,25 @@ const NewPayment = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">New Payment</h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Create a new payment transaction
-        </p>
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">New Payment</h1>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Create a new payment transaction
+          </p>
+        </div>
+        
+        {paymentCategory !== "selection" && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="gap-2 animate-slide-down"
+            onClick={handleReset}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Change payment type
+          </Button>
+        )}
       </div>
 
       <Card className="animate-scale-in">
@@ -76,12 +92,6 @@ const NewPayment = () => {
           {paymentCategory !== "selection" && (
             <div className="mb-8">
               <div className="flex justify-between text-sm mb-2">
-                <button 
-                  onClick={handleReset} 
-                  className="text-primary text-sm hover:underline"
-                >
-                  ← Change payment type
-                </button>
                 <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
               </div>
               <Progress 
