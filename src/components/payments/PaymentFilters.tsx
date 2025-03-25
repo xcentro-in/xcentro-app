@@ -18,11 +18,11 @@ export const PaymentFilters = ({
 }: PaymentFiltersProps) => {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-      <div className="relative w-full max-w-md">
+      <div className="relative max-w-md w-full">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search by invoice, reference or description..." 
-          className="pl-9 h-10 w-full rounded-lg"
+          placeholder="Search transactions" 
+          className="pl-9 h-9 w-full"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
         />

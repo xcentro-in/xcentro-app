@@ -1,35 +1,89 @@
 
-import { Calendar } from "lucide-react";
+import * as React from "react";
+import { format, subDays, startOfQuarter, endOfDay } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
+
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface DateRangePickerProps {
   dateRange: DateRange | undefined;
   onDateRangeChange: (range: DateRange | undefined) => void;
+  className?: string;
+  showCalendar?: boolean;
 }
 
 export const DateRangePicker = ({
   dateRange,
-  onDateRangeChange
+  onDateRangeChange,
+  className,
+  showCalendar = true,
 }: DateRangePickerProps) => {
+  const formatDateRange = () => {
+    if (!dateRange?.from) {
+      return "All dates";
+    }
+
+    if (dateRange.from && !dateRange.to) {
+      return format(dateRange.from, "PPP");
+    }
+
+    return `${format(dateRange.from, "MMM d, yyyy")} - ${format(
+      dateRange.to || dateRange.from,
+      "MMM d, yyyy"
+    )}`;
+  };
+
   return (
-    <div className="flex-1">
-      <Button 
-        variant="outline" 
-        className="w-full h-10 rounded-lg flex items-center justify-start gap-2"
-        asChild
-      >
-        <div>
-          <Calendar className="h-4 w-4" />
-          <span className="text-muted-foreground">Select date range</span>
-          <DatePickerWithRange
-            date={dateRange}
-            setDate={onDateRangeChange}
-            className="sr-only"
-          />
-        </div>
-      </Button>
+    <div className={cn("grid gap-2", className)}>
+      {showCalendar ? (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              id="date"
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal h-9",
+                !dateRange && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {formatDateRange()}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange?.from}
+              selected={dateRange}
+              onSelect={onDateRangeChange}
+              numberOfMonths={2}
+              className="pointer-events-auto"
+            />
+          </PopoverContent>
+        </Popover>
+      ) : (
+        <Button
+          id="date"
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal h-9",
+            !dateRange && "text-muted-foreground"
+          )}
+          disabled
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {formatDateRange()}
+        </Button>
+      )}
     </div>
   );
 };

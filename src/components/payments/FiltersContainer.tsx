@@ -5,7 +5,6 @@ import { DateRange } from "react-day-picker";
 import { ActiveFilter } from "@/components/payments/AppliedFilters";
 import FilterBar from "@/components/payments/FilterBar";
 import AppliedFilters from "@/components/payments/AppliedFilters";
-import { Separator } from "@/components/ui/separator";
 
 interface FiltersContainerProps {
   dateFilter: string;
@@ -47,40 +46,38 @@ const FiltersContainer = ({
   onRemoveFilter
 }: FiltersContainerProps) => {
   return (
-    <div className="border-b pb-4">
-      <CardHeader className="pb-2 space-y-4">
-        <div className="flex items-center space-x-2 text-lg font-semibold text-foreground mb-1">
-          <Filter className="h-5 w-5" />
-          <span>Filters</span>
-        </div>
-        
-        {/* Horizontal Filter Bar */}
-        <FilterBar 
-          dateFilter={dateFilter}
-          dateRange={dateRange}
-          statusFilter={statusFilter}
-          methodFilter={methodFilter}
-          categoryFilter={categoryFilter}
-          showCustomDateRange={showCustomDateRange}
-          filtersChanged={filtersChanged}
-          onDateFilterChange={onDateFilterChange}
-          onStatusFilterChange={onStatusFilterChange}
-          onMethodFilterChange={onMethodFilterChange}
-          onCategoryFilterChange={onCategoryFilterChange}
-          onDateRangeChange={onDateRangeChange}
-          onApplyFilters={onApplyFilters}
-          onResetFilters={onResetFilters}
-        />
-        
-        {/* Applied Filters Section */}
-        <AppliedFilters 
-          activeFilters={activeFilters}
-          dateRange={appliedDateRange}
-          onRemoveFilter={onRemoveFilter}
-          onResetFilters={onResetFilters}
-        />
-      </CardHeader>
-    </div>
+    <CardHeader className="pb-2 space-y-4">
+      <div className="flex items-center space-x-2 text-lg font-semibold text-foreground mb-1">
+        <Filter className="h-5 w-5" />
+        <span>Filters</span>
+      </div>
+      
+      {/* Horizontal Filter Bar */}
+      <FilterBar 
+        dateFilter={dateFilter}
+        dateRange={dateRange}
+        statusFilter={statusFilter}
+        methodFilter={methodFilter}
+        categoryFilter={categoryFilter}
+        showCustomDateRange={showCustomDateRange}
+        filtersChanged={filtersChanged}
+        onDateFilterChange={onDateFilterChange}
+        onStatusFilterChange={onStatusFilterChange}
+        onMethodFilterChange={onMethodFilterChange}
+        onCategoryFilterChange={onCategoryFilterChange}
+        onDateRangeChange={onDateRangeChange}
+        onApplyFilters={onApplyFilters}
+        onResetFilters={onResetFilters}
+      />
+      
+      {/* Applied Filters Section */}
+      <AppliedFilters 
+        activeFilters={activeFilters}
+        dateRange={appliedDateRange}
+        onRemoveFilter={onRemoveFilter}
+        onResetFilters={onResetFilters}
+      />
+    </CardHeader>
   );
 };
 
