@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Transaction } from "@/types/transaction";
 
 // Import components
 import TableHeader from "./TableHeader";
@@ -9,16 +10,6 @@ import TransactionRow from "./TransactionRow";
 import EmptyTransactionsState from "./EmptyTransactionsState";
 import TablePagination from "./TablePagination";
 import { PaymentFilters } from "./PaymentFilters";
-
-interface Transaction {
-  id: number;
-  vendor: string;
-  amount: number;
-  status: string;
-  date: string;
-  method: string;
-  category: string;
-}
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -52,7 +43,7 @@ const TransactionsTable = ({
   );
 
   // Handle transaction row click
-  const handleTransactionClick = (transactionId: number) => {
+  const handleTransactionClick = (transactionId: number | string) => {
     navigate(`/payments/${transactionId}`);
   };
 

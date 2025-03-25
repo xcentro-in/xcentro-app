@@ -4,6 +4,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DateRangePicker } from "@/components/payments/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
+import { 
+  dateFilterOptions, 
+  statusFilterOptions, 
+  methodFilterOptions, 
+  categoryFilterOptions 
+} from "@/constants/filterOptions";
 
 interface FilterBarProps {
   dateFilter: string;
@@ -21,36 +27,6 @@ interface FilterBarProps {
   onApplyFilters: () => void;
   onResetFilters: () => void;
 }
-
-// Options for filters
-const dateFilterOptions = [
-  { label: "Last 7 Days", value: "7days" },
-  { label: "Last 30 Days", value: "30days" },
-  { label: "Last Quarter", value: "quarter" },
-  { label: "Custom Range", value: "custom" },
-];
-
-const statusFilterOptions = [
-  { label: "All Statuses", value: "all" },
-  { label: "Completed", value: "completed" },
-  { label: "Pending", value: "pending" },
-  { label: "Upcoming", value: "upcoming" },
-  { label: "Failed", value: "failed" },
-];
-
-const methodFilterOptions = [
-  { label: "All Methods", value: "all" },
-  { label: "Credit Card", value: "credit" },
-  { label: "Bank Transfer", value: "bank" },
-];
-
-const categoryFilterOptions = [
-  { label: "All Categories", value: "all" },
-  { label: "Vendor", value: "vendor" },
-  { label: "Supplier", value: "supplier" },
-  { label: "Biller", value: "biller" },
-  { label: "Payroll", value: "payroll" },
-];
 
 const FilterBar = ({
   dateFilter,

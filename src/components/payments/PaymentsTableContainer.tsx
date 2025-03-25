@@ -1,6 +1,4 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { CardContent } from "@/components/ui/card";
 import { Transaction } from "@/types/transaction";
 import TransactionsTable from "./TransactionsTable";
@@ -26,13 +24,6 @@ const PaymentsTableContainer = ({
   itemsPerPage,
   onItemsPerPageChange
 }: PaymentsTableContainerProps) => {
-  const navigate = useNavigate();
-  
-  // Handle transaction row click
-  const handleTransactionClick = (transactionId: number) => {
-    navigate(`/payments/${transactionId}`);
-  };
-
   return (
     <CardContent>
       <TransactionsTable 
