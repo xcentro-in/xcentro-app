@@ -2,9 +2,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Import new components
+// Import components
 import TableHeader from "./TableHeader";
 import TransactionRow from "./TransactionRow";
 import EmptyTransactionsState from "./EmptyTransactionsState";
@@ -60,33 +59,12 @@ const TransactionsTable = ({
   return (
     <div className="space-y-4">
       {/* Search and Rows Per Page */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-        <PaymentFilters 
-          searchValue={searchValue}
-          statusFilter=""
-          methodFilter=""
-          onSearchChange={onSearchChange}
-          onStatusChange={() => {}}
-          onMethodChange={() => {}}
-        />
-        
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
-          <Select 
-            value={String(itemsPerPage)} 
-            onValueChange={(value) => onItemsPerPageChange(Number(value))}
-          >
-            <SelectTrigger className="w-[80px] h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      <PaymentFilters 
+        searchValue={searchValue}
+        itemsPerPage={itemsPerPage}
+        onSearchChange={onSearchChange}
+        onItemsPerPageChange={onItemsPerPageChange}
+      />
       
       {/* Transactions Table */}
       <div className="rounded-md border overflow-hidden">
