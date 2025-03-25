@@ -46,10 +46,9 @@ export const useTransactionTable = ({
       // Apply method filter
       const matchesMethod = appliedMethodFilter === "all" || transaction.method === appliedMethodFilter;
       
-      // Apply category filter - we need to check if category exists on the transaction object
-      // This is a temporary fix until the Transaction type is updated to include category
+      // Apply category filter - now directly using the category property that we added to the Transaction type
       const matchesCategory = appliedCategoryFilter === "all" || 
-        (transaction as any).category === appliedCategoryFilter;
+        transaction.category === appliedCategoryFilter;
       
       // Date filter would be implemented with actual dates
       // For this mock, we'll assume all transactions match the date filter

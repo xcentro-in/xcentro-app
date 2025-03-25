@@ -25,9 +25,6 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
     }
   };
 
-  // Access category safely with a type assertion
-  const category = (transaction as any).category || "N/A";
-
   return (
     <div 
       className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr] gap-4 p-4 hover:bg-muted/50 cursor-pointer"
@@ -57,7 +54,7 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
       
       <div className="flex items-center justify-center">
         <span className="capitalize text-sm">
-          {category}
+          {transaction.category ?? "N/A"}
         </span>
       </div>
       
