@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import PaymentMethodSelector from "./PaymentMethodSelector";
 
 interface BatchPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -29,6 +30,7 @@ interface PaymentRow {
 const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   const [step, setStep] = useState(1);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
 
   // Sample payment data
   const paymentRows: PaymentRow[] = [
@@ -184,6 +186,28 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       )}
 
       {step === 3 && (
+        <div className="space-y-4">
+          <h3 className="font-medium mb-2">Select Payment Method</h3>
+          
+          <PaymentMethodSelector 
+            onSelect={setSelectedPaymentMethod}
+            selectedMethodId={selectedPaymentMethod}
+          />
+
+          <div className="flex gap-3 mt-6">
+            <Button variant="outline" onClick={handleBack} className="flex-1">Back</Button>
+            <Button 
+              onClick={handleNext} 
+              className="flex-1"
+              disabled={!selectedPaymentMethod}
+            >
+              Review Payment
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 4 && (
         <div className="space-y-6">
           <div className="rounded-lg border bg-card p-6 space-y-4">
             <h3 className="font-semibold">Batch Payment Summary</h3>
