@@ -94,7 +94,7 @@ const AppliedFilters = ({
         }
         
         {/* Show date range if custom dates are selected */}
-        {dateRange?.from && dateRange.value !== "all" && (
+        {dateRange?.from && (
           <Badge 
             variant="outline" 
             className="pl-2 pr-1 py-1 h-7 bg-muted/30"

@@ -13,6 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PaymentMethodSelector from "./PaymentMethodSelector";
+import { PaymentSummary } from "./PaymentSummary";
+import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 
 interface BatchPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -87,6 +89,22 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     return paymentRows
       .filter(row => selectedRows.includes(row.id))
       .reduce((sum, row) => sum + row.amount, 0);
+  }, [selectedRows, paymentRows]);
+
+  // Get the selected payment method details
+  const paymentMethod = useMemo(() => {
+    return mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
+  }, [selectedPaymentMethod]);
+
+  // Calculate fees based on total amount
+  const platformFee = useMemo(() => totalSelectedAmount * 0.01, [totalSelectedAmount]);
+  const gatewayFee = useMemo(() => totalSelectedAmount * 0.005, [totalSelectedAmount]);
+  const totalPayable = useMemo(() => totalSelectedAmount + platformFee + gatewayFee, [totalSelectedAmount, platformFee, gatewayFee]);
+  const rewardPoints = useMemo(() => Math.floor(totalSelectedAmount / 10), [totalSelectedAmount]);
+
+  // Get selected payment rows
+  const selectedPaymentDetails = useMemo(() => {
+    return paymentRows.filter(row => selectedRows.includes(row.id));
   }, [selectedRows, paymentRows]);
 
   return (
@@ -208,47 +226,37 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       )}
 
       {step === 4 && (
-        <div className="space-y-6">
-          <div className="rounded-lg border bg-card p-6 space-y-4">
-            <h3 className="font-semibold">Batch Payment Summary</h3>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Transactions</span>
-                <span className="font-medium">{selectedRows.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Total Amount</span>
-                <span className="font-medium">${totalSelectedAmount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Platform Fee</span>
-                <span className="font-medium">${(totalSelectedAmount * 0.01).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Payment Gateway Fee</span>
-                <span className="font-medium">${(totalSelectedAmount * 0.005).toFixed(2)}</span>
-              </div>
-              <div className="border-t pt-2 mt-2">
-                <div className="flex justify-between font-medium">
-                  <span>Total Payable</span>
-                  <span>${(totalSelectedAmount * 1.015).toFixed(2)}</span>
-                </div>
-              </div>
-              <div className="flex justify-between text-sm text-green-600 bg-green-50 p-2 rounded-md">
-                <span>Total Reward Points</span>
-                <span>{Math.floor(totalSelectedAmount / 10)} points</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleBack} className="flex-1">
-              Back
-            </Button>
-            <Button className="flex-1">Confirm Batch Payment</Button>
-          </div>
-        </div>
+        <PaymentSummary
+          paymentType="now"
+          amount={totalSelectedAmount}
+          description="Batch Payment"
+          invoiceReference={`BP-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`}
+          payee={{
+            id: "batch-payment",
+            name: `Multiple Payees (${selectedRows.length})`,
+            email: "",
+            contactNumber: "",
+            type: "batch",
+            bankName: "Multiple Banks",
+            accountNumber: "Multiple Accounts",
+            ifscCode: "",
+            createdAt: new Date().toISOString(),
+            isDefault: false
+          }}
+          paymentMethod={paymentMethod}
+          platformFee={platformFee}
+          gatewayFee={gatewayFee}
+          totalAmount={totalPayable}
+          rewardPoints={rewardPoints}
+          employees={selectedPaymentDetails.map(row => ({
+            name: row.payee,
+            email: "",
+            accountNumber: row.bankAccount,
+            bankName: `Bank (IFSC: ${row.ifsc})`,
+            salaryAmount: row.amount
+          }))}
+          onBack={handleBack}
+        />
       )}
     </div>
   );
