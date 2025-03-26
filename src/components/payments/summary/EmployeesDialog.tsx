@@ -24,7 +24,7 @@ export const EmployeesDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
         <DialogHeader>
-          <DialogTitle>Employee Payment Details</DialogTitle>
+          <DialogTitle>Payment Details</DialogTitle>
         </DialogHeader>
         
         <div className="border rounded-md overflow-x-auto mt-4">
@@ -35,14 +35,14 @@ export const EmployeesDialog = ({
                 <th className="text-left p-2 font-medium text-sm">Email</th>
                 <th className="text-left p-2 font-medium text-sm">Bank Account</th>
                 <th className="text-left p-2 font-medium text-sm">Bank Name</th>
-                <th className="text-right p-2 font-medium text-sm">Salary Amount</th>
+                <th className="text-right p-2 font-medium text-sm">Amount</th>
               </tr>
             </thead>
             <tbody>
               {employees.map((employee, index) => (
                 <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-muted/20"}>
                   <td className="p-2 text-sm">{employee.name}</td>
-                  <td className="p-2 text-sm">{employee.email}</td>
+                  <td className="p-2 text-sm">{employee.email || "-"}</td>
                   <td className="p-2 text-sm">
                     {employee.accountNumber.slice(0, -4).replace(/./g, '•') + employee.accountNumber.slice(-4)}
                   </td>
@@ -56,7 +56,7 @@ export const EmployeesDialog = ({
         
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Total Employees: {employees.length}
+            Total {employees.length === 1 ? 'Payee' : 'Payees'}: {employees.length}
           </p>
           <p className="text-sm font-medium">
             Total Amount: ₹{employees.reduce((sum, emp) => sum + emp.salaryAmount, 0).toLocaleString()}

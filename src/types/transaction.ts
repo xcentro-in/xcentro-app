@@ -11,6 +11,7 @@ export type TransactionStatus =
 
 export type PaymentMethod = 'credit' | 'bank';
 export type TransactionType = 'single' | 'batch' | 'recurring';
+export type TransactionCategory = 'vendor' | 'supplier' | 'biller' | 'payroll';
 
 export interface TransactionAuditLog {
   id: string;
@@ -38,6 +39,7 @@ export interface Transaction {
   date: string;
   method: PaymentMethod;
   type: TransactionType;
+  category?: TransactionCategory;
   initiatedBy?: {
     name: string;
     role: string;

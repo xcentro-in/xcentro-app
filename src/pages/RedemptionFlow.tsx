@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftIcon, ArrowRight, Check, RefreshCw } from "lucide-react";
@@ -15,13 +14,12 @@ import { toast } from "sonner";
 import { RedemptionCategory, RedemptionItem, LoyaltyPartner } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
 
-// Enhanced mock data for loyalty partners with images
 const mockPartners: LoyaltyPartner[] = [
   {
     id: "emirates",
     name: "Emirates Skywards",
     type: "airline",
-    conversionRatio: 0.5, // 1 PaySphere point = 0.5 Skywards miles
+    conversionRatio: 0.5,
     category: "flights",
     membershipDetails: {
       membershipNumber: "EK123456789",
@@ -57,7 +55,7 @@ const mockPartners: LoyaltyPartner[] = [
     id: "marriott",
     name: "Marriott Bonvoy",
     type: "hotel",
-    conversionRatio: 0.3, // 1 PaySphere point = 0.3 Bonvoy points
+    conversionRatio: 0.3,
     category: "hotels",
     membershipDetails: {
       membershipNumber: "MB987654321",
@@ -191,9 +189,8 @@ const RedemptionFlow: React.FC = () => {
   const [selectedPartner, setSelectedPartner] = useState<LoyaltyPartner | null>(null);
   const [pointsError, setPointsError] = useState<string | null>(null);
   
-  const availablePoints = 24530; // This would come from your app state or API
-  
-  // Find the category and item based on URL parameters
+  const availablePoints = 24530;
+
   useEffect(() => {
     if (categoryId) {
       const foundCategory = redemptionCategories.find(cat => cat.id === categoryId);
@@ -204,11 +201,9 @@ const RedemptionFlow: React.FC = () => {
           const foundItem = foundCategory.items.find(item => item.id === itemId);
           if (foundItem) {
             setItem(foundItem);
-            // Default redemption to minimum points needed
             setPointsToRedeem(foundItem.pointsCost || foundCategory.pointsNeeded);
           }
         } else if (foundCategory.items.length > 0) {
-          // If no itemId is provided, use the first item in the category
           setItem(foundCategory.items[0]);
           setPointsToRedeem(foundCategory.items[0].pointsCost || foundCategory.pointsNeeded);
         }
@@ -216,10 +211,8 @@ const RedemptionFlow: React.FC = () => {
     }
   }, [categoryId, itemId]);
   
-  // Filter partners by category
   useEffect(() => {
     if (category) {
-      // Find partners that are relevant to this category
       const relevantPartners = mockPartners.filter(partner => partner.category === category.id);
       if (relevantPartners.length > 0) {
         setPartners(relevantPartners);
@@ -233,7 +226,6 @@ const RedemptionFlow: React.FC = () => {
     if (!isNaN(value)) {
       setPointsToRedeem(value);
       
-      // Validate minimum points
       if (item && value < item.pointsCost) {
         setPointsError(`Minimum should be ${item.pointsCost.toLocaleString()} points`);
       } else {
@@ -246,6 +238,7 @@ const RedemptionFlow: React.FC = () => {
     const partner = partners.find(p => p.id === partnerId);
     if (partner) {
       setSelectedPartner(partner);
+      handleNextStep();
     }
   };
   
@@ -271,7 +264,6 @@ const RedemptionFlow: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       toast.success(`Successfully redeemed ${pointsToRedeem} points for ${selectedPartner?.name}`);
       setIsSubmitting(false);
@@ -287,7 +279,6 @@ const RedemptionFlow: React.FC = () => {
     );
   }
   
-  // Calculate converted points
   const getConvertedPoints = () => {
     if (selectedPartner) {
       return Math.floor(pointsToRedeem * selectedPartner.conversionRatio);
@@ -335,19 +326,7 @@ const RedemptionFlow: React.FC = () => {
       </div>
       
       <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
-        <CardHeader className="border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-900/20">
-          <CardTitle className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              {React.createElement(category.icon, { className: "h-5 w-5 text-primary" })}
-            </div>
-            <div>
-              {category.title} <span className="text-muted-foreground font-normal">/ {item.title}</span>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            {item.description}
-          </CardDescription>
-        </CardHeader>
+        
         
         <CardContent className="space-y-6 p-6">
           {step === 1 && (
@@ -360,32 +339,29 @@ const RedemptionFlow: React.FC = () => {
                     partners.map(partner => (
                       <div 
                         key={partner.id} 
-                        className={`group rounded-lg border overflow-hidden cursor-pointer transition-all hover:shadow-md
-                          ${selectedPartner?.id === partner.id ? 'border-primary shadow-md bg-primary/5' : 'hover:border-primary/30 hover:bg-primary/5'}`}
+                        className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
                         onClick={() => handlePartnerSelect(partner.id)}
                       >
-                        <div className="h-36 relative overflow-hidden">
+                        <div className="h-44 relative overflow-hidden">
                           <img 
                             src={getPartnerIcon(partner.type)} 
                             alt={partner.name} 
-                            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                           />
-                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-                            <div className="font-medium text-white">{partner.name}</div>
+                        </div>
+                        
+                        <div className="p-3 bg-white dark:bg-slate-800">
+                        <div className="font-bold text-lg">{partner.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">
+                            {partner.membershipDetails?.membershipNumber || "Not linked"}
                           </div>
                         </div>
                         
-                        <div className="p-4">
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm font-medium">Conversion Rate</div>
-                            <div className="text-sm">1:{partner.conversionRatio}</div>
+                        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="bg-white/90 dark:bg-slate-800/90 rounded-full p-3 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
+                            <ArrowRight className="h-5 w-5 text-primary" />
                           </div>
-                          
-                          {selectedPartner?.id === partner.id && (
-                            <div className="bg-primary/10 text-primary text-sm font-medium rounded-full px-3 py-1 mt-3 text-center">
-                              Selected
-                            </div>
-                          )}
                         </div>
                       </div>
                     ))
@@ -404,13 +380,13 @@ const RedemptionFlow: React.FC = () => {
           
           {step === 2 && (
             <div className="space-y-6">
-              <div>
-                <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
-                
+              <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {selectedPartner && (
-                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border mb-5">
+                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border">
                     <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <Label className="text-xs text-muted-foreground">Membership Number</Label>
                         <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
@@ -431,7 +407,7 @@ const RedemptionFlow: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border mb-6">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border">
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <div className="text-sm text-muted-foreground">Your Available Points</div>
@@ -445,74 +421,74 @@ const RedemptionFlow: React.FC = () => {
                   
                   <Progress value={(availablePoints / 30000) * 100} className="h-2 mb-2" />
                 </div>
+              </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
-                      Points to Redeem
-                    </Label>
-                    <div className="flex items-center mt-2 space-x-3">
-                      <div className="relative w-64">
-                        <Input 
-                          id="pointsToRedeem" 
-                          type="number" 
-                          value={pointsToRedeem}
-                          onChange={handlePointsChange}
-                          min={item.pointsCost}
-                          max={availablePoints}
-                          className="text-left pr-12 h-10"
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                          pts
-                        </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
+                    Points to Redeem
+                  </Label>
+                  <div className="flex items-center mt-2 space-x-3">
+                    <div className="relative w-64">
+                      <Input 
+                        id="pointsToRedeem" 
+                        type="number" 
+                        value={pointsToRedeem}
+                        onChange={handlePointsChange}
+                        min={item.pointsCost}
+                        max={availablePoints}
+                        className="text-left pr-12 h-10"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                        pts
                       </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setPointsToRedeem(availablePoints);
-                          setPointsError(null);
-                        }}
-                        className="h-10"
-                      >
-                        Max
-                      </Button>
                     </div>
-                    {pointsError && (
-                      <p className="text-destructive text-sm mt-2">
-                        {pointsError}
-                      </p>
-                    )}
-                    {pointsToRedeem > availablePoints && (
-                      <p className="text-destructive text-sm mt-2">
-                        You don't have enough points
-                      </p>
-                    )}
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setPointsToRedeem(availablePoints);
+                        setPointsError(null);
+                      }}
+                      className="h-10"
+                    >
+                      Max
+                    </Button>
+                  </div>
+                  {pointsError && (
+                    <p className="text-destructive text-sm mt-2">
+                      {pointsError}
+                    </p>
+                  )}
+                  {pointsToRedeem > availablePoints && (
+                    <p className="text-destructive text-sm mt-2">
+                      You don't have enough points
+                    </p>
+                  )}
+                </div>
+                
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
+                  <div className="p-4 border-b bg-white/50 dark:bg-black/10">
+                    <h4 className="font-medium">Conversion Preview</h4>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
-                    <div className="p-4 border-b bg-white/50 dark:bg-black/10">
-                      <h4 className="font-medium">Conversion Preview</h4>
+                  <div className="flex items-center justify-center gap-10 p-6">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
                     </div>
-                    
-                    <div className="flex items-center justify-center gap-10 p-6">
-                      <div className="text-center">
-                        <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
-                      </div>
-                      <div className="text-primary">
-                        <ArrowRight className="h-8 w-8" />
-                      </div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                          {getConvertedPoints().toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
-                      </div>
+                    <div className="text-primary">
+                      <ArrowRight className="h-8 w-8" />
                     </div>
-                    
-                    <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
-                      Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
+                    <div className="text-center">
+                      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        {getConvertedPoints().toLocaleString()}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
                     </div>
+                  </div>
+                  
+                  <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
+                    Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
                   </div>
                 </div>
               </div>
@@ -585,11 +561,14 @@ const RedemptionFlow: React.FC = () => {
             {step > 1 ? "Previous" : "Cancel"}
           </Button>
           
-          {step < 3 ? (
+          {step === 1 ? (
+            <div className="text-sm text-muted-foreground italic">
+              Click on a partner card to continue
+            </div>
+          ) : step < 3 ? (
             <Button 
               onClick={handleNextStep}
               disabled={
-                (step === 1 && !selectedPartner) || 
                 (step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints))
               }
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[120px]"

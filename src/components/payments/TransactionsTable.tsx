@@ -2,37 +2,35 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Transaction } from "@/types/transaction";
 
-// Import new components
+// Import components
 import TableHeader from "./TableHeader";
 import TransactionRow from "./TransactionRow";
 import EmptyTransactionsState from "./EmptyTransactionsState";
 import TablePagination from "./TablePagination";
-
-interface Transaction {
-  id: number;
-  vendor: string;
-  amount: number;
-  status: string;
-  date: string;
-  method: string;
-  category: string;
-}
+import { PaymentFilters } from "./PaymentFilters";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
+  searchValue: string;
+  onSearchChange: (value: string) => void;
   sortField: string | null;
   sortDirection: "asc" | "desc";
   onSort: (field: string) => void;
   itemsPerPage: number;
+  onItemsPerPageChange: (value: number) => void;
 }
 
 const TransactionsTable = ({
   transactions,
+  searchValue,
+  onSearchChange,
   sortField,
   sortDirection,
   onSort,
-  itemsPerPage
+  itemsPerPage,
+  onItemsPerPageChange
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -45,12 +43,20 @@ const TransactionsTable = ({
   );
 
   // Handle transaction row click
-  const handleTransactionClick = (transactionId: number) => {
+  const handleTransactionClick = (transactionId: number | string) => {
     navigate(`/payments/${transactionId}`);
   };
 
   return (
-    <>
+    <div className="space-y-4">
+      {/* Search and Rows Per Page */}
+      <PaymentFilters 
+        searchValue={searchValue}
+        itemsPerPage={itemsPerPage}
+        onSearchChange={onSearchChange}
+        onItemsPerPageChange={onItemsPerPageChange}
+      />
+      
       {/* Transactions Table */}
       <div className="rounded-md border overflow-hidden">
         {/* Table Header */}
@@ -86,7 +92,7 @@ const TransactionsTable = ({
           onPageChange={setCurrentPage}
         />
       )}
-    </>
+    </div>
   );
 };
 

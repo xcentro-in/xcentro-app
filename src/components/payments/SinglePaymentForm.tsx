@@ -1,7 +1,6 @@
-
 import { useState } from "react";
 import { PaymentDetailsStep, PaymentType } from "./PaymentDetailsStep";
-import { PaymentSummary } from "./PaymentSummary";
+import { TransactionSummary } from "./common/TransactionSummary";
 import PayeeSelectionStep from "./PayeeSelectionStep";
 import PaymentMethodStep from "./PaymentMethodStep";
 import { mockPayees } from "@/data/mockPayees";
@@ -43,20 +42,16 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     );
   };
 
-  // Get the selected payee details
   const payeeDetails = selectedPayee ? mockPayees.find(payee => payee.id === selectedPayee) : undefined;
   
-  // Get the selected payment method details
   const paymentMethodDetails = selectedPaymentMethod ? 
     mockPaymentMethods.find(method => method.id === selectedPaymentMethod) : undefined;
 
-  // Calculate fees and total amount
   const parsedAmount = amount ? parseFloat(amount) : 0;
-  const platformFee = parsedAmount * 0.01; // 1% platform fee
-  const gatewayFee = parsedAmount * 0.005; // 0.5% gateway fee
+  const platformFee = parsedAmount * 0.01;
+  const gatewayFee = parsedAmount * 0.005;
   const totalAmount = parsedAmount + platformFee + gatewayFee;
   
-  // Calculate reward points (1 point per $10 spent)
   const rewardPoints = Math.floor(parsedAmount / 10);
 
   return (
@@ -100,7 +95,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
       )}
 
       {step === 4 && (
-        <PaymentSummary
+        <TransactionSummary
           paymentType={paymentType}
           scheduledDate={scheduledDate}
           amount={parsedAmount}

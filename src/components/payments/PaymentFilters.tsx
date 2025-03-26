@@ -1,60 +1,46 @@
 
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface PaymentFiltersProps {
   searchValue: string;
-  statusFilter: string;
-  methodFilter: string;
+  itemsPerPage: number;
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
-  onMethodChange: (value: string) => void;
+  onItemsPerPageChange: (value: number) => void;
 }
 
 export const PaymentFilters = ({
   searchValue,
-  statusFilter,
-  methodFilter,
+  itemsPerPage,
   onSearchChange,
-  onStatusChange,
-  onMethodChange,
+  onItemsPerPageChange
 }: PaymentFiltersProps) => {
   return (
-    <div className="flex w-full sm:w-auto gap-3">
-      <div className="relative flex-1 sm:flex-initial">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+      <div className="relative max-w-md w-full">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search transactions" 
-          className="pl-9 h-9 w-full sm:w-[240px]"
+          className="pl-9 h-9 w-full"
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
       
       <div className="flex items-center gap-2">
-        <Select value={statusFilter} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[125px] h-9 gap-1">
-            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Status" />
+        <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
+        <Select 
+          value={String(itemsPerPage)} 
+          onValueChange={(value) => onItemsPerPageChange(Number(value))}
+        >
+          <SelectTrigger className="w-[80px] h-9">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="upcoming">Upcoming</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Select value={methodFilter} onValueChange={onMethodChange}>
-          <SelectTrigger className="w-[130px] h-9 gap-1">
-            <Filter className="h-3.5 w-3.5 text-muted-foreground" />
-            <SelectValue placeholder="Method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Methods</SelectItem>
-            <SelectItem value="credit">Credit Card</SelectItem>
-            <SelectItem value="bank">Bank Transfer</SelectItem>
+            <SelectItem value="10">10</SelectItem>
+            <SelectItem value="25">25</SelectItem>
+            <SelectItem value="50">50</SelectItem>
           </SelectContent>
         </Select>
       </div>

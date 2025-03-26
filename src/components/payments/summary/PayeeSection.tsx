@@ -23,14 +23,14 @@ export const PayeeSection = ({
   onViewEmployees,
 }: PayeeSectionProps) => {
   const isPayroll = payee?.type === "payroll";
-  const isBulkPayroll = isPayroll && employees.length > 0;
+  const isBulkPayment = isPayroll && employees.length > 0;
 
   return (
     <TransactionDetailCard title="Payee Information" className="mt-4">
       {payee ? (
         <div 
-          className={`flex items-start gap-3 p-2 ${isBulkPayroll ? "cursor-pointer hover:bg-muted/50 rounded-md" : ""}`}
-          onClick={() => isBulkPayroll && onViewEmployees && onViewEmployees()}
+          className={`flex items-start gap-3 p-2 ${isBulkPayment ? "cursor-pointer hover:bg-muted/50 rounded-md" : ""}`}
+          onClick={() => isBulkPayment && onViewEmployees && onViewEmployees()}
         >
           <User className="h-5 w-5 text-muted-foreground mt-0.5" />
           <div className="space-y-1.5 flex-1">
@@ -54,10 +54,10 @@ export const PayeeSection = ({
                 <p className="text-sm text-muted-foreground">
                   {payee.bankName} - Account ending with {payee.accountNumber.slice(-4)}
                 </p>
-                {isBulkPayroll && (
+                {isBulkPayment && (
                   <div className="flex items-center mt-2 text-primary">
                     <Eye className="h-4 w-4 mr-1" /> 
-                    <span className="text-sm">View all {employees.length} employees</span>
+                    <span className="text-sm">View all {employees.length} {employees.length === 1 ? 'payee' : 'payees'}</span>
                   </div>
                 )}
               </div>
