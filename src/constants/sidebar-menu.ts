@@ -15,6 +15,7 @@ import {
   BarChart2,
   CreditCardIcon,
   FileText,
+  Banknote,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -42,7 +43,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
   {
     title: "Payments",
     url: "/payments",
-    icon: CreditCard,
+    icon: Banknote,
   },
   {
     title: "New Payment",
@@ -92,7 +93,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
   {
     title: "My Rewards",
     url: "/rewards",
-    icon: Star,
+    icon: Gift,
     highlight: true,
   },
   {
