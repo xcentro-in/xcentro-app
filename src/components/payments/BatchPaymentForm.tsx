@@ -236,7 +236,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             name: `Multiple Payees (${selectedRows.length})`,
             email: "",
             contactNumber: "",
-            type: "batch",
+            type: "payroll", // Changed from "batch" to "payroll" to match allowed types
             bankName: "Multiple Banks",
             accountNumber: "Multiple Accounts",
             ifscCode: "",
