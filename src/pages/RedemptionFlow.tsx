@@ -14,13 +14,12 @@ import { toast } from "sonner";
 import { RedemptionCategory, RedemptionItem, LoyaltyPartner } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
 
-// Enhanced mock data for loyalty partners with images
 const mockPartners: LoyaltyPartner[] = [
   {
     id: "emirates",
     name: "Emirates Skywards",
     type: "airline",
-    conversionRatio: 0.5, // 1 PaySphere point = 0.5 Skywards miles
+    conversionRatio: 0.5,
     category: "flights",
     membershipDetails: {
       membershipNumber: "EK123456789",
@@ -56,7 +55,7 @@ const mockPartners: LoyaltyPartner[] = [
     id: "marriott",
     name: "Marriott Bonvoy",
     type: "hotel",
-    conversionRatio: 0.3, // 1 PaySphere point = 0.3 Bonvoy points
+    conversionRatio: 0.3,
     category: "hotels",
     membershipDetails: {
       membershipNumber: "MB987654321",
@@ -190,9 +189,8 @@ const RedemptionFlow: React.FC = () => {
   const [selectedPartner, setSelectedPartner] = useState<LoyaltyPartner | null>(null);
   const [pointsError, setPointsError] = useState<string | null>(null);
   
-  const availablePoints = 24530; // This would come from your app state or API
-  
-  // Find the category and item based on URL parameters
+  const availablePoints = 24530;
+
   useEffect(() => {
     if (categoryId) {
       const foundCategory = redemptionCategories.find(cat => cat.id === categoryId);
@@ -203,11 +201,9 @@ const RedemptionFlow: React.FC = () => {
           const foundItem = foundCategory.items.find(item => item.id === itemId);
           if (foundItem) {
             setItem(foundItem);
-            // Default redemption to minimum points needed
             setPointsToRedeem(foundItem.pointsCost || foundCategory.pointsNeeded);
           }
         } else if (foundCategory.items.length > 0) {
-          // If no itemId is provided, use the first item in the category
           setItem(foundCategory.items[0]);
           setPointsToRedeem(foundCategory.items[0].pointsCost || foundCategory.pointsNeeded);
         }
@@ -215,10 +211,8 @@ const RedemptionFlow: React.FC = () => {
     }
   }, [categoryId, itemId]);
   
-  // Filter partners by category
   useEffect(() => {
     if (category) {
-      // Find partners that are relevant to this category
       const relevantPartners = mockPartners.filter(partner => partner.category === category.id);
       if (relevantPartners.length > 0) {
         setPartners(relevantPartners);
@@ -232,7 +226,6 @@ const RedemptionFlow: React.FC = () => {
     if (!isNaN(value)) {
       setPointsToRedeem(value);
       
-      // Validate minimum points
       if (item && value < item.pointsCost) {
         setPointsError(`Minimum should be ${item.pointsCost.toLocaleString()} points`);
       } else {
@@ -245,7 +238,6 @@ const RedemptionFlow: React.FC = () => {
     const partner = partners.find(p => p.id === partnerId);
     if (partner) {
       setSelectedPartner(partner);
-      // Automatically proceed to the next step when a partner is selected
       handleNextStep();
     }
   };
@@ -272,7 +264,6 @@ const RedemptionFlow: React.FC = () => {
     
     setIsSubmitting(true);
     
-    // Simulate API call
     setTimeout(() => {
       toast.success(`Successfully redeemed ${pointsToRedeem} points for ${selectedPartner?.name}`);
       setIsSubmitting(false);
@@ -288,7 +279,6 @@ const RedemptionFlow: React.FC = () => {
     );
   }
   
-  // Calculate converted points
   const getConvertedPoints = () => {
     if (selectedPartner) {
       return Math.floor(pointsToRedeem * selectedPartner.conversionRatio);
@@ -390,13 +380,13 @@ const RedemptionFlow: React.FC = () => {
           
           {step === 2 && (
             <div className="space-y-6">
-              <div>
-                <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
-                
+              <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {selectedPartner && (
-                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border mb-5">
+                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border">
                     <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                       <div>
                         <Label className="text-xs text-muted-foreground">Membership Number</Label>
                         <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
@@ -417,7 +407,7 @@ const RedemptionFlow: React.FC = () => {
                   </div>
                 )}
                 
-                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border mb-6">
+                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border">
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <div className="text-sm text-muted-foreground">Your Available Points</div>
@@ -431,74 +421,74 @@ const RedemptionFlow: React.FC = () => {
                   
                   <Progress value={(availablePoints / 30000) * 100} className="h-2 mb-2" />
                 </div>
+              </div>
                 
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
-                      Points to Redeem
-                    </Label>
-                    <div className="flex items-center mt-2 space-x-3">
-                      <div className="relative w-64">
-                        <Input 
-                          id="pointsToRedeem" 
-                          type="number" 
-                          value={pointsToRedeem}
-                          onChange={handlePointsChange}
-                          min={item.pointsCost}
-                          max={availablePoints}
-                          className="text-left pr-12 h-10"
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                          pts
-                        </div>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
+                    Points to Redeem
+                  </Label>
+                  <div className="flex items-center mt-2 space-x-3">
+                    <div className="relative w-64">
+                      <Input 
+                        id="pointsToRedeem" 
+                        type="number" 
+                        value={pointsToRedeem}
+                        onChange={handlePointsChange}
+                        min={item.pointsCost}
+                        max={availablePoints}
+                        className="text-left pr-12 h-10"
+                      />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                        pts
                       </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setPointsToRedeem(availablePoints);
-                          setPointsError(null);
-                        }}
-                        className="h-10"
-                      >
-                        Max
-                      </Button>
                     </div>
-                    {pointsError && (
-                      <p className="text-destructive text-sm mt-2">
-                        {pointsError}
-                      </p>
-                    )}
-                    {pointsToRedeem > availablePoints && (
-                      <p className="text-destructive text-sm mt-2">
-                        You don't have enough points
-                      </p>
-                    )}
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setPointsToRedeem(availablePoints);
+                        setPointsError(null);
+                      }}
+                      className="h-10"
+                    >
+                      Max
+                    </Button>
+                  </div>
+                  {pointsError && (
+                    <p className="text-destructive text-sm mt-2">
+                      {pointsError}
+                    </p>
+                  )}
+                  {pointsToRedeem > availablePoints && (
+                    <p className="text-destructive text-sm mt-2">
+                      You don't have enough points
+                    </p>
+                  )}
+                </div>
+                
+                <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
+                  <div className="p-4 border-b bg-white/50 dark:bg-black/10">
+                    <h4 className="font-medium">Conversion Preview</h4>
                   </div>
                   
-                  <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
-                    <div className="p-4 border-b bg-white/50 dark:bg-black/10">
-                      <h4 className="font-medium">Conversion Preview</h4>
+                  <div className="flex items-center justify-center gap-10 p-6">
+                    <div className="text-center">
+                      <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
                     </div>
-                    
-                    <div className="flex items-center justify-center gap-10 p-6">
-                      <div className="text-center">
-                        <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
-                        <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
-                      </div>
-                      <div className="text-primary">
-                        <ArrowRight className="h-8 w-8" />
-                      </div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                          {getConvertedPoints().toLocaleString()}
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
-                      </div>
+                    <div className="text-primary">
+                      <ArrowRight className="h-8 w-8" />
                     </div>
-                    
-                    <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
-                      Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
+                    <div className="text-center">
+                      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                        {getConvertedPoints().toLocaleString()}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
                     </div>
+                  </div>
+                  
+                  <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
+                    Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
                   </div>
                 </div>
               </div>
