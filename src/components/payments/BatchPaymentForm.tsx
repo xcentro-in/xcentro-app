@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -236,12 +235,15 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             name: `Multiple Payees (${selectedRows.length})`,
             email: "",
             contactNumber: "",
-            type: "payroll", // Changed from "batch" to "payroll" to match allowed types
+            type: "payroll",
             bankName: "Multiple Banks",
             accountNumber: "Multiple Accounts",
             ifscCode: "",
             createdAt: new Date().toISOString(),
-            isDefault: false
+            isDefault: false,
+            salaryAmount: totalSelectedAmount,
+            salaryType: "fixed",
+            payrollCycle: "monthly"
           }}
           paymentMethod={paymentMethod}
           platformFee={platformFee}
