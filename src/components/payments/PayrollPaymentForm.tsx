@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Upload, Loader2, ArrowRight, Users } from "lucide-react";
 import ManualPayrollForm from "../payees/forms/components/ManualPayrollForm";
 import BulkUploadPayrollForm from "../payees/forms/components/BulkUploadPayrollForm";
 import PaymentMethodStep from "./PaymentMethodStep";
-import { PaymentSummary } from "./PaymentSummary";
+import { TransactionSummary } from "./common/TransactionSummary";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import ExistingEmployeesPayment from "./payroll/ExistingEmployeesPayment";
 
@@ -20,7 +19,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
   
-  // Mock employee data for bulk upload (in a real app, this would come from the actual upload)
   const mockEmployees = [
     {
       id: "emp-001",
@@ -69,25 +67,21 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     }
   ];
   
-  // Handle the completion of the payroll details form (manual or bulk)
   const handleDetailsComplete = (selectedEmps = []) => {
     setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
-    onStepChange(2); // Update the progress indicator
+    onStepChange(2);
   };
   
-  // Handle payment method selection
   const handlePaymentMethodSelected = (methodId: string) => {
     setSelectedPaymentMethod(methodId);
   };
   
-  // Move to the review step
   const handleGoToReview = () => {
     setCurrentStep('review');
-    onStepChange(3); // Update the progress indicator
+    onStepChange(3);
   };
   
-  // Go back to the previous step
   const handleBack = () => {
     if (currentStep === 'payment') {
       setCurrentStep('details');
@@ -102,7 +96,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     }
   };
   
-  // Render the entry method selection screen
   if (currentStep === 'selection') {
     return (
       <div className="space-y-6">
@@ -187,7 +180,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     );
   }
 
-  // Render the payment details form
   if (currentStep === 'details') {
     return (
       <>
@@ -218,7 +210,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     );
   }
   
-  // Render the payment method selection step
   if (currentStep === 'payment') {
     return (
       <PaymentMethodStep 
@@ -230,9 +221,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     );
   }
   
-  // Render the review step
   if (currentStep === 'review') {
-    // Find the selected payment method from the mock data
     const paymentMethod = mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
     
     const employeesToProcess = entryMethod === "existing" 
@@ -242,7 +231,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         : [];
 
     return (
-      <PaymentSummary
+      <TransactionSummary
         paymentType="now"
         amount={entryMethod === "manual" 
           ? 15000 
@@ -281,7 +270,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     );
   }
   
-  // Fallback (shouldn't reach here with proper state management)
   return null;
 };
 

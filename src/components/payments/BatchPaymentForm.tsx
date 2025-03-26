@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import PaymentMethodSelector from "./PaymentMethodSelector";
-import { PaymentSummary } from "./PaymentSummary";
+import { TransactionSummary } from "./common/TransactionSummary";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 
 interface BatchPaymentFormProps {
@@ -33,7 +33,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
 
-  // Sample payment data
   const paymentRows: PaymentRow[] = [
     {
       id: "1",
@@ -65,7 +64,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     onStepChange(prevStep);
   };
 
-  // Handle checkbox selection for all rows
   const handleSelectAll = () => {
     if (selectedRows.length === paymentRows.length) {
       setSelectedRows([]);
@@ -74,7 +72,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     }
   };
 
-  // Handle individual row selection
   const handleSelectRow = (id: string) => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id));
@@ -83,25 +80,21 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     }
   };
 
-  // Calculate total amount of selected rows
   const totalSelectedAmount = useMemo(() => {
     return paymentRows
       .filter(row => selectedRows.includes(row.id))
       .reduce((sum, row) => sum + row.amount, 0);
   }, [selectedRows, paymentRows]);
 
-  // Get the selected payment method details
   const paymentMethod = useMemo(() => {
     return mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
   }, [selectedPaymentMethod]);
 
-  // Calculate fees based on total amount
   const platformFee = useMemo(() => totalSelectedAmount * 0.01, [totalSelectedAmount]);
   const gatewayFee = useMemo(() => totalSelectedAmount * 0.005, [totalSelectedAmount]);
   const totalPayable = useMemo(() => totalSelectedAmount + platformFee + gatewayFee, [totalSelectedAmount, platformFee, gatewayFee]);
   const rewardPoints = useMemo(() => Math.floor(totalSelectedAmount / 10), [totalSelectedAmount]);
 
-  // Get selected payment rows
   const selectedPaymentDetails = useMemo(() => {
     return paymentRows.filter(row => selectedRows.includes(row.id));
   }, [selectedRows, paymentRows]);
@@ -225,7 +218,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       )}
 
       {step === 4 && (
-        <PaymentSummary
+        <TransactionSummary
           paymentType="now"
           amount={totalSelectedAmount}
           description="Batch Payment"
