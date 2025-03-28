@@ -26,7 +26,7 @@ export const PayeeSection = ({
   const isBulkPayment = isPayroll && employees.length > 0;
 
   return (
-    <TransactionDetailCard title="Payee Information" className="mt-4">
+    <TransactionDetailCard title="Payee Information" className="h-full">
       {payee ? (
         <div 
           className={`flex items-start gap-3 p-2 ${isBulkPayment ? "cursor-pointer hover:bg-muted/50 rounded-md" : ""}`}

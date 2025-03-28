@@ -35,7 +35,7 @@ const PaymentMethodStep = ({
         selectedMethodId={selectedMethod || undefined}
       />
       
-      <div className="pt-4 flex justify-between gap-3">
+      <div className="flex justify-between mt-6">
         <Button 
           variant="outline" 
           onClick={onBack}
