@@ -81,6 +81,7 @@ export default function UploadBillTab({ onUpload, onUseQuickPay }: UploadBillTab
           <Button 
             variant="outline" 
             onClick={onUseQuickPay}
+            className="w-auto"
           >
             Use Quick Pay Instead
           </Button>
@@ -88,6 +89,7 @@ export default function UploadBillTab({ onUpload, onUseQuickPay }: UploadBillTab
           <Button 
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
+            className="w-auto"
           >
             {isUploading ? "Processing..." : "Upload & Extract Data"}
           </Button>

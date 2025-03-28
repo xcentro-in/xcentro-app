@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -137,10 +136,11 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
             <>Select employees to proceed</>
           )}
         </div>
-        <div className="flex gap-3">
+        <div>
           <Button 
             onClick={handleSubmit} 
             disabled={selectedEmployees.length === 0}
+            className="w-auto"
           >
             Continue to Payment Method
           </Button>

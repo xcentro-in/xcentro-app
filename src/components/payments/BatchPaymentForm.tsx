@@ -124,9 +124,11 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             Enter Payments Manually
           </Button>
 
-          <Button onClick={handleNext} className="w-full">
-            Continue
-          </Button>
+          <div className="flex justify-end">
+            <Button onClick={handleNext} className="w-auto">
+              Continue
+            </Button>
+          </div>
         </div>
       )}
 
@@ -180,13 +182,13 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleBack} className="flex-1">
+          <div className="flex justify-between gap-3">
+            <Button variant="outline" onClick={handleBack} className="w-auto">
               Back
             </Button>
             <Button 
               onClick={handleNext} 
-              className="flex-1"
+              className="w-auto"
               disabled={selectedRows.length === 0}
             >
               Continue to Payment Methods
@@ -204,11 +206,11 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             selectedMethodId={selectedPaymentMethod}
           />
 
-          <div className="flex gap-3 mt-6">
-            <Button variant="outline" onClick={handleBack} className="flex-1">Back</Button>
+          <div className="flex justify-between gap-3 mt-6">
+            <Button variant="outline" onClick={handleBack} className="w-auto">Back</Button>
             <Button 
               onClick={handleNext} 
-              className="flex-1"
+              className="w-auto"
               disabled={!selectedPaymentMethod}
             >
               Review Payment

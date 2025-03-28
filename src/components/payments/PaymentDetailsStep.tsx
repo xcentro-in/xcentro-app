@@ -174,7 +174,7 @@ export const PaymentDetailsStep = ({
       </div>
 
       <div className="flex justify-end pt-4 w-full">
-        <Button onClick={onNext}>Continue to Payee Selection</Button>
+        <Button onClick={onNext} className="w-auto">Continue to Payee Selection</Button>
       </div>
     </div>
   );
