@@ -6,7 +6,6 @@ import UploadInvoiceStep from "@/components/invoice/UploadInvoiceStep";
 import ReviewInvoiceStep from "@/components/invoice/ReviewInvoiceStep";
 import PaymentMethodStep from "@/components/invoice/PaymentMethodStep";
 import PaymentConfirmationStep from "@/components/invoice/PaymentConfirmationStep";
-import { Progress } from "@/components/ui/progress";
 
 const PayInvoice = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,13 +13,6 @@ const PayInvoice = () => {
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [ocrProgress, setOcrProgress] = useState<OCRProgress>({ status: 'idle' });
-  
-  const steps = [
-    "Upload Invoice",
-    "Review Details",
-    "Payment method",
-    "Confirmation"
-  ];
   
   const handleUploadComplete = (file: File, details: InvoiceDetails) => {
     setInvoiceFile(file);
@@ -50,59 +42,40 @@ const PayInvoice = () => {
   };
   
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Pay Invoice</h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Upload and pay your vendor invoices quickly and securely
-        </p>
-      </div>
+    <div>
+      {currentStep === 1 && (
+        <UploadInvoiceStep 
+          onUploadComplete={handleUploadComplete} 
+          ocrProgress={ocrProgress}
+          setOcrProgress={setOcrProgress}
+        />
+      )}
       
-      <Card className="animate-scale-in">
-        <CardContent className="pt-6">
-          <div className="mb-8">
-            <Progress 
-              showMilestones={true} 
-              milestones={steps} 
-              currentStep={currentStep}
-            />
-          </div>
-          
-          {currentStep === 1 && (
-            <UploadInvoiceStep 
-              onUploadComplete={handleUploadComplete} 
-              ocrProgress={ocrProgress}
-              setOcrProgress={setOcrProgress}
-            />
-          )}
-          
-          {currentStep === 2 && invoiceDetails && (
-            <ReviewInvoiceStep 
-              invoiceDetails={invoiceDetails} 
-              onConfirm={handleDetailsConfirmed}
-              onBack={handleBack}
-              invoiceFile={invoiceFile}
-            />
-          )}
-          
-          {currentStep === 3 && invoiceDetails && (
-            <PaymentMethodStep 
-              invoiceDetails={invoiceDetails}
-              onSelect={handlePaymentMethodSelected}
-              onBack={handleBack}
-            />
-          )}
-          
-          {currentStep === 4 && invoiceDetails && selectedPaymentMethod && (
-            <PaymentConfirmationStep 
-              invoiceDetails={invoiceDetails}
-              paymentMethodId={selectedPaymentMethod}
-              onConfirm={handlePaymentConfirmed}
-              onBack={handleBack}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {currentStep === 2 && invoiceDetails && (
+        <ReviewInvoiceStep 
+          invoiceDetails={invoiceDetails} 
+          onConfirm={handleDetailsConfirmed}
+          onBack={handleBack}
+          invoiceFile={invoiceFile}
+        />
+      )}
+      
+      {currentStep === 3 && invoiceDetails && (
+        <PaymentMethodStep 
+          invoiceDetails={invoiceDetails}
+          onSelect={handlePaymentMethodSelected}
+          onBack={handleBack}
+        />
+      )}
+      
+      {currentStep === 4 && invoiceDetails && selectedPaymentMethod && (
+        <PaymentConfirmationStep 
+          invoiceDetails={invoiceDetails}
+          paymentMethodId={selectedPaymentMethod}
+          onConfirm={handlePaymentConfirmed}
+          onBack={handleBack}
+        />
+      )}
     </div>
   );
 };

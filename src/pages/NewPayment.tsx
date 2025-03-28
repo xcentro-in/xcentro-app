@@ -24,6 +24,26 @@ const steps = {
   invoice: ["Upload Invoice", "Review Details", "Payment method", "Confirmation"]
 };
 
+const paymentTitles = {
+  selection: "New Payment",
+  single: "Single Payment",
+  batch: "Batch Payment",
+  gst: "GST Payment",
+  creditcard: "Credit Card Bill Payment",
+  payroll: "Payroll Payment",
+  invoice: "Pay Invoice"
+};
+
+const paymentSubtitles = {
+  selection: "Create a new payment transaction",
+  single: "Make a one-time payment to a payee",
+  batch: "Pay multiple vendors at once",
+  gst: "Pay your GST taxes",
+  creditcard: "Pay your credit card bills",
+  payroll: "Process payroll for your employees",
+  invoice: "Upload and pay vendor invoices"
+};
+
 const NewPayment = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,11 +82,13 @@ const NewPayment = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">New Payment</h1>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
+            {paymentTitles[paymentCategory]}
+          </h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{
             animationDelay: "50ms"
           }}>
-            Create a new payment transaction
+            {paymentSubtitles[paymentCategory]}
           </p>
         </div>
         
