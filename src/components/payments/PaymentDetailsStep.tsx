@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export type PaymentType = "now" | "later" | "recurring";
 
@@ -43,19 +44,27 @@ export const PaymentDetailsStep = ({
   onNext,
 }: PaymentDetailsStepProps) => {
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Payment Type</Label>
-        <Select value={paymentType} onValueChange={(value: PaymentType) => onPaymentTypeChange(value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select payment type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="now">Pay Now</SelectItem>
-            <SelectItem value="later">Pay Later</SelectItem>
-            <SelectItem value="recurring">Recurring Payment</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-6 max-w-2xl mx-auto">
+      <div className="space-y-3">
+        <Label className="text-base">Payment Type</Label>
+        <RadioGroup 
+          value={paymentType} 
+          onValueChange={(value: PaymentType) => onPaymentTypeChange(value)}
+          className="flex flex-col space-y-2"
+        >
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="now" id="pay-now" />
+            <Label htmlFor="pay-now" className="cursor-pointer">Pay Now</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="later" id="pay-later" />
+            <Label htmlFor="pay-later" className="cursor-pointer">Pay Later</Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="recurring" id="pay-recurring" />
+            <Label htmlFor="pay-recurring" className="cursor-pointer">Recurring Payment</Label>
+          </div>
+        </RadioGroup>
       </div>
 
       {paymentType === "later" && (
@@ -66,7 +75,7 @@ export const PaymentDetailsStep = ({
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
+                  "w-auto min-w-[240px] justify-start text-left font-normal",
                   !scheduledDate && "text-muted-foreground"
                 )}
               >
@@ -90,8 +99,8 @@ export const PaymentDetailsStep = ({
       {paymentType === "recurring" && (
         <div className="space-y-2">
           <Label>Frequency & Start Date</Label>
-          <div className="flex gap-2">
-            <div className="flex-1">
+          <div className="flex gap-4 flex-wrap">
+            <div className="w-[180px]">
               <Select value={frequency} onValueChange={onFrequencyChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select frequency" />
@@ -104,13 +113,13 @@ export const PaymentDetailsStep = ({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex-1">
+            <div>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-auto min-w-[180px] justify-start text-left font-normal",
                       !scheduledDate && "text-muted-foreground"
                     )}
                   >
@@ -140,6 +149,7 @@ export const PaymentDetailsStep = ({
           placeholder="Enter amount" 
           value={amount}
           onChange={(e) => onAmountChange(e.target.value)}
+          className="max-w-[240px]"
         />
       </div>
 
@@ -149,6 +159,7 @@ export const PaymentDetailsStep = ({
           placeholder="What is this payment for?" 
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
+          className="max-w-sm"
         />
       </div>
 
@@ -158,10 +169,13 @@ export const PaymentDetailsStep = ({
           placeholder="Enter invoice reference" 
           value={invoiceReference}
           onChange={(e) => onInvoiceReferenceChange(e.target.value)}
+          className="max-w-sm"
         />
       </div>
 
-      <Button onClick={onNext} className="w-full">Continue to Payee Selection</Button>
+      <div className="flex justify-end pt-4">
+        <Button onClick={onNext}>Continue to Payee Selection</Button>
+      </div>
     </div>
   );
 };
