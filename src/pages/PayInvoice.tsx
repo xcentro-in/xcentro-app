@@ -18,11 +18,9 @@ const PayInvoice = () => {
   const steps = [
     "Upload Invoice",
     "Review Details",
-    "Payment Method",
+    "Payment method",
     "Confirmation"
   ];
-  
-  const progress = ((currentStep - 1) / (steps.length - 1)) * 100;
   
   const handleUploadComplete = (file: File, details: InvoiceDetails) => {
     setInvoiceFile(file);
@@ -63,16 +61,10 @@ const PayInvoice = () => {
       <Card className="animate-scale-in">
         <CardContent className="pt-6">
           <div className="mb-8">
-            <div className="flex justify-between text-sm mb-2">
-              <span>Step {currentStep} of {steps.length}</span>
-              <span className="text-muted-foreground">{Math.round(progress)}% Complete</span>
-            </div>
             <Progress 
-              value={progress} 
-              className="h-2" 
               showMilestones={true} 
               milestones={steps} 
-              currentStep={currentStep - 1}
+              currentStep={currentStep}
             />
           </div>
           
