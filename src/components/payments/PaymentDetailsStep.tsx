@@ -44,7 +44,7 @@ export const PaymentDetailsStep = ({
   onNext,
 }: PaymentDetailsStepProps) => {
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-2xl ml-0">
       <div className="space-y-3">
         <Label className="text-base">Payment Type</Label>
         <RadioGroup 
@@ -173,7 +173,7 @@ export const PaymentDetailsStep = ({
         />
       </div>
 
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-4 w-full">
         <Button onClick={onNext}>Continue to Payee Selection</Button>
       </div>
     </div>
