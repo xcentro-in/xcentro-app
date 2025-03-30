@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Building, Check, Upload, FileText } from "lucide-react";
@@ -12,6 +13,7 @@ import BusinessReviewForm from "@/components/business/BusinessReviewForm";
 type BusinessFormData = {
   name: string;
   pan: string;
+  gstin?: string;
   type: string;
   model: string;
   turnover: string;
@@ -24,6 +26,7 @@ type BusinessFormData = {
 const initialFormData: BusinessFormData = {
   name: "",
   pan: "",
+  gstin: "",
   type: "",
   model: "",
   turnover: "",

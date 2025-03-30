@@ -11,6 +11,7 @@ interface BusinessBasicInfoFormProps {
   formData: {
     name: string;
     pan: string;
+    gstin?: string;
   };
   updateFormData: (field: string, value: any) => void;
 }
@@ -20,6 +21,9 @@ const formSchema = z.object({
   pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { 
     message: "PAN must be in the format ABCDE1234F." 
   }),
+  gstin: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/, {
+    message: "GSTIN must be in the format 29ABCDE1234F1Z2."
+  }).optional().or(z.literal('')),
 });
 
 const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFormProps) => {
@@ -28,6 +32,7 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
     defaultValues: {
       name: formData.name || "",
       pan: formData.pan || "",
+      gstin: formData.gstin || "",
     },
   });
 
@@ -40,6 +45,7 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
     const subscription = form.watch((value) => {
       if (value.name !== undefined) updateFormData("name", value.name);
       if (value.pan !== undefined) updateFormData("pan", value.pan);
+      if (value.gstin !== undefined) updateFormData("gstin", value.gstin);
     });
     return () => subscription.unsubscribe();
   }, [form.watch, updateFormData]);
@@ -81,6 +87,27 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
                 <FormControl>
                   <Input 
                     placeholder="ABCDE1234F" 
+                    {...field} 
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase();
+                      field.onChange(value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="gstin"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>GSTIN (optional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="29ABCDE1234F1Z2" 
                     {...field} 
                     onChange={(e) => {
                       const value = e.target.value.toUpperCase();
