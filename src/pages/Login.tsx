@@ -46,11 +46,11 @@ const Login = () => {
           <div className="flex justify-center mb-4">
             <img 
               src="/placeholder.svg" 
-              alt="PayStrive Logo" 
+              alt="PaySphere Logo" 
               className="h-12 w-auto" 
             />
           </div>
-          <h1 className="text-2xl font-bold">Welcome to PayStrive</h1>
+          <h1 className="text-2xl font-bold">Welcome to PaySphere</h1>
           <p className="text-sm text-muted-foreground">
             Enter your credentials to access your account
           </p>

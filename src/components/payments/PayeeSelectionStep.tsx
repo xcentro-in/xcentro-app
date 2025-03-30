@@ -28,9 +28,9 @@ const PayeeSelectionStep = ({
         toggleFavorite={toggleFavorite}
       />
 
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onBack} className="flex-1">Back</Button>
-        <Button onClick={onNext} className="flex-1" disabled={!selectedPayee}>Continue to Payment Method</Button>
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={onBack} className="w-auto">Back</Button>
+        <Button onClick={onNext} className="w-auto" disabled={!selectedPayee}>Continue to Payment Method</Button>
       </div>
     </div>
   );

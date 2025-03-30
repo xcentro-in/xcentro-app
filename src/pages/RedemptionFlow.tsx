@@ -1,18 +1,16 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeftIcon, ArrowRight, Check, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useForm } from "react-hook-form";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
 import { RedemptionCategory, RedemptionItem, LoyaltyPartner } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
+import RedemptionHeader from "@/components/redemption/RedemptionHeader";
+import ProgressSteps from "@/components/redemption/ProgressSteps";
+import PartnerSelectionStep from "@/components/redemption/PartnerSelectionStep";
+import PointsRedemptionStep from "@/components/redemption/PointsRedemptionStep";
+import ConfirmationStep from "@/components/redemption/ConfirmationStep";
+import FooterActions from "@/components/redemption/FooterActions";
 
 const mockPartners: LoyaltyPartner[] = [
   {
@@ -161,21 +159,6 @@ const mockPartners: LoyaltyPartner[] = [
   }
 ];
 
-const getPartnerIcon = (type: string): string => {
-  switch (type) {
-    case 'airline':
-      return 'https://images.unsplash.com/photo-1487887235947-a955ef187fcc?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
-    case 'hotel':
-      return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
-    case 'car':
-      return 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
-    case 'event':
-      return 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
-    default:
-      return 'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80';
-  }
-};
-
 const RedemptionFlow: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId, itemId } = useParams<{ categoryId: string; itemId: string }>();
@@ -187,7 +170,6 @@ const RedemptionFlow: React.FC = () => {
   const [item, setItem] = useState<RedemptionItem | null>(null);
   const [partners, setPartners] = useState<LoyaltyPartner[]>([]);
   const [selectedPartner, setSelectedPartner] = useState<LoyaltyPartner | null>(null);
-  const [pointsError, setPointsError] = useState<string | null>(null);
   
   const availablePoints = 24530;
 
@@ -220,19 +202,6 @@ const RedemptionFlow: React.FC = () => {
       }
     }
   }, [category]);
-  
-  const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    if (!isNaN(value)) {
-      setPointsToRedeem(value);
-      
-      if (item && value < item.pointsCost) {
-        setPointsError(`Minimum should be ${item.pointsCost.toLocaleString()} points`);
-      } else {
-        setPointsError(null);
-      }
-    }
-  };
   
   const handlePartnerSelect = (partnerId: string) => {
     const partner = partners.find(p => p.id === partnerId);
@@ -278,319 +247,58 @@ const RedemptionFlow: React.FC = () => {
       </div>
     );
   }
-  
-  const getConvertedPoints = () => {
-    if (selectedPartner) {
-      return Math.floor(pointsToRedeem * selectedPartner.conversionRatio);
-    }
-    return 0;
-  };
 
   return (
     <div className="space-y-8">
-      <div>
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
-          onClick={handlePreviousStep}
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-2" /> 
-          {step > 1 ? "Previous Step" : "Back to Rewards"}
-        </Button>
-        
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Redeem Your Points
-        </h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Convert your PaySphere points to premium rewards
-        </p>
-      </div>
+      <RedemptionHeader 
+        title="Redeem Your Points" 
+        description="Convert your PaySphere points to premium rewards" 
+      />
       
-      <div className="w-full mb-8">
-        <div className="flex justify-between mb-2">
-          {["Select Partner", "Redeem Points", "Confirm Redemption"].map((stepName, idx) => (
-            <div 
-              key={stepName} 
-              className={`flex items-center ${idx + 1 === step ? "text-primary font-medium" : "text-muted-foreground"}`}
-            >
-              <div className={`h-8 w-8 rounded-full flex items-center justify-center mr-2 
-                ${idx + 1 === step ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" : 
-                  idx + 1 < step ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                {idx + 1 < step ? <Check className="h-4 w-4" /> : idx + 1}
-              </div>
-              <span className="hidden sm:inline">{stepName}</span>
-            </div>
-          ))}
-        </div>
-        <Progress value={(step / 3) * 100} className="h-2" />
-      </div>
+      <ProgressSteps step={step} />
       
       <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
-        
-        
         <CardContent className="space-y-6 p-6">
           {step === 1 && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium text-lg mb-4">Select Your Loyalty Program</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {partners.length > 0 ? (
-                    partners.map(partner => (
-                      <div 
-                        key={partner.id} 
-                        className="group relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
-                        onClick={() => handlePartnerSelect(partner.id)}
-                      >
-                        <div className="h-44 relative overflow-hidden">
-                          <img 
-                            src={getPartnerIcon(partner.type)} 
-                            alt={partner.name} 
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                        </div>
-                        
-                        <div className="p-3 bg-white dark:bg-slate-800">
-                        <div className="font-bold text-lg">{partner.name}</div>
-                        <div className="text-xs text-muted-foreground truncate">
-                            {partner.membershipDetails?.membershipNumber || "Not linked"}
-                          </div>
-                        </div>
-                        
-                        <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="bg-white/90 dark:bg-slate-800/90 rounded-full p-3 shadow-lg transform scale-75 group-hover:scale-100 transition-transform duration-300">
-                            <ArrowRight className="h-5 w-5 text-primary" />
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-center p-8 border border-dashed rounded-md col-span-3">
-                      <p className="text-muted-foreground mb-2">No linked loyalty programs found</p>
-                      <Button onClick={() => navigate("/settings")}>
-                        Set Up Partners in Settings
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <PartnerSelectionStep 
+              partners={partners} 
+              onPartnerSelect={handlePartnerSelect} 
+            />
           )}
           
           {step === 2 && (
-            <div className="space-y-6">
-              <h3 className="font-medium text-lg mb-4">Redeem Points</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {selectedPartner && (
-                  <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border">
-                    <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Membership Number</Label>
-                        <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Registered Name</Label>
-                        <p className="font-medium">{selectedPartner.membershipDetails?.registeredName || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Registered Email</Label>
-                        <p className="font-medium">{selectedPartner.membershipDetails?.email || "Not provided"}</p>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Conversion Rate</Label>
-                        <p className="font-medium">1:{selectedPartner.conversionRatio}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 p-5 rounded-lg border">
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <div className="text-sm text-muted-foreground">Your Available Points</div>
-                      <div className="text-2xl font-bold">{availablePoints.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Minimum Required</div>
-                      <div className="text-xl font-medium">{item.pointsCost.toLocaleString()}</div>
-                    </div>
-                  </div>
-                  
-                  <Progress value={(availablePoints / 30000) * 100} className="h-2 mb-2" />
-                </div>
-              </div>
-                
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="pointsToRedeem" className="text-base font-medium block">
-                    Points to Redeem
-                  </Label>
-                  <div className="flex items-center mt-2 space-x-3">
-                    <div className="relative w-64">
-                      <Input 
-                        id="pointsToRedeem" 
-                        type="number" 
-                        value={pointsToRedeem}
-                        onChange={handlePointsChange}
-                        min={item.pointsCost}
-                        max={availablePoints}
-                        className="text-left pr-12 h-10"
-                      />
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                        pts
-                      </div>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setPointsToRedeem(availablePoints);
-                        setPointsError(null);
-                      }}
-                      className="h-10"
-                    >
-                      Max
-                    </Button>
-                  </div>
-                  {pointsError && (
-                    <p className="text-destructive text-sm mt-2">
-                      {pointsError}
-                    </p>
-                  )}
-                  {pointsToRedeem > availablePoints && (
-                    <p className="text-destructive text-sm mt-2">
-                      You don't have enough points
-                    </p>
-                  )}
-                </div>
-                
-                <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border overflow-hidden mt-6">
-                  <div className="p-4 border-b bg-white/50 dark:bg-black/10">
-                    <h4 className="font-medium">Conversion Preview</h4>
-                  </div>
-                  
-                  <div className="flex items-center justify-center gap-10 p-6">
-                    <div className="text-center">
-                      <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
-                      <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
-                    </div>
-                    <div className="text-primary">
-                      <ArrowRight className="h-8 w-8" />
-                    </div>
-                    <div className="text-center">
-                      <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        {getConvertedPoints().toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground mt-1">{selectedPartner?.name} Points</div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
-                    Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PointsRedemptionStep 
+              selectedPartner={selectedPartner}
+              item={item}
+              availablePoints={availablePoints}
+              pointsToRedeem={pointsToRedeem}
+              onPointsChange={setPointsToRedeem}
+            />
           )}
           
           {step === 3 && (
-            <div className="space-y-5">
-              <h3 className="font-medium text-lg mb-4">Confirm Your Redemption</h3>
-              
-              <div className="rounded-lg border overflow-hidden bg-white dark:bg-slate-800">
-                <div className="p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 border-b">
-                  <h4 className="font-medium">Redemption Summary</h4>
-                </div>
-                
-                <div className="p-5 space-y-4">
-                  <div className="flex justify-between pb-3 border-b">
-                    <span className="text-muted-foreground">Selected Partner</span>
-                    <span className="font-medium">{selectedPartner?.name}</span>
-                  </div>
-                  <div className="flex justify-between pb-3 border-b">
-                    <span className="text-muted-foreground">Membership Number</span>
-                    <span className="font-medium">{selectedPartner?.membershipDetails?.membershipNumber}</span>
-                  </div>
-                  <div className="flex justify-between pb-3 border-b">
-                    <span className="text-muted-foreground">Points to Redeem</span>
-                    <span className="font-medium">{pointsToRedeem.toLocaleString()} PaySphere Points</span>
-                  </div>
-                  <div className="flex justify-between pb-3 border-b">
-                    <span className="text-muted-foreground">You'll Receive</span>
-                    <span className="font-medium">{getConvertedPoints().toLocaleString()} {selectedPartner?.name} Points</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Remaining Balance</span>
-                    <span className="font-medium">{(availablePoints - pointsToRedeem).toLocaleString()} PaySphere Points</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-6 p-5 border rounded-lg bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20">
-                <div className="flex items-start space-x-3 mb-1">
-                  <Checkbox 
-                    id="terms" 
-                    checked={agreementChecked}
-                    onCheckedChange={(checked) => setAgreementChecked(checked as boolean)}
-                    className="mt-1"
-                  />
-                  <Label 
-                    htmlFor="terms" 
-                    className="text-base leading-relaxed cursor-pointer"
-                  >
-                    I understand that this conversion is final and cannot be reversed. Points will be 
-                    transferred to my loyalty account within 3-5 business days.
-                  </Label>
-                </div>
-                <div className={`ml-7 text-sm ${agreementChecked ? 'text-muted-foreground' : 'text-amber-600'}`}>
-                  Please check this box to proceed with your redemption
-                </div>
-              </div>
-            </div>
+            <ConfirmationStep 
+              selectedPartner={selectedPartner}
+              pointsToRedeem={pointsToRedeem}
+              availablePoints={availablePoints}
+              agreementChecked={agreementChecked}
+              onAgreementChange={setAgreementChecked}
+            />
           )}
         </CardContent>
         
-        <CardFooter className="flex justify-between p-6 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 border-t">
-          <Button 
-            variant="outline" 
-            onClick={handlePreviousStep}
-            className="border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800"
-          >
-            {step > 1 ? "Previous" : "Cancel"}
-          </Button>
-          
-          {step === 1 ? (
-            <div className="text-sm text-muted-foreground italic">
-              Click on a partner card to continue
-            </div>
-          ) : step < 3 ? (
-            <Button 
-              onClick={handleNextStep}
-              disabled={
-                (step === 2 && (pointsToRedeem < item.pointsCost || pointsToRedeem > availablePoints))
-              }
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[120px]"
-            >
-              Continue
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleSubmit}
-              disabled={!agreementChecked || isSubmitting || pointsToRedeem > availablePoints}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all min-w-[150px]"
-            >
-              {isSubmitting ? (
-                <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Processing
-                </>
-              ) : (
-                "Convert Points"
-              )}
-            </Button>
-          )}
+        <CardFooter>
+          <FooterActions 
+            step={step}
+            isSubmitting={isSubmitting}
+            agreementChecked={agreementChecked}
+            pointsToRedeem={pointsToRedeem}
+            availablePoints={availablePoints}
+            item={item}
+            onPrevious={handlePreviousStep}
+            onNext={handleNextStep}
+            onSubmit={handleSubmit}
+          />
         </CardFooter>
       </Card>
     </div>

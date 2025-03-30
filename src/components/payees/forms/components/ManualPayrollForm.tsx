@@ -132,7 +132,7 @@ const ManualPayrollForm = ({ onSubmit }: ManualPayrollFormProps) => {
       </Card>
       
       <div className="flex justify-end">
-        <Button type="submit" className="h-11">
+        <Button type="submit" className="w-auto h-11">
           Choose Payment Method
         </Button>
       </div>

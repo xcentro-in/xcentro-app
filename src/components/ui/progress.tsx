@@ -1,6 +1,7 @@
 
 import * as React from "react"
 import * as ProgressPrimitive from "@radix-ui/react-progress"
+import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -16,76 +17,75 @@ const Progress = React.forwardRef<
   React.ElementRef<typeof ProgressPrimitive.Root>,
   ProgressProps
 >(({ className, value, indicatorClassName, showMilestones, milestones = [], currentStep = 1, ...props }, ref) => (
-  <div className="space-y-2">
-    <ProgressPrimitive.Root
-      ref={ref}
-      className={cn(
-        "relative h-2 w-full overflow-hidden rounded-full bg-primary/10",
-        className
-      )}
-      {...props}
-    >
-      <ProgressPrimitive.Indicator
-        className={cn(
-          "h-full w-full flex-1 bg-primary transition-all",
-          indicatorClassName
-        )}
-        style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-      />
-      
-      {showMilestones && milestones.length > 0 && (
-        <div className="absolute inset-0 flex w-full justify-between px-[3px]">
-          {milestones.map((_, index) => {
-            const isCompleted = index + 1 <= currentStep;
+  <div className="w-full">
+    {showMilestones && milestones.length > 0 ? (
+      <div className="relative">
+        {/* Progress Line */}
+        <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200" />
+        
+        {/* Completed Progress */}
+        <div 
+          className="absolute top-4 left-0 h-0.5 bg-primary transition-all duration-300" 
+          style={{ 
+            width: `${((currentStep - 1) / (milestones.length - 1)) * 100}%`,
+            maxWidth: currentStep > 1 ? '100%' : '0%'
+          }} 
+        />
+        
+        {/* Milestones */}
+        <div className="flex justify-between">
+          {milestones.map((milestone, index) => {
+            const stepNumber = index + 1;
+            const isActive = stepNumber === currentStep;
+            const isCompleted = stepNumber < currentStep;
+            
             return (
-              <div 
-                key={index}
-                className={cn(
-                  "h-full w-1 rounded-full",
-                  index === 0 ? "hidden" : "",
-                  index === milestones.length - 1 ? "hidden" : "",
-                  isCompleted ? "bg-primary-foreground" : "bg-primary/30"
-                )}
-              />
+              <div key={index} className="flex flex-col items-center relative">
+                <div 
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full text-sm border z-10",
+                    isCompleted ? "bg-primary border-primary text-primary-foreground" : 
+                    isActive ? "border-primary text-primary bg-white" : 
+                    "bg-white border-gray-300 text-gray-500"
+                  )}
+                >
+                  {isCompleted ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    stepNumber
+                  )}
+                </div>
+                <span 
+                  className={cn(
+                    "mt-2 text-sm whitespace-nowrap",
+                    isActive ? "font-medium text-primary" : 
+                    isCompleted ? "text-primary" : "text-gray-500"
+                  )}
+                >
+                  {milestone}
+                </span>
+              </div>
             );
           })}
         </div>
-      )}
-    </ProgressPrimitive.Root>
-    
-    {showMilestones && milestones.length > 0 && (
-      <div className="flex w-full justify-between">
-        {milestones.map((milestone, index) => {
-          const isActive = index + 1 === currentStep;
-          const isCompleted = index + 1 < currentStep;
-          return (
-            <div 
-              key={index}
-              className="flex flex-col items-center"
-              style={{ width: `${100 / milestones.length}%` }}
-            >
-              <div 
-                className={cn(
-                  "flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium",
-                  isActive ? "bg-primary text-primary-foreground" : 
-                  isCompleted ? "bg-primary/80 text-primary-foreground" : "bg-muted text-muted-foreground"
-                )}
-              >
-                {index + 1}
-              </div>
-              <span 
-                className={cn(
-                  "mt-1 text-xs",
-                  isActive ? "font-medium text-foreground" : 
-                  isCompleted ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {milestone}
-              </span>
-            </div>
-          );
-        })}
       </div>
+    ) : (
+      <ProgressPrimitive.Root
+        ref={ref}
+        className={cn(
+          "relative h-1 w-full overflow-hidden bg-primary/10",
+          className
+        )}
+        {...props}
+      >
+        <ProgressPrimitive.Indicator
+          className={cn(
+            "h-full w-full flex-1 bg-primary transition-all",
+            indicatorClassName
+          )}
+          style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
+        />
+      </ProgressPrimitive.Root>
     )}
   </div>
 ))

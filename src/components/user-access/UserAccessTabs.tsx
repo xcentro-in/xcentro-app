@@ -1,13 +1,13 @@
 
-import { useState } from 'react';
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import UserList from './UserList';
-import PendingInvites from './PendingInvites';
-import InviteUserForm from './InviteUserForm';
-import { User, UserInvite } from '@/types/user';
-import { toast } from 'sonner';
-import { Shield, UserPlus, Clock } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { PlusCircle, Users, Clock } from "lucide-react";
+import { User, UserInvite } from "@/types/user";
+import UserList from "./UserList";
+import PendingInvites from "./PendingInvites";
+import InviteUserForm from "./InviteUserForm";
+import { toast } from "sonner";
 
 interface UserAccessTabsProps {
   users: User[];
@@ -15,116 +15,95 @@ interface UserAccessTabsProps {
 }
 
 const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
-  const [activeUsers, setActiveUsers] = useState<User[]>(users);
-  const [activePendingInvites, setActivePendingInvites] = useState<UserInvite[]>(pendingInvites);
+  const [showInviteForm, setShowInviteForm] = useState(false);
+
+  const handleInviteUser = () => {
+    setShowInviteForm(true);
+  };
+
+  const handleCancelInvite = () => {
+    setShowInviteForm(false);
+  };
+
+  const handleSubmitInvite = (data: any) => {
+    // In a real app, this would send the invite
+    console.log("Inviting user:", data);
+    toast.success(`Invitation sent to ${data.email}`);
+    setShowInviteForm(false);
+  };
 
   const handleEditUser = (user: User) => {
-    toast.info(`Editing user: ${user.name}`, {
-      description: "This functionality would open a modal to edit user details"
-    });
+    // In a real app, this would open a modal to edit the user
+    console.log("Edit user:", user);
+    toast.info(`Editing ${user.name}`);
   };
 
   const handleRevokeAccess = (userId: string) => {
-    const userToRevoke = activeUsers.find(u => u.id === userId);
-    if (userToRevoke) {
-      toast.success(`Access revoked for ${userToRevoke.name}`, {
-        description: "User will no longer be able to access the system"
-      });
-      
-      // Update user status to revoked in our local state
-      setActiveUsers(activeUsers.map(user => 
-        user.id === userId ? { ...user, status: 'revoked' } : user
-      ));
-    }
+    // In a real app, this would call an API to revoke access
+    console.log("Revoking access for user:", userId);
+    toast.success("User access has been revoked");
   };
 
-  const handleResendInvite = (inviteId: string) => {
-    const invite = activePendingInvites.find(i => i.id === inviteId);
-    if (invite) {
-      toast.success(`Invitation resent to ${invite.email}`, {
-        description: "A new invitation email has been sent"
-      });
-    }
+  const handleCancelInvitation = (inviteId: string) => {
+    // In a real app, this would call an API to cancel the invitation
+    console.log("Cancelling invitation:", inviteId);
+    toast.success("Invitation has been cancelled");
   };
 
-  const handleCancelInvite = (inviteId: string) => {
-    const invite = activePendingInvites.find(i => i.id === inviteId);
-    if (invite) {
-      toast.success(`Invitation to ${invite.email} cancelled`, {
-        description: "The invitation has been cancelled"
-      });
-      
-      // Remove the cancelled invite from our local state
-      setActivePendingInvites(activePendingInvites.filter(i => i.id !== inviteId));
-    }
-  };
-
-  const handleInviteSubmit = (values: any) => {
-    const newInvite: UserInvite = {
-      id: `invite-${Date.now()}`,
-      email: values.email,
-      role: values.role,
-      department: values.department,
-      invitedBy: "Current User",
-      invitedAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
-    };
-    
-    setActivePendingInvites([newInvite, ...activePendingInvites]);
-    toast.success(`Invitation sent to ${values.email}`, {
-      description: `They will receive an email with instructions to join as ${values.role}`
-    });
+  const handleResendInvitation = (inviteId: string) => {
+    // In a real app, this would call an API to resend the invitation
+    console.log("Resending invitation:", inviteId);
+    toast.success("Invitation has been resent");
   };
 
   return (
-    <Tabs defaultValue="users">
-      <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="users" className="flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          <span>Manage Users</span>
-        </TabsTrigger>
-        <TabsTrigger value="pending" className="flex items-center gap-2">
-          <Clock className="h-4 w-4" />
-          <span>Pending Invites {activePendingInvites.length > 0 && `(${activePendingInvites.length})`}</span>
-        </TabsTrigger>
-        <TabsTrigger value="invite" className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4" />
-          <span>Invite User</span>
-        </TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="users">
-        <Card>
-          <CardContent className="pt-6">
-            <UserList 
-              users={activeUsers} 
-              onEditUser={handleEditUser} 
-              onRevokeAccess={handleRevokeAccess} 
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="pending">
-        <Card>
-          <CardContent className="pt-6">
-            <PendingInvites 
-              invites={activePendingInvites} 
-              onResendInvite={handleResendInvite} 
-              onCancelInvite={handleCancelInvite} 
-            />
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="invite">
-        <Card>
-          <CardContent className="pt-6">
-            <InviteUserForm onInviteSubmit={handleInviteSubmit} />
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+    <div>
+      {showInviteForm ? (
+        <InviteUserForm 
+          onInviteSubmit={handleSubmitInvite} 
+          onCancel={handleCancelInvite} 
+        />
+      ) : (
+        <>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold">User Management</h2>
+            <Button onClick={handleInviteUser} className="flex items-center gap-2">
+              <PlusCircle className="h-4 w-4" />
+              Invite User
+            </Button>
+          </div>
+
+          <Tabs defaultValue="users" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Active Users ({users.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Pending Invites ({pendingInvites.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="users">
+              <UserList 
+                users={users} 
+                onEditUser={handleEditUser}
+                onRevokeAccess={handleRevokeAccess}
+              />
+            </TabsContent>
+            
+            <TabsContent value="pending">
+              <PendingInvites 
+                invites={pendingInvites}
+                onCancelInvite={handleCancelInvitation}
+                onResendInvite={handleResendInvitation}
+              />
+            </TabsContent>
+          </Tabs>
+        </>
+      )}
+    </div>
   );
 };
 

@@ -112,13 +112,13 @@ export default function CreditCardBillPaymentForm({
             onSelect={setPaymentMethod}
           />
           
-          <div className="flex gap-3 mt-6">
-            <Button variant="outline" onClick={handleBack} className="flex-1">
+          <div className="flex justify-between gap-3 mt-6">
+            <Button variant="outline" onClick={handleBack} className="w-auto">
               Back
             </Button>
             <Button 
               onClick={handleNext} 
-              className="flex-1"
+              className="w-auto"
               disabled={!paymentMethod}
             >
               Review Payment
@@ -133,11 +133,11 @@ export default function CreditCardBillPaymentForm({
           
           <PaymentReviewCard cardDetails={cardDetails} amount={amount} />
           
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={handleBack} className="flex-1">
+          <div className="flex justify-between gap-3">
+            <Button variant="outline" onClick={handleBack} className="w-auto">
               Back
             </Button>
-            <Button className="flex-1">Confirm Payment</Button>
+            <Button className="w-auto">Confirm Payment</Button>
           </div>
         </>
       )}

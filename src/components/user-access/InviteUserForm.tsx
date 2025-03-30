@@ -35,9 +35,10 @@ type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
 interface InviteUserFormProps {
   onInviteSubmit: (values: InviteFormValues) => void;
+  onCancel: () => void;
 }
 
-const InviteUserForm = ({ onInviteSubmit }: InviteUserFormProps) => {
+const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   
   const form = useForm<InviteFormValues>({
@@ -153,8 +154,11 @@ const InviteUserForm = ({ onInviteSubmit }: InviteUserFormProps) => {
             </div>
           )}
           
-          <div className="flex justify-end">
-            <Button type="submit" className="mt-4">
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">
               <UserPlus className="h-4 w-4 mr-2" />
               Send Invitation
             </Button>

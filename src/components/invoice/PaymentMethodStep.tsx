@@ -35,18 +35,18 @@ const PaymentMethodStep = ({
         selectedMethodId={selectedMethod || undefined}
       />
       
-      <div className="pt-4 flex gap-3">
+      <div className="flex justify-between mt-6">
         <Button 
           variant="outline" 
           onClick={onBack}
-          className="flex-1"
+          className="w-auto"
         >
           Back
         </Button>
         <Button 
           onClick={() => selectedMethod && onSelect(selectedMethod)}
           disabled={!selectedMethod}
-          className="flex-1"
+          className="w-auto"
         >
           Proceed to Pay
         </Button>

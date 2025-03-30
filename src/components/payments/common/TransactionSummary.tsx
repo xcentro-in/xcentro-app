@@ -59,28 +59,31 @@ export const TransactionSummary = ({
     <div className="space-y-6">
       <h3 className="font-medium text-lg">Review Payment</h3>
       
-      {/* Payment Details Section */}
-      <PaymentDetailsSection 
-        paymentType={paymentType}
-        scheduledDate={scheduledDate}
-        description={description}
-        invoiceReference={invoiceReference}
-        frequency={frequency}
-      />
+      {/* Two-column layout for Payee and Payment Details */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Payee Section - Left Column */}
+        <PayeeSection 
+          payee={payee}
+          employees={employees}
+          onViewEmployees={() => setShowEmployeesDialog(true)}
+        />
+        
+        {/* Payment Details Section - Right Column */}
+        <PaymentDetailsSection 
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          description={description}
+          invoiceReference={invoiceReference}
+          frequency={frequency}
+        />
+      </div>
       
-      {/* Payee Section */}
-      <PayeeSection 
-        payee={payee}
-        employees={employees}
-        onViewEmployees={() => setShowEmployeesDialog(true)}
-      />
-      
-      {/* Payment Method Section */}
+      {/* Payment Method Section - Full Width */}
       <PaymentMethodSection 
         paymentMethod={paymentMethod}
       />
       
-      {/* Payment Summary Section */}
+      {/* Payment Summary Section - Full Width */}
       <PaymentSummarySection 
         amount={amount}
         platformFee={platformFee}
@@ -89,9 +92,9 @@ export const TransactionSummary = ({
         rewardPoints={rewardPoints}
       />
 
-      <div className="flex gap-3">
-        <Button variant="outline" onClick={onBack} className="flex-1">Back</Button>
-        <Button className="flex-1">Confirm Payment</Button>
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={onBack} className="w-auto">Back</Button>
+        <Button className="w-auto">Confirm Payment</Button>
       </div>
 
       {/* Employees Dialog */}

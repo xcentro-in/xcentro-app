@@ -24,11 +24,11 @@ const PaymentMethodStep = ({
         selectedMethodId={selectedPaymentMethod}
       />
 
-      <div className="flex gap-3 mt-6">
-        <Button variant="outline" onClick={onBack} className="flex-1">Back</Button>
+      <div className="flex justify-between mt-6">
+        <Button variant="outline" onClick={onBack} className="w-auto">Back</Button>
         <Button 
           onClick={onNext} 
-          className="flex-1"
+          className="w-auto"
           disabled={!selectedPaymentMethod}
         >
           Review Payment

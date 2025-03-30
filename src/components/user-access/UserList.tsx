@@ -16,12 +16,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 import { 
   MoreHorizontal, 
   Edit, 
   UserX, 
   ShieldCheck, 
-  AlertTriangle 
+  AlertTriangle,
+  Search,
+  X
 } from "lucide-react";
 import { User, userRoleLabels } from "@/types/user";
 import { formatDistanceToNow } from "date-fns";
@@ -60,33 +69,50 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
     }
   };
 
+  const handleResetFilters = () => {
+    setSearchTerm("");
+    setRoleFilter(null);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row justify-between gap-4">
         <div className="relative flex-1">
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              className="w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                onClick={() => setSearchTerm("")}
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex gap-2">
-          <select
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          <Select
             value={roleFilter || ""}
-            onChange={(e) => setRoleFilter(e.target.value || null)}
+            onValueChange={(value) => setRoleFilter(value || null)}
           >
-            <option value="">All Roles</option>
-            {Object.entries(userRoleLabels).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </select>
-          <Button variant="outline" onClick={() => {
-            setSearchTerm("");
-            setRoleFilter(null);
-          }}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Roles" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Roles</SelectItem>
+              {Object.entries(userRoleLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="outline" onClick={handleResetFilters}>
             Reset
           </Button>
         </div>
