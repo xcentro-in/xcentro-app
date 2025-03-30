@@ -60,7 +60,7 @@ const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
     <div>
       {showInviteForm ? (
         <InviteUserForm 
-          onSubmit={handleSubmitInvite} 
+          onInviteSubmit={handleSubmitInvite} 
           onCancel={handleCancelInvite} 
         />
       ) : (
@@ -96,8 +96,8 @@ const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
             <TabsContent value="pending">
               <PendingInvites 
                 invites={pendingInvites}
-                onCancelInvitation={handleCancelInvitation}
-                onResendInvitation={handleResendInvitation}
+                onCancelInvite={handleCancelInvitation}
+                onResendInvite={handleResendInvitation}
               />
             </TabsContent>
           </Tabs>
