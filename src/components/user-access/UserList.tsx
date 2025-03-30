@@ -51,7 +51,7 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.department?.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesRole = !roleFilter || user.role === roleFilter;
+    const matchesRole = roleFilter === "all roles" || roleFilter === null || user.role === roleFilter;
     
     return matchesSearch && matchesRole;
   });
@@ -106,7 +106,7 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Roles</SelectItem>
+              <SelectItem value="all roles">All Roles</SelectItem>
               {Object.entries(userRoleLabels).map(([value, label]) => (
                 <SelectItem key={value} value={value}>{label}</SelectItem>
               ))}
