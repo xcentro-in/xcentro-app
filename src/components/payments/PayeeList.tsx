@@ -2,7 +2,6 @@
 import { useMemo } from "react";
 import { Payee, PayeeType } from "@/types/payee";
 import PayeeGroup from "./PayeeGroup";
-import AddNewPayeeOption from "./AddNewPayeeOption";
 import { getPayeeTypeLabel } from "@/utils/payeeUtils";
 
 interface PayeeListProps {
@@ -111,8 +110,7 @@ const PayeeList = ({
         />
       )}
       
-      {/* Add New Payee Option */}
-      <AddNewPayeeOption onSelect={() => setSelectedPayee("new")} />
+      {/* Removed the Add New Payee Option */}
     </div>
   );
 };
