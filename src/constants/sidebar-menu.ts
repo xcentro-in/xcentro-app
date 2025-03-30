@@ -1,7 +1,8 @@
 
 import { 
   Home, 
-  CreditCard, 
+  CreditCard,
+  History,
   Gift, 
   BarChart3, 
   Settings,
@@ -41,16 +42,16 @@ export const mainMenuItems: SidebarMenuItem[] = [
     icon: Home,
   },
   {
-    title: "Payments",
-    url: "/payments",
-    icon: Banknote,
-  },
-  {
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
     highlight: true,
     highlightColor: "green" as const,
+  },
+  {
+    title: "Payment History",
+    url: "/payments",
+    icon: History,
   },
   {
     title: "Credit Cards",

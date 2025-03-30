@@ -11,7 +11,7 @@ export const mockFaqs: FAQ[] = [
   },
   {
     id: "faq-2",
-    question: "How do I convert PayStrive points into airline miles?",
+    question: "How do I convert PaySphere points into airline miles?",
     answer: "To convert your reward points to airline miles, go to the 'Rewards' section, then click 'Redeem' and select the airline loyalty program you'd like to transfer your points to. In Settings > Rewards & Partners, you can link your frequent flyer accounts to enable seamless transfers.",
     category: "rewards",
     popular: true
@@ -94,7 +94,7 @@ export const mockFaqs: FAQ[] = [
   {
     id: "faq-15",
     question: "What should I do if I suspect unauthorized activity?",
-    answer: "If you suspect unauthorized activity, immediately go to Settings > Security and select 'Lock Account'. Then contact our security team at security@paystrive.com or call our emergency line at 1-800-555-9876. We'll help investigate and secure your account.",
+    answer: "If you suspect unauthorized activity, immediately go to Settings > Security and select 'Lock Account'. Then contact our security team at security@PaySphere.com or call our emergency line at 1-800-555-9876. We'll help investigate and secure your account.",
     category: "security"
   }
 ];

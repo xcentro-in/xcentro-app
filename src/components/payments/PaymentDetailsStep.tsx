@@ -44,7 +44,7 @@ export const PaymentDetailsStep = ({
   onNext,
 }: PaymentDetailsStepProps) => {
   return (
-    <div className="space-y-6 max-w-2xl ml-0">
+    <div className="space-y-6 max-w ml-0">
       <div className="space-y-3">
         <Label className="text-base">Payment Type</Label>
         <RadioGroup 

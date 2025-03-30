@@ -47,13 +47,13 @@ const Signup = () => {
           <div className="flex justify-center mb-4">
             <img 
               src="/placeholder.svg" 
-              alt="PayStrive Logo" 
+              alt="PaySphere Logo" 
               className="h-12 w-auto" 
             />
           </div>
           <h1 className="text-2xl font-bold">Create an Account</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your details to create your PayStrive account
+            Enter your details to create your PaySphere account
           </p>
         </CardHeader>
         <CardContent>
