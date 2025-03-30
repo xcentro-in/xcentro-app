@@ -59,14 +59,7 @@ const FilterBar = ({
           </Button>
         </CollapsibleTrigger>
         
-        {filtersChanged && (
-          <Button 
-            onClick={onApplyFilters}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            Apply Filters
-          </Button>
-        )}
+        {/* Removed the Apply Filters button that was here */}
       </div>
       
       <CollapsibleContent className="pt-4 pb-3 space-y-4 border-t mt-1">
