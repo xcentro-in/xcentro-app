@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -15,8 +14,7 @@ import {
   HelpCircle,
   Building,
   Plus,
-  BadgeCheck,
-  CreditCard
+  BadgeCheck
 } from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
