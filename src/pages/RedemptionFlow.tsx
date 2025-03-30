@@ -288,23 +288,22 @@ const RedemptionFlow: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <Button 
-          variant="ghost" 
-          className="mb-4" 
-          onClick={handlePreviousStep}
-        >
-          <ArrowLeftIcon className="h-4 w-4 mr-2" /> 
-          {step > 1 ? "Previous Step" : "Back to Rewards"}
-        </Button>
-        
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight animate-slide-up bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Redeem Your Points
         </h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Convert your PaySphere points to premium rewards
-        </p>
+        <Button 
+          variant="outline" 
+          onClick={() => navigate("/rewards")}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeftIcon className="h-4 w-4" /> 
+          Back to Rewards
+        </Button>
       </div>
+      <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+        Convert your PaySphere points to premium rewards
+      </p>
       
       <div className="w-full mb-8">
         <div className="flex justify-between mb-2">
@@ -326,7 +325,6 @@ const RedemptionFlow: React.FC = () => {
       </div>
       
       <Card className="border-none shadow-md bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 overflow-hidden">
-        
         
         <CardContent className="space-y-6 p-6">
           {step === 1 && (
