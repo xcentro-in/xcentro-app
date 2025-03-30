@@ -1,9 +1,16 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { toast } from "sonner";
 import { RedemptionCategory, RedemptionItem, LoyaltyPartner } from "@/types/rewards";
 import { redemptionCategories } from "@/data/redemptionCategories";
+import RedemptionHeader from "@/components/redemption/RedemptionHeader";
+import ProgressSteps from "@/components/redemption/ProgressSteps";
+import PartnerSelectionStep from "@/components/redemption/PartnerSelectionStep";
+import PointsRedemptionStep from "@/components/redemption/PointsRedemptionStep";
+import ConfirmationStep from "@/components/redemption/ConfirmationStep";
+import FooterActions from "@/components/redemption/FooterActions";
 
 const mockPartners: LoyaltyPartner[] = [
   {
