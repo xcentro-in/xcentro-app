@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeftIcon, ArrowRight, Check, RefreshCw } from "lucide-react";
@@ -384,18 +385,18 @@ const RedemptionFlow: React.FC = () => {
                 {selectedPartner && (
                   <div className="p-5 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20 rounded-lg border">
                     <h4 className="font-medium mb-3">Your {selectedPartner.name} Details</h4>
-                    <div className="grid grid-cols-1 gap-4">
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Membership Number</Label>
-                        <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
-                      </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                       <div>
                         <Label className="text-xs text-muted-foreground">Registered Name</Label>
                         <p className="font-medium">{selectedPartner.membershipDetails?.registeredName || "Not provided"}</p>
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground">Registered Email</Label>
-                        <p className="font-medium">{selectedPartner.membershipDetails?.email || "Not provided"}</p>
+                        <p className="font-medium truncate">{selectedPartner.membershipDetails?.email || "Not provided"}</p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Membership Number</Label>
+                        <p className="font-medium">{selectedPartner.membershipDetails?.membershipNumber || "Not provided"}</p>
                       </div>
                       <div>
                         <Label className="text-xs text-muted-foreground">Conversion Rate</Label>
