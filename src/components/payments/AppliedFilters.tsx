@@ -1,9 +1,7 @@
 
-import { Info, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DateRange } from "react-day-picker";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { format } from "date-fns";
 
 export interface ActiveFilter {
@@ -49,27 +47,9 @@ const AppliedFilters = ({
   }
   
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-2 mb-1">
-      <div className="flex items-center mr-1">
-        <span className="text-sm font-medium mr-2">Applied Filters:</span>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>
-                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="text-xs max-w-xs">
-                These filters are currently applied to your transactions.
-                Click the X on any filter to remove it.
-              </p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      <div className="flex flex-wrap gap-2">
+    <div className="mb-4">
+      <div className="text-sm font-medium text-gray-500 mb-2">Current filters:</div>
+      <div className="flex flex-wrap items-center gap-2">
         {/* Display applied filters as badges */}
         {activeFilters
           .filter(filter => filter.value !== "all") // Only show non-default filters
@@ -77,18 +57,10 @@ const AppliedFilters = ({
             <Badge 
               key={`${filter.type}-${index}`}
               variant="outline" 
-              className="pl-2 pr-1 py-1 h-7 bg-muted/30"
+              className="rounded-full py-1 px-3 bg-purple-100 text-purple-800 border-none"
+              onClick={() => onRemoveFilter(filter)}
             >
-              <span className="text-xs">{filter.label}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 ml-1"
-                onClick={() => onRemoveFilter(filter)}
-              >
-                <X className="h-3 w-3" />
-                <span className="sr-only">Remove {filter.label} filter</span>
-              </Button>
+              {filter.label}
             </Badge>
           ))
         }
@@ -97,18 +69,10 @@ const AppliedFilters = ({
         {dateRange?.from && (
           <Badge 
             variant="outline" 
-            className="pl-2 pr-1 py-1 h-7 bg-muted/30"
+            className="rounded-full py-1 px-3 bg-purple-100 text-purple-800 border-none"
+            onClick={() => onRemoveFilter({ type: "date", value: "custom", label: "" })}
           >
-            <span className="text-xs">{getDateRangeText()}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-5 w-5 ml-1"
-              onClick={() => onRemoveFilter({ type: "date", value: "custom", label: "" })}
-            >
-              <X className="h-3 w-3" />
-              <span className="sr-only">Remove date range filter</span>
-            </Button>
+            {getDateRangeText()}
           </Badge>
         )}
         
@@ -117,10 +81,10 @@ const AppliedFilters = ({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-7 text-xs"
+            className="text-xs text-purple-700 hover:text-purple-800 hover:bg-transparent p-0 h-auto font-normal"
             onClick={onResetFilters}
           >
-            Reset All
+            Clear all
           </Button>
         )}
       </div>

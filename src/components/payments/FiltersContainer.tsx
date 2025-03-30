@@ -1,5 +1,5 @@
 
-import { Filter } from "lucide-react";
+import { useState } from "react";
 import { CardHeader } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
 import { ActiveFilter } from "@/components/payments/AppliedFilters";
@@ -45,14 +45,27 @@ const FiltersContainer = ({
   onResetFilters,
   onRemoveFilter
 }: FiltersContainerProps) => {
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  const toggleFilters = () => {
+    setIsFilterOpen(!isFilterOpen);
+  };
+  
+  const hasActiveFilters = activeFilters.some(filter => filter.value !== "all") || appliedDateRange?.from;
+  
   return (
     <CardHeader className="pb-2 space-y-4">
-      <div className="flex items-center space-x-2 text-lg font-semibold text-foreground mb-1">
-        <Filter className="h-5 w-5" />
-        <span>Filters</span>
-      </div>
+      {/* Applied Filters Section - Show at top */}
+      {hasActiveFilters && (
+        <AppliedFilters 
+          activeFilters={activeFilters}
+          dateRange={appliedDateRange}
+          onRemoveFilter={onRemoveFilter}
+          onResetFilters={onResetFilters}
+        />
+      )}
       
-      {/* Horizontal Filter Bar */}
+      {/* Collapsible Filter Bar */}
       <FilterBar 
         dateFilter={dateFilter}
         dateRange={dateRange}
@@ -68,14 +81,8 @@ const FiltersContainer = ({
         onDateRangeChange={onDateRangeChange}
         onApplyFilters={onApplyFilters}
         onResetFilters={onResetFilters}
-      />
-      
-      {/* Applied Filters Section */}
-      <AppliedFilters 
-        activeFilters={activeFilters}
-        dateRange={appliedDateRange}
-        onRemoveFilter={onRemoveFilter}
-        onResetFilters={onResetFilters}
+        isOpen={isFilterOpen}
+        onToggle={toggleFilters}
       />
     </CardHeader>
   );
