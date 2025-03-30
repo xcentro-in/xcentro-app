@@ -15,7 +15,8 @@ import {
   HelpCircle,
   Building,
   Plus,
-  BadgeCheck
+  BadgeCheck,
+  CreditCard
 } from "lucide-react";
 import { LoyaltyPartner } from "@/types/rewards";
 import { mockUsers, mockPendingInvites } from "@/data/mockUsers";
@@ -86,8 +87,8 @@ const Settings = () => {
             Businesses
           </TabsTrigger>
           <TabsTrigger value="subscription" className="flex items-center gap-2">
-            <BadgeCheck className="h-4 w-4" />
-            Pricing & Subscription
+            <CreditCard className="h-4 w-4" />
+            Plans and Billing
           </TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
