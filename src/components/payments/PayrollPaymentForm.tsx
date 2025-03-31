@@ -1,15 +1,10 @@
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Upload, Loader2, ArrowRight, Users } from "lucide-react";
-import ManualPayrollForm from "../payees/forms/components/ManualPayrollForm";
-import BulkUploadPayrollForm from "../payees/forms/components/BulkUploadPayrollForm";
-import PaymentMethodStep from "./PaymentMethodStep";
-import { TransactionSummary } from "./common/TransactionSummary";
-import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import ExistingEmployeesPayment from "./payroll/ExistingEmployeesPayment";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
+import PayrollEntryMethodStep from "./payroll/PayrollEntryMethodStep";
+import PayrollDetailsStep from "./payroll/PayrollDetailsStep";
+import PayrollPaymentMethodStep from "./payroll/PayrollPaymentMethodStep";
+import PayrollReviewStep from "./payroll/PayrollReviewStep";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -74,6 +69,12 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     }
   ];
   
+  const handleMethodSelect = (method: "manual" | "bulk" | "existing" | null) => {
+    setEntryMethod(method);
+    setCurrentStep('details');
+    onStepChange(1);
+  };
+  
   const handleDetailsComplete = (selectedEmps = []) => {
     setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
@@ -102,184 +103,49 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
       onStepChange(0);
     }
   };
-  
-  if (currentStep === 'selection') {
-    return (
-      <div className="space-y-6">
-        <h3 className="text-lg font-medium mb-4">Select Entry Method</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card 
-            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
-            onClick={() => {
-              setEntryMethod("manual");
-              setCurrentStep('details');
-              onStepChange(1);
-            }}
-          >
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="24" 
-                  height="24" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="text-blue-600"
-                >
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                  <path d="M12 11h4"></path>
-                  <path d="M12 16h4"></path>
-                  <path d="M8 11h.01"></path>
-                  <path d="M8 16h.01"></path>
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium">Manual Entry</h3>
-              <p className="text-sm text-muted-foreground">
-                Process salary payment for a single employee
-              </p>
-            </div>
-          </Card>
-          
-          <Card 
-            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
-            onClick={() => {
-              setEntryMethod("bulk");
-              setCurrentStep('details');
-              onStepChange(1);
-            }}
-          >
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Upload className="h-6 w-6 text-green-600" />
-              </div>
-              <h3 className="text-lg font-medium">Bulk Upload</h3>
-              <p className="text-sm text-muted-foreground">
-                Upload a CSV file with multiple employees' payroll details
-              </p>
-            </div>
-          </Card>
 
-          <Card 
-            className="p-6 cursor-pointer border hover:border-primary hover:shadow-md transition-all"
-            onClick={() => {
-              setEntryMethod("existing");
-              setCurrentStep('details');
-              onStepChange(1);
-            }}
-          >
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <Users className="h-6 w-6 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-medium">Pay Existing Employees</h3>
-              <p className="text-sm text-muted-foreground">
-                Select employees from your existing records
-              </p>
-            </div>
-          </Card>
-        </div>
-      </div>
-    );
+  // Render the appropriate step based on currentStep
+  if (currentStep === 'selection') {
+    return <PayrollEntryMethodStep onMethodSelect={handleMethodSelect} />;
   }
 
-  if (currentStep === 'details') {
+  if (currentStep === 'details' && entryMethod) {
     return (
-      <>
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-medium">
-            {entryMethod === "manual" 
-              ? "Manual Payroll Entry" 
-              : entryMethod === "bulk" 
-                ? "Bulk Upload Payroll Data" 
-                : "Pay Existing Employees"}
-          </h3>
-          <Button variant="outline" onClick={handleBack}>
-            Change Entry Method
-          </Button>
-        </div>
-        
-        {entryMethod === "manual" ? (
-          <ManualPayrollForm onSubmit={handleDetailsComplete} />
-        ) : entryMethod === "bulk" ? (
-          <BulkUploadPayrollForm onSubmit={handleDetailsComplete} />
-        ) : (
-          <ExistingEmployeesPayment 
-            employees={mockEmployees} 
-            onSubmit={(selectedEmployees) => handleDetailsComplete(selectedEmployees)} 
-          />
-        )}
-      </>
+      <PayrollDetailsStep
+        entryMethod={entryMethod}
+        onBack={handleBack}
+        onSubmit={handleDetailsComplete}
+        mockEmployees={mockEmployees}
+      />
     );
   }
   
   if (currentStep === 'payment') {
     return (
-      <PaymentMethodStep 
+      <PayrollPaymentMethodStep 
         selectedPaymentMethod={selectedPaymentMethod}
-        onSelect={handlePaymentMethodSelected}
-        onBack={handleBack}
-        onNext={handleGoToReview}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
+        onPaymentMethodChange={handlePaymentMethodSelected}
         onPaymentTypeChange={setPaymentType}
         onScheduledDateChange={setScheduledDate}
         onFrequencyChange={setFrequency}
+        onBack={handleBack}
+        onNext={handleGoToReview}
       />
     );
   }
   
   if (currentStep === 'review') {
-    const paymentMethod = mockPaymentMethods.find(m => m.id === selectedPaymentMethod);
-    
-    const employeesToProcess = entryMethod === "existing" 
-      ? selectedEmployees 
-      : entryMethod === "bulk" 
-        ? mockEmployees 
-        : [];
-
     return (
-      <TransactionSummary
+      <PayrollReviewStep
+        entryMethod={entryMethod || "manual"}
+        selectedEmployees={selectedEmployees}
+        selectedPaymentMethod={selectedPaymentMethod}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
-        amount={entryMethod === "manual" 
-          ? 15000 
-          : employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0)} 
-        description="Payroll payment"
-        invoiceReference="PR-2023-001"
-        payee={{
-          id: "payroll-1",
-          name: entryMethod === "manual" 
-            ? "John Doe" 
-            : `Multiple Employees (${employeesToProcess.length})`,
-          email: entryMethod === "manual" ? "john.doe@example.com" : "",
-          contactNumber: entryMethod === "manual" ? "9876543210" : "",
-          type: "payroll",
-          bankName: "HDFC Bank",
-          accountNumber: entryMethod === "manual" ? "1234567890" : "Multiple Accounts",
-          ifscCode: "HDFC0001234",
-          salaryAmount: entryMethod === "manual" ? 15000 : 0,
-          salaryType: "fixed",
-          payrollCycle: "monthly",
-          createdAt: new Date().toISOString(),
-          isDefault: false
-        }}
-        paymentMethod={paymentMethod}
-        platformFee={150}
-        gatewayFee={50}
-        totalAmount={entryMethod === "manual" 
-          ? 15200 
-          : employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200}
-        rewardPoints={entryMethod === "manual" 
-          ? 152 
-          : Math.floor((employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0) + 200) / 100)}
-        employees={entryMethod === "manual" ? undefined : employeesToProcess}
         onBack={handleBack}
       />
     );
