@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -176,20 +175,20 @@ const PaymentCalendar = () => {
         <Button 
           variant={activeView === "list" ? "default" : "ghost"}
           size="sm"
-          className="rounded-none"
+          className="rounded-none px-2"
           onClick={() => setActiveView("list")}
+          title="List View"
         >
-          <List className="h-4 w-4 mr-1" />
-          List
+          <List className="h-4 w-4" />
         </Button>
         <Button 
           variant={activeView === "calendar" ? "default" : "ghost"}
           size="sm"
-          className="rounded-none"
+          className="rounded-none px-2"
           onClick={() => setActiveView("calendar")}
+          title="Calendar View"
         >
-          <Grid2X2 className="h-4 w-4 mr-1" />
-          Calendar
+          <CalendarDays className="h-4 w-4" />
         </Button>
       </div>
     </div>
