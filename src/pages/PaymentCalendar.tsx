@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -29,6 +28,8 @@ import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer
 import { useTransactionTable } from "@/hooks/useTransactionTable";
 import PaymentInsightCard from "@/components/insights/PaymentInsightCard";
 
+type ViewType = "list" | "calendar";
+
 const PaymentCalendar = () => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -36,10 +37,9 @@ const PaymentCalendar = () => {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [activeView, setActiveView] = useState<"list" | "calendar">("list");
+  const [activeView, setActiveView] = useState<ViewType>("list");
   const [upcomingTransactions, setUpcomingTransactions] = useState<Transaction[]>([]);
   
-  // Get all transactions that are scheduled for future dates
   useEffect(() => {
     const today = new Date();
     const filteredTransactions = mockCalendarTransactions.filter(transaction => {
@@ -50,7 +50,6 @@ const PaymentCalendar = () => {
     setUpcomingTransactions(filteredTransactions);
   }, []);
   
-  // Filter transactions based on selected month
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   
   useEffect(() => {
@@ -73,7 +72,6 @@ const PaymentCalendar = () => {
     }
   }, [selectedMonth, upcomingTransactions]);
   
-  // Generate the calendar data
   useEffect(() => {
     const [year, month] = selectedMonth.split('-').map(Number);
     const monthStartDate = new Date(year, month - 1, 1);
@@ -82,7 +80,6 @@ const PaymentCalendar = () => {
     setCurrentDate(monthStartDate);
   }, [selectedMonth, upcomingTransactions]);
   
-  // Calculate statistics for insight cards
   const insightStats = {
     dueNext7Days: {
       amount: upcomingTransactions
@@ -127,7 +124,6 @@ const PaymentCalendar = () => {
     }
   };
   
-  // Set up transaction table hooks for list view
   const {
     searchValue,
     setSearchValue,
@@ -175,7 +171,6 @@ const PaymentCalendar = () => {
   return (
     <div className="space-y-8">
       {activeView === "calendar" ? (
-        // Full Calendar View (No headers, no insight cards)
         <div className="bg-white rounded-xl border shadow-sm p-6 animate-fade-in">
           <CalendarHeader 
             currentDate={currentDate}
@@ -195,7 +190,6 @@ const PaymentCalendar = () => {
           </div>
         </div>
       ) : (
-        // List View (With headers, insight cards)
         <>
           <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div>
@@ -224,7 +218,6 @@ const PaymentCalendar = () => {
             </div>
           </div>
           
-          {/* View Switcher - Moved below Schedule Payment button */}
           <div className="flex justify-end mb-4">
             <div className="flex border rounded-lg overflow-hidden">
               <Button 
@@ -248,7 +241,6 @@ const PaymentCalendar = () => {
             </div>
           </div>
           
-          {/* Insight Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <PaymentInsightCard
               title="Due in Next 7 Days"
@@ -322,7 +314,6 @@ const PaymentCalendar = () => {
             </Card>
           </div>
           
-          {/* Month Selector - Moved above table */}
           <div className="flex justify-between items-center mb-4">
             <div className="w-[180px]">
               <Select value={selectedMonth} onValueChange={handleMonthSelect}>
@@ -340,7 +331,6 @@ const PaymentCalendar = () => {
             </div>
           </div>
           
-          {/* Data Table */}
           <div className="calendar-container rounded-xl border bg-white animate-fade-in">
             <PaymentsTableContainer 
               transactions={filteredTransactions}
