@@ -96,48 +96,50 @@ const PaymentScheduleSelector = ({
       )}
 
       {paymentType === "recurring" && (
-        <div className="ml-6 mt-2 space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm">Payment frequency</Label>
-            <Select value={frequency} onValueChange={onFrequencyChange}>
-              <SelectTrigger className="w-[240px]">
-                <SelectValue placeholder="Select frequency" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-2">
-            <Label className="text-sm">Start date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-auto min-w-[240px] justify-start text-left font-normal",
-                    !scheduledDate && "text-muted-foreground"
-                  )}
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {scheduledDate ? format(scheduledDate, "PPP") : <span>Select start date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <CalendarComponent
-                  mode="single"
-                  selected={scheduledDate}
-                  onSelect={onScheduledDateChange}
-                  initialFocus
-                  disabled={date => date < new Date()}
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
+        <div className="ml-6 mt-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-sm">Payment frequency</Label>
+              <Select value={frequency} onValueChange={onFrequencyChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                  <SelectItem value="quarterly">Quarterly</SelectItem>
+                  <SelectItem value="yearly">Yearly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="text-sm">Start date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !scheduledDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {scheduledDate ? format(scheduledDate, "PPP") : <span>Select start date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={scheduledDate}
+                    onSelect={onScheduledDateChange}
+                    initialFocus
+                    disabled={date => date < new Date()}
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
         </div>
       )}
