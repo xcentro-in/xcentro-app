@@ -1,110 +1,123 @@
 
-import { 
-  Home, 
-  CreditCard,
-  History,
-  Gift, 
-  BarChart3, 
-  Settings,
-  PlusCircle,
-  Users,
+import {
+  LayoutDashboard,
   Wallet,
-  Star,
-  CheckCircle2,
-  CalendarDays,
-  Receipt,
-  BarChart2,
-  CreditCardIcon,
+  ArrowUpDown,
+  Users,
+  CreditCard,
+  Calendar,
+  ClipboardList,
+  Gift,
+  Settings,
+  Bell,
+  PieChart,
+  Building,
   FileText,
-  Banknote,
+  Clock,
 } from "lucide-react";
 
-// Define interface for the menu items
-interface SidebarMenuItem {
-  title: string;
-  url: string;
-  icon: any; // Using 'any' here to accommodate Lucide icons
-  highlight?: boolean;
-  highlightColor?: "amber" | "green";
-  state?: any;
-  submenu?: Array<{
-    title: string;
-    url: string;
-    icon: any;
-  }>;
-}
-
-// Main menu items
-export const mainMenuItems: SidebarMenuItem[] = [
+export const sidebarMenuItems = [
   {
     title: "Dashboard",
-    url: "/",
-    icon: Home,
+    icon: LayoutDashboard,
+    href: "/dashboard",
   },
   {
-    title: "New Payment",
-    url: "/new-payment",
-    icon: PlusCircle,
-    highlight: true,
-    highlightColor: "green" as const,
-  },
-  {
-    title: "Payment History",
-    url: "/payments",
-    icon: History,
+    title: "Payments",
+    icon: ArrowUpDown,
+    items: [
+      {
+        title: "Make Payment",
+        href: "/new-payment",
+      },
+      {
+        title: "Payment History",
+        href: "/payments",
+      },
+      {
+        title: "Upcoming Payments",
+        href: "/upcoming-payments",
+      },
+      {
+        title: "Payment Calendar",
+        href: "/payment-calendar",
+      },
+    ],
   },
   {
     title: "Credit Cards",
-    url: "/credit-cards",
-    icon: CreditCardIcon,
-    submenu: [
+    icon: CreditCard,
+    items: [
       {
-        title: "Card Bill Payment",
-        url: "/credit-card-bills",
-        icon: Receipt,
+        title: "Card Management",
+        href: "/credit-cards",
       },
       {
-        title: "Card Insights & Analytics",
-        url: "/credit-card-analytics",
-        icon: BarChart2,
-      }
-    ]
+        title: "Card Bills",
+        href: "/credit-card-bills",
+      },
+      {
+        title: "Analytics",
+        href: "/credit-card-analytics",
+      },
+    ],
   },
   {
-    title: "Upcoming Payments",
-    url: "/payment-calendar",
-    icon: CalendarDays,
-  },
-  {
-    title: "Manage Payees",
-    url: "/payees",
+    title: "Payees",
     icon: Users,
+    href: "/payees",
   },
   {
-    title: "Wallet",
-    url: "/wallet",
-    icon: Wallet,
+    title: "Invoices",
+    icon: FileText,
+    href: "/pay-invoice",
   },
   {
     title: "Approvals",
-    url: "/approvals",
-    icon: CheckCircle2,
-    highlight: true,
+    icon: ClipboardList,
+    href: "/approvals",
   },
   {
-    title: "My Rewards",
-    url: "/rewards",
+    title: "Rewards",
     icon: Gift,
-    highlight: true,
+    items: [
+      {
+        title: "Overview",
+        href: "/rewards",
+      },
+      {
+        title: "History",
+        href: "/rewards-history",
+      },
+      {
+        title: "Redeem",
+        href: "/redemption",
+      },
+    ],
+  },
+  {
+    title: "Wallet",
+    icon: Wallet,
+    href: "/wallet",
   },
   {
     title: "Insights",
-    url: "/insights",
-    icon: BarChart3,
+    icon: PieChart,
+    href: "/insights",
+  },
+  {
+    title: "Businesses",
+    icon: Building,
+    href: "/business-onboarding",
   },
   {
     title: "Settings",
-    url: "/settings",
     icon: Settings,
+    href: "/settings",
+  },
+  {
+    title: "User Access",
+    icon: Users,
+    href: "/user-access",
   },
 ];

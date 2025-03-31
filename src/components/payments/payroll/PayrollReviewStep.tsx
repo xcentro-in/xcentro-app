@@ -2,11 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Employee } from "./types";
+import { PaymentScheduleType } from "../common/PaymentScheduleSelector";
 
 interface PayrollReviewStepProps {
   selectedEmployees: Employee[];
   selectedPaymentMethod?: string;
-  paymentType: "now" | "later" | "recurring";
+  paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
   onBack: () => void;
