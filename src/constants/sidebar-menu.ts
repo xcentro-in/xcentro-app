@@ -121,3 +121,15 @@ export const sidebarMenuItems = [
     href: "/user-access",
   },
 ];
+
+// Export as mainMenuItems for backward compatibility
+export const mainMenuItems = sidebarMenuItems.map(item => ({
+  title: item.title,
+  icon: item.icon,
+  url: item.href,
+  submenu: item.items?.map(subitem => ({
+    title: subitem.title,
+    url: subitem.href,
+    icon: subitem.icon || item.icon
+  }))
+}));

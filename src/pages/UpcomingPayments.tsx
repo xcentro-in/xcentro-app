@@ -18,7 +18,7 @@ import StatCard from "@/components/insights/StatCard";
 import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer";
 import { Transaction } from "@/types/transaction";
 import { useTransactionTable } from "@/hooks/useTransactionTable";
-import { CalendarMonthView } from "@/components/calendar/CalendarMonthView";
+import CalendarMonthView from "@/components/calendar/CalendarMonthView";
 import { generateMonthData } from "@/utils/calendarUtils";
 
 type ViewMode = "list" | "calendar";
