@@ -127,9 +127,13 @@ export const mainMenuItems = sidebarMenuItems.map(item => ({
   title: item.title,
   icon: item.icon,
   url: item.href,
+  highlight: false,
+  highlightColor: "amber",
+  state: null,
   submenu: item.items?.map(subitem => ({
     title: subitem.title,
     url: subitem.href,
-    icon: subitem.icon || item.icon
+    icon: subitem.icon || item.icon,
+    highlight: false
   }))
 }));
