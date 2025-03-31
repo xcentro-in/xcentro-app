@@ -126,7 +126,7 @@ const NewPayment = () => {
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
               {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} initialMethod={paymentMethod === "quick" ? "quick" : "upload"} />}
               {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
-              {paymentCategory === "invoice" && <PayInvoice />}
+              {paymentCategory === "invoice" && <PayInvoice onStepChange={setStep} />}
             </>
           )}
         </CardContent>
