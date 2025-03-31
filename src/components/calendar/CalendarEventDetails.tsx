@@ -3,7 +3,7 @@ import React from "react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { CalendarDay, CalendarEvent } from "@/types/calendar";
-import { X, Edit, FileEdit, AlertTriangle, Clock, MoreHorizontal, CalendarIcon } from "lucide-react";
+import { X, Edit, FileEdit, AlertTriangle, Clock, MoreHorizontal, CalendarIcon, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -47,6 +47,11 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
     navigate(`/payments/${event.id}`);
   };
   
+  const handleSchedulePayment = () => {
+    // Navigate to new payment page with the selected date
+    navigate(`/new-payment?date=${format(selectedDay.date, 'yyyy-MM-dd')}`);
+  };
+  
   return (
     <Sheet open={open} onOpenChange={() => onClose()}>
       <SheetContent className="sm:max-w-md overflow-auto">
@@ -67,7 +72,6 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
           {events.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground">
               <div className="mb-2">No payments for this date</div>
-              <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
             </div>
           ) : (
             events.map((event, index) => (
@@ -148,6 +152,17 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
               </Card>
             ))
           )}
+          
+          {/* Schedule Payment button that appears for all days */}
+          <div className="mt-6 flex justify-center">
+            <Button 
+              onClick={handleSchedulePayment}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Schedule Payment
+            </Button>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
