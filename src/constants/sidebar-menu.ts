@@ -71,7 +71,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ]
   },
   {
-    title: "Payment Calendar",
+    title: "Upcoming Payments",
     url: "/payment-calendar",
     icon: CalendarDays,
   },
