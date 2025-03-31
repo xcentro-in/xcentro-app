@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { format, parse, isSameMonth, getMonth, getYear } from "date-fns";
 import { CalendarDays, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CalendarDay, CalendarFilterType, MonthData } from "@/types/calendar";
+import { CalendarDay, MonthData } from "@/types/calendar";
 import { generateMonthData, navigateMonth } from "@/utils/calendarUtils";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
@@ -16,7 +16,6 @@ const PaymentCalendar = () => {
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthData, setMonthData] = useState<MonthData | null>(null);
-  const [filterType, setFilterType] = useState<CalendarFilterType>("scheduled");
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   
@@ -38,10 +37,6 @@ const PaymentCalendar = () => {
     const [year, month] = value.split('-').map(Number);
     const newDate = new Date(year, month - 1, 1);
     setCurrentDate(newDate);
-  };
-  
-  const handleFilterChange = (filter: CalendarFilterType) => {
-    setFilterType(filter);
   };
   
   const handleDayClick = (day: CalendarDay) => {
@@ -88,10 +83,8 @@ const PaymentCalendar = () => {
       <div className="calendar-container rounded-xl border p-4 bg-white animate-fade-in">
         <CalendarHeader 
           currentDate={currentDate}
-          filterType={filterType}
           onPrevious={handlePrevious}
           onNext={handleNext}
-          onFilterChange={handleFilterChange}
           onMonthSelect={handleMonthSelect}
           onExport={handleExport}
         />
@@ -99,8 +92,7 @@ const PaymentCalendar = () => {
         <div className="mt-6">
           {monthData && (
             <CalendarMonthView 
-              weeks={monthData.weeks} 
-              filterType={filterType}
+              weeks={monthData.weeks}
               onDayClick={handleDayClick}
             />
           )}
@@ -110,7 +102,6 @@ const PaymentCalendar = () => {
       <CalendarEventDetails
         open={detailsOpen}
         selectedDay={selectedDay}
-        filterType={filterType}
         onClose={() => setDetailsOpen(false)}
       />
     </div>

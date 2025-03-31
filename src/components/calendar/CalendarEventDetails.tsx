@@ -14,28 +14,19 @@ import { useNavigate } from "react-router-dom";
 interface CalendarEventDetailsProps {
   open: boolean;
   selectedDay: CalendarDay | null;
-  filterType: string;
   onClose: () => void;
 }
 
 const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
   open,
   selectedDay,
-  filterType,
   onClose
 }) => {
   const navigate = useNavigate();
   
   if (!selectedDay) return null;
   
-  const filteredEvents = selectedDay.events.filter(event => {
-    if (filterType === 'all') return true;
-    if (filterType === 'recurring') return event.type === 'recurring';
-    if (filterType === 'scheduled') return event.status === 'upcoming';
-    if (filterType === 'completed') return event.status === 'completed';
-    if (filterType === 'pending') return event.status === 'pending' || event.status === 'pending_approval';
-    return true;
-  });
+  const events = selectedDay.events;
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -65,21 +56,21 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
             <span>{format(selectedDay.date, 'EEEE, MMMM d, yyyy')}</span>
           </SheetTitle>
           <SheetDescription>
-            {filteredEvents.length === 0 
+            {events.length === 0 
               ? "No payments scheduled for this day" 
-              : `${filteredEvents.length} payment${filteredEvents.length > 1 ? 's' : ''} scheduled`
+              : `${events.length} payment${events.length > 1 ? 's' : ''} scheduled`
             }
           </SheetDescription>
         </SheetHeader>
         
         <div className="space-y-4">
-          {filteredEvents.length === 0 ? (
+          {events.length === 0 ? (
             <div className="p-6 text-center text-muted-foreground">
               <div className="mb-2">No payments for this date</div>
               <Button variant="outline" size="sm" onClick={onClose}>Close</Button>
             </div>
           ) : (
-            filteredEvents.map((event, index) => (
+            events.map((event, index) => (
               <Card key={`${event.id}-${index}`} className="overflow-hidden">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
