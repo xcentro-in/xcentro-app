@@ -128,12 +128,12 @@ export const mainMenuItems = sidebarMenuItems.map(item => ({
   icon: item.icon,
   url: item.href,
   highlight: false,
-  highlightColor: "amber",
+  highlightColor: "amber" as "amber" | "green",
   state: null,
   submenu: item.items?.map(subitem => ({
     title: subitem.title,
     url: subitem.href,
-    icon: subitem.icon || item.icon,
+    icon: subitem.icon || null, // Set icon to null if it doesn't exist
     highlight: false
   }))
 }));
