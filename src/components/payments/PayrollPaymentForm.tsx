@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEntryMethodStep from "./payroll/PayrollEntryMethodStep";
@@ -140,13 +139,13 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   if (currentStep === 'review') {
     return (
       <PayrollReviewStep
-        entryMethod={entryMethod || "manual"}
         selectedEmployees={selectedEmployees}
         selectedPaymentMethod={selectedPaymentMethod}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
         onBack={handleBack}
+        onSubmit={() => console.log("Payment submitted")}
       />
     );
   }
