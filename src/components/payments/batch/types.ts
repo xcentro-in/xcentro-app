@@ -11,5 +11,3 @@ export interface PaymentRow {
 export interface BatchPaymentFormProps {
   onStepChange: (step: number) => void;
 }
-
-export type BatchPaymentType = "now" | "later" | "recurring";
