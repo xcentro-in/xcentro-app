@@ -11,6 +11,7 @@ import { Upload, PencilIcon, Info } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 import { Separator } from "@/components/ui/separator";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 interface GSTPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -27,6 +28,11 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
   const [taxAmount, setTaxAmount] = useState("");
   const [description, setDescription] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  
+  // Payment schedule states
+  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [frequency, setFrequency] = useState<string>("monthly");
   
   // Mock data for OCR results
   const challanData = {
@@ -221,6 +227,12 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
           onSelect={setSelectedPaymentMethod}
           onBack={handleBack}
           onNext={handleNext}
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          frequency={frequency}
+          onPaymentTypeChange={setPaymentType}
+          onScheduledDateChange={setScheduledDate}
+          onFrequencyChange={setFrequency}
         />
       )}
 

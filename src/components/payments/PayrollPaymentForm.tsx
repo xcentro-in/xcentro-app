@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import PaymentMethodStep from "./PaymentMethodStep";
 import { TransactionSummary } from "./common/TransactionSummary";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import ExistingEmployeesPayment from "./payroll/ExistingEmployeesPayment";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -18,6 +20,11 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | "existing" | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
+  
+  // Payment schedule states
+  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [frequency, setFrequency] = useState<string>("monthly");
   
   const mockEmployees = [
     {
@@ -217,6 +224,12 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         onSelect={handlePaymentMethodSelected}
         onBack={handleBack}
         onNext={handleGoToReview}
+        paymentType={paymentType}
+        scheduledDate={scheduledDate}
+        frequency={frequency}
+        onPaymentTypeChange={setPaymentType}
+        onScheduledDateChange={setScheduledDate}
+        onFrequencyChange={setFrequency}
       />
     );
   }
@@ -232,7 +245,9 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
 
     return (
       <TransactionSummary
-        paymentType="now"
+        paymentType={paymentType}
+        scheduledDate={scheduledDate}
+        frequency={frequency}
         amount={entryMethod === "manual" 
           ? 15000 
           : employeesToProcess.reduce((sum, emp) => sum + emp.salaryAmount, 0)} 
