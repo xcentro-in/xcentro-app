@@ -1,4 +1,6 @@
 
+import { PaymentScheduleType } from "../common/PaymentScheduleSelector";
+
 export interface PaymentRow {
   id: string;
   payee: string;
@@ -10,4 +12,12 @@ export interface PaymentRow {
 
 export interface BatchPaymentFormProps {
   onStepChange: (step: number) => void;
+}
+
+export interface BatchPaymentState {
+  selectedRows: string[];
+  selectedPaymentMethod?: string;
+  paymentType: PaymentScheduleType;
+  scheduledDate?: Date;
+  frequency: string;
 }

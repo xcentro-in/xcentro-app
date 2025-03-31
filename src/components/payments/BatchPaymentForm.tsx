@@ -1,15 +1,21 @@
 
 import { useState } from "react";
-import { BatchPaymentFormProps, PaymentRow } from "./batch/types";
+import { BatchPaymentFormProps, PaymentRow, BatchPaymentState } from "./batch/types";
 import UploadStep from "./batch/UploadStep";
 import ValidationStep from "./batch/ValidationStep";
 import PaymentMethodSelectionStep from "./batch/PaymentMethodSelectionStep";
 import ReviewStep from "./batch/ReviewStep";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   const [step, setStep] = useState(1);
-  const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  const [state, setState] = useState<BatchPaymentState>({
+    selectedRows: [],
+    selectedPaymentMethod: undefined,
+    paymentType: "now" as PaymentScheduleType,
+    scheduledDate: undefined,
+    frequency: "monthly"
+  });
 
   // Sample payment rows (in a real app, this would come from the uploaded file)
   const paymentRows: PaymentRow[] = [
@@ -44,19 +50,41 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   };
 
   const handleSelectAll = () => {
-    if (selectedRows.length === paymentRows.length) {
-      setSelectedRows([]);
+    if (state.selectedRows.length === paymentRows.length) {
+      setState({ ...state, selectedRows: [] });
     } else {
-      setSelectedRows(paymentRows.map(row => row.id));
+      setState({ ...state, selectedRows: paymentRows.map(row => row.id) });
     }
   };
 
   const handleSelectRow = (id: string) => {
-    if (selectedRows.includes(id)) {
-      setSelectedRows(selectedRows.filter(rowId => rowId !== id));
+    if (state.selectedRows.includes(id)) {
+      setState({ 
+        ...state, 
+        selectedRows: state.selectedRows.filter(rowId => rowId !== id) 
+      });
     } else {
-      setSelectedRows([...selectedRows, id]);
+      setState({ 
+        ...state, 
+        selectedRows: [...state.selectedRows, id] 
+      });
     }
+  };
+
+  const handleSelectPaymentMethod = (id: string) => {
+    setState({ ...state, selectedPaymentMethod: id });
+  };
+
+  const handlePaymentTypeChange = (type: PaymentScheduleType) => {
+    setState({ ...state, paymentType: type });
+  };
+
+  const handleScheduledDateChange = (date?: Date) => {
+    setState({ ...state, scheduledDate: date });
+  };
+
+  const handleFrequencyChange = (frequency: string) => {
+    setState({ ...state, frequency: frequency });
   };
 
   return (
@@ -70,7 +98,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       {step === 2 && (
         <ValidationStep 
           paymentRows={paymentRows}
-          selectedRows={selectedRows}
+          selectedRows={state.selectedRows}
           onSelectRow={handleSelectRow}
           onSelectAll={handleSelectAll}
           onBack={handleBack}
@@ -80,19 +108,28 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
 
       {step === 3 && (
         <PaymentMethodSelectionStep 
-          selectedPaymentMethod={selectedPaymentMethod}
-          onSelect={setSelectedPaymentMethod}
+          selectedPaymentMethod={state.selectedPaymentMethod}
+          onSelect={handleSelectPaymentMethod}
           onBack={handleBack}
           onNext={handleNext}
+          paymentType={state.paymentType}
+          scheduledDate={state.scheduledDate}
+          frequency={state.frequency}
+          onPaymentTypeChange={handlePaymentTypeChange}
+          onScheduledDateChange={handleScheduledDateChange}
+          onFrequencyChange={handleFrequencyChange}
         />
       )}
 
       {step === 4 && (
         <ReviewStep 
-          selectedRows={selectedRows}
-          selectedPaymentMethodId={selectedPaymentMethod}
+          selectedRows={state.selectedRows}
+          selectedPaymentMethodId={state.selectedPaymentMethod}
           paymentRows={paymentRows}
           onBack={handleBack}
+          paymentType={state.paymentType}
+          scheduledDate={state.scheduledDate}
+          frequency={state.frequency}
         />
       )}
     </div>
