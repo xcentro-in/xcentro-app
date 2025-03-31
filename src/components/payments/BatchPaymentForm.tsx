@@ -116,14 +116,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
             <Input type="file" className="mx-auto" />
           </div>
           
-          <div className="text-center">
-            <span className="text-sm text-muted-foreground">or</span>
-          </div>
-
-          <Button variant="outline" className="w-full">
-            Enter Payments Manually
-          </Button>
-
           <div className="flex justify-end">
             <Button onClick={handleNext} className="w-auto">
               Continue
