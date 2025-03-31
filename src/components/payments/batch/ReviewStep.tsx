@@ -4,11 +4,15 @@ import { TransactionSummary } from "../common/TransactionSummary";
 import { PaymentRow } from "./types";
 import { PaymentMethod } from "@/types/payment-method";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
+import { PaymentType } from "../PaymentDetailsStep";
 
 interface ReviewStepProps {
   selectedRows: string[];
   selectedPaymentMethodId?: string;
   paymentRows: PaymentRow[];
+  paymentType: PaymentType;
+  scheduledDate?: Date;
+  frequency: string;
   onBack: () => void;
 }
 
@@ -16,6 +20,9 @@ const ReviewStep = ({
   selectedRows, 
   selectedPaymentMethodId,
   paymentRows,
+  paymentType,
+  scheduledDate,
+  frequency,
   onBack 
 }: ReviewStepProps) => {
   // Calculate amounts
@@ -44,7 +51,9 @@ const ReviewStep = ({
 
   return (
     <TransactionSummary
-      paymentType="now"
+      paymentType={paymentType}
+      scheduledDate={scheduledDate}
+      frequency={frequency}
       amount={totalSelectedAmount}
       description="Batch Payment"
       invoiceReference={`BP-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000)}`}

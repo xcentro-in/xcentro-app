@@ -5,11 +5,17 @@ import UploadStep from "./batch/UploadStep";
 import ValidationStep from "./batch/ValidationStep";
 import PaymentMethodSelectionStep from "./batch/PaymentMethodSelectionStep";
 import ReviewStep from "./batch/ReviewStep";
+import { PaymentType } from "./PaymentDetailsStep";
 
 const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
   const [step, setStep] = useState(1);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  
+  // Payment type related state (moved from PaymentDetailsStep)
+  const [paymentType, setPaymentType] = useState<PaymentType>("now");
+  const [scheduledDate, setScheduledDate] = useState<Date>();
+  const [frequency, setFrequency] = useState<string>("monthly");
 
   // Sample payment rows (in a real app, this would come from the uploaded file)
   const paymentRows: PaymentRow[] = [
@@ -82,6 +88,12 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
         <PaymentMethodSelectionStep 
           selectedPaymentMethod={selectedPaymentMethod}
           onSelect={setSelectedPaymentMethod}
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          frequency={frequency}
+          onPaymentTypeChange={setPaymentType}
+          onScheduledDateChange={setScheduledDate}
+          onFrequencyChange={setFrequency}
           onBack={handleBack}
           onNext={handleNext}
         />
@@ -92,6 +104,9 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
           selectedRows={selectedRows}
           selectedPaymentMethodId={selectedPaymentMethod}
           paymentRows={paymentRows}
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          frequency={frequency}
           onBack={handleBack}
         />
       )}
