@@ -34,6 +34,7 @@ const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
               <CalendarDayCell
                 key={`${weekIndex}-${dayIndex}`}
                 day={day}
+                filterType="all" // Adding a default value for filterType
                 onClick={() => onDayClick(day)}
               />
             ))}
