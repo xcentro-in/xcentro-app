@@ -17,7 +17,7 @@ export const SidebarMenu = () => {
             url={item.url} 
             icon={item.icon}
             highlight={item.highlight}
-            highlightColor={item.highlightColor === "amber" ? "amber" : "green"}
+            highlightColor={item.highlightColor}
             submenu={item.submenu}
             state={item.state}
           />

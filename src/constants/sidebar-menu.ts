@@ -1,139 +1,110 @@
 
-import {
-  LayoutDashboard,
-  Wallet,
-  ArrowUpDown,
-  Users,
+import { 
+  Home, 
   CreditCard,
-  Calendar,
-  ClipboardList,
-  Gift,
+  History,
+  Gift, 
+  BarChart3, 
   Settings,
-  Bell,
-  PieChart,
-  Building,
+  PlusCircle,
+  Users,
+  Wallet,
+  Star,
+  CheckCircle2,
+  CalendarDays,
+  Receipt,
+  BarChart2,
+  CreditCardIcon,
   FileText,
-  Clock,
+  Banknote,
 } from "lucide-react";
 
-export const sidebarMenuItems = [
+// Define interface for the menu items
+interface SidebarMenuItem {
+  title: string;
+  url: string;
+  icon: any; // Using 'any' here to accommodate Lucide icons
+  highlight?: boolean;
+  highlightColor?: "amber" | "green";
+  state?: any;
+  submenu?: Array<{
+    title: string;
+    url: string;
+    icon: any;
+  }>;
+}
+
+// Main menu items
+export const mainMenuItems: SidebarMenuItem[] = [
   {
     title: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/dashboard",
+    url: "/",
+    icon: Home,
   },
   {
-    title: "Payments",
-    icon: ArrowUpDown,
-    items: [
-      {
-        title: "Make Payment",
-        href: "/new-payment",
-      },
-      {
-        title: "Payment History",
-        href: "/payments",
-      },
-      {
-        title: "Upcoming Payments",
-        href: "/upcoming-payments",
-      },
-      {
-        title: "Payment Calendar",
-        href: "/payment-calendar",
-      },
-    ],
+    title: "New Payment",
+    url: "/new-payment",
+    icon: PlusCircle,
+    highlight: true,
+    highlightColor: "green" as const,
+  },
+  {
+    title: "Payment History",
+    url: "/payments",
+    icon: History,
   },
   {
     title: "Credit Cards",
-    icon: CreditCard,
-    items: [
+    url: "/credit-cards",
+    icon: CreditCardIcon,
+    submenu: [
       {
-        title: "Card Management",
-        href: "/credit-cards",
+        title: "Card Bill Payment",
+        url: "/credit-card-bills",
+        icon: Receipt,
       },
       {
-        title: "Card Bills",
-        href: "/credit-card-bills",
-      },
-      {
-        title: "Analytics",
-        href: "/credit-card-analytics",
-      },
-    ],
+        title: "Card Insights & Analytics",
+        url: "/credit-card-analytics",
+        icon: BarChart2,
+      }
+    ]
   },
   {
-    title: "Payees",
+    title: "Upcoming Payments",
+    url: "/payment-calendar",
+    icon: CalendarDays,
+  },
+  {
+    title: "Manage Payees",
+    url: "/payees",
     icon: Users,
-    href: "/payees",
-  },
-  {
-    title: "Invoices",
-    icon: FileText,
-    href: "/pay-invoice",
-  },
-  {
-    title: "Approvals",
-    icon: ClipboardList,
-    href: "/approvals",
-  },
-  {
-    title: "Rewards",
-    icon: Gift,
-    items: [
-      {
-        title: "Overview",
-        href: "/rewards",
-      },
-      {
-        title: "History",
-        href: "/rewards-history",
-      },
-      {
-        title: "Redeem",
-        href: "/redemption",
-      },
-    ],
   },
   {
     title: "Wallet",
+    url: "/wallet",
     icon: Wallet,
-    href: "/wallet",
+  },
+  {
+    title: "Approvals",
+    url: "/approvals",
+    icon: CheckCircle2,
+    highlight: true,
+  },
+  {
+    title: "My Rewards",
+    url: "/rewards",
+    icon: Gift,
+    highlight: true,
   },
   {
     title: "Insights",
-    icon: PieChart,
-    href: "/insights",
-  },
-  {
-    title: "Businesses",
-    icon: Building,
-    href: "/business-onboarding",
+    url: "/insights",
+    icon: BarChart3,
   },
   {
     title: "Settings",
+    url: "/settings",
     icon: Settings,
-    href: "/settings",
-  },
-  {
-    title: "User Access",
-    icon: Users,
-    href: "/user-access",
   },
 ];
-
-// Export as mainMenuItems for backward compatibility
-export const mainMenuItems = sidebarMenuItems.map(item => ({
-  title: item.title,
-  icon: item.icon,
-  url: item.href,
-  highlight: false,
-  highlightColor: "amber" as "amber" | "green",
-  state: null,
-  submenu: item.items?.map(subitem => ({
-    title: subitem.title,
-    url: subitem.href,
-    icon: subitem.icon || null, // Set icon to null if it doesn't exist
-    highlight: false
-  }))
-}));
