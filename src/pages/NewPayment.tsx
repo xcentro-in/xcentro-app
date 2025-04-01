@@ -26,7 +26,7 @@ const steps = {
 
 const paymentTitles = {
   selection: "New Payment",
-  single: "Single Payment",
+  single: "Quick Payment",
   batch: "Batch Payment",
   gst: "GST Payment",
   creditcard: "Credit Card Bill Payment",
@@ -36,7 +36,7 @@ const paymentTitles = {
 
 const paymentSubtitles = {
   selection: "Create a new payment transaction",
-  single: "Make a one-time payment to a payee",
+  single: "Make quick payments to your vendor",
   batch: "Pay multiple vendors at once",
   gst: "Pay your GST taxes",
   creditcard: "Pay your credit card bills",
