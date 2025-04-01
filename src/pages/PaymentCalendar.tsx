@@ -170,7 +170,7 @@ const PaymentCalendar = () => {
   
   // View toggler component extracted to be reused in both views
   const ViewToggler = () => (
-    <div className="flex justify-end mb-4">
+    <div className="flex justify-end mb-2">
       <div className="flex border rounded-lg overflow-hidden">
         <Button 
           variant={activeView === "list" ? "default" : "ghost"}
@@ -229,14 +229,6 @@ const PaymentCalendar = () => {
             </div>
             
             <div className="flex items-center gap-3 animate-slide-down" style={{ animationDelay: "100ms" }}>
-              <Button 
-                variant="outline" 
-                className="h-10 gap-2"
-                onClick={handleExport}
-              >
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
               <Button 
                 className="h-10 gap-2"
                 onClick={() => navigate("/new-payment")}
