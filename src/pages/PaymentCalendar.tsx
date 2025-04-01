@@ -4,13 +4,11 @@ import { toast } from "sonner";
 import { format, parse, isSameMonth, getMonth, getYear, isAfter, isBefore, parseISO, addDays } from "date-fns";
 import { 
   CalendarDays, 
-  Download, 
   Clock, 
   CreditCard, 
   RefreshCw, 
   AlertTriangle, 
   BarChart3, 
-  Grid2X2, 
   List 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -161,52 +159,17 @@ const PaymentCalendar = () => {
     setDetailsOpen(true);
   };
   
-  const handleExport = () => {
-    toast.success(
-      "Calendar data exported successfully", 
-      { description: `Payments for ${format(currentDate, 'MMMM yyyy')}` }
-    );
-  };
-  
-  // View toggler component extracted to be reused in both views
-  const ViewToggler = () => (
-    <div className="flex justify-end mb-2">
-      <div className="flex border rounded-lg overflow-hidden">
-        <Button 
-          variant={activeView === "list" ? "default" : "ghost"}
-          size="sm"
-          className="rounded-none px-2"
-          onClick={() => setActiveView("list")}
-          title="List View"
-        >
-          <List className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant={activeView === "calendar" ? "default" : "ghost"}
-          size="sm"
-          className="rounded-none px-2"
-          onClick={() => setActiveView("calendar")}
-          title="Calendar View"
-        >
-          <CalendarDays className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-  
   return (
     <div className="space-y-8">
       {activeView === "calendar" ? (
         <div className="bg-white rounded-xl border shadow-sm p-6 animate-fade-in">
-          {/* Add the view toggler in calendar view */}
-          <ViewToggler />
-          
           <CalendarHeader 
             currentDate={currentDate}
             onPrevious={handlePrevious}
             onNext={handleNext}
             onMonthSelect={handleMonthSelect}
-            onExport={handleExport}
+            activeView={activeView}
+            onViewChange={setActiveView}
           />
           
           <div className="mt-6">
@@ -239,7 +202,43 @@ const PaymentCalendar = () => {
             </div>
           </div>
           
-          <ViewToggler />
+          <div className="flex justify-between items-center mb-4">
+            <div className="w-[180px]">
+              <Select value={selectedMonth} onValueChange={handleMonthSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select Month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getMonthsOptions().map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex border rounded-lg overflow-hidden">
+              <Button 
+                variant={activeView === "list" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-none px-2"
+                onClick={() => setActiveView("list")}
+                title="List View"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={activeView === "calendar" ? "default" : "ghost"}
+                size="sm"
+                className="rounded-none px-2"
+                onClick={() => setActiveView("calendar")}
+                title="Calendar View"
+              >
+                <CalendarDays className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
             <PaymentInsightCard
@@ -312,23 +311,6 @@ const PaymentCalendar = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-          
-          <div className="flex justify-between items-center mb-4">
-            <div className="w-[180px]">
-              <Select value={selectedMonth} onValueChange={handleMonthSelect}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Month" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getMonthsOptions().map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           
           <div className="calendar-container rounded-xl border bg-white animate-fade-in">

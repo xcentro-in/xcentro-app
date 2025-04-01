@@ -1,6 +1,6 @@
 
 import React from "react";
-import { ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { ChevronLeft, ChevronRight, List, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,7 +11,8 @@ interface CalendarHeaderProps {
   onPrevious: () => void;
   onNext: () => void;
   onMonthSelect: (value: string) => void;
-  onExport: () => void;
+  activeView: "list" | "calendar";
+  onViewChange: (view: "list" | "calendar") => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -19,7 +20,8 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onPrevious,
   onNext,
   onMonthSelect,
-  onExport
+  activeView,
+  onViewChange
 }) => {
   const monthOptions = getMonthsOptions();
   const currentMonthValue = format(currentDate, 'yyyy-MM');
@@ -63,14 +65,24 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </Button>
         </div>
         
-        <div className="flex items-center">
+        <div className="flex border rounded-lg overflow-hidden">
           <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={onExport}
-            title="Export Calendar"
+            variant={activeView === "list" ? "default" : "ghost"}
+            size="sm"
+            className="rounded-none px-2"
+            onClick={() => onViewChange("list")}
+            title="List View"
           >
-            <Download className="h-4 w-4" />
+            <List className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={activeView === "calendar" ? "default" : "ghost"}
+            size="sm"
+            className="rounded-none px-2"
+            onClick={() => onViewChange("calendar")}
+            title="Calendar View"
+          >
+            <CalendarDays className="h-4 w-4" />
           </Button>
         </div>
       </div>
