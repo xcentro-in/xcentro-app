@@ -1,4 +1,3 @@
-
 import { Tag, Info } from "lucide-react";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
@@ -37,9 +36,9 @@ const PayeeTags = ({ selectedTags, setSelectedTags }: PayeeTagsProps) => {
   
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
-      setSelectedTags(selectedTags.filter(t => t !== tag));
+      setSelectedTags([]);
     } else {
-      setSelectedTags([...selectedTags, tag]);
+      setSelectedTags([tag]);
     }
   };
   
@@ -61,7 +60,7 @@ const PayeeTags = ({ selectedTags, setSelectedTags }: PayeeTagsProps) => {
                 </Button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p>Select appropriate tags to categorize this payee for better reporting and insights</p>
+                <p>Select a tag to categorize this payee for better reporting and insights</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
