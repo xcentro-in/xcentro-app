@@ -1,15 +1,18 @@
-import { DollarSign, Gift, TrendingUp, Star, ChevronRight, Plane, Award, Lock, CheckCircle2, CreditCard, Calendar, ArrowRight } from "lucide-react";
+
+import { DollarSign, Gift, TrendingUp, Star, ChevronRight, Plane, Award, Lock, CheckCircle2, CreditCard, Calendar, ArrowRight, Share, Wallet } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 const RewardStatus = () => {
   const [progress, setProgress] = useState(0);
   const [goalProgress, setGoalProgress] = useState(0);
   const navigate = useNavigate();
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setProgress(78);
@@ -17,19 +20,23 @@ const RewardStatus = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, []);
+  
   const handleRedeemClick = () => {
     navigate('/rewards');
   };
+  
   const handlePayNowClick = () => {
     navigate('/new-payment', {
       state: {
-        paymentType: 'gst'
+        paymentCategory: 'gst'
       }
     });
   };
-  return <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{
-    animationDelay: "200ms"
-  }}>
+  
+  return (
+    <Card className="animate-fade-in overflow-hidden border-0 shadow-md bg-gradient-to-br from-[#1A1F2C] to-[#221F26] text-white" style={{
+      animationDelay: "200ms"
+    }}>
       <CardHeader className="border-b border-white/10">
         <div className="flex items-center justify-between">
           <div>
@@ -47,15 +54,61 @@ const RewardStatus = () => {
           <div>
             <div className="text-gray-300 text-sm">Available Points</div>
             <div className="text-3xl font-bold text-white mt-1">24,530</div>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-1 cursor-help">
+                    <Wallet className="h-3 w-3" />
+                    <span>Worth approx ₹12,000</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="p-3 bg-gray-800 border-gray-700">
+                  <p className="font-medium mb-1 text-white">Points Value Breakdown</p>
+                  <ul className="text-xs space-y-1 text-gray-300">
+                    <li className="flex justify-between">
+                      <span>Flight Redemption:</span>
+                      <span>₹0.60 per point</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Hotel Redemption:</span>
+                      <span>₹0.55 per point</span>
+                    </li>
+                    <li className="flex justify-between">
+                      <span>Cashback:</span>
+                      <span>₹0.40 per point</span>
+                    </li>
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           
-          <Button className="gap-2 bg-amber-500 hover:bg-amber-600 text-black" onClick={handleRedeemClick}>
-            Redeem Now <ChevronRight className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-3">
+            <Button className="gap-2 bg-amber-500 hover:bg-amber-600 text-black" onClick={handleRedeemClick}>
+              Redeem <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="border-white/20 bg-white/5 hover:bg-white/10">
+              <Share className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Monthly Target Progress */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-sm font-medium text-gray-300">Monthly Target</div>
+            <div className="text-sm text-gray-300">{progress}% Complete</div>
+          </div>
+          <Progress value={progress} className="h-2 bg-white/10" indicatorClassName="bg-blue-500" />
+          <div className="flex justify-between text-xs text-gray-400">
+            <div>0 points</div>
+            <div>5,000 points (Target)</div>
+          </div>
         </div>
 
         {/* Goal Tracker with Milestones */}
-        <div className="space-y-2">
+        <div className="space-y-2 mt-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Plane className="h-4 w-4 text-amber-400" />
@@ -85,13 +138,6 @@ const RewardStatus = () => {
           </Button>
         </div>
         
-        {/* Monthly Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-          
-          
-          
-        </div>
-
         {/* Reward Milestone Shelf */}
         <div className="mt-2">
           <div className="flex items-center justify-between mb-2">
@@ -105,7 +151,7 @@ const RewardStatus = () => {
             {/* Redeemed Reward */}
             <div className="min-w-[140px] bg-white/5 border border-white/10 rounded-lg p-3 flex flex-col">
               <div className="flex items-center justify-between mb-1">
-                <Badge variant="luxury" className="px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 border-green-500/30">
+                <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 border-green-500/30">
                   Redeemed
                 </Badge>
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-400" />
@@ -117,7 +163,7 @@ const RewardStatus = () => {
             {/* In Progress Reward */}
             <div className="min-w-[140px] bg-white/5 border border-white/10 rounded-lg p-3 flex flex-col">
               <div className="flex items-center justify-between mb-1">
-                <Badge variant="luxury" className="px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/30">
+                <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] bg-amber-500/20 text-amber-400 border-amber-500/30">
                   In Progress
                 </Badge>
                 <div className="text-[10px] font-semibold text-amber-400">74%</div>
@@ -129,7 +175,7 @@ const RewardStatus = () => {
             {/* Locked Reward */}
             <div className="min-w-[140px] bg-white/5 border border-white/10 rounded-lg p-3 flex flex-col opacity-60">
               <div className="flex items-center justify-between mb-1">
-                <Badge variant="luxury" className="px-1.5 py-0.5 text-[10px] bg-gray-500/20 text-gray-400 border-gray-500/30">
+                <Badge variant="outline" className="px-1.5 py-0.5 text-[10px] bg-gray-500/20 text-gray-400 border-gray-500/30">
                   Locked
                 </Badge>
                 <Lock className="h-3.5 w-3.5 text-gray-400" />
@@ -149,6 +195,8 @@ const RewardStatus = () => {
           </Badge>
         </div>
       </CardFooter>
-    </Card>;
+    </Card>
+  );
 };
+
 export default RewardStatus;

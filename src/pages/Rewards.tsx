@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import RewardsSummary from "@/components/rewards/RewardsSummary";
-import RedemptionOptions from "@/components/rewards/RedemptionOptions";
+import MilestoneCards from "@/components/rewards/MilestoneCards";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
 import RedemptionCategoryDialog from "@/components/rewards/dialog/RedemptionCategoryDialog";
@@ -33,6 +33,10 @@ const Rewards = () => {
     }
   };
 
+  const handleTransferClick = () => {
+    toast.info("Points transfer feature will be available soon!");
+  };
+
   const handleViewHistory = () => {
     navigate("/rewards/history");
   };
@@ -40,25 +44,24 @@ const Rewards = () => {
   return (
     <div className="space-y-8">
       <RewardsHeader 
-        title="Rewards Dashboard" 
-        description="Track and redeem your premium business rewards" 
+        title="My Rewards" 
+        description="Track & redeem your business rewards" 
       />
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <RewardsSummary 
-          availablePoints={availablePoints}
-          onRedeemClick={() => handleRedeemClick()}
-        />
-        
-        <RedemptionOptions 
-          onRedeemClick={handleRedeemClick}
-          onCategorySelect={setSelectedCategory}
-        />
-      </div>
+      {/* Header Stats Bar */}
+      <RewardsSummary 
+        availablePoints={availablePoints}
+        onRedeemClick={() => handleRedeemClick()}
+        onTransferClick={handleTransferClick}
+      />
       
+      {/* Milestone Progress Cards Section */}
+      <MilestoneCards />
+      
+      {/* Earning Tips and Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <EarningHistory />
         <SpendingRecommendations />
+        <EarningHistory onViewHistoryClick={handleViewHistory} />
       </div>
 
       <RedemptionCategoryDialog
