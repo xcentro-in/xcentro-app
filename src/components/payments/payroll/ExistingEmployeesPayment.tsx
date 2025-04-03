@@ -134,7 +134,16 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
         </Table>
       </div>
 
-      <div className="flex items-center justify-between mt-4">
+      {selectedEmployees.length > 0 && (
+        <div className="p-4 bg-muted/20 rounded-md">
+          <p className="text-right">
+            <span className="text-sm text-muted-foreground mr-2">Total amount selected:</span>
+            <span className="font-bold">₹{totalSelectedSalary.toLocaleString()}</span>
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-between gap-3 mt-4">
         <div className="text-sm text-muted-foreground">
           {selectedEmployees.length > 0 ? (
             <>Selected {selectedEmployees.length} out of {filteredEmployees.length} employees</>
@@ -142,20 +151,13 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
             <>Select employees to proceed</>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          {selectedEmployees.length > 0 && (
-            <div className="text-sm font-medium">
-              Total: <span className="text-primary">₹{totalSelectedSalary.toLocaleString()}</span>
-            </div>
-          )}
-          <Button 
-            onClick={handleSubmit} 
-            disabled={selectedEmployees.length === 0}
-            className="w-auto"
-          >
-            Continue to Payment Method
-          </Button>
-        </div>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={selectedEmployees.length === 0}
+          className="w-auto"
+        >
+          Continue to Payment Method
+        </Button>
       </div>
     </div>
   );
