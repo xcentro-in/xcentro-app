@@ -17,6 +17,8 @@ import {
   CreditCardIcon,
   FileText,
   Banknote,
+  Award,
+  TrendingUp,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -96,6 +98,18 @@ export const mainMenuItems: SidebarMenuItem[] = [
     url: "/rewards",
     icon: Gift,
     highlight: true,
+    submenu: [
+      {
+        title: "Dashboard",
+        url: "/rewards",
+        icon: Award,
+      },
+      {
+        title: "Earning History",
+        url: "/rewards/history",
+        icon: TrendingUp,
+      }
+    ]
   },
   {
     title: "Insights",
