@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -58,6 +59,11 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
     const employeesToPay = employees.filter(emp => selectedEmployees.includes(emp.id));
     onSubmit(employeesToPay);
   };
+
+  // Calculate total salary amount of selected employees
+  const totalSelectedSalary = employees
+    .filter(emp => selectedEmployees.includes(emp.id))
+    .reduce((total, emp) => total + emp.salaryAmount, 0);
 
   return (
     <div className="space-y-4">
@@ -136,7 +142,12 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
             <>Select employees to proceed</>
           )}
         </div>
-        <div>
+        <div className="flex items-center gap-4">
+          {selectedEmployees.length > 0 && (
+            <div className="text-sm font-medium">
+              Total: <span className="text-primary">₹{totalSelectedSalary.toLocaleString()}</span>
+            </div>
+          )}
           <Button 
             onClick={handleSubmit} 
             disabled={selectedEmployees.length === 0}
