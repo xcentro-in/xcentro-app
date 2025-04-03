@@ -13,6 +13,7 @@ import PaymentCalendar from "./pages/PaymentCalendar";
 import ApprovalInbox from "./pages/ApprovalInbox";
 import Rewards from "./pages/Rewards";
 import RewardsHistory from "./pages/RewardsHistory";
+import RedemptionHistory from "./pages/RedemptionHistory";
 import CreditCards from "./pages/CreditCards";
 import CreditCardBills from "./pages/CreditCardBills";
 import CreditCardAnalytics from "./pages/CreditCardAnalytics";
@@ -70,6 +71,7 @@ function App() {
                 <Route path="payments/:transactionId" element={<TransactionDetails />} />
                 <Route path="rewards" element={<Rewards />} />
                 <Route path="rewards/history" element={<RewardsHistory />} />
+                <Route path="rewards/redemption-history" element={<RedemptionHistory />} />
                 <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                 <Route path="rewards/redeem" element={<RedemptionFlow />} />
                 <Route path="credit-cards" element={<CreditCards />} />

@@ -19,6 +19,7 @@ import {
   Banknote,
   Award,
   TrendingUp,
+  ReceiptIcon,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -108,6 +109,11 @@ export const mainMenuItems: SidebarMenuItem[] = [
         title: "Earning History",
         url: "/rewards/history",
         icon: TrendingUp,
+      },
+      {
+        title: "Redemption History",
+        url: "/rewards/redemption-history",
+        icon: ReceiptIcon,
       }
     ]
   },
