@@ -24,7 +24,7 @@ export const RedemptionTable = ({ data }: RedemptionTableProps) => {
   const successfulRedemptions = data.filter(item => item.status === "Successful");
   
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border bg-white shadow-sm">
       <Table>
         <TableHeader>
           <TableRow>

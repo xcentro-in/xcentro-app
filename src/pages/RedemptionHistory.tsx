@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -88,7 +87,7 @@ const RedemptionHistory = () => {
           <TabsTrigger value="line">Timeline</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="table">
+        <TabsContent value="table" className="space-y-4">
           {/* Filters */}
           <RedemptionFilters 
             searchTerm={searchTerm}
