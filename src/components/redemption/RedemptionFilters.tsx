@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/payments/DateRangePicker";
@@ -9,22 +9,18 @@ import { DateRange } from "react-day-picker";
 interface RedemptionFiltersProps {
   searchTerm: string;
   filterType: string;
-  filterStatus: string;
   dateRange: DateRange | undefined;
   onSearchTermChange: (value: string) => void;
   onFilterTypeChange: (value: string) => void;
-  onFilterStatusChange: (value: string) => void;
   onDateRangeChange: (range: DateRange | undefined) => void;
 }
 
 export const RedemptionFilters = ({
   searchTerm,
   filterType,
-  filterStatus,
   dateRange,
   onSearchTermChange,
   onFilterTypeChange,
-  onFilterStatusChange,
   onDateRangeChange
 }: RedemptionFiltersProps) => {
   return (
@@ -50,18 +46,6 @@ export const RedemptionFilters = ({
             <SelectItem value="Hotel">Hotel</SelectItem>
             <SelectItem value="Gift Card">Gift Card</SelectItem>
             <SelectItem value="Transfer">Transfer</SelectItem>
-          </SelectContent>
-        </Select>
-        
-        <Select value={filterStatus} onValueChange={onFilterStatusChange}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="Successful">Successful</SelectItem>
-            <SelectItem value="Processing">Processing</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
           </SelectContent>
         </Select>
         

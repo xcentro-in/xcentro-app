@@ -1,4 +1,6 @@
 
+import { Plane, Building2, Gift, RefreshCcw } from "lucide-react";
+
 type RedemptionTypeIconProps = {
   type: string;
 };
@@ -6,13 +8,13 @@ type RedemptionTypeIconProps = {
 export const RedemptionTypeIcon = ({ type }: RedemptionTypeIconProps) => {
   switch(type) {
     case "Flight":
-      return <span className="mr-2">✈️</span>;
+      return <Plane className="h-5 w-5 text-blue-500" />;
     case "Hotel":
-      return <span className="mr-2">🏨</span>;
+      return <Building2 className="h-5 w-5 text-indigo-500" />;
     case "Gift Card":
-      return <span className="mr-2">🎁</span>;
+      return <Gift className="h-5 w-5 text-amber-500" />;
     case "Transfer":
-      return <span className="mr-2">🔁</span>;
+      return <RefreshCcw className="h-5 w-5 text-green-500" />;
     default:
       return null;
   }
