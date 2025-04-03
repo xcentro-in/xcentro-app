@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -323,9 +324,9 @@ const RedemptionHistory = () => {
               </Select>
               
               <DateRangePicker
-                value={dateRange}
-                onChange={setDateRange}
-                align="end"
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                className="w-auto"
               />
             </div>
           </div>
