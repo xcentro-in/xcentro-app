@@ -12,7 +12,6 @@ import { redemptionHistoryData, pieChartData, COLORS, lineChartData } from "@/da
 const RedemptionHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [activeTab, setActiveTab] = useState("table");
 
@@ -23,11 +22,10 @@ const RedemptionHistory = () => {
       item.referenceId.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === "all" || item.type === filterType;
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
     
     // Date filtering logic would go here if we had actual Date objects
     
-    return matchesSearch && matchesType && matchesStatus;
+    return matchesSearch && matchesType;
   });
   
   // Calculate summary metrics
@@ -95,11 +93,9 @@ const RedemptionHistory = () => {
           <RedemptionFilters 
             searchTerm={searchTerm}
             filterType={filterType}
-            filterStatus={filterStatus}
             dateRange={dateRange}
             onSearchTermChange={setSearchTerm}
             onFilterTypeChange={setFilterType}
-            onFilterStatusChange={setFilterStatus}
             onDateRangeChange={setDateRange}
           />
           
