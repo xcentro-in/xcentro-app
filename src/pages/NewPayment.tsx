@@ -17,7 +17,7 @@ type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" |
 
 const steps = {
   single: ["Details", "Payee", "Payment method", "Review"],
-  batch: ["Upload", "Validate", "Payment method", "Review"],
+  batch: ["Upload/Import", "Validate", "Payment method", "Review"],
   gst: ["Upload/Details", "Payment method", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Review"],
   payroll: ["Entry Method", "Details/Selection", "Review"],
