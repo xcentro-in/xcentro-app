@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Search, Filter, ChevronRight, Award, Clock, X, Download, BarChart3 } from "lucide-react";
@@ -14,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 // Mock data for demonstration
 const pointsEarningHistory = [
@@ -140,25 +140,23 @@ const chartConfig = {
 interface DetailPanelProps {
   transaction: any;
   onClose: () => void;
+  open: boolean;
 }
 
-const DetailPanel: React.FC<DetailPanelProps> = ({ transaction, onClose }) => {
+const DetailPanel: React.FC<DetailPanelProps> = ({ transaction, onClose, open }) => {
   const navigate = useNavigate();
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end">
-      <div className="absolute inset-0 bg-black/30" onClick={onClose}></div>
-      <div className="relative z-10 w-full max-w-md bg-white shadow-xl animate-in slide-in-from-right h-full overflow-auto">
-        <div className="p-6 border-b">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xl font-semibold">Transaction Details</h3>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+    <Sheet open={open} onOpenChange={() => onClose()}>
+      <SheetContent className="sm:max-w-md overflow-auto">
+        <SheetHeader className="mb-4">
+          <SheetTitle className="text-xl font-semibold">Transaction Details</SheetTitle>
+          <SheetDescription>
+            Details for transaction on {format(new Date(transaction.date), "MMM d, yyyy")}
+          </SheetDescription>
+        </SheetHeader>
         
-        <div className="p-6 space-y-6">
+        <div className="space-y-6">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">Vendor</p>
             <p className="font-medium text-lg">{transaction.vendor}</p>
@@ -216,8 +214,8 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ transaction, onClose }) => {
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
-      </div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
@@ -234,18 +232,14 @@ const RewardsHistory = () => {
   const [showCharts, setShowCharts] = useState(false);
   
   const filteredHistory = pointsEarningHistory.filter(transaction => {
-    // Handle search filtering
     if (searchTerm && !transaction.vendor.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !transaction.paymentMethod.toLowerCase().includes(searchTerm.toLowerCase())) {
       return false;
     }
     
-    // Handle type filtering
     if (typeFilter !== "all" && transaction.type !== typeFilter) {
       return false;
     }
-    
-    // Date filtering will be implemented here in a real app
     
     return true;
   });
@@ -266,7 +260,6 @@ const RewardsHistory = () => {
 
   return (
     <div className="space-y-8 pb-8">
-      {/* Header */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Reward Points History</h1>
@@ -290,7 +283,6 @@ const RewardsHistory = () => {
         </p>
       </div>
       
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-indigo-50 to-blue-50">
           <CardHeader className="pb-2">
@@ -332,7 +324,6 @@ const RewardsHistory = () => {
         </Card>
       </div>
       
-      {/* Optional Charts Section */}
       {showCharts && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
@@ -457,7 +448,6 @@ const RewardsHistory = () => {
         </div>
       )}
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -550,7 +540,6 @@ const RewardsHistory = () => {
         </div>
       </div>
       
-      {/* Main Table */}
       <Card>
         <CardContent className="p-0">
           <Table>
@@ -599,7 +588,6 @@ const RewardsHistory = () => {
         </CardContent>
       </Card>
       
-      {/* Pagination */}
       <Pagination>
         <PaginationContent>
           <PaginationItem>
@@ -620,11 +608,11 @@ const RewardsHistory = () => {
         </PaginationContent>
       </Pagination>
       
-      {/* Detail Panel */}
-      {showDetailPanel && selectedTransaction && (
+      {selectedTransaction && (
         <DetailPanel 
           transaction={selectedTransaction}
           onClose={() => setShowDetailPanel(false)}
+          open={showDetailPanel}
         />
       )}
     </div>
