@@ -140,47 +140,64 @@ const Referrals = () => {
         </CardContent>
       </Card>
       
-      {/* Invite Form */}
-      <Card className="bg-slate-50 border-slate-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Send Invitation</CardTitle>
-          <CardDescription>
-            Each successful referral earns you 500 points
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Business Email</Label>
-            <div className="flex gap-2">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter business email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Button 
-                onClick={handleInvite}
-                disabled={isSubmitting || !email}
-                className="gap-2"
-              >
-                <Send className="h-4 w-4" />
-                Send Invite
-              </Button>
+      {/* Invite Form and Monthly Limit Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Invite Form */}
+        <Card className="bg-slate-50 border-slate-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Send Invitation</CardTitle>
+            <CardDescription>
+              Each successful referral earns you 500 points
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Business Email</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter business email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+                <Button 
+                  onClick={handleInvite}
+                  disabled={isSubmitting || !email}
+                  className="gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  Send Invite
+                </Button>
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <div className="flex justify-between mb-1 text-sm">
-              <span>Monthly referral limit</span>
-              <span>
-                You can refer <span className="font-medium">{remainingReferrals}</span> more businesses this month
-              </span>
+          </CardContent>
+        </Card>
+        
+        {/* Monthly Referral Limit Card */}
+        <Card className="bg-slate-50 border-slate-200">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg">Monthly Referral Limit</CardTitle>
+            <CardDescription>
+              Track your monthly referral allocation
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="flex items-baseline justify-center">
+                  <span className="text-4xl font-bold text-primary">{totalReferrals}</span>
+                  <span className="text-xl text-muted-foreground mx-2">/</span>
+                  <span className="text-2xl font-medium">{monthlyLimit}</span>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  You can refer <span className="font-medium">{remainingReferrals}</span> more businesses this month
+                </p>
+              </div>
             </div>
-            <Progress value={referralProgress} className="h-2" />
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
       
       {/* Referral History */}
       <div>
