@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { TrendingUp, Award, Gift, Share, ChevronRight, Wallet, CreditCard } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,7 +30,7 @@ const RewardsSummary: React.FC<RewardsSummaryProps> = ({
   const pointsValue = Math.round(availablePoints * 0.5); // 1 point = ₹0.5 value
 
   const handleTransferClick = () => {
-    navigate('/network/transfers');
+    navigate('/network', { state: { activeTab: "transfers" } });
     onTransferClick();
   };
   
