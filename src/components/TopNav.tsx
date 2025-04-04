@@ -1,5 +1,5 @@
 
-import { Bell, LogOut, ChevronDown, Settings, User, CreditCard, Star } from "lucide-react";
+import { Bell, LogOut, ChevronDown, Settings, User, Users } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -102,17 +102,10 @@ const TopNav = () => {
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="flex items-center px-3 py-2 cursor-pointer"
-              onClick={() => navigate('/wallet')}
+              onClick={() => navigate('/referrals')}
             >
-              <CreditCard className="h-4 w-4 mr-2" />
-              Manage Payment Methods
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="flex items-center px-3 py-2 cursor-pointer"
-              onClick={() => navigate('/rewards')}
-            >
-              <Star className="h-4 w-4 mr-2" />
-              My Rewards
+              <Users className="h-4 w-4 mr-2" />
+              Referrals
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem 
