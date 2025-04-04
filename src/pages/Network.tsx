@@ -1,14 +1,23 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import TransferPoints from "@/components/network/TransferPoints";
 import Referrals from "@/components/network/Referrals";
 import { Button } from "@/components/ui/button";
 import { Send, Users } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 const Network = () => {
   const [activeTab, setActiveTab] = useState<string>("transfers");
+  const location = useLocation();
+  
+  // Check if the location state contains a tab to activate
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
   
   return (
     <div className="space-y-6">

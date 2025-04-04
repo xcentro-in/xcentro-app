@@ -76,7 +76,6 @@ function App() {
                 <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                 <Route path="rewards/redeem" element={<RedemptionFlow />} />
                 <Route path="network" element={<Network />} />
-                <Route path="network/:tab" element={<Network />} />
                 <Route path="credit-cards" element={<CreditCards />} />
                 <Route path="credit-card-bills" element={<CreditCardBills />} />
                 <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
