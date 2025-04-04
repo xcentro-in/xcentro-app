@@ -26,6 +26,7 @@ import PayInvoice from "./pages/PayInvoice";
 import UserAccess from "./pages/UserAccess";
 import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
+import Network from "./pages/Network";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -74,6 +75,8 @@ function App() {
                 <Route path="rewards/redemption-history" element={<RedemptionHistory />} />
                 <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                 <Route path="rewards/redeem" element={<RedemptionFlow />} />
+                <Route path="network" element={<Network />} />
+                <Route path="network/:tab" element={<Network />} />
                 <Route path="credit-cards" element={<CreditCards />} />
                 <Route path="credit-card-bills" element={<CreditCardBills />} />
                 <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />

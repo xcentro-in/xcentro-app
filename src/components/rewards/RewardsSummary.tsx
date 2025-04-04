@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useNavigate } from "react-router-dom";
 
 interface RewardsSummaryProps {
   availablePoints: number;
@@ -20,6 +21,7 @@ const RewardsSummary: React.FC<RewardsSummaryProps> = ({
 }) => {
   const [progress, setProgress] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const timer = setTimeout(() => setProgress(78), 500);
@@ -27,6 +29,11 @@ const RewardsSummary: React.FC<RewardsSummaryProps> = ({
   }, []);
   
   const pointsValue = Math.round(availablePoints * 0.5); // 1 point = ₹0.5 value
+
+  const handleTransferClick = () => {
+    navigate('/network/transfers');
+    onTransferClick();
+  };
   
   return (
     <Card className="col-span-1 animate-fade-in overflow-hidden border bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 shadow-md">
@@ -77,7 +84,11 @@ const RewardsSummary: React.FC<RewardsSummaryProps> = ({
             <Button className="h-10 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg" onClick={onRedeemClick}>
               Redeem Now
             </Button>
-            <Button variant="outline" className="h-10 gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800" onClick={onTransferClick}>
+            <Button 
+              variant="outline" 
+              className="h-10 gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800" 
+              onClick={handleTransferClick}
+            >
               <Share className="h-4 w-4" />
               Transfer
             </Button>
