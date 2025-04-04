@@ -20,7 +20,6 @@ import {
   Award,
   TrendingUp,
   ReceiptIcon,
-  Share,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -88,24 +87,6 @@ export const mainMenuItems: SidebarMenuItem[] = [
     title: "Wallet",
     url: "/wallet",
     icon: Wallet,
-  },
-  {
-    title: "Business Network",
-    url: "/network",
-    icon: Share,
-    highlight: true,
-    submenu: [
-      {
-        title: "Transfer Points",
-        url: "/network/transfers",
-        icon: Share,
-      },
-      {
-        title: "Referrals",
-        url: "/network/referrals",
-        icon: Users,
-      }
-    ]
   },
   {
     title: "Approvals",
