@@ -1,12 +1,14 @@
 
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plane, Hotel, Ticket, Lock, CheckCircle2, ChevronRight, ArrowRight } from "lucide-react";
+import { Plane, Hotel, Ticket, Lock, CheckCircle2, ChevronRight, ArrowRight, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 interface MilestoneCard {
   id: string;
@@ -177,17 +179,27 @@ const MilestoneCards: React.FC = () => {
                     )}
                     
                     {milestone.status === 'locked' && (
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Lock className="h-3.5 w-3.5" />
-                        <span>Requires {pointsAway.toLocaleString()} more points</span>
-                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Lock className="h-3.5 w-3.5" />
+                              <span>Requires {pointsAway.toLocaleString()} more points</span>
+                              <Info className="h-3.5 w-3.5 ml-1 cursor-help text-gray-400" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-gray-800 text-white border-gray-700">
+                            <p>Earn {pointsAway.toLocaleString()} points to unlock this reward!</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     )}
                   </>
                 )}
                 
                 <Button 
                   onClick={() => handleRedeemClick(milestone.category)}
-                  className="w-full gap-1"
+                  className="gap-1"
                   variant={milestone.status === 'redeemed' ? "outline" : milestone.status === 'locked' ? "secondary" : "default"}
                   disabled={milestone.status === 'locked'}
                 >
