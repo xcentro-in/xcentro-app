@@ -28,10 +28,16 @@ const NotificationPopup = ({
   onDismiss,
 }: NotificationPopupProps) => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState<string>("all");
-
-  // Group notifications by category
+  
+  // Extract unique categories from notifications
   const categories = ["announcements", "rewards", "payments", "payees", "approvals", "security", "insights"];
+  
+  // Set initial active tab to the first category that has notifications, otherwise first category
+  const initialCategory = categories.find(category => 
+    notifications.some(n => n.category === category)
+  ) || categories[0];
+  
+  const [activeTab, setActiveTab] = React.useState<string>(initialCategory);
   
   // Count unread by category
   const unreadCounts = categories.reduce((acc, category) => {
@@ -54,9 +60,7 @@ const NotificationPopup = ({
   };
 
   // Filter notifications based on active tab
-  const filteredNotifications = activeTab === "all" 
-    ? notifications 
-    : notifications.filter(notification => notification.category === activeTab);
+  const filteredNotifications = notifications.filter(notification => notification.category === activeTab);
 
   // Sort notifications by priority (high to low)
   const sortedNotifications = [...filteredNotifications].sort((a, b) => {
@@ -95,7 +99,6 @@ const NotificationPopup = ({
                 <NotificationCategoryTabs
                   categories={categories}
                   activeTab={activeTab}
-                  totalUnread={totalUnread}
                   unreadCounts={unreadCounts}
                 />
               </div>
