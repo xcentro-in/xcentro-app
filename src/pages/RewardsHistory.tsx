@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Search, Filter, ChevronRight, Award, Clock, X, Download, BarChart3 } from "lucide-react";
@@ -15,7 +16,6 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, CartesianGrid, Tooltip } from "recharts";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
-// Mock data for demonstration
 const pointsEarningHistory = [
   { 
     id: "tx1",
@@ -110,7 +110,6 @@ const pointsEarningHistory = [
   },
 ];
 
-// Mock chart data
 const monthlyPointsData = [
   { month: 'Mar', points: 1200 },
   { month: 'Apr', points: 1800 },
@@ -219,7 +218,11 @@ const DetailPanel: React.FC<DetailPanelProps> = ({ transaction, onClose, open })
   );
 };
 
-const RewardsHistory = () => {
+interface RewardsHistoryProps {
+  embeddedView?: boolean;
+}
+
+const RewardsHistory = ({ embeddedView = false }: RewardsHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("30");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -259,29 +262,15 @@ const RewardsHistory = () => {
   const availablePoints = totalPoints - redeemedPoints;
 
   return (
-    <div className="space-y-8 pb-8">
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Reward Points History</h1>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-1" />
-              Export
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowCharts(!showCharts)}
-            >
-              <BarChart3 className="h-4 w-4 mr-1" />
-              {showCharts ? "Hide" : "Show"} Charts
-            </Button>
-          </div>
+    <div className="space-y-6">
+      {!embeddedView && (
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Earning History</h1>
+          <p className="text-muted-foreground">
+            Track all your reward point earnings across transactions
+          </p>
         </div>
-        <p className="text-muted-foreground">
-          View and analyze your reward points earning history
-        </p>
-      </div>
+      )}
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-indigo-50 to-blue-50">

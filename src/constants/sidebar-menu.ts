@@ -20,6 +20,9 @@ import {
   Award,
   TrendingUp,
   ReceiptIcon,
+  ChartIcon,
+  BarChart,
+  LineChart,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -106,14 +109,9 @@ export const mainMenuItems: SidebarMenuItem[] = [
         icon: Award,
       },
       {
-        title: "Earning History",
-        url: "/rewards/history",
-        icon: TrendingUp,
-      },
-      {
-        title: "Redemption History",
-        url: "/rewards/redemption-history",
-        icon: ReceiptIcon,
+        title: "Insights",
+        url: "/rewards/insights",
+        icon: BarChart3,
       }
     ]
   },

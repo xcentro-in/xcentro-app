@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +9,11 @@ import { RedemptionTable } from "@/components/redemption/RedemptionTable";
 import { RedemptionPieChart, RedemptionLineChart } from "@/components/redemption/RedemptionCharts";
 import { redemptionHistoryData, pieChartData, COLORS, lineChartData } from "@/data/redemptionHistoryData";
 
-const RedemptionHistory = () => {
+interface RedemptionHistoryProps {
+  embeddedView?: boolean;
+}
+
+const RedemptionHistory = ({ embeddedView = false }: RedemptionHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -62,12 +67,14 @@ const RedemptionHistory = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Redemption History</h1>
-        <p className="text-muted-foreground">
-          Track all your reward point redemptions across categories and subsidiaries
-        </p>
-      </div>
+      {!embeddedView && (
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Redemption History</h1>
+          <p className="text-muted-foreground">
+            Track all your reward point redemptions across categories and subsidiaries
+          </p>
+        </div>
+      )}
 
       {/* Summary Cards */}
       <RedemptionSummaryCards 
