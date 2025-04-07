@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { NotificationItem } from "@/types/notification";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 interface NotificationPopupProps {
   isOpen: boolean;
@@ -69,152 +70,171 @@ const NotificationPopup = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[500px] md:max-w-[600px] lg:max-w-[700px]">
+      <DialogContent className="sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px]">
         <DialogHeader>
           <div className="flex items-center justify-between mb-2">
-            <DialogTitle className="text-xl">Notifications</DialogTitle>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onMarkAllAsRead}
-              className="text-sm"
-              disabled={totalUnread === 0}
-            >
-              <Check className="mr-1 h-4 w-4" />
-              Mark all as read
-            </Button>
+            <div className="flex flex-col">
+              <DialogTitle className="text-xl">Notifications</DialogTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onMarkAllAsRead}
+                className="text-sm self-start mt-1"
+                disabled={totalUnread === 0}
+              >
+                <Check className="mr-1 h-4 w-4" />
+                Mark all as read
+              </Button>
+            </div>
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-4 overflow-x-auto pb-2">
-              <TabsList className="h-auto flex-wrap gap-1 p-1">
-                <TabsTrigger value="all" className="relative px-3 py-1.5">
-                  All
-                  {totalUnread > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                      {totalUnread}
-                    </span>
-                  )}
-                </TabsTrigger>
-                {categories.map((category) => (
-                  <TabsTrigger key={category} value={category} className="capitalize relative px-3 py-1.5">
-                    {category}
-                    {unreadCounts[category] > 0 && (
-                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                        {unreadCounts[category]}
+            <div className="flex mt-4 h-[60vh]">
+              {/* Vertical tabs on the left */}
+              <div className="w-[180px] border-r border-border pr-1">
+                <TabsList className="flex flex-col h-auto w-full bg-transparent space-y-1">
+                  <TabsTrigger 
+                    value="all" 
+                    className="justify-start relative w-full"
+                  >
+                    All
+                    {totalUnread > 0 && (
+                      <span className="absolute right-2 flex h-5 w-5 min-w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                        {totalUnread}
                       </span>
                     )}
                   </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-
-            <ScrollArea className="max-h-[60vh] min-h-[300px] pr-4">
-              {sortedNotifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                  <p>No notifications</p>
-                </div>
-              ) : (
-                <div className="space-y-3 mt-2">
-                  {sortedNotifications.map((notification) => (
-                    <div 
-                      key={notification.id} 
-                      className={cn(
-                        "p-3 border rounded-lg relative transition-colors",
-                        notification.read ? "bg-card" : "bg-accent/20",
-                        "hover:bg-accent/30 cursor-pointer"
-                      )}
-                      onClick={() => handleNavigate(notification)}
+                  
+                  {categories.map((category) => (
+                    <TabsTrigger 
+                      key={category} 
+                      value={category} 
+                      className="justify-start relative w-full capitalize"
                     >
-                      <div className="flex items-start gap-3">
-                        <div>
-                          {/* Priority indicator */}
-                          <div 
-                            className={cn(
-                              "w-2 h-2 rounded-full mt-2",
-                              notification.priority === "high" && "bg-destructive",
-                              notification.priority === "medium" && "bg-amber-500",
-                              notification.priority === "low" && "bg-green-500"
-                            )}
-                          />
-                        </div>
-                        
-                        <div className="flex-1">
-                          <div className="flex justify-between items-start">
-                            <h4 className={cn("font-medium text-sm", !notification.read && "font-semibold")}>
-                              {notification.title}
-                            </h4>
-                            <span className="text-xs text-muted-foreground ml-2">
-                              {notification.time}
-                            </span>
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {notification.message}
-                          </p>
-                          
-                          {notification.actionLabel && (
-                            <div className="mt-2 flex items-center">
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                className="h-7 text-xs"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleNavigate(notification);
-                                }}
-                              >
-                                {notification.actionLabel}
-                                <ExternalLink className="ml-1 h-3 w-3" />
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs ml-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onMarkAsRead(notification.id);
-                                }}
-                              >
-                                Mark as read
-                              </Button>
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-7 text-xs ml-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDismiss(notification.id);
-                                }}
-                              >
-                                Dismiss
-                              </Button>
-                            </div>
-                          )}
-                          
-                          <div className="mt-1.5">
-                            <span className={cn(
-                              "inline-block px-2 py-0.5 text-xs rounded-full capitalize",
-                              notification.category === "announcements" && "bg-blue-100 text-blue-800",
-                              notification.category === "rewards" && "bg-amber-100 text-amber-800",
-                              notification.category === "payments" && "bg-green-100 text-green-800",
-                              notification.category === "payees" && "bg-purple-100 text-purple-800",
-                              notification.category === "approvals" && "bg-indigo-100 text-indigo-800",
-                              notification.category === "security" && "bg-red-100 text-red-800",
-                              notification.category === "insights" && "bg-cyan-100 text-cyan-800"
-                            )}>
-                              {notification.category}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      {category}
+                      {unreadCounts[category] > 0 && (
+                        <span className="absolute right-2 flex h-5 w-5 min-w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                          {unreadCounts[category]}
+                        </span>
+                      )}
+                    </TabsTrigger>
                   ))}
-                </div>
-              )}
-            </ScrollArea>
+                </TabsList>
+              </div>
+              
+              {/* Separator line */}
+              <Separator orientation="vertical" className="mx-2" />
+              
+              {/* Notifications content on the right */}
+              <div className="flex-1 pl-2">
+                <ScrollArea className="h-full pr-4">
+                  {sortedNotifications.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                      <p>No notifications</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {sortedNotifications.map((notification) => (
+                        <div 
+                          key={notification.id} 
+                          className={cn(
+                            "p-3 border rounded-lg relative transition-colors",
+                            notification.read ? "bg-card" : "bg-accent/20",
+                            "hover:bg-accent/30 cursor-pointer"
+                          )}
+                          onClick={() => handleNavigate(notification)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div>
+                              {/* Priority indicator */}
+                              <div 
+                                className={cn(
+                                  "w-2 h-2 rounded-full mt-2",
+                                  notification.priority === "high" && "bg-destructive",
+                                  notification.priority === "medium" && "bg-amber-500",
+                                  notification.priority === "low" && "bg-green-500"
+                                )}
+                              />
+                            </div>
+                            
+                            <div className="flex-1">
+                              <div className="flex justify-between items-start">
+                                <h4 className={cn("font-medium text-sm", !notification.read && "font-semibold")}>
+                                  {notification.title}
+                                </h4>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  {notification.time}
+                                </span>
+                              </div>
+                              
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {notification.message}
+                              </p>
+                              
+                              {notification.actionLabel && (
+                                <div className="mt-2 flex items-center">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    className="h-7 text-xs"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleNavigate(notification);
+                                    }}
+                                  >
+                                    {notification.actionLabel}
+                                    <ExternalLink className="ml-1 h-3 w-3" />
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs ml-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onMarkAsRead(notification.id);
+                                    }}
+                                  >
+                                    Mark as read
+                                  </Button>
+                                  
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs ml-2"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDismiss(notification.id);
+                                    }}
+                                  >
+                                    Dismiss
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              <div className="mt-1.5">
+                                <span className={cn(
+                                  "inline-block px-2 py-0.5 text-xs rounded-full capitalize",
+                                  notification.category === "announcements" && "bg-blue-100 text-blue-800",
+                                  notification.category === "rewards" && "bg-amber-100 text-amber-800",
+                                  notification.category === "payments" && "bg-green-100 text-green-800",
+                                  notification.category === "payees" && "bg-purple-100 text-purple-800",
+                                  notification.category === "approvals" && "bg-indigo-100 text-indigo-800",
+                                  notification.category === "security" && "bg-red-100 text-red-800",
+                                  notification.category === "insights" && "bg-cyan-100 text-cyan-800"
+                                )}>
+                                  {notification.category}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </ScrollArea>
+              </div>
+            </div>
           </Tabs>
         </DialogHeader>
       </DialogContent>
