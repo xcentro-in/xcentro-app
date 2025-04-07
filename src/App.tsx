@@ -13,6 +13,7 @@ import PaymentCalendar from "./pages/PaymentCalendar";
 import ApprovalInbox from "./pages/ApprovalInbox";
 import Rewards from "./pages/Rewards";
 import RewardsInsights from "./pages/RewardsInsights";
+import MilestoneRewards from "./pages/MilestoneRewards";
 import CreditCards from "./pages/CreditCards";
 import CreditCardBills from "./pages/CreditCardBills";
 import CreditCardAnalytics from "./pages/CreditCardAnalytics";
@@ -71,6 +72,7 @@ function App() {
                 <Route path="payments/:transactionId" element={<TransactionDetails />} />
                 <Route path="rewards" element={<Rewards />} />
                 <Route path="rewards/insights" element={<RewardsInsights />} />
+                <Route path="rewards/milestones" element={<MilestoneRewards />} />
                 <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                 <Route path="rewards/redeem" element={<RedemptionFlow />} />
                 <Route path="network" element={<Network />} />

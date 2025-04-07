@@ -69,12 +69,16 @@ const MilestoneCards: React.FC = () => {
   const handleRedeemClick = (categoryId: string) => {
     navigate(`/rewards/redeem/${categoryId}`);
   };
+
+  const handleViewAll = () => {
+    navigate('/rewards/milestones');
+  };
   
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-2">
         <h2 className="text-xl font-semibold">Milestone Rewards</h2>
-        <Button variant="link" className="text-primary p-0 h-auto gap-1" onClick={() => navigate('/rewards/milestones')}>
+        <Button variant="link" className="text-primary p-0 h-auto gap-1" onClick={handleViewAll}>
           View All <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
