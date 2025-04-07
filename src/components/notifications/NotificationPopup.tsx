@@ -69,7 +69,7 @@ const NotificationPopup = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-xl">
+      <DialogContent className="sm:max-w-[500px] md:max-w-[600px] lg:max-w-[700px]">
         <DialogHeader>
           <div className="flex items-center justify-between mb-2">
             <DialogTitle className="text-xl">Notifications</DialogTitle>
@@ -86,21 +86,21 @@ const NotificationPopup = ({
           </div>
           
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center mb-4">
-              <TabsList>
-                <TabsTrigger value="all" className="relative">
+            <div className="flex justify-center mb-4 overflow-x-auto pb-2">
+              <TabsList className="h-auto flex-wrap gap-1 p-1">
+                <TabsTrigger value="all" className="relative px-3 py-1.5">
                   All
                   {totalUnread > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                    <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
                       {totalUnread}
                     </span>
                   )}
                 </TabsTrigger>
                 {categories.map((category) => (
-                  <TabsTrigger key={category} value={category} className="capitalize relative">
+                  <TabsTrigger key={category} value={category} className="capitalize relative px-3 py-1.5">
                     {category}
                     {unreadCounts[category] > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                      <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 min-w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
                         {unreadCounts[category]}
                       </span>
                     )}
