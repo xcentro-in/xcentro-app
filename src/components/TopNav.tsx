@@ -1,5 +1,5 @@
 
-import { Bell, LogOut, ChevronDown, Settings, User, Users, Star } from "lucide-react";
+import { Bell, LogOut, ChevronDown, User, Users, Star } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,13 +16,25 @@ import {
 } from "@/components/ui/dropdown-menu";
 import LogoutConfirmationDialog from "./LogoutConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
+import { useNotifications } from "@/hooks/use-notifications";
+import NotificationPopup from "./notifications/NotificationPopup";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [notifications, setNotifications] = useState(3);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  
+  const {
+    notifications,
+    unreadCount,
+    isOpen: notificationsOpen,
+    openNotifications,
+    closeNotifications,
+    markAsRead,
+    markAllAsRead,
+    dismissNotification
+  } = useNotifications();
   
   const handleLogout = () => {
     // Here you would implement actual logout logic
@@ -56,11 +68,16 @@ const TopNav = () => {
           <span className="text-xs text-muted-foreground">points</span>
         </Button>
         
-        <Button variant="ghost" size="icon" className="relative">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="relative"
+          onClick={openNotifications}
+        >
           <Bell className="h-5 w-5" />
-          {notifications > 0 && (
+          {unreadCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-scale-in">
-              {notifications}
+              {unreadCount}
             </span>
           )}
         </Button>
@@ -123,6 +140,15 @@ const TopNav = () => {
         open={logoutDialogOpen}
         onOpenChange={setLogoutDialogOpen}
         onConfirm={handleLogout}
+      />
+
+      <NotificationPopup
+        isOpen={notificationsOpen}
+        onClose={closeNotifications}
+        notifications={notifications}
+        onMarkAllAsRead={markAllAsRead}
+        onMarkAsRead={markAsRead}
+        onDismiss={dismissNotification}
       />
     </header>
   );
