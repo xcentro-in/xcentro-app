@@ -1,4 +1,3 @@
-
 import { 
   Home, 
   CreditCard,
@@ -20,7 +19,6 @@ import {
   Award,
   TrendingUp,
   ReceiptIcon,
-  ChartIcon,
   BarChart,
   LineChart,
 } from "lucide-react";
