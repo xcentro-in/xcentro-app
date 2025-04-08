@@ -110,6 +110,10 @@ const CashflowProjectionChart: React.FC = () => {
     }
   };
 
+  // Group data by projected status for different line segments
+  const actualData = cashFlowData.filter(day => !day.projected);
+  const projectedData = cashFlowData.filter(day => day.projected);
+
   return (
     <div className="h-[350px] w-full">
       <ChartContainer config={chartConfig}>
@@ -147,55 +151,124 @@ const CashflowProjectionChart: React.FC = () => {
             }} 
           />
           
-          {/* Inflow Line */}
+          {/* Actual Inflow Line */}
           <Line 
             type="monotone" 
             dataKey="inflow" 
+            data={actualData}
             name="Cash Inflow" 
             stroke="#3b82f6" 
             strokeWidth={2} 
             dot={{ r: 0 }}
             activeDot={{ r: 6, fill: "#3b82f6" }}
-            strokeDasharray={(data) => data.projected ? "5 5" : "0"}
           />
           
-          {/* Outflow Line */}
+          {/* Projected Inflow Line */}
+          <Line 
+            type="monotone" 
+            dataKey="inflow" 
+            data={projectedData}
+            name="Projected Inflow" 
+            stroke="#3b82f6" 
+            strokeWidth={2} 
+            strokeDasharray="5 5"
+            dot={{ r: 0 }}
+            activeDot={{ r: 6, fill: "#3b82f6" }}
+          />
+          
+          {/* Actual Outflow Line */}
           <Line 
             type="monotone" 
             dataKey="outflow" 
+            data={actualData}
             name="Cash Outflow" 
             stroke="#ef4444" 
             strokeWidth={2} 
             dot={{ r: 0 }}
             activeDot={{ r: 6, fill: "#ef4444" }}
-            strokeDasharray={(data) => data.projected ? "5 5" : "0"}
           />
           
-          {/* Balance Line */}
+          {/* Projected Outflow Line */}
           <Line 
             type="monotone" 
-            dataKey="balance" 
-            name="Cash Balance" 
-            stroke={(data) => {
-              if (data.balance < warningThreshold) return "#ef4444";
-              if (data.balance < safetyThreshold) return "#f97316";
-              return "#10b981";
-            }}
-            strokeWidth={3} 
-            strokeDasharray={(data) => data.projected ? "5 5" : "0"}
-            dot={(data) => {
-              if (data.shortfall) {
-                return {
-                  r: 4,
-                  fill: "#ef4444",
-                  stroke: "#fecaca",
-                  strokeWidth: 2
-                };
-              }
-              return { r: 0 };
-            }}
-            activeDot={{ r: 7, strokeWidth: 2 }}
+            dataKey="outflow" 
+            data={projectedData}
+            name="Projected Outflow" 
+            stroke="#ef4444" 
+            strokeWidth={2} 
+            strokeDasharray="5 5"
+            dot={{ r: 0 }}
+            activeDot={{ r: 6, fill: "#ef4444" }}
           />
+          
+          {/* Actual Balance Lines by Status */}
+          {[
+            { condition: (d: DayProjection) => !d.projected && d.balance < warningThreshold, color: "#ef4444" },
+            { condition: (d: DayProjection) => !d.projected && d.balance >= warningThreshold && d.balance < safetyThreshold, color: "#f97316" },
+            { condition: (d: DayProjection) => !d.projected && d.balance >= safetyThreshold, color: "#10b981" }
+          ].map((segment, i) => {
+            const segmentData = cashFlowData.filter(segment.condition);
+            return segmentData.length > 0 ? (
+              <Line 
+                key={`balance-actual-${i}`}
+                type="monotone" 
+                dataKey="balance" 
+                data={segmentData}
+                name="Cash Balance" 
+                stroke={segment.color}
+                strokeWidth={3}
+                dot={(props) => {
+                  const { cx, cy, payload } = props;
+                  return payload.shortfall ? (
+                    <circle 
+                      cx={cx} 
+                      cy={cy} 
+                      r={4} 
+                      fill="#ef4444"
+                      stroke="#fecaca"
+                      strokeWidth={2}
+                    />
+                  ) : null;
+                }}
+                activeDot={{ r: 7, strokeWidth: 2 }}
+              />
+            ) : null;
+          })}
+          
+          {/* Projected Balance Lines by Status */}
+          {[
+            { condition: (d: DayProjection) => d.projected && d.balance < warningThreshold, color: "#ef4444" },
+            { condition: (d: DayProjection) => d.projected && d.balance >= warningThreshold && d.balance < safetyThreshold, color: "#f97316" },
+            { condition: (d: DayProjection) => d.projected && d.balance >= safetyThreshold, color: "#10b981" }
+          ].map((segment, i) => {
+            const segmentData = cashFlowData.filter(segment.condition);
+            return segmentData.length > 0 ? (
+              <Line 
+                key={`balance-projected-${i}`}
+                type="monotone" 
+                dataKey="balance" 
+                data={segmentData}
+                name="Projected Balance" 
+                stroke={segment.color}
+                strokeWidth={3}
+                strokeDasharray="5 5"
+                dot={(props) => {
+                  const { cx, cy, payload } = props;
+                  return payload.shortfall ? (
+                    <circle 
+                      cx={cx} 
+                      cy={cy} 
+                      r={4} 
+                      fill="#ef4444"
+                      stroke="#fecaca"
+                      strokeWidth={2}
+                    />
+                  ) : null;
+                }}
+                activeDot={{ r: 7, strokeWidth: 2 }}
+              />
+            ) : null;
+          })}
         </LineChart>
       </ChartContainer>
     </div>
