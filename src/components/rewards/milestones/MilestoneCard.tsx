@@ -3,7 +3,8 @@ import React from "react";
 import { 
   Lock, 
   CheckCircle2,
-  Info
+  Info,
+  Star
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
