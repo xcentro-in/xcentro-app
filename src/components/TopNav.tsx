@@ -3,6 +3,7 @@ import { Bell, LogOut, ChevronDown, User, Users, Star, Building, AlertCircle, Ch
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { mockBusinesses } from "@/data/mockBusinesses";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";

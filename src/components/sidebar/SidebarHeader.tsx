@@ -6,6 +6,10 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { mockBusinesses } from "@/data/mockBusinesses";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { mockBusinesses } from "@/data/mockBusinesses";
+import { toast } from "sonner";
 export const SidebarHeader = () => {
   const {
     open
