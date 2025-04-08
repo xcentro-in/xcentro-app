@@ -25,7 +25,7 @@ const PaymentsTableContainer = ({
   onItemsPerPageChange
 }: PaymentsTableContainerProps) => {
   return (
-    <CardContent>
+    <CardContent className="p-6">
       <TransactionsTable 
         transactions={transactions}
         searchValue={searchValue}

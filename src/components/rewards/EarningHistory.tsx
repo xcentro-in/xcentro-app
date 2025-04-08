@@ -1,19 +1,31 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
-const EarningHistory: React.FC = () => {
+interface EarningHistoryProps {
+  onViewHistoryClick?: () => void;
+}
+
+const EarningHistory: React.FC<EarningHistoryProps> = ({ onViewHistoryClick }) => {
   const navigate = useNavigate();
+  
+  const handleViewHistory = () => {
+    if (onViewHistoryClick) {
+      onViewHistoryClick();
+    } else {
+      navigate('/rewards/insights', { state: { tab: 'earning' }});
+    }
+  };
 
   return (
     <Card className="animate-fade-in" style={{ animationDelay: "150ms" }}>
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Earning History</CardTitle>
+        <CardTitle className="text-lg font-semibold">Recent Reward Activities</CardTitle>
         <CardDescription>
-          Recent reward point transactions
+          Track your points earning transactions
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -35,7 +47,7 @@ const EarningHistory: React.FC = () => {
               <div 
                 key={transaction.vendor}
                 className="grid grid-cols-[1fr_auto_auto] items-center gap-4 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                onClick={() => navigate("/rewards/history")}
+                onClick={handleViewHistory}
               >
                 <div className="font-medium truncate">{transaction.vendor}</div>
                 <div className="text-right font-medium text-green-500">+{transaction.points}</div>
@@ -50,7 +62,7 @@ const EarningHistory: React.FC = () => {
           variant="ghost" 
           size="sm" 
           className="gap-1 mx-auto hover:bg-primary/5 hover:text-primary"
-          onClick={() => navigate("/rewards/history")}
+          onClick={handleViewHistory}
         >
           View Complete History <ChevronRight className="h-4 w-4" />
         </Button>

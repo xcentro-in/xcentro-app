@@ -1,10 +1,12 @@
+
 import { useState } from "react";
-import { PaymentDetailsStep, PaymentType } from "./PaymentDetailsStep";
+import { PaymentDetailsStep } from "./PaymentDetailsStep";
 import { TransactionSummary } from "./common/TransactionSummary";
 import PayeeSelectionStep from "./PayeeSelectionStep";
 import PaymentMethodStep from "./PaymentMethodStep";
 import { mockPayees } from "@/data/mockPayees";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;
@@ -12,7 +14,7 @@ interface SinglePaymentFormProps {
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const [step, setStep] = useState(1);
-  const [paymentType, setPaymentType] = useState<PaymentType>("now");
+  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -58,7 +60,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     <div className="space-y-6">
       {step === 1 && (
         <PaymentDetailsStep
-          paymentType={paymentType}
+          paymentType="now"
           scheduledDate={scheduledDate}
           amount={amount}
           description={description}
@@ -89,6 +91,12 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         <PaymentMethodStep
           selectedPaymentMethod={selectedPaymentMethod}
           onSelect={setSelectedPaymentMethod}
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          frequency={frequency}
+          onPaymentTypeChange={setPaymentType}
+          onScheduledDateChange={setScheduledDate}
+          onFrequencyChange={setFrequency}
           onBack={handleBack}
           onNext={handleNext}
         />

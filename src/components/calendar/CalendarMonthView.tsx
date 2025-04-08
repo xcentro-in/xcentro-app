@@ -5,13 +5,11 @@ import CalendarDayCell from "./CalendarDayCell";
 
 interface CalendarMonthViewProps {
   weeks: { days: CalendarDay[] }[];
-  filterType: string;
   onDayClick: (day: CalendarDay) => void;
 }
 
 const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
   weeks,
-  filterType,
   onDayClick
 }) => {
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -36,7 +34,7 @@ const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
               <CalendarDayCell
                 key={`${weekIndex}-${dayIndex}`}
                 day={day}
-                filterType={filterType}
+                filterType="all" // Adding a default value for filterType
                 onClick={() => onDayClick(day)}
               />
             ))}

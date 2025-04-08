@@ -17,7 +17,7 @@ type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" |
 
 const steps = {
   single: ["Details", "Payee", "Payment method", "Review"],
-  batch: ["Upload", "Validate", "Payment method", "Review"],
+  batch: ["Upload/Import", "Validate", "Payment method", "Review"],
   gst: ["Upload/Details", "Payment method", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Review"],
   payroll: ["Entry Method", "Details/Selection", "Review"],
@@ -26,7 +26,7 @@ const steps = {
 
 const paymentTitles = {
   selection: "New Payment",
-  single: "Single Payment",
+  single: "Quick Payment",
   batch: "Batch Payment",
   gst: "GST Payment",
   creditcard: "Credit Card Bill Payment",
@@ -36,7 +36,7 @@ const paymentTitles = {
 
 const paymentSubtitles = {
   selection: "Create a new payment transaction",
-  single: "Make a one-time payment to a payee",
+  single: "Make quick payments to your vendor",
   batch: "Pay multiple vendors at once",
   gst: "Pay your GST taxes",
   creditcard: "Pay your credit card bills",
@@ -126,7 +126,7 @@ const NewPayment = () => {
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
               {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} initialMethod={paymentMethod === "quick" ? "quick" : "upload"} />}
               {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
-              {paymentCategory === "invoice" && <PayInvoice />}
+              {paymentCategory === "invoice" && <PayInvoice onStepChange={setStep} />}
             </>
           )}
         </CardContent>

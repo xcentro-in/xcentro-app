@@ -1,35 +1,27 @@
 
 import React from "react";
-import { ChevronLeft, ChevronRight, Download, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, List, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarViewType, CalendarFilterType } from "@/types/calendar";
 import { getMonthsOptions } from "@/utils/calendarUtils";
 
 interface CalendarHeaderProps {
   currentDate: Date;
-  viewType: CalendarViewType;
-  filterType: CalendarFilterType;
   onPrevious: () => void;
   onNext: () => void;
-  onViewChange: (view: CalendarViewType) => void;
-  onFilterChange: (filter: CalendarFilterType) => void;
   onMonthSelect: (value: string) => void;
-  onExport: () => void;
+  activeView: "list" | "calendar";
+  onViewChange: (view: "list" | "calendar") => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   currentDate,
-  viewType,
-  filterType,
   onPrevious,
   onNext,
-  onViewChange,
-  onFilterChange,
   onMonthSelect,
-  onExport
+  activeView,
+  onViewChange
 }) => {
   const monthOptions = getMonthsOptions();
   const currentMonthValue = format(currentDate, 'yyyy-MM');
@@ -73,44 +65,25 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </Button>
         </div>
         
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Tabs 
-            value={viewType} 
-            onValueChange={(value) => onViewChange(value as CalendarViewType)} 
-            className="w-full sm:w-auto"
+        <div className="flex border rounded-lg overflow-hidden">
+          <Button 
+            variant={activeView === "list" ? "default" : "ghost"}
+            size="sm"
+            className="rounded-none px-2"
+            onClick={() => onViewChange("list")}
+            title="List View"
           >
-            <TabsList className="grid w-full grid-cols-2 sm:w-auto">
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <div className="flex items-center gap-2">
-            <Select
-              value={filterType}
-              onValueChange={(value) => onFilterChange(value as CalendarFilterType)}
-            >
-              <SelectTrigger className="w-[130px]">
-                <SelectValue placeholder="Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Payments</SelectItem>
-                <SelectItem value="recurring">Recurring</SelectItem>
-                <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={onExport}
-              title="Export Calendar"
-            >
-              <Download className="h-4 w-4" />
-            </Button>
-          </div>
+            <List className="h-4 w-4" />
+          </Button>
+          <Button 
+            variant={activeView === "calendar" ? "default" : "ghost"}
+            size="sm"
+            className="rounded-none px-2"
+            onClick={() => onViewChange("calendar")}
+            title="Calendar View"
+          >
+            <CalendarDays className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

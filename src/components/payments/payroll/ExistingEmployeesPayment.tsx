@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -58,6 +59,11 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
     const employeesToPay = employees.filter(emp => selectedEmployees.includes(emp.id));
     onSubmit(employeesToPay);
   };
+
+  // Calculate total salary amount of selected employees
+  const totalSelectedSalary = employees
+    .filter(emp => selectedEmployees.includes(emp.id))
+    .reduce((total, emp) => total + emp.salaryAmount, 0);
 
   return (
     <div className="space-y-4">
@@ -128,7 +134,16 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
         </Table>
       </div>
 
-      <div className="flex items-center justify-between mt-4">
+      {selectedEmployees.length > 0 && (
+        <div className="p-4 bg-muted/20 rounded-md">
+          <p className="text-right">
+            <span className="text-sm text-muted-foreground mr-2">Total amount selected:</span>
+            <span className="font-bold">₹{totalSelectedSalary.toLocaleString()}</span>
+          </p>
+        </div>
+      )}
+
+      <div className="flex justify-between gap-3 mt-4">
         <div className="text-sm text-muted-foreground">
           {selectedEmployees.length > 0 ? (
             <>Selected {selectedEmployees.length} out of {filteredEmployees.length} employees</>
@@ -136,15 +151,13 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
             <>Select employees to proceed</>
           )}
         </div>
-        <div>
-          <Button 
-            onClick={handleSubmit} 
-            disabled={selectedEmployees.length === 0}
-            className="w-auto"
-          >
-            Continue to Payment Method
-          </Button>
-        </div>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={selectedEmployees.length === 0}
+          className="w-auto"
+        >
+          Continue to Payment Method
+        </Button>
       </div>
     </div>
   );

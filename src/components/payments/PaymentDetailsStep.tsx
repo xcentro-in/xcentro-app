@@ -45,28 +45,6 @@ export const PaymentDetailsStep = ({
 }: PaymentDetailsStepProps) => {
   return (
     <div className="space-y-6 max-w ml-0">
-      <div className="space-y-3">
-        <Label className="text-base">Payment Type</Label>
-        <RadioGroup 
-          value={paymentType} 
-          onValueChange={(value: PaymentType) => onPaymentTypeChange(value)}
-          className="flex flex-col space-y-2"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="now" id="pay-now" />
-            <Label htmlFor="pay-now" className="cursor-pointer">Pay Now</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="later" id="pay-later" />
-            <Label htmlFor="pay-later" className="cursor-pointer">Pay Later</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="recurring" id="pay-recurring" />
-            <Label htmlFor="pay-recurring" className="cursor-pointer">Recurring Payment</Label>
-          </div>
-        </RadioGroup>
-      </div>
-
       {paymentType === "later" && (
         <div className="space-y-2">
           <Label>Schedule Date</Label>

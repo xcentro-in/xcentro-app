@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Files, FileSpreadsheet, Receipt, Users, File } from "lucide-react";
+import { FileText, Files, FileSpreadsheet, Receipt, Users, File, Clock } from "lucide-react";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
@@ -13,9 +13,9 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
   const categories = [
     {
       id: "single",
-      title: "Single Payment",
-      description: "Make a payment to a single vendor or payee",
-      icon: <FileText className="h-10 w-10 text-primary" />,
+      title: "Quick Payment",
+      description: "Make quick payments to your vendor",
+      icon: <Clock className="h-10 w-10 text-primary" />,
     },
     {
       id: "batch",

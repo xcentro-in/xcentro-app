@@ -1,17 +1,10 @@
-
 import { Calendar, Clock, CreditCard, ChevronUp, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DateRangePicker } from "@/components/payments/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
-import { 
-  dateFilterOptions, 
-  statusFilterOptions, 
-  methodFilterOptions, 
-  categoryFilterOptions 
-} from "@/constants/filterOptions";
+import { dateFilterOptions, statusFilterOptions, methodFilterOptions, categoryFilterOptions } from "@/constants/filterOptions";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-
 interface FilterBarProps {
   dateFilter: string;
   dateRange: DateRange | undefined;
@@ -30,7 +23,6 @@ interface FilterBarProps {
   isOpen: boolean;
   onToggle: () => void;
 }
-
 const FilterBar = ({
   dateFilter,
   dateRange,
@@ -49,9 +41,8 @@ const FilterBar = ({
   isOpen,
   onToggle
 }: FilterBarProps) => {
-  return (
-    <Collapsible open={isOpen} onOpenChange={onToggle} className="w-full">
-      <div className="flex items-center justify-between py-3">
+  return <Collapsible open={isOpen} onOpenChange={onToggle} className="w-full">
+      <div className="flex items-center justify-between py-0">
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="text-purple-700 hover:text-purple-800 hover:bg-transparent p-0 flex items-center gap-2 font-medium">
             <span>Edit filters</span> 
@@ -73,9 +64,7 @@ const FilterBar = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Dates</SelectItem>
-                {dateFilterOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
+                {dateFilterOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -88,9 +77,7 @@ const FilterBar = ({
                 <SelectValue placeholder="Categories" />
               </SelectTrigger>
               <SelectContent>
-                {categoryFilterOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
+                {categoryFilterOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -103,40 +90,27 @@ const FilterBar = ({
                 <SelectValue placeholder="Statuses" />
               </SelectTrigger>
               <SelectContent>
-                {statusFilterOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                ))}
+                {statusFilterOptions.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
         
         {/* Custom Date Range Picker - Only show when custom is selected */}
-        {showCustomDateRange && (
-          <div className="w-full">
-            <DateRangePicker 
-              dateRange={dateRange}
-              onDateRangeChange={onDateRangeChange}
-            />
-          </div>
-        )}
+        {showCustomDateRange && <div className="w-full">
+            <DateRangePicker dateRange={dateRange} onDateRangeChange={onDateRangeChange} />
+          </div>}
         
         {/* Action Buttons */}
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onResetFilters}>
             Reset Filters
           </Button>
-          <Button 
-            disabled={!filtersChanged} 
-            onClick={onApplyFilters}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
+          <Button disabled={!filtersChanged} onClick={onApplyFilters} className="bg-purple-600 hover:bg-purple-700">
             Apply Filters
           </Button>
         </div>
       </CollapsibleContent>
-    </Collapsible>
-  );
+    </Collapsible>;
 };
-
 export default FilterBar;

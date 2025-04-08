@@ -1,16 +1,16 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import PaymentMethodStep from "./PaymentMethodStep";
-import { Upload, PencilIcon, Info } from "lucide-react";
+import { Upload, Info } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 import { Separator } from "@/components/ui/separator";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
+import PaymentMethodStep from "./PaymentMethodStep";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GSTPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -27,6 +27,11 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
   const [taxAmount, setTaxAmount] = useState("");
   const [description, setDescription] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  
+  // Payment schedule states
+  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [frequency, setFrequency] = useState<string>("monthly");
   
   // Mock data for OCR results
   const challanData = {
@@ -92,40 +97,23 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
     onStepChange(prevStep);
   };
 
+  const handleTabChange = (value: string) => {
+    setInputMethod(value as InputMethod);
+  };
+
   return (
     <div className="space-y-6">
       {step === 1 && (
         <div className="space-y-6">
           <h3 className="font-medium text-lg mb-2">GST Payment Details</h3>
           
-          <RadioGroup 
-            value={inputMethod} 
-            onValueChange={(value) => setInputMethod(value as InputMethod)} 
-            className="mb-6"
-          >
-            <div className={`flex p-4 border rounded-md mb-4 cursor-pointer ${inputMethod === 'upload' ? 'border-primary bg-primary/5' : ''}`}>
-              <RadioGroupItem value="upload" id="upload" className="mt-1" />
-              <div className="ml-3">
-                <Label htmlFor="upload" className="font-medium cursor-pointer">Upload GST Challan (Recommended)</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Upload your GST challan PDF for automatic data extraction
-                </p>
-              </div>
-            </div>
+          <Tabs defaultValue="upload" onValueChange={handleTabChange} className="w-full">
+            <TabsList className="w-full mb-6">
+              <TabsTrigger value="upload" className="flex-1">Upload GST Challan</TabsTrigger>
+              <TabsTrigger value="manual" className="flex-1">Add Details Manually</TabsTrigger>
+            </TabsList>
             
-            <div className={`flex p-4 border rounded-md cursor-pointer ${inputMethod === 'manual' ? 'border-primary bg-primary/5' : ''}`}>
-              <RadioGroupItem value="manual" id="manual" className="mt-1" />
-              <div className="ml-3">
-                <Label htmlFor="manual" className="font-medium cursor-pointer">Add Details Manually</Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Manually enter GST payment details
-                </p>
-              </div>
-            </div>
-          </RadioGroup>
-          
-          {inputMethod === "upload" && (
-            <div className="space-y-4">
+            <TabsContent value="upload" className="space-y-4">
               <div 
                 className="border-2 border-dashed rounded-lg p-8 text-center hover:bg-muted/50 transition-colors cursor-pointer"
                 onDragOver={handleDragOver}
@@ -171,45 +159,49 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
-          )}
+            </TabsContent>
+            
+            <TabsContent value="manual" className="space-y-4">
+              <div className="space-y-4 p-4 border rounded-md">
+                <div className="space-y-2">
+                  <Label htmlFor="invoice-number">Invoice/CPIN Number</Label>
+                  <Input 
+                    id="invoice-number" 
+                    placeholder="Enter invoice or CPIN number" 
+                    value={invoiceNumber} 
+                    onChange={(e) => setInvoiceNumber(e.target.value)} 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="tax-amount">Tax Amount (₹)</Label>
+                  <Input 
+                    id="tax-amount" 
+                    type="number" 
+                    placeholder="Enter tax amount" 
+                    value={taxAmount} 
+                    onChange={(e) => setTaxAmount(e.target.value)} 
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea 
+                    id="description" 
+                    placeholder="Enter description" 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
           
-          {inputMethod === "manual" && (
-            <div className="space-y-4 p-4 border rounded-md">
-              <div className="space-y-2">
-                <Label htmlFor="invoice-number">Invoice/CPIN Number</Label>
-                <Input 
-                  id="invoice-number" 
-                  placeholder="Enter invoice or CPIN number" 
-                  value={invoiceNumber} 
-                  onChange={(e) => setInvoiceNumber(e.target.value)} 
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="tax-amount">Tax Amount (₹)</Label>
-                <Input 
-                  id="tax-amount" 
-                  type="number" 
-                  placeholder="Enter tax amount" 
-                  value={taxAmount} 
-                  onChange={(e) => setTaxAmount(e.target.value)} 
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  placeholder="Enter description" 
-                  value={description} 
-                  onChange={(e) => setDescription(e.target.value)} 
-                />
-              </div>
-            </div>
-          )}
-          
-          <Button onClick={handleNext} className="w-full" disabled={inputMethod === "upload" && !selectedFile}>
+          <Button 
+            onClick={handleNext} 
+            className="w-full" 
+            disabled={inputMethod === "upload" && !selectedFile || inputMethod === "manual" && (!invoiceNumber || !taxAmount)}
+          >
             Continue to Payment Method
           </Button>
         </div>
@@ -221,6 +213,12 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
           onSelect={setSelectedPaymentMethod}
           onBack={handleBack}
           onNext={handleNext}
+          paymentType={paymentType}
+          scheduledDate={scheduledDate}
+          frequency={frequency}
+          onPaymentTypeChange={setPaymentType}
+          onScheduledDateChange={setScheduledDate}
+          onFrequencyChange={setFrequency}
         />
       )}
 

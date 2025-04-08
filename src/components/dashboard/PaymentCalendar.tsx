@@ -21,7 +21,7 @@ const PaymentCalendar = () => {
       <CardHeader>
         <Tabs defaultValue="upcoming">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold">Payment Calendar</CardTitle>
+            <CardTitle className="text-lg font-semibold">Upcoming Payments</CardTitle>
             <TabsList className="grid grid-cols-2 h-8">
               <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
               <TabsTrigger value="recurring">Recurring</TabsTrigger>
