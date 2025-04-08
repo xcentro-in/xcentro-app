@@ -83,25 +83,25 @@ export const SidebarMenuItemComponent = ({
                   <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1 w-1 rounded-full", getHighlightColorClasses())}></span>
                 )}
                 <Icon className={cn(
-                  "h-4 w-4",
+                  "h-4 w-4 flex-shrink-0",
                   isActive ? 
                     "text-primary" : 
                     highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
                 )} />
                 {open && (
-                  <span className={cn(
-                    "truncate flex-grow",
-                    highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
-                  )}>
-                    {title}
-                  </span>
-                )}
-                {open && (
-                  isSubmenuOpen ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  )
+                  <>
+                    <span className={cn(
+                      "truncate flex-grow",
+                      highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
+                    )}>
+                      {title}
+                    </span>
+                    {isSubmenuOpen ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </>
                 )}
               </div>
             </SidebarMenuButton>
