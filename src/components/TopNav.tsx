@@ -52,7 +52,43 @@ const TopNav = () => {
   
   return (
     <header className="h-16 border-b border-border px-6 flex items-center justify-between z-20 bg-background/90 backdrop-blur-sm">
-      <div className="flex-1"></div>
+      <div className="flex-1">
+        <div className="peer-data-[state=collapsed]/sidebar:block hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2">
+                <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
+                  <Building className="h-3.5 w-3.5 text-indigo-600" />
+                </div>
+                <span className="font-medium">ABC Company</span>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-60">
+              {mockBusinesses.map(business => (
+                <DropdownMenuItem key={business.id} className="flex items-center gap-2 py-2">
+                  <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
+                    <Building className="h-4 w-4 text-indigo-600" />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium">{business.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {business.status === "verified" ? 
+                        <span className="flex items-center gap-1 text-green-600">
+                          <Check className="h-3 w-3" /> Verified
+                        </span> : 
+                        <span className="flex items-center gap-1 text-amber-600">
+                          <AlertCircle className="h-3 w-3" /> Pending
+                        </span>
+                      }
+                    </span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
       
       <div className="flex items-center gap-3">
         <Button 
