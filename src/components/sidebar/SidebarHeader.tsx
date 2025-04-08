@@ -1,3 +1,4 @@
+
 import { Building, CreditCard, ChevronLeft, ChevronRight, Plus, Check, AlertCircle } from "lucide-react";
 import { SidebarHeader as Header, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -6,16 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { mockBusinesses } from "@/data/mockBusinesses";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { mockBusinesses } from "@/data/mockBusinesses";
-import { toast } from "sonner";
+
 export const SidebarHeader = () => {
   const {
     open
   } = useSidebar();
   const navigate = useNavigate();
   const [currentBusiness, setCurrentBusiness] = useState(mockBusinesses[0]);
+
   const handleBusinessSwitch = (businessId: string) => {
     const business = mockBusinesses.find(b => b.id === businessId);
     if (business) {
@@ -23,11 +22,12 @@ export const SidebarHeader = () => {
       toast.success(`Switched to ${business.name}`);
     }
   };
+
   const handleAddBusiness = () => {
     navigate("/business-onboarding");
   };
-  return <Header className="flex flex-col gap-2 px-4 py-3 border-b border-border">
 
+  return <Header className="flex flex-col gap-2 px-4 py-3 border-b border-border">
       {/* Business Switcher */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
