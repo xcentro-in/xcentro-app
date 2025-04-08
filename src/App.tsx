@@ -27,6 +27,7 @@ import UserAccess from "./pages/UserAccess";
 import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Network from "./pages/Network";
+import CashFlowProjection from "./pages/CashFlowProjection";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -67,6 +68,7 @@ function App() {
                 <Route path="payees/:payeeId" element={<PayeeHistory />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
                 <Route path="insights" element={<Insights />} />
+                <Route path="cash-flow-projection" element={<CashFlowProjection />} />
                 <Route path="new-payment" element={<NewPayment />} />
                 <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:transactionId" element={<TransactionDetails />} />

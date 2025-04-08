@@ -1,3 +1,4 @@
+
 import { 
   Home, 
   CreditCard,
@@ -117,6 +118,18 @@ export const mainMenuItems: SidebarMenuItem[] = [
     title: "Insights",
     url: "/insights",
     icon: BarChart3,
+    submenu: [
+      {
+        title: "Business Analytics",
+        url: "/insights",
+        icon: BarChart,
+      },
+      {
+        title: "Cash Flow Projection",
+        url: "/cash-flow-projection",
+        icon: LineChart,
+      }
+    ]
   },
   {
     title: "Settings",
