@@ -55,9 +55,9 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ data }) => {
               dataKey="name" 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, dy: 10 }}
               height={60}
-              angle={-45}
+              angle={0}
               textAnchor="end"
             />
             <YAxis 

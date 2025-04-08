@@ -64,9 +64,9 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
               dataKey="name" 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 12, dy:10 }}
               height={60}
-              angle={-45}
+              angle={0}
               textAnchor="end"
             />
             <YAxis 
@@ -83,9 +83,9 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
                 />
               }
             />
-            <Bar dataKey="Late Fees" stackId="a" radius={[0, 0, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="Interest Charged" stackId="a" radius={[0, 0, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="Other Penalties" stackId="a" radius={[4, 4, 0, 0]} maxBarSize={60} />
+            <Bar dataKey="Late Fees" radius={[0, 0, 0, 0]} maxBarSize={60} />
+            <Bar dataKey="Interest Charged" radius={[0, 0, 0, 0]} maxBarSize={60} />
+            <Bar dataKey="Other Penalties" radius={[4, 4, 0, 0]} maxBarSize={60} />
           </BarChart>
         </ChartContainer>
       </CardContent>

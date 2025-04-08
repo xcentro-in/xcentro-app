@@ -117,7 +117,7 @@ const CashflowProjectionChart: React.FC = () => {
   return (
     <div className="h-[350px] w-full">
       <ChartContainer config={chartConfig}>
-        <LineChart data={cashFlowData} margin={{ top: 20, right: 20, left: 20, bottom: 10 }}>
+        <LineChart data={cashFlowData} margin={{ top: 20, right: 20, bottom: 10 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
           <XAxis dataKey="date" axisLine={false} tickLine={false} />
           <YAxis 
