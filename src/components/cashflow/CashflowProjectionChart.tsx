@@ -10,7 +10,6 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { CheckCircleIcon, ExclamationTriangleIcon } from "./CashflowIcons";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 interface DayProjection {
   date: string;
@@ -22,9 +21,7 @@ interface DayProjection {
 }
 
 const CashflowProjectionChart: React.FC = () => {
-  // Generate data for 30-day window (15 days past + today + 14 days future)
   const cashFlowData: DayProjection[] = generateWindowedData();
-
   const safetyThreshold = 30000;
   const warningThreshold = safetyThreshold * 0.5;
 
@@ -36,7 +33,6 @@ const CashflowProjectionChart: React.FC = () => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const isProjected = data.projected;
-      const isShortfall = data.shortfall;
 
       return (
         <div className="rounded-lg border bg-background p-2 shadow-md">
@@ -56,7 +52,7 @@ const CashflowProjectionChart: React.FC = () => {
               {isProjected ? "Projected " : ""}Outflow: {formatCurrency(data.outflow)}
             </p>
           </div>
-          {isShortfall && (
+          {data.shortfall && (
             <div className="mt-1.5 text-xs text-amber-500 flex items-center">
               <ExclamationTriangleIcon className="h-3 w-3 mr-1" />
               Potential cash shortfall
@@ -67,10 +63,6 @@ const CashflowProjectionChart: React.FC = () => {
     }
     return null;
   };
-
-  // Split data for actual and projected lines
-  const actualData = cashFlowData.filter(day => !day.projected);
-  const projectedData = cashFlowData.filter(day => day.projected);
 
   return (
     <div className="h-[350px] w-full">
@@ -91,7 +83,6 @@ const CashflowProjectionChart: React.FC = () => {
           />
           <Tooltip content={<CustomTooltip />} />
 
-          {/* Safety Threshold Line */}
           <ReferenceLine 
             y={safetyThreshold} 
             stroke="#10b981" 
@@ -103,7 +94,6 @@ const CashflowProjectionChart: React.FC = () => {
             }} 
           />
 
-          {/* Warning Threshold Line */}
           <ReferenceLine 
             y={warningThreshold} 
             stroke="#ef4444" 
@@ -115,73 +105,37 @@ const CashflowProjectionChart: React.FC = () => {
             }} 
           />
 
-          {/* Actual Balance Line */}
+          {/* Balance Lines */}
           <Line 
             type="monotone" 
             dataKey="balance" 
-            data={actualData}
             stroke="#10b981" 
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 6, strokeWidth: 1 }}
+            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
           />
 
-          {/* Projected Balance Line */}
-          <Line 
-            type="monotone" 
-            dataKey="balance" 
-            data={projectedData}
-            stroke="#10b981" 
-            strokeWidth={2.5}
-            strokeDasharray="5 5"
-            dot={false}
-            activeDot={{ r: 6, strokeWidth: 1 }}
-          />
-
-          {/* Actual Inflow Line */}
+          {/* Inflow Lines */}
           <Line 
             type="monotone" 
             dataKey="inflow" 
-            data={actualData}
             stroke="#3b82f6" 
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
+            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
           />
 
-          {/* Projected Inflow Line */}
-          <Line 
-            type="monotone" 
-            dataKey="inflow" 
-            data={projectedData}
-            stroke="#3b82f6" 
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={false}
-            activeDot={{ r: 4 }}
-          />
-
-          {/* Actual Outflow Line */}
+          {/* Outflow Lines */}
           <Line 
             type="monotone" 
             dataKey="outflow" 
-            data={actualData}
             stroke="#ef4444" 
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-          />
-
-          {/* Projected Outflow Line */}
-          <Line 
-            type="monotone" 
-            dataKey="outflow" 
-            data={projectedData}
-            stroke="#ef4444" 
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={false}
-            activeDot={{ r: 4 }}
+            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
           />
         </LineChart>
       </ResponsiveContainer>
@@ -189,45 +143,42 @@ const CashflowProjectionChart: React.FC = () => {
   );
 };
 
-// Helper function to generate 30-day window data
 function generateWindowedData(): DayProjection[] {
   const data: DayProjection[] = [];
-  const safetyThreshold = 30000;
-
-  let currentBalance = 42560; // Starting balance
   const today = new Date();
 
   // Start from 15 days ago
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - 15);
 
-  for (let i = 0; i < 30; i++) {
+  let currentBalance = 42000; // Starting balance
+
+  for (let i = 0; i < 31; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
 
     // Data point is projected if it's after today
-    const projected = date > today;
+    const isProjected = date > today;
 
-    // Generate some realistic patterns
-    const isPayroll = i % 14 === 0;
+    // Generate more realistic patterns
+    const isPayroll = date.getDate() === 1 || date.getDate() === 15;
     const isRentDay = date.getDate() === 1;
     const isTaxDay = date.getDate() === 15;
-    const isClientPaymentDay = i % 5 === 0;
 
-    // Base amounts
-    let inflow = Math.floor(Math.random() * 2000) + 1000;
-    let outflow = Math.floor(Math.random() * 1000) + 500;
+    // Base amounts with less volatility
+    let inflow = Math.floor(Math.random() * 1000) + 2000;
+    let outflow = Math.floor(Math.random() * 800) + 1500;
 
-    // Add scheduled events
-    if (isClientPaymentDay) inflow += 15000;
-    if (isPayroll) outflow += 20000;
-    if (isRentDay) outflow += 5000;
-    if (isTaxDay) outflow += 8000;
+    // Add scheduled events with realistic amounts
+    if (isPayroll) outflow += 15000;
+    if (isRentDay) outflow += 4000;
+    if (isTaxDay) outflow += 6000;
+    if (date.getDay() === 1) inflow += 8000; // Higher inflows on Mondays
 
-    // For projected data, add some uncertainty
-    if (projected) {
-      inflow *= (1 + (Math.random() * 0.1 - 0.05)); // ±5% variation
-      outflow *= (1 + (Math.random() * 0.1 - 0.05)); // ±5% variation
+    // For projected data, add mild uncertainty
+    if (isProjected) {
+      inflow *= (1 + (Math.random() * 0.06 - 0.03)); // ±3% variation
+      outflow *= (1 + (Math.random() * 0.06 - 0.03)); // ±3% variation
     }
 
     // Update balance
@@ -238,8 +189,8 @@ function generateWindowedData(): DayProjection[] {
       balance: Math.round(currentBalance),
       inflow: Math.round(inflow),
       outflow: Math.round(outflow),
-      projected: projected,
-      shortfall: currentBalance < safetyThreshold * 0.7
+      projected: isProjected,
+      shortfall: currentBalance < 30000 * 0.7
     });
   }
 
