@@ -87,8 +87,18 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ data }) => {
               }}
             />
             <Legend />
-            <Bar dataKey="Total Spend" radius={[4, 4, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="Rewards Earned" radius={[4, 4, 0, 0]} maxBarSize={60} />
+            <Bar 
+              dataKey="Total Spend" 
+              radius={[4, 4, 0, 0]} 
+              maxBarSize={60} 
+              fill="#334155"
+            />
+            <Bar 
+              dataKey="Rewards Earned" 
+              radius={[4, 4, 0, 0]} 
+              maxBarSize={60}
+              fill="#0f766e"
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>

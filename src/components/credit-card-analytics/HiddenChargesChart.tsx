@@ -99,9 +99,24 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
               }}
             />
             <Legend />
-            <Bar dataKey="Late Fees" radius={[0, 0, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="Interest Charged" radius={[0, 0, 0, 0]} maxBarSize={60} />
-            <Bar dataKey="Other Penalties" radius={[4, 4, 0, 0]} maxBarSize={60} />
+            <Bar 
+              dataKey="Late Fees" 
+              radius={[0, 0, 0, 0]} 
+              maxBarSize={60} 
+              fill="#475569"
+            />
+            <Bar 
+              dataKey="Interest Charged" 
+              radius={[0, 0, 0, 0]} 
+              maxBarSize={60}
+              fill="#0f766e"
+            />
+            <Bar 
+              dataKey="Other Penalties" 
+              radius={[4, 4, 0, 0]} 
+              maxBarSize={60}
+              fill="#0369a1"
+            />
           </BarChart>
         </ChartContainer>
       </CardContent>
