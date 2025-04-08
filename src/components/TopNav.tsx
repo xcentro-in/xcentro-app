@@ -1,5 +1,5 @@
 
-import { Bell, LogOut, ChevronDown, User, Users, Star } from "lucide-react";
+import { Bell, LogOut, ChevronDown, User, Users, Star, Building, AlertCircle, Check } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";

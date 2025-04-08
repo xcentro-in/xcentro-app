@@ -1,4 +1,4 @@
-import { CreditCard, ChevronLeft, ChevronRight, Plus, Check, AlertCircle, Building } from "lucide-react";
+import { Building, CreditCard, ChevronLeft, ChevronRight, Plus, Check, AlertCircle } from "lucide-react";
 import { SidebarHeader as Header, SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
