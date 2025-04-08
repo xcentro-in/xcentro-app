@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import {
   ChartContainer,
@@ -36,15 +37,15 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ data }) => {
             "Total Spend": {
               label: "Total Spend",
               theme: {
-                light: "#3b82f6", // blue-500
-                dark: "#60a5fa", // blue-400
+                light: "#334155", // slate-700
+                dark: "#64748b", // slate-500
               },
             },
             "Rewards Earned": {
               label: "Rewards Earned",
               theme: {
-                light: "#10b981", // emerald-500
-                dark: "#34d399", // emerald-400
+                light: "#0f766e", // teal-700
+                dark: "#14b8a6", // teal-500
               },
             },
           }}
@@ -68,12 +69,24 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ data }) => {
               width={80}
             />
             <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  formatter={(value) => formatCurrency(value)}
-                />
-              }
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border">
+                      <p className="font-medium mb-1">{label}</p>
+                      {payload.map((entry, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                          <span className="text-sm">{entry.name}: {formatCurrency(entry.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
+            <Legend />
             <Bar dataKey="Total Spend" radius={[4, 4, 0, 0]} maxBarSize={60} />
             <Bar dataKey="Rewards Earned" radius={[4, 4, 0, 0]} maxBarSize={60} />
           </BarChart>

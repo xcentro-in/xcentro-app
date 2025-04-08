@@ -7,6 +7,7 @@ import {
   CartesianGrid,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import {
   ChartContainer,
@@ -38,22 +39,22 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
             "Late Fees": {
               label: "Late Fees",
               theme: {
-                light: "#ef4444", // red-500
-                dark: "#f87171", // red-400
+                light: "#475569", // slate-600
+                dark: "#64748b", // slate-500
               },
             },
             "Interest Charged": {
               label: "Interest Charged",
               theme: {
-                light: "#f59e0b", // amber-500
-                dark: "#fbbf24", // amber-400
+                light: "#0f766e", // teal-700
+                dark: "#14b8a6", // teal-500
               },
             },
             "Other Penalties": {
               label: "Other Penalties",
               theme: {
-                light: "#eab308", // yellow-500
-                dark: "#facc15", // yellow-400
+                light: "#0369a1", // sky-700
+                dark: "#0ea5e9", // sky-500
               },
             },
           }}
@@ -77,12 +78,27 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
               width={80}
             />
             <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  formatter={(value) => formatCurrency(value)}
-                />
-              }
+              content={({ active, payload, label }) => {
+                if (active && payload && payload.length) {
+                  return (
+                    <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow border">
+                      <p className="font-medium mb-1">{label}</p>
+                      {payload.map((entry, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                          <span className="text-sm">{entry.name}: {formatCurrency(entry.value)}</span>
+                        </div>
+                      ))}
+                      <div className="mt-1 pt-1 border-t">
+                        <span className="text-sm font-medium">Total: {formatCurrency(payload.reduce((sum, item) => sum + item.value, 0))}</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              }}
             />
+            <Legend />
             <Bar dataKey="Late Fees" radius={[0, 0, 0, 0]} maxBarSize={60} />
             <Bar dataKey="Interest Charged" radius={[0, 0, 0, 0]} maxBarSize={60} />
             <Bar dataKey="Other Penalties" radius={[4, 4, 0, 0]} maxBarSize={60} />
