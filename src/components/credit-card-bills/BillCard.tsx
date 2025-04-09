@@ -1,4 +1,3 @@
-
 import { format, parseISO, isBefore, differenceInDays } from "date-fns";
 import { CreditCardBill } from "@/types/credit-card-bill";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,7 +16,7 @@ export default function BillCard({ bill, onPayClick }: BillCardProps) {
   const today = new Date();
   const isPastDue = isBefore(dueDate, today);
   const daysUntilDue = differenceInDays(dueDate, today);
-  
+
   const getStatusBadge = () => {
     switch (bill.status) {
       case "paid":
@@ -70,19 +69,19 @@ export default function BillCard({ bill, onPayClick }: BillCardProps) {
             {getStatusBadge()}
           </div>
         </div>
-        
+
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-muted-foreground">Total Due</div>
-              <div className="text-lg font-bold">₹{bill.totalDueAmount.toLocaleString()}</div>
+              <div className="text-lg font-bold">{formatCurrency(bill.totalDueAmount)}</div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">Min. Due</div>
-              <div className="text-lg">₹{bill.minimumDueAmount.toLocaleString()}</div>
+              <div className="text-lg font-bold">{formatCurrency(bill.minimumDueAmount)}</div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-muted-foreground">Due Date</div>
@@ -109,7 +108,7 @@ export default function BillCard({ bill, onPayClick }: BillCardProps) {
               Pay Now
             </Button>
           )}
-          
+
           {bill.status === "paid" && (
             <Button variant="outline" className="w-full" disabled>
               <Check className="mr-2 h-4 w-4" />

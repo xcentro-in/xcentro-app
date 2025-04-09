@@ -1,6 +1,10 @@
-
 import { Calendar } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const formatCurrency = (amount) => {
+  // Assumes amount is a number.  Error handling could be added.
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(amount.replace(/[^0-9.]/g, '')));
+};
 
 const UpcomingLargePaymentsCard = () => {
   // This would typically be data fetched from an API
@@ -33,7 +37,7 @@ const UpcomingLargePaymentsCard = () => {
               <div className="font-medium">{payment.vendor}</div>
               <div className="text-xs text-muted-foreground">Due {payment.dueDate} ({payment.daysRemaining} days)</div>
             </div>
-            <div className="text-sm font-semibold">{payment.amount}</div>
+            <div className="text-sm font-semibold">{formatCurrency(payment.amount)}</div>
           </div>
         ))}
       </CardContent>

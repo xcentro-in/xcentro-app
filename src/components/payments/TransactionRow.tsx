@@ -1,4 +1,3 @@
-
 import { CreditCard, BanknoteIcon } from "lucide-react";
 import { Transaction } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +24,12 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
     }
   };
 
+  // Assumed formatCurrency function exists elsewhere
+  const formatCurrency = (amount: number): string => {
+    return `$${amount.toFixed(2)}`; //Example implementation. Replace with actual implementation.
+  };
+
+
   return (
     <div 
       className="grid grid-cols-[1.5fr_1fr_0.8fr_0.8fr_0.8fr] gap-4 p-4 hover:bg-muted/50 cursor-pointer"
@@ -43,21 +48,21 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
           </span>
         </div>
       </div>
-      
+
       <div className="flex items-center">
         <span className="text-sm">{transaction.date}</span>
       </div>
-      
+
       <div className="flex items-center justify-end font-medium">
-        ${transaction.amount.toFixed(2)}
+        {formatCurrency(transaction.amount)}
       </div>
-      
+
       <div className="flex items-center justify-center">
         <span className="capitalize text-sm">
           {transaction.category ?? "N/A"}
         </span>
       </div>
-      
+
       <div className="flex items-center justify-center">
         <Badge 
           variant="outline" 

@@ -52,6 +52,8 @@ export default function BillPaymentDialog({
   
   if (!bill) return null;
   
+  import { formatCurrency } from '@/utils/formatters';
+  
   // Calculate fees
   const platformFee = paymentAmount * 0.005; // 0.5% platform fee
   const gatewayFee = 50; // Fixed gateway fee
