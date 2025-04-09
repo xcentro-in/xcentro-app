@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Info } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from "@/components/cashflow/CashflowIcons";
 import CashflowStatusCard from "@/components/cashflow/CashflowStatusCard";
 import CashflowProjectionChart from "@/components/cashflow/CashflowProjectionChart";
