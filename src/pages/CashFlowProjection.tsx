@@ -2,6 +2,8 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ArrowTrendingUpIcon, ArrowTrendingDownIcon } from "@/components/cashflow/CashflowIcons";
 import CashflowStatusCard from "@/components/cashflow/CashflowStatusCard";
 import CashflowProjectionChart from "@/components/cashflow/CashflowProjectionChart";
@@ -23,6 +25,18 @@ const CashFlowProjection = () => {
             <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
             Healthy cash flow
           </Badge>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 flex items-center gap-1">
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                Synced with ZohoBooks
+                <Info className="h-4 w-4" />
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              Cash inflow and outflow synced last on {new Date().toLocaleDateString()}
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       
