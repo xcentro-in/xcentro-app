@@ -7,7 +7,8 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceLine,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend
 } from "recharts";
 import { CheckCircleIcon, ExclamationTriangleIcon } from "./CashflowIcons";
 import {formatCurrency} from "@/utils/formatters"
@@ -75,10 +76,11 @@ const CashflowProjectionChart: React.FC = () => {
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tickFormatter={value => `$${value/1000}k`}
+            tickFormatter={value => `${formatCurrency(value/1000)}k`}
             tick={{ fontSize: 12 }}
           />
           <Tooltip content={<CustomTooltip />} />
+          <Legend/>
 
           <ReferenceLine 
             y={safetyThreshold} 
@@ -110,7 +112,16 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 6, strokeWidth: 1 }}
-            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="projectedBalance" 
+            stroke="#10b980" 
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ r: 6, strokeWidth: 1 }}
+            strokeDasharray="5 5"
           />
 
           {/* Inflow Lines */}
@@ -121,7 +132,16 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="projectedInflow" 
+            stroke="#3b82f5" 
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
+            strokeDasharray="5 5"
           />
 
           {/* Outflow Lines */}
@@ -132,7 +152,16 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+          />
+          <Line 
+            type="monotone" 
+            dataKey="projectedOutflow" 
+            stroke="#ef4443" 
+            strokeWidth={2}
+            dot={false}
+            activeDot={{ r: 4 }}
+            strokeDasharray="5 5"
           />
         </LineChart>
       </ResponsiveContainer>
