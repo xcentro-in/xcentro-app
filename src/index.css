@@ -4,16 +4,22 @@
 @tailwind utilities;
  
 @keyframes aurora {
-  from {
-    background-position: 50% 50%, 50% 50%;
+  0% {
+    background-position: 0% 0%;
+    transform: rotate(0deg);
   }
-  to {
-    background-position: 350% 50%, 350% 50%;
+  50% {
+    background-position: 100% 100%;
+    transform: rotate(1deg);
+  }
+  100% {
+    background-position: 0% 0%;
+    transform: rotate(0deg);
   }
 }
 
 .animate-aurora {
-  animation: aurora 15s linear infinite;
+  animation: aurora 20s ease infinite;
 }
 
 @layer base {
