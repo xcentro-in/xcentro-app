@@ -154,8 +154,7 @@ function generateWindowedData(): DayProjection[] {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
 
-    // Data point is projected if it's after today
-    const isProjected = date > today;
+    const isFuture = date > today;
 
     // Generate more realistic patterns
     const isPayroll = date.getDate() === 1 || date.getDate() === 15;
@@ -166,27 +165,38 @@ function generateWindowedData(): DayProjection[] {
     let inflow = Math.floor(Math.random() * 1000) + 2000;
     let outflow = Math.floor(Math.random() * 800) + 1500;
 
-    // Add scheduled events with realistic amounts
     if (isPayroll) outflow += 15000;
     if (isRentDay) outflow += 4000;
     if (isTaxDay) outflow += 6000;
     if (date.getDay() === 1) inflow += 8000; // Higher inflows on Mondays
 
-    // For projected data, add mild uncertainty
-    if (isProjected) {
+    let projectedInflow: number | null = null;
+    let projectedOutflow: number | null = null;
+    let projectedBalance: number | null = null;
+
+    if (isFuture) {
       inflow *= (1 + (Math.random() * 0.06 - 0.03)); // ±3% variation
       outflow *= (1 + (Math.random() * 0.06 - 0.03)); // ±3% variation
+
+      projectedInflow = Math.round(inflow);
+      projectedOutflow = Math.round(outflow);
     }
 
     // Update balance
     currentBalance = currentBalance + inflow - outflow;
 
+    if (isFuture) {
+      projectedBalance = Math.round(currentBalance);
+    }
+
     data.push({
       date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      balance: Math.round(currentBalance),
-      inflow: Math.round(inflow),
-      outflow: Math.round(outflow),
-      projected: isProjected,
+      balance: isFuture ? null : Math.round(currentBalance),
+      inflow: isFuture ? null : Math.round(inflow),
+      outflow: isFuture ? null : Math.round(outflow),
+      projectedBalance,
+      projectedInflow,
+      projectedOutflow,
       shortfall: currentBalance < 30000 * 0.7
     });
   }
