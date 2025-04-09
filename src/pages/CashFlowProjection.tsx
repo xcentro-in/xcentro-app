@@ -13,8 +13,25 @@ const CashFlowProjection = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-        <div>
+        <div className="flex items-center gap-3">
           <h1 className="text-3xl font-bold tracking-tight">Cash Flow Projection</h1>
+          <HoverCard>
+            <HoverCardTrigger asChild>
+              <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 flex items-center gap-1 cursor-help">
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                Synced with ZohoBooks
+              </Badge>
+            </HoverCardTrigger>
+            <HoverCardContent className="w-80">
+              <div className="flex justify-between space-x-4">
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    Cash inflow and outflow synced last on {new Date().toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
           <p className="text-muted-foreground mt-1">
             30-day forecast of your business cash position
           </p>
@@ -25,18 +42,6 @@ const CashFlowProjection = () => {
             <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
             Healthy cash flow
           </Badge>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400 flex items-center gap-1">
-                <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                Synced with ZohoBooks
-                <Info className="h-4 w-4" />
-              </Badge>
-            </TooltipTrigger>
-            <TooltipContent>
-              Cash inflow and outflow synced last on {new Date().toLocaleDateString()}
-            </TooltipContent>
-          </Tooltip>
         </div>
       </div>
       
