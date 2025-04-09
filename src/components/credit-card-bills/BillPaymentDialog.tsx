@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { formatCurrency } from '@/utils/formatters';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardBill } from "@/types/credit-card-bill";
@@ -51,8 +52,6 @@ export default function BillPaymentDialog({
   };
   
   if (!bill) return null;
-  
-  import { formatCurrency } from '@/utils/formatters';
   
   // Calculate fees
   const platformFee = paymentAmount * 0.005; // 0.5% platform fee
