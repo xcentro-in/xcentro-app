@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Dialog,
@@ -40,9 +39,9 @@ export default function BillPaymentDialog({
 
   const handleSubmit = () => {
     if (!bill || !selectedPaymentMethod) return;
-    
+
     setIsSubmitting(true);
-    
+
     // Simulate payment processing
     setTimeout(() => {
       setIsSubmitting(false);
@@ -50,9 +49,9 @@ export default function BillPaymentDialog({
       onOpenChange(false);
     }, 1500);
   };
-  
+
   if (!bill) return null;
-  
+
   // Calculate fees
   const platformFee = paymentAmount * 0.005; // 0.5% platform fee
   const gatewayFee = 50; // Fixed gateway fee
@@ -70,16 +69,16 @@ export default function BillPaymentDialog({
 
         <div className="space-y-4">
           <BillSummary bill={bill} />
-          
+
           <Separator />
-          
+
           <div>
             <h3 className="text-sm font-medium mb-3">Select Payment Amount</h3>
             <PaymentOptions bill={bill} onAmountChange={handleAmountChange} />
           </div>
-          
+
           <Separator />
-          
+
           <div>
             <h3 className="text-sm font-medium mb-3">Select Payment Method</h3>
             <PaymentMethodSelector
@@ -87,9 +86,9 @@ export default function BillPaymentDialog({
               selectedMethodId={selectedPaymentMethod}
             />
           </div>
-          
+
           <Separator />
-          
+
           <PaymentSummary 
             paymentAmount={paymentAmount}
             platformFee={platformFee}
@@ -97,7 +96,7 @@ export default function BillPaymentDialog({
             totalPayable={totalPayable}
           />
         </div>
-        
+
         <DialogFooter>
           <Button 
             variant="outline" 
