@@ -54,9 +54,24 @@ export const mainMenuItems: SidebarMenuItem[] = [
     highlightColor: "green" as const,
   },
   {
+    title: "Upcoming Payments",
+    url: "/payment-calendar",
+    icon: CalendarDays,
+  },
+  {
     title: "Payment History",
     url: "/payments",
     icon: History,
+  },
+  {
+    title: "Manage Payees",
+    url: "/payees",
+    icon: Users,
+  },
+  {
+    title: "Wallet",
+    url: "/wallet",
+    icon: Wallet,
   },
   {
     title: "Credit Cards",
@@ -74,21 +89,6 @@ export const mainMenuItems: SidebarMenuItem[] = [
         icon: BarChart2,
       }
     ]
-  },
-  {
-    title: "Upcoming Payments",
-    url: "/payment-calendar",
-    icon: CalendarDays,
-  },
-  {
-    title: "Manage Payees",
-    url: "/payees",
-    icon: Users,
-  },
-  {
-    title: "Wallet",
-    url: "/wallet",
-    icon: Wallet,
   },
   {
     title: "Approvals",
