@@ -12,25 +12,22 @@ export const CARD_COLORS = [
 ];
 
 // Function to format currency
+import { formatCurrency as currencyFormatter } from '@/utils/formatters';
+
 export const formatCurrency = (value: unknown): string => {
   // Handle array case (as ValueType can be an array)
   if (Array.isArray(value)) {
-    // If it's an array, take the first value if it exists
     if (value.length > 0) {
       return formatCurrency(value[0]);
     }
-    return '₹0';
+    return currencyFormatter(0);
   }
   
   // Convert string to number if needed
   const numValue = typeof value === 'string' ? parseFloat(value) : Number(value);
   
   // Check if value is a valid number
-  if (isNaN(numValue)) return '₹0';
+  if (isNaN(numValue)) return currencyFormatter(0);
   
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
-    currency: 'INR',
-    maximumFractionDigits: 0,
-  }).format(numValue);
+  return currencyFormatter(numValue);;
 };
