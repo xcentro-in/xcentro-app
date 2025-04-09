@@ -48,12 +48,15 @@ export const SidebarHeader = () => {
               {open && <ChevronDown className="h-4 w-4 text-muted-foreground" />}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-60">
+          <DropdownMenuContent align="start" className="w-56">
             {mockBusinesses.map((business) => (
               <DropdownMenuItem
                 key={business.id}
                 onClick={() => handleBusinessSwitch(business.id)}
-                className="flex items-center gap-2"
+                className={cn(
+                  "flex items-center gap-2",
+                  business.id === currentBusiness.id && "bg-accent"
+                )}
               >
                 <Building className="h-4 w-4" />
                 <div className="flex flex-col flex-grow">
@@ -61,16 +64,13 @@ export const SidebarHeader = () => {
                   <span className="text-xs text-muted-foreground">{business.type}</span>
                 </div>
                 {business.status === "verified" ? (
-                  <Badge variant="success" className="ml-auto text-xs px-2 py-0.5">
-                    <Check className="h-3 w-3 mr-1" /> Verified
+                  <Badge variant="success" className="ml-auto text-[9px] px-1.5 py-0 h-4">
+                    <Check className="h-2 w-2 mr-0.5" /> Verified
                   </Badge>
                 ) : (
-                  <Badge variant="warning" className="ml-auto text-xs px-2 py-0.5">
-                    <AlertCircle className="h-3 w-3 mr-1" /> Pending
+                  <Badge variant="warning" className="ml-auto text-[9px] px-1.5 py-0 h-4">
+                    <AlertCircle className="h-2 w-2 mr-0.5" /> Pending
                   </Badge>
-                )}
-                {business.id === currentBusiness.id && (
-                  <Check className="h-4 w-4 ml-2" />
                 )}
               </DropdownMenuItem>
             ))}
