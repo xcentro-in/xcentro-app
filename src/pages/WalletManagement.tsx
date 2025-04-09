@@ -43,11 +43,22 @@ const WalletManagement = () => {
   
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Wallet & Payment Sources</h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Manage your business payment methods in one place
-        </p>
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Wallet & Payment Sources</h1>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Manage your business payment methods in one place
+          </p>
+        </div>
+        
+        <Button 
+          className="gap-2 animate-slide-down" 
+          style={{ animationDelay: "100ms" }}
+          onClick={() => navigate("/wallet/add")}
+        >
+          <Plus className="h-4 w-4" />
+          Add New Payment Method
+        </Button>
       </div>
       
       <Card className="animate-scale-in">
@@ -100,19 +111,16 @@ const WalletManagement = () => {
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No payment methods found for this type.</p>
+              <Button 
+                variant="outline" 
+                className="mt-4"
+                onClick={() => navigate("/wallet/add")}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Payment Method
+              </Button>
             </div>
           )}
-          
-          <div className="mt-4 flex justify-start">
-            <Button 
-              className="inline-flex items-center gap-2" 
-              size="sm"
-              onClick={() => navigate("/wallet/add")}
-            >
-              <Plus className="h-4 w-4" />
-              Add Payment Method
-            </Button>
-          </div>
         </CardContent>
       </Card>
       
@@ -130,3 +138,4 @@ const WalletManagement = () => {
 };
 
 export default WalletManagement;
+
