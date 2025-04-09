@@ -18,7 +18,9 @@ interface DayProjection {
   balance: number;
   inflow: number;
   outflow: number;
-  projected: boolean;
+  projectedBalance: number;
+  projectedInflow: number;
+  projectedOutflow: number;
   shortfall: boolean;
 }
 
@@ -183,7 +185,7 @@ function generateWindowedData(): DayProjection[] {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
 
-    const isFuture = date > today;
+    const isFuture = date >= today;
 
     // Generate more realistic patterns
     const isPayroll = date.getDate() === 1 || date.getDate() === 15;
