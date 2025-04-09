@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ChevronLeft, ChevronRight, List, CalendarDays } from "lucide-react";
 import { format } from "date-fns";
@@ -25,7 +24,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
 }) => {
   const monthOptions = getMonthsOptions();
   const currentMonthValue = format(currentDate, 'yyyy-MM');
-  
+
   return (
     <div className="flex flex-col space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -38,7 +37,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          
+
           <Select
             value={currentMonthValue}
             onValueChange={onMonthSelect}
@@ -54,7 +53,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
               ))}
             </SelectContent>
           </Select>
-          
+
           <Button
             variant="outline"
             size="icon"
@@ -64,21 +63,21 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        
+
         <div className="flex border rounded-lg overflow-hidden">
           <Button 
             variant={activeView === "list" ? "default" : "ghost"}
-            size="sm"
-            className="rounded-none px-2"
+            size="icon"
+            className={`h-9 w-9 ${activeView === "list" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
             onClick={() => onViewChange("list")}
             title="List View"
           >
             <List className="h-4 w-4" />
           </Button>
           <Button 
-            variant={activeView === "calendar" ? "default" : "ghost"}
-            size="sm"
-            className="rounded-none px-2"
+            variant={activeView === "calendar" ? "secondary" : "ghost"}
+            size="icon"
+            className={`h-9 w-9 ${activeView === "calendar" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
             onClick={() => onViewChange("calendar")}
             title="Calendar View"
           >
