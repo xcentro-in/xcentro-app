@@ -44,15 +44,7 @@ const queryClient = new QueryClient()
 function App() {
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Demo welcome toast
-    setTimeout(() => {
-      toast({
-        title: "Welcome to your business banking dashboard",
-        description: "Manage all your business finances in one place.",
-      });
-    }, 1000);
-  }, [toast]);
+  
 
   return (
     <QueryClientProvider client={queryClient}>
