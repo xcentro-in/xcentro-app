@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PaymentRow } from "./types";
+import {formatCurrency} from "@/utils/formatters"
 
 interface ValidationStepProps {
   paymentRows: PaymentRow[];
@@ -66,7 +67,7 @@ const ValidationStep = ({
                   />
                 </TableCell>
                 <TableCell>{row.payee}</TableCell>
-                <TableCell>${row.amount.toFixed(2)}</TableCell>
+                <TableCell>{formatCurrency(row.amount)}</TableCell>
                 <TableCell>{row.description}</TableCell>
                 <TableCell>{row.bankAccount}</TableCell>
                 <TableCell>{row.ifsc}</TableCell>
@@ -80,7 +81,7 @@ const ValidationStep = ({
         <div className="p-4 bg-muted/20 rounded-md">
           <p className="text-right">
             <span className="text-sm text-muted-foreground mr-2">Total amount selected:</span>
-            <span className="font-bold">${totalSelectedAmount.toFixed(2)}</span>
+            <span className="font-bold">{formatCurrency(totalSelectedAmount)}</span>
           </p>
         </div>
       )}
