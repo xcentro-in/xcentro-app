@@ -114,7 +114,7 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2.5}
             dot={false}
             activeDot={{ r: 6, strokeWidth: 1 }}
-            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            strokeDasharray="0"
           />
           <Line 
             type="monotone" 
@@ -134,7 +134,7 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            strokeDasharray="0"
           />
           <Line 
             type="monotone" 
@@ -154,7 +154,7 @@ const CashflowProjectionChart: React.FC = () => {
             strokeWidth={2}
             dot={false}
             activeDot={{ r: 4 }}
-            // strokeDasharray={(d) => d.projected ? "5 5" : "0"}
+            strokeDasharray="0"
           />
           <Line 
             type="monotone" 
