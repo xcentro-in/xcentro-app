@@ -10,7 +10,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Mail, Lock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import AnimatedBackground from "@/components/ui/animated-background";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 const signupSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -41,7 +41,7 @@ const Signup = () => {
   };
 
   return (
-    <AnimatedBackground>
+    <AuroraBackground>
       <Card className="w-full max-w-md shadow-lg transition-all duration-500">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
@@ -145,7 +145,7 @@ const Signup = () => {
           </div>
         </CardFooter>
       </Card>
-    </AnimatedBackground>
+    </AuroraBackground>
   );
 };
 
