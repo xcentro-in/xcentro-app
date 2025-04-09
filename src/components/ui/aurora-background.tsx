@@ -15,10 +15,10 @@ export const AuroraBackground = ({
   ...props
 }: AuroraBackgroundProps) => {
   return (
-    <main className="w-full min-h-screen flex items-center justify-center">
+    <main>
       <div
         className={cn(
-          "relative flex flex-col h-screen w-full items-center justify-center bg-zinc-50/90 dark:bg-zinc-900/90 text-slate-950 transition-all",
+          "relative flex flex-col h-[100vh] items-center justify-center bg-zinc-50 dark:bg-zinc-900 text-slate-950 transition-bg",
           className
         )}
         {...props}
@@ -26,10 +26,10 @@ export const AuroraBackground = ({
         <div className="absolute inset-0 overflow-hidden">
           <div
             className={cn(
-              `[--white:rgba(255,255,255,0.3)] [--black:rgba(0,0,0,0.3)] [--transparent:transparent]
-              [--blue-500:rgba(59,130,246,0.7)] [--indigo-300:rgba(165,180,252,0.7)]
-              [--blue-300:rgba(147,197,253,0.7)] [--violet-200:rgba(221,214,254,0.7)]
-              [--purple-400:rgba(167,139,250,0.7)]
+              `[--white:rgba(255,255,255,0.8)] [--black:rgba(0,0,0,0.8)] [--transparent:transparent]
+              [--blue-500:rgba(59,130,246,0.5)] [--indigo-300:rgba(165,180,252,0.5)]
+              [--blue-300:rgba(147,197,253,0.5)] [--violet-200:rgba(221,214,254,0.5)]
+              [--blue-400:rgba(96,165,250,0.5)]
               [--white-gradient:repeating-linear-gradient(100deg,var(--white)_0%,var(--white)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--white)_16%)]
               [--dark-gradient:repeating-linear-gradient(100deg,var(--black)_0%,var(--black)_7%,var(--transparent)_10%,var(--transparent)_12%,var(--black)_16%)]
               [--aurora:repeating-linear-gradient(100deg,var(--blue-500)_10%,var(--indigo-300)_15%,var(--blue-300)_20%,var(--violet-200)_25%,var(--blue-400)_30%)]
