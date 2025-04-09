@@ -10,6 +10,7 @@ import {
   ResponsiveContainer
 } from "recharts";
 import { CheckCircleIcon, ExclamationTriangleIcon } from "./CashflowIcons";
+import {formatCurrency} from "@/utils/formatters"
 
 interface DayProjection {
   date: string;
@@ -24,10 +25,6 @@ const CashflowProjectionChart: React.FC = () => {
   const cashFlowData: DayProjection[] = generateWindowedData();
   const safetyThreshold = 30000;
   const warningThreshold = safetyThreshold * 0.5;
-
-  const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-  };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {

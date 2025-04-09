@@ -1,8 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircleIcon, ExclamationTriangleIcon } from "./CashflowIcons";
 import { CalendarDays, AlertTriangle, CheckCircle2, ArrowDown } from "lucide-react";
+import {formatCurrency} from "@/utils/formatters"
 
 interface CriticalDate {
   date: string;
@@ -51,9 +51,6 @@ const CashflowCriticalDates: React.FC = () => {
   ];
   
   const safetyThreshold = 30000;
-  const formatCurrency = (value: number) => {
-    return `$${value.toLocaleString()}`;
-  };
   
   return (
     <Card>

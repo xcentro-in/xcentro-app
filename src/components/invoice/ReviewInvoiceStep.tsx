@@ -21,6 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import {formatCurrency} from "@/utils/formatters"
 
 export type PaymentType = "now" | "later" | "recurring";
 
@@ -350,7 +351,7 @@ const ReviewInvoiceStep = ({
                 </div>
                 <div className="flex justify-between font-medium pt-2 border-t">
                   <span>Total Amount:</span>
-                  <span>₹{invoiceDetails.totalAmount.toLocaleString()}</span>
+                  <span>{formatCurrency(invoiceDetails.totalAmount)}</span>
                 </div>
               </div>
             </CardContent>
@@ -364,24 +365,24 @@ const ReviewInvoiceStep = ({
                   {invoiceDetails.gstDetails.cgst && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">CGST:</span>
-                      <span>₹{invoiceDetails.gstDetails.cgst.toLocaleString()}</span>
+                      <span>{formatCurrency(invoiceDetails.gstDetails.cgst)}</span>
                     </div>
                   )}
                   {invoiceDetails.gstDetails.sgst && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">SGST:</span>
-                      <span>₹{invoiceDetails.gstDetails.sgst.toLocaleString()}</span>
+                      <span>{formatCurrency(invoiceDetails.gstDetails.sgst)}</span>
                     </div>
                   )}
                   {invoiceDetails.gstDetails.igst && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">IGST:</span>
-                      <span>₹{invoiceDetails.gstDetails.igst.toLocaleString()}</span>
+                      <span>{formatCurrency(invoiceDetails.gstDetails.igst)}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-medium pt-2 border-t">
                     <span>Total GST:</span>
-                    <span>₹{invoiceDetails.gstDetails.total.toLocaleString()}</span>
+                    <span>{formatCurrency(invoiceDetails.gstDetails.total)}</span>
                   </div>
                 </div>
               </CardContent>

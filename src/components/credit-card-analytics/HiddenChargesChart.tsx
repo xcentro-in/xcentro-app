@@ -14,7 +14,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { formatCurrency } from "./utils/chartUtils";
+import {formatCurrency} from "@/utils/formatters"
 
 interface HiddenChargesChartProps {
   data: Array<{
@@ -73,7 +73,7 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
             <YAxis 
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `₹${value}`}
+              tickFormatter={(value) => formatCurrency(value)}
               tick={{ fontSize: 12 }}
               width={80}
             />

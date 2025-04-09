@@ -2,6 +2,7 @@ import { CreditCard, BanknoteIcon } from "lucide-react";
 import { Transaction } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/utils/formatters";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -22,11 +23,6 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  };
-
-  // Assumed formatCurrency function exists elsewhere
-  const formatCurrency = (amount: number): string => {
-    return `$${amount.toFixed(2)}`; //Example implementation. Replace with actual implementation.
   };
 
 

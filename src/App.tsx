@@ -63,7 +63,7 @@ function App() {
                 <Route path="cash-flow-projection" element={<CashFlowProjection />} />
                 <Route path="new-payment" element={<NewPayment />} />
                 <Route path="pay-invoice" element={<PayInvoice />} />
-                <Route path="payments/:transactionId" element={<TransactionDetails />} />
+                <Route path="payments/:id" element={<TransactionDetails />} />
                 <Route path="rewards" element={<Rewards />} />
                 <Route path="rewards/insights" element={<RewardsInsights />} />
                 <Route path="rewards/milestones" element={<MilestoneRewards />} />

@@ -15,11 +15,7 @@ import { TransactionAuditTrail } from "@/components/transactions/TransactionAudi
 import { toast } from "sonner";
 
 const TransactionDetails = () => {
-  const {
-    id
-  } = useParams<{
-    id: string;
-  }>();
+  const {id} = useParams();
   const navigate = useNavigate();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);

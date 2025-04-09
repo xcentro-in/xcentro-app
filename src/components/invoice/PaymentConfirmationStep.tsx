@@ -16,6 +16,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import {formatCurrency} from "@/utils/formatters"
 
 interface PaymentConfirmationStepProps {
   invoiceDetails: InvoiceDetails;
@@ -92,10 +93,6 @@ const PaymentConfirmationStep = ({
       setIsCompleted(true);
       toast.success("Payment processed successfully");
     }, 3000);
-  };
-  
-  const formatCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
   
   const paymentMethod = getPaymentMethodDetails();
