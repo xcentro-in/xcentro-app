@@ -28,7 +28,9 @@ const TransactionDetails = () => {
     if (id) {
       try {
         const transactionData = getMockTransactionDetail(id);
-        setTransaction(transactionData);
+        if (transactionData) {
+          setTransaction(transactionData);
+        }
       } catch (error) {
         console.error("Error fetching transaction:", error);
       } finally {

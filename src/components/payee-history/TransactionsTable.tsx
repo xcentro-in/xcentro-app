@@ -49,7 +49,7 @@ export const TransactionsTable = ({
   // Handle row click to navigate to transaction details
   const handleRowClick = (transactionId: string) => {
     // Navigate to the transaction details page
-    navigate(`/transactions/${transactionId}`);
+    navigate(`/payments/${transactionId}`);
   };
   
   // Filter and sort transactions
