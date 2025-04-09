@@ -41,7 +41,7 @@ const Login = () => {
 
   return (
     <AuroraBackground>
-      <Card className="w-full max-w-md mx-auto shadow-lg transition-all duration-500 px-4 sm:px-0 bg-white/80 backdrop-blur-sm border-white/20">
+      <Card className="w-full max-w-md shadow-lg transition-all duration-500 px-4 sm:px-6 bg-white/80 backdrop-blur-sm border-white/20">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img 

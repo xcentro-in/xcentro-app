@@ -5,27 +5,27 @@
  
 @keyframes aurora {
   0% {
-    background-position: 50% 50%, 50% 50%;
-    opacity: 0.4;
+    background-position: 0% 0%;
+    opacity: 0.5;
   }
   25% {
-    opacity: 0.6;
+    opacity: 0.75;
   }
   50% {
-    background-position: 150% 150%, 150% 150%;
-    opacity: 0.4;
+    background-position: 100% 100%;
+    opacity: 0.5;
   }
   75% {
-    opacity: 0.6;
+    opacity: 0.75;
   }
   100% {
-    background-position: 50% 50%, 50% 50%;
-    opacity: 0.4;
+    background-position: 0% 0%;
+    opacity: 0.5;
   }
 }
 
 .animate-aurora {
-  animation: aurora 10s ease infinite;
+  animation: aurora 15s ease infinite;
 }
 
 @layer base {
