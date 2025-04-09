@@ -1,0 +1,35 @@
+Error processing file src/components/credit-card-bills/BillPaymentDialog.tsx: SyntaxError: 'import' and 'export' may only appear at the top level. (55:2)
+    at constructor (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:362:19)
+    at TypeScriptParserMixin.raise (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:3259:19)
+    at TypeScriptParserMixin.parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12347:18)
+    at TypeScriptParserMixin.parseStatementContent (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:9157:18)
+    at TypeScriptParserMixin.parseStatementLike (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12244:17)
+    at TypeScriptParserMixin.parseStatementListItem (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12224:17)
+    at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12797:61)
+    at TypeScriptParserMixin.parseBlockBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12790:10)
+    at TypeScriptParserMixin.parseBlock (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:12778:10)
+    at TypeScriptParserMixin.parseFunctionBody (/home/runner/workspace/node_modules/@babel/parser/lib/index.js:11621:24) {
+  code: 'BABEL_PARSER_SYNTAX_ERROR',
+  reasonCode: 'UnexpectedImportExport',
+  loc: Position { line: 55, column: 2, index: 1465 },
+  pos: 1465,
+  syntaxPlugin: undefined
+}
+
+1:56:12 PM [vite] Internal server error:   × 'import', and 'export' cannot be used outside of module code
+    ╭─[/home/runner/workspace/src/components/credit-card-bills/BillPaymentDialog.tsx:55:1]
+ 52 │   
+ 53 │   if (!bill) return null;
+ 54 │   
+ 55 │   import { formatCurrency } from '@/utils/formatters';
+    ·   ──────
+ 56 │   
+ 57 │   // Calculate fees
+ 58 │   const platformFee = paymentAmount * 0.005; // 0.5% platform fee
+    ╰────
+
+
+Caused by:
+    Syntax Error
+  Plugin: vite:react-swc
+  File: /home/runner/workspace/src/components/credit-card-bills/BillPaymentDialog.tsx:55:1
