@@ -5,21 +5,27 @@
  
 @keyframes aurora {
   0% {
-    background-position: 0% 0%;
-    transform: rotate(0deg);
+    background-position: 50% 50%, 50% 50%;
+    opacity: 0.4;
+  }
+  25% {
+    opacity: 0.6;
   }
   50% {
-    background-position: 100% 100%;
-    transform: rotate(1deg);
+    background-position: 150% 150%, 150% 150%;
+    opacity: 0.4;
+  }
+  75% {
+    opacity: 0.6;
   }
   100% {
-    background-position: 0% 0%;
-    transform: rotate(0deg);
+    background-position: 50% 50%, 50% 50%;
+    opacity: 0.4;
   }
 }
 
 .animate-aurora {
-  animation: aurora 20s ease infinite;
+  animation: aurora 10s ease infinite;
 }
 
 @layer base {
