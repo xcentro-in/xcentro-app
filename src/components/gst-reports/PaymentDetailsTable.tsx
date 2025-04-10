@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export const PaymentDetailsTable: React.FC = () => {
   const [timeframe, setTimeframe] = useState<'6' | '12'>('6');
@@ -37,23 +39,38 @@ export const PaymentDetailsTable: React.FC = () => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-medium">Payment Details</CardTitle>
-          <div className="flex gap-2">
-            <Button 
-              variant={timeframe === '6' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setTimeframe('6')}
-              className="h-8"
-            >
-              Last 6 months
-            </Button>
-            <Button 
-              variant={timeframe === '12' ? 'default' : 'outline'} 
-              size="sm"
-              onClick={() => setTimeframe('12')}
-              className="h-8"
-            >
-              Last 12 months
-            </Button>
+          <div className="flex items-center gap-4">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/gst-payment-history" className="flex items-center text-sm text-primary hover:text-primary/80 transition-colors">
+                    <span className="mr-1">View Full History</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View complete GST payment history</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <div className="flex gap-2">
+              <Button 
+                variant={timeframe === '6' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setTimeframe('6')}
+                className="h-8"
+              >
+                Last 6 months
+              </Button>
+              <Button 
+                variant={timeframe === '12' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setTimeframe('12')}
+                className="h-8"
+              >
+                Last 12 months
+              </Button>
+            </div>
           </div>
         </div>
       </CardHeader>

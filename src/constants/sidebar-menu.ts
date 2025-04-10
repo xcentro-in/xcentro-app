@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 // Define interface for the menu items
-interface SidebarMenuItem {
+export interface SidebarMenuItem {
   title: string;
   url: string;
   icon: any; // Using 'any' here to accommodate Lucide icons

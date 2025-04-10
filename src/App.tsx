@@ -28,7 +28,8 @@ import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Network from "./pages/Network";
 import CashFlowProjection from "./pages/CashFlowProjection";
-import GSTReports from "./pages/GSTReports"; // Add import for our new page
+import GSTReports from "./pages/GSTReports";
+import GSTPaymentHistory from "./pages/GSTPaymentHistory"; // Add import for our new page
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -62,7 +63,8 @@ function App() {
                 <Route path="approvals" element={<ApprovalInbox />} />
                 <Route path="insights" element={<Insights />} />
                 <Route path="cash-flow-projection" element={<CashFlowProjection />} />
-                <Route path="gst-reports" element={<GSTReports />} /> {/* Add route for our new page */}
+                <Route path="gst-reports" element={<GSTReports />} />
+                <Route path="gst-payment-history" element={<GSTPaymentHistory />} /> {/* Add route for our new page */}
                 <Route path="new-payment" element={<NewPayment />} />
                 <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:id" element={<TransactionDetails />} />
