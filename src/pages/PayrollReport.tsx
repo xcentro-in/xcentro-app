@@ -1,5 +1,5 @@
 
-import { ArrowLeft, Calendar, ChevronRight, CreditCard, InfoCircle } from "lucide-react";
+import { ArrowLeft, Calendar, ChevronRight, CreditCard, Info } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,7 +99,7 @@ const PayrollReport = () => {
       <Card className="bg-amber-50 border-amber-100">
         <CardContent className="p-6">
           <div className="flex items-start">
-            <InfoCircle className="h-5 w-5 text-amber-500 mr-3 mt-1 flex-shrink-0" />
+            <Info className="h-5 w-5 text-amber-500 mr-3 mt-1 flex-shrink-0" />
             <div>
               <h3 className="font-medium mb-1">Smart Payment Suggestion</h3>
               <p className="text-muted-foreground">Consider paying <span className="font-medium">₹1,50,000 via credit card</span> and the rest via bank to smooth cash outflows.</p>
@@ -121,7 +121,7 @@ const PayrollReport = () => {
       <Card className="border-red-100">
         <CardContent className="p-6">
           <div className="flex items-start">
-            <InfoCircle className="h-5 w-5 text-red-500 mr-3 mt-1 flex-shrink-0" />
+            <Info className="h-5 w-5 text-red-500 mr-3 mt-1 flex-shrink-0" />
             <div className="space-y-3 w-full">
               <div>
                 <h3 className="font-medium">Salary Payment Timeliness</h3>
