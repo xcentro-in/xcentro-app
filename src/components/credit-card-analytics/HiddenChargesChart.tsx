@@ -73,7 +73,7 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
             <YAxis 
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => formatCurrency(value)}
+              tickFormatter={(value) => formatCurrency(Number(value))}
               tick={{ fontSize: 12 }}
               width={80}
             />
@@ -86,11 +86,11 @@ export const HiddenChargesChart: React.FC<HiddenChargesChartProps> = ({ data }) 
                       {payload.map((entry, index) => (
                         <div key={index} className="flex items-center gap-2">
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-                          <span className="text-sm">{entry.name}: {formatCurrency(entry.value)}</span>
+                          <span className="text-sm">{entry.name}: {formatCurrency(Number(entry.value))}</span>
                         </div>
                       ))}
                       <div className="mt-1 pt-1 border-t">
-                        <span className="text-sm font-medium">Total: {formatCurrency(payload.reduce((sum, item) => sum + item.value, 0))}</span>
+                        <span className="text-sm font-medium">Total: {formatCurrency(payload.reduce((sum, item) => sum + Number(item.value), 0))}</span>
                       </div>
                     </div>
                   );
