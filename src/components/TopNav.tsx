@@ -1,4 +1,3 @@
-
 import { Bell, LogOut, ChevronDown, Settings, Users, Star, Building, AlertCircle, Check } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
