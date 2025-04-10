@@ -9,11 +9,15 @@ interface EarningHistoryProps {
   onViewHistoryClick?: () => void;
 }
 
-const EarningHistory = () => {
+const EarningHistory = ({ onViewHistoryClick }: EarningHistoryProps) => {
   const navigate = useNavigate();
   
   const handleViewHistory = () => {
-    navigate('/rewards/insights', { state: { tab: 'earning' }});
+    if (onViewHistoryClick) {
+      onViewHistoryClick();
+    } else {
+      navigate('/rewards/insights', { state: { tab: 'earning' }});
+    }
   };
 
   return (
