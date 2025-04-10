@@ -23,7 +23,6 @@ import {
   BarChart,
   LineChart,
   ReceiptText,
-  UserRound,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -135,11 +134,6 @@ export const mainMenuItems: SidebarMenuItem[] = [
         title: 'GST Reports',
         icon: ReceiptText,
         url: '/gst-reports',
-      },
-      {
-        title: 'Payroll Report',
-        icon: UserRound,
-        url: '/payroll-report',
       }
     ]
   },
