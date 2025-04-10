@@ -8,6 +8,8 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import { Star } from "lucide-react";
 
 interface PaymentMethodData {
   name: string;
@@ -51,9 +53,13 @@ const PaymentMethodAnalysisCard: React.FC<PaymentMethodAnalysisCardProps> = ({
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 text-sm">
-          <p className="text-muted-foreground">Optimization tip:</p>
-          <p>Switching ₹2 lakh more to credit card would earn you additional ₹10k in rewards annually.</p>
+        <div className="mt-4 flex items-start gap-2">
+          <Badge variant="luxury" className="flex items-center gap-2 py-1.5 px-3 bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-400">
+            <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
+            <span className="text-sm font-medium">
+              Switching ₹2 lakh more to credit card would earn you additional ₹10k in rewards annually!
+            </span>
+          </Badge>
         </div>
       </CardContent>
     </Card>
