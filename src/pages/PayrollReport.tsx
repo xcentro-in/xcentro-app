@@ -53,6 +53,11 @@ const PayrollReport = () => {
           paymentTimelinessData={payrollData.paymentTimelinessData} 
           lastMonthDelay={payrollData.lastMonthDelay} 
         />
+        
+        {/* Payroll Variance Report - Moved here right after Payment Timeliness */}
+        <PayrollVarianceReportCard 
+          salaryTrendData={payrollData.salaryTrendData} 
+        />
 
         {/* Payment Method Analysis */}
         <PaymentMethodAnalysisCard 
@@ -73,11 +78,6 @@ const PayrollReport = () => {
         {/* Employee-Level Insights */}
         <EmployeeSalaryBreakdownCard 
           employeeData={payrollData.employeeData} 
-        />
-
-        {/* Payroll Variance Report */}
-        <PayrollVarianceReportCard 
-          salaryTrendData={payrollData.salaryTrendData} 
         />
       </div>
     </div>
