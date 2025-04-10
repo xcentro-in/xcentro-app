@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useMemo } from "react";
 import { TrendingUp, Info } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import {
@@ -69,6 +69,24 @@ const CustomDot = (props: any) => {
 const PayrollVarianceReportCard: React.FC<PayrollVarianceReportCardProps> = ({
   salaryTrendData
 }) => {
+  // Calculate Y-axis domain based on data min/max
+  const yAxisDomain = useMemo(() => {
+    if (!salaryTrendData || salaryTrendData.length === 0) {
+      return [0, 100];
+    }
+    
+    const amounts = salaryTrendData.map(item => item.amount);
+    const min = Math.min(...amounts);
+    const max = Math.max(...amounts);
+    
+    // Set the minimum to be 5% lower than the actual minimum
+    const buffer = (max - min) * 0.05;
+    const yMin = Math.max(0, min - buffer);
+    const yMax = max + buffer;
+    
+    return [yMin, yMax];
+  }, [salaryTrendData]);
+
   return (
     <Card className="col-span-1 md:col-span-2">
       <CardHeader className="pb-2">
@@ -100,6 +118,7 @@ const PayrollVarianceReportCard: React.FC<PayrollVarianceReportCardProps> = ({
               <YAxis 
                 tickFormatter={(value) => `₹${value / 1000}k`}
                 width={80}
+                domain={yAxisDomain}
               />
               <RechartsTooltip content={<CustomTooltip />} cursor={false} />
               <Line 
