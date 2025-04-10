@@ -1,4 +1,3 @@
-
 export interface PayrollData {
   totalSalary: number;
   daysUntilPayday: number;
@@ -24,6 +23,8 @@ export interface PayrollData {
   }>;
   paymentTimelinessData: Array<{
     month: string;
+    paymentDate?: number;
+    amount?: number;
     onTime?: number;
     delayed?: number;
     predicted?: number;

@@ -28,10 +28,12 @@ export const usePayrollData = () => {
       { month: "Apr", amount: 380000 },
     ],
     paymentTimelinessData: [
-      { month: "Jan", onTime: 100 },
-      { month: "Feb", onTime: 100 },
-      { month: "Mar", delayed: 2 },
-      { month: "Apr", predicted: 0 }
+      { month: "Nov", paymentDate: 27, amount: 340000, onTime: 100 },
+      { month: "Dec", paymentDate: 26, amount: 345000, onTime: 100 },
+      { month: "Jan", paymentDate: 25, amount: 350000, onTime: 100 },
+      { month: "Feb", paymentDate: 25, amount: 360000, onTime: 100 },
+      { month: "Mar", paymentDate: 27, amount: 370000, delayed: 2 },
+      { month: "Apr", paymentDate: 25, amount: 380000, predicted: 0 }
     ],
     employeeData: [
       { id: 1, name: "Amit Sharma", gross: 80000, deductions: 15000, net: 65000 },
