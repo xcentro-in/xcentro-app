@@ -51,7 +51,7 @@ const PayeeList = () => {
   };
 
   const handleViewHistory = (payeeId: string) => {
-    navigate(`/payee-history/${payeeId}`);
+    navigate(`/payees/${payeeId}`);
   };
 
   const filteredPayees = useMemo(() => {
