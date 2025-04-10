@@ -1,139 +1,92 @@
 
 import { 
   Home, 
-  CreditCard,
-  History,
-  Gift, 
+  CreditCard, 
+  PanelRight, 
+  Wallet, 
   BarChart3, 
-  Settings,
-  PlusCircle,
+  Gift, 
+  Globe, 
+  CalendarDays, 
+  Settings, 
   Users,
-  Wallet,
-  Star,
-  CheckCircle2,
-  CalendarDays,
-  Receipt,
-  BarChart2,
-  CreditCardIcon,
-  FileText,
-  Banknote,
-  Award,
-  TrendingUp,
-  ReceiptIcon,
-  BarChart,
-  LineChart,
-} from "lucide-react";
+  ReceiptText,
+  TrendingUp
+} from 'lucide-react';
 
-// Define interface for the menu items
-interface SidebarMenuItem {
-  title: string;
-  url: string;
-  icon: any; // Using 'any' here to accommodate Lucide icons
-  highlight?: boolean;
-  highlightColor?: "amber" | "green";
-  state?: any;
-  submenu?: Array<{
-    title: string;
-    url: string;
-    icon: any;
-  }>;
-}
-
-// Main menu items
-export const mainMenuItems: SidebarMenuItem[] = [
+export const sidebarMenuItems = [
   {
-    title: "Dashboard",
-    url: "/",
+    id: 'dashboard',
+    label: 'Dashboard',
     icon: Home,
+    href: '/',
   },
   {
-    title: "New Payment",
-    url: "/new-payment",
-    icon: PlusCircle,
-    highlight: true,
-    highlightColor: "green" as const,
+    id: 'payments',
+    label: 'Payments',
+    icon: CreditCard,
+    href: '/payments',
   },
   {
-    title: "Upcoming Payments",
-    url: "/payment-calendar",
-    icon: CalendarDays,
+    id: 'approvals',
+    label: 'Approvals',
+    icon: PanelRight,
+    href: '/approvals',
+    badge: '12',
+    badgeColor: 'amber',
   },
   {
-    title: "Payment History",
-    url: "/payments",
-    icon: History,
-  },
-  {
-    title: "Manage Payees",
-    url: "/payees",
+    id: 'payees',
+    label: 'Payees',
     icon: Users,
+    href: '/payees',
   },
   {
-    title: "Wallet",
-    url: "/wallet",
-    icon: Wallet,
+    id: 'payment-calendar',
+    label: 'Calendar',
+    icon: CalendarDays,
+    href: '/payment-calendar',
   },
   {
-    title: "Credit Cards",
-    url: "/credit-cards",
-    icon: CreditCardIcon,
-    submenu: [
-      {
-        title: "Card Bill Payment",
-        url: "/credit-card-bills",
-        icon: Receipt,
-      },
-      {
-        title: "Card Insights & Analytics",
-        url: "/credit-card-analytics",
-        icon: BarChart2,
-      }
-    ]
+    id: 'gst-reports',
+    label: 'GST Reports',
+    icon: ReceiptText,
+    href: '/gst-reports',
   },
   {
-    title: "Approvals",
-    url: "/approvals",
-    icon: CheckCircle2,
-    highlight: true,
+    id: 'cash-flow-projection',
+    label: 'Cash Flow',
+    icon: TrendingUp,
+    href: '/cash-flow-projection',
   },
   {
-    title: "My Rewards",
-    url: "/rewards",
-    icon: Gift,
-    highlight: true,
-    submenu: [
-      {
-        title: "Dashboard",
-        url: "/rewards",
-        icon: Award,
-      },
-      {
-        title: "Insights",
-        url: "/rewards/insights",
-        icon: BarChart3,
-      }
-    ]
-  },
-  {
-    title: "Insights",
-    url: "/insights",
+    id: 'insights',
+    label: 'Insights',
     icon: BarChart3,
-    submenu: [
-      {
-        title: "Business Analytics",
-        url: "/insights",
-        icon: BarChart,
-      },
-      {
-        title: "Cash Flow Projection",
-        url: "/cash-flow-projection",
-        icon: LineChart,
-      }
-    ]
+    href: '/insights',
   },
   {
-    title: "Settings",
-    url: "/settings",
+    id: 'rewards',
+    label: 'Rewards',
+    icon: Gift,
+    href: '/rewards',
+  },
+  {
+    id: 'network',
+    label: 'Network',
+    icon: Globe,
+    href: '/network',
+  },
+  {
+    id: 'wallet',
+    label: 'Wallet',
+    icon: Wallet, 
+    href: '/wallet',
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
     icon: Settings,
+    href: '/settings',
   },
 ];
