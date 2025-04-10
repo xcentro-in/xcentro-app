@@ -32,6 +32,10 @@ const Rewards = () => {
       setRedeemDialogOpen(true);
     }
   };
+  
+  const handleViewHistoryClick = () => {
+    navigate('/rewards/history');
+  };
 
   return (
     <div className="space-y-8">
@@ -52,7 +56,7 @@ const Rewards = () => {
       {/* Earning Tips and Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SpendingRecommendations />
-        <EarningHistory />
+        <EarningHistory onViewHistoryClick={handleViewHistoryClick} />
       </div>
 
       <RedemptionCategoryDialog
