@@ -100,8 +100,8 @@ const Settings = () => {
           </nav>
         </div>
 
-        {/* Right content area */}
-        <div className="flex-1 min-w-0">
+        {/* Right content area - increase width to fill available space */}
+        <div className="flex-1 min-w-0 w-full">
           {renderTabContent()}
         </div>
       </div>

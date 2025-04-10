@@ -54,8 +54,8 @@ const SecuritySettings = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
+    <div className="space-y-6 w-full max-w-5xl">
+      <Card className="w-full">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -131,7 +131,7 @@ const SecuritySettings = () => {
         )}
       </Card>
       
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">Two-Factor Authentication</CardTitle>
           <CardDescription>
@@ -156,7 +156,7 @@ const SecuritySettings = () => {
         </CardContent>
       </Card>
       
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold">Authorized Devices</CardTitle>
           <CardDescription>

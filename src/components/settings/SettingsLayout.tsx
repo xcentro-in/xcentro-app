@@ -24,9 +24,9 @@ const SettingsLayout = () => {
         </Button>
       </header>
       
-      {/* Main content area */}
+      {/* Main content area - widened to fill available space */}
       <main className="flex-1 p-6">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-full">
           <Outlet />
         </div>
       </main>
