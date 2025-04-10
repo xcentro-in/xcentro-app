@@ -78,7 +78,7 @@ function App() {
                 <Route path="credit-card-bills" element={<CreditCardBills />} />
                 <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
                 <Route path="wallet" element={<WalletManagement />} />
-                <Route path="wallet/add-payment-method" element={<AddPaymentMethod />} />
+                <Route path="wallet/add" element={<AddPaymentMethod />} />
                 <Route path="settings/*" element={<Settings />} />
                 <Route path="user-access" element={<UserAccess />} />
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
