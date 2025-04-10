@@ -1,92 +1,146 @@
 
 import { 
   Home, 
-  CreditCard, 
-  PanelRight, 
-  Wallet, 
-  BarChart3, 
+  CreditCard,
+  History,
   Gift, 
-  Globe, 
-  CalendarDays, 
-  Settings, 
+  BarChart3, 
+  Settings,
+  PlusCircle,
   Users,
+  Wallet,
+  Star,
+  CheckCircle2,
+  CalendarDays,
+  Receipt,
+  BarChart2,
+  CreditCardIcon,
+  FileText,
+  Banknote,
+  Award,
+  TrendingUp,
+  ReceiptIcon,
+  BarChart,
+  LineChart,
   ReceiptText,
-  TrendingUp
-} from 'lucide-react';
+} from "lucide-react";
 
-export const sidebarMenuItems = [
+// Define interface for the menu items
+interface SidebarMenuItem {
+  title: string;
+  url: string;
+  icon: any; // Using 'any' here to accommodate Lucide icons
+  highlight?: boolean;
+  highlightColor?: "amber" | "green";
+  state?: any;
+  submenu?: Array<{
+    title: string;
+    url: string;
+    icon: any;
+  }>;
+}
+
+// Main menu items
+export const mainMenuItems: SidebarMenuItem[] = [
   {
-    id: 'dashboard',
-    label: 'Dashboard',
+    title: "Dashboard",
+    url: "/",
     icon: Home,
-    href: '/',
   },
   {
-    id: 'payments',
-    label: 'Payments',
-    icon: CreditCard,
-    href: '/payments',
+    title: "New Payment",
+    url: "/new-payment",
+    icon: PlusCircle,
+    highlight: true,
+    highlightColor: "green" as const,
   },
   {
-    id: 'approvals',
-    label: 'Approvals',
-    icon: PanelRight,
-    href: '/approvals',
-    badge: '12',
-    badgeColor: 'amber',
-  },
-  {
-    id: 'payees',
-    label: 'Payees',
-    icon: Users,
-    href: '/payees',
-  },
-  {
-    id: 'payment-calendar',
-    label: 'Calendar',
+    title: "Upcoming Payments",
+    url: "/payment-calendar",
     icon: CalendarDays,
-    href: '/payment-calendar',
   },
   {
-    id: 'gst-reports',
-    label: 'GST Reports',
-    icon: ReceiptText,
-    href: '/gst-reports',
+    title: "Payment History",
+    url: "/payments",
+    icon: History,
   },
   {
-    id: 'cash-flow-projection',
-    label: 'Cash Flow',
-    icon: TrendingUp,
-    href: '/cash-flow-projection',
+    title: "Manage Payees",
+    url: "/payees",
+    icon: Users,
   },
   {
-    id: 'insights',
-    label: 'Insights',
-    icon: BarChart3,
-    href: '/insights',
+    title: "Wallet",
+    url: "/wallet",
+    icon: Wallet,
   },
   {
-    id: 'rewards',
-    label: 'Rewards',
+    title: "Credit Cards",
+    url: "/credit-cards",
+    icon: CreditCardIcon,
+    submenu: [
+      {
+        title: "Card Bill Payment",
+        url: "/credit-card-bills",
+        icon: Receipt,
+      },
+      {
+        title: "Card Insights & Analytics",
+        url: "/credit-card-analytics",
+        icon: BarChart2,
+      }
+    ]
+  },
+  {
+    title: "Approvals",
+    url: "/approvals",
+    icon: CheckCircle2,
+    highlight: true,
+  },
+  {
+    title: "My Rewards",
+    url: "/rewards",
     icon: Gift,
-    href: '/rewards',
+    highlight: true,
+    submenu: [
+      {
+        title: "Dashboard",
+        url: "/rewards",
+        icon: Award,
+      },
+      {
+        title: "Insights",
+        url: "/rewards/insights",
+        icon: BarChart3,
+      }
+    ]
   },
   {
-    id: 'network',
-    label: 'Network',
-    icon: Globe,
-    href: '/network',
+    title: "Insights",
+    url: "/insights",
+    icon: BarChart3,
+    submenu: [
+      {
+        title: "Business Analytics",
+        url: "/insights",
+        icon: BarChart,
+      },
+      {
+        title: "Cash Flow Projection",
+        url: "/cash-flow-projection",
+        icon: LineChart,
+      },
+      {
+        title: 'GST Reports',
+        icon: ReceiptText,
+        url: '/gst-reports',
+      }
+    ]
   },
+  
   {
-    id: 'wallet',
-    label: 'Wallet',
-    icon: Wallet, 
-    href: '/wallet',
-  },
-  {
-    id: 'settings',
-    label: 'Settings',
+    title: "Settings",
+    url: "/settings",
     icon: Settings,
-    href: '/settings',
   },
 ];
