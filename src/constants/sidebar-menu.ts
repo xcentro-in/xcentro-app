@@ -142,11 +142,5 @@ export const mainMenuItems: SidebarMenuItem[] = [
         url: '/payroll-report',
       }
     ]
-  },
-  
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
+  }
 ];
