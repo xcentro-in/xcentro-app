@@ -13,7 +13,7 @@ const SettingsLayout = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header with back button */}
-      <header className="h-16 border-b border-border px-6 flex items-center sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
+      <header className="h-16 border-b border-border px-6 flex items-center sticky top-0 z-20 bg-background/95 backdrop-blur-sm">
         <Button 
           variant="ghost" 
           className="gap-2 text-sm font-medium"
@@ -24,9 +24,9 @@ const SettingsLayout = () => {
         </Button>
       </header>
       
-      {/* Main content area - widened to fill available space */}
-      <main className="flex-1 p-6">
-        <div className="mx-auto max-w-full">
+      {/* Main content area - full width */}
+      <main className="flex-1">
+        <div className="w-full px-6">
           <Outlet />
         </div>
       </main>

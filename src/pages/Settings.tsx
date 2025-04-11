@@ -72,13 +72,17 @@ const Settings = () => {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      <SettingsHeader 
-        title="Settings" 
-        description="Manage your account preferences and application settings" 
-      />
+    <div className="h-full flex flex-col">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border pb-6">
+        <SettingsHeader 
+          title="Settings" 
+          description="Manage your account preferences and application settings" 
+        />
+      </div>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      {/* Content Area */}
+      <div className="flex-1 flex flex-col md:flex-row gap-8 mt-8">
         {/* Left sidebar with tabs */}
         <div className="md:w-64 shrink-0">
           <nav className="space-y-1 sticky top-24">
@@ -100,8 +104,8 @@ const Settings = () => {
           </nav>
         </div>
 
-        {/* Right content area - increase width to fill available space */}
-        <div className="flex-1 min-w-0 w-full">
+        {/* Right content area - Settings content */}
+        <div className="flex-1 min-w-0 w-full pr-6">
           {renderTabContent()}
         </div>
       </div>
