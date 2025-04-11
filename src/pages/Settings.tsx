@@ -46,7 +46,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="h-full flex w-full">
+    <div className="h-full flex w-full flex-grow">
       {/* Left sidebar with tabs */}
       <div className="w-64 shrink-0 border-r border-border bg-muted/10">
         <nav className="sticky top-0 p-4 space-y-2">
