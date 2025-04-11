@@ -46,7 +46,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex w-full">
       {/* Left sidebar with tabs */}
       <div className="w-64 shrink-0 border-r border-border bg-muted/10">
         <nav className="sticky top-0 p-4 space-y-2">
@@ -69,7 +69,7 @@ const Settings = () => {
       </div>
 
       {/* Right content area */}
-      <div className="flex-1 min-h-screen">
+      <div className="flex-1 min-h-screen w-full">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border p-6">
           <SettingsHeader 
             title="Settings" 
