@@ -24,11 +24,9 @@ const SettingsLayout = () => {
         </Button>
       </header>
       
-      {/* Main content area - full width */}
+      {/* Main content area */}
       <main className="flex-1">
-        <div className="w-full px-6">
-          <Outlet />
-        </div>
+        <Outlet />
       </main>
     </div>
   );
