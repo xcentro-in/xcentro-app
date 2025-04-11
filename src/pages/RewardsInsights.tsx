@@ -32,8 +32,8 @@ const RewardsInsights = () => {
         >
           <div className="flex justify-center mb-6">
             <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="earning">Earning History</TabsTrigger>
               <TabsTrigger value="redemption">Redemption History</TabsTrigger>
+              <TabsTrigger value="earning">Earning History</TabsTrigger>
             </TabsList>
           </div>
           
