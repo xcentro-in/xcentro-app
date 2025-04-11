@@ -32,13 +32,9 @@ const Rewards = () => {
       setRedeemDialogOpen(true);
     }
   };
-
-  const handleTransferClick = () => {
-    toast.info("Points transfer feature will be available soon!");
-  };
-
-  const handleViewHistory = () => {
-    navigate("/rewards/history");
+  
+  const handleViewHistoryClick = () => {
+    navigate('/rewards/history');
   };
 
   return (
@@ -52,7 +48,6 @@ const Rewards = () => {
       <RewardsSummary 
         availablePoints={availablePoints}
         onRedeemClick={() => handleRedeemClick()}
-        onTransferClick={handleTransferClick}
       />
       
       {/* Milestone Progress Cards Section */}
@@ -61,7 +56,7 @@ const Rewards = () => {
       {/* Earning Tips and Recent Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SpendingRecommendations />
-        <EarningHistory onViewHistoryClick={handleViewHistory} />
+        <EarningHistory onViewHistoryClick={handleViewHistoryClick} />
       </div>
 
       <RedemptionCategoryDialog

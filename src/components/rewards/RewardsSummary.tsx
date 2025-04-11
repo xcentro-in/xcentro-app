@@ -10,13 +10,11 @@ import { useNavigate } from "react-router-dom";
 interface RewardsSummaryProps {
   availablePoints: number;
   onRedeemClick: () => void;
-  onTransferClick: () => void;
 }
 
 const RewardsSummary: React.FC<RewardsSummaryProps> = ({
   availablePoints,
   onRedeemClick,
-  onTransferClick
 }) => {
   const [progress, setProgress] = useState(0);
   const [showTooltip, setShowTooltip] = useState(false);
@@ -31,7 +29,6 @@ const RewardsSummary: React.FC<RewardsSummaryProps> = ({
 
   const handleTransferClick = () => {
     navigate('/network', { state: { activeTab: "transfers" } });
-    onTransferClick();
   };
   
   return (

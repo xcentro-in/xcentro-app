@@ -428,13 +428,14 @@ const SubscriptionSettings = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">Edit</Button>
                     <Button variant="ghost" size="sm">Remove</Button>
                   </div>
                 </div>
               </div>
               
-              <Button className="w-full">Add New Payment Method</Button>
+              <div className="flex justify-start">
+                <Button className="w-auto">Add New Payment Method</Button>
+              </div>
               
               <Separator className="my-4" />
               

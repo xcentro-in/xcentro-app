@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   LockIcon, 
   UserCog, 
@@ -28,76 +27,84 @@ import SettingsHeader from "@/components/settings/SettingsHeader";
 import BusinessesTab from "@/components/settings/BusinessesTab";
 import RewardsTab from "@/components/settings/RewardsTab";
 import UsersTab from "@/components/settings/UsersTab";
+import { cn } from "@/lib/utils";
 
 const Settings = () => {
+  const [activeTab, setActiveTab] = useState("account");
+
+  // Array of tab items for the left sidebar
+  const tabItems = [
+    { id: "account", label: "Account", icon: <User className="h-4 w-4" /> },
+    { id: "businesses", label: "Businesses", icon: <Building className="h-4 w-4" /> },
+    { id: "subscription", label: "Plans & Billing", icon: <CreditCard className="h-4 w-4" /> },
+    { id: "notifications", label: "Notifications", icon: <BellRing className="h-4 w-4" /> },
+    { id: "rewards", label: "Rewards & Partners", icon: <BadgeCheck className="h-4 w-4" /> },
+    { id: "users", label: "User Access", icon: <Users className="h-4 w-4" /> },
+    { id: "security", label: "Security", icon: <Shield className="h-4 w-4" /> },
+    { id: "integration", label: "Integrations", icon: <Globe className="h-4 w-4" /> },
+    { id: "support", label: "Support", icon: <HelpCircle className="h-4 w-4" /> },
+  ];
+
+  // Function to render the active tab content
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "account":
+        return <AccountSettings />;
+      case "businesses":
+        return <BusinessesTab />;
+      case "subscription":
+        return <SubscriptionSettings />;
+      case "notifications":
+        return <NotificationSettings />;
+      case "rewards":
+        return <RewardsTab />;
+      case "users":
+        return <UsersTab />;
+      case "security":
+        return <SecuritySettings />;
+      case "integration":
+        return <IntegrationSettings />;
+      case "support":
+        return <SupportSettings />;
+      default:
+        return <AccountSettings />;
+    }
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <SettingsHeader 
         title="Settings" 
         description="Manage your account preferences and application settings" 
       />
 
-      <Tabs defaultValue="account" className="w-full animate-fade-in">
-        <TabsList className="mb-6">
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="businesses" className="flex items-center gap-2">
-            <Building className="h-4 w-4" />
-            Businesses
-          </TabsTrigger>
-          <TabsTrigger value="subscription" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Plans and Billing
-          </TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="rewards">Rewards & Partners</TabsTrigger>
-          <TabsTrigger value="users" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            User Access
-          </TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="integration">Integrations</TabsTrigger>
-          <TabsTrigger value="support" className="flex items-center gap-2">
-            <HelpCircle className="h-4 w-4" />
-            Support
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="account">
-          <AccountSettings />
-        </TabsContent>
-        
-        <TabsContent value="businesses">
-          <BusinessesTab />
-        </TabsContent>
-        
-        <TabsContent value="subscription">
-          <SubscriptionSettings />
-        </TabsContent>
-        
-        <TabsContent value="notifications">
-          <NotificationSettings />
-        </TabsContent>
-        
-        <TabsContent value="rewards">
-          <RewardsTab />
-        </TabsContent>
-        
-        <TabsContent value="users">
-          <UsersTab />
-        </TabsContent>
-        
-        <TabsContent value="security">
-          <SecuritySettings />
-        </TabsContent>
-        
-        <TabsContent value="integration">
-          <IntegrationSettings />
-        </TabsContent>
-        
-        <TabsContent value="support">
-          <SupportSettings />
-        </TabsContent>
-      </Tabs>
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Left sidebar with tabs */}
+        <div className="md:w-64 shrink-0">
+          <nav className="space-y-1 sticky top-24">
+            {tabItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-md transition-colors",
+                  activeTab === item.id
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent/50"
+                )}
+              >
+                {item.icon}
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Right content area - increase width to fill available space */}
+        <div className="flex-1 min-w-0 w-full">
+          {renderTabContent()}
+        </div>
+      </div>
     </div>
   );
 };

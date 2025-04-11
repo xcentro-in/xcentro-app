@@ -16,11 +16,7 @@ import { FilterCard } from "@/components/payee-history/FilterCard";
 import { TransactionsTable } from "@/components/payee-history/TransactionsTable";
 import { DownloadActions } from "@/components/payee-history/DownloadActions";
 const PayeeHistory = () => {
-  const {
-    payeeId
-  } = useParams<{
-    payeeId: string;
-  }>();
+  const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();
   const [payee, setPayee] = useState<Payee | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);

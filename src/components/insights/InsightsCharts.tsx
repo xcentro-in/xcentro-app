@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Filter, FileText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/utils/formatters"
 
 // Define improved color palette for charts
 const COLORS = ["#6366F1", "#8B5CF6", "#EC4899", "#F97316", "#10B981"];
@@ -121,6 +123,7 @@ export const CategoryBreakdown: React.FC<CategoryBreakdownProps> = ({
     </Card>;
 };
 export const TaxComplianceCard = () => {
+  const navigate = useNavigate();
   return <Card className="animate-fade-in" style={{
     animationDelay: "250ms"
   }}>
@@ -136,22 +139,22 @@ export const TaxComplianceCard = () => {
             <h3 className="font-medium">Tax Paid Till Date</h3>
             
           </div>
-          <div className="text-2xl font-bold mb-1">$12,450.80</div>
+          <div className="text-2xl font-bold mb-1">{formatCurrency(12450.80)}</div>
           
-          <Button className="mt-4 w-full">View your Tax payout Report</Button>
+          <Button className="mt-4 w-full" onClick={()=>{navigate("/gst-reports")}}>View your GST Report</Button>
         </div>
         
         <div className="rounded-md border p-4">
           <h3 className="font-medium mb-3">Recent Tax Documents</h3>
           <div className="space-y-3">
             {[{
-            name: "Q2 GST Filing.pdf",
+            name: "Q2 GST Challan.pdf",
             date: "Jul 15, 2023"
           }, {
             name: "Annual Tax Summary.pdf",
             date: "Apr 30, 2023"
           }, {
-            name: "Q1 GST Filing.pdf",
+            name: "Q1 GST Challan.pdf",
             date: "Apr 15, 2023"
           }].map(doc => <div key={doc.name} className="flex justify-between items-center">
                 <div className="flex items-center">

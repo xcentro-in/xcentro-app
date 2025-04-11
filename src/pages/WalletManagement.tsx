@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, ShieldCheck, Info } from "lucide-react";
+import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -14,11 +14,9 @@ import { toast } from "sonner";
 const WalletManagement = () => {
   const navigate = useNavigate();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
-  const [activeTab, setActiveTab] = useState<PaymentMethodType | "all">("all");
+  const [activeTab, setActiveTab] = useState<PaymentMethodType>("card");
   
-  const filteredPaymentMethods = activeTab === "all" 
-    ? paymentMethods 
-    : paymentMethods.filter(method => method.type === activeTab);
+  const filteredPaymentMethods = paymentMethods.filter(method => method.type === activeTab);
   
   const handleDelete = (id: string) => {
     setPaymentMethods(prev => prev.filter(method => method.id !== id));
@@ -32,10 +30,6 @@ const WalletManagement = () => {
         isDefault: method.id === id ? true : method.type === prev.find(m => m.id === id)?.type ? false : method.isDefault
       }))
     );
-  };
-  
-  const handleEdit = (id: string) => {
-    toast.info("Edit functionality will be implemented in a future update");
   };
   
   const handleToggleRecurring = (id: string, enabled: boolean) => {
@@ -75,13 +69,12 @@ const WalletManagement = () => {
           </CardDescription>
           
           <Tabs 
-            defaultValue="all" 
+            defaultValue="card" 
             value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as PaymentMethodType | "all")}
+            onValueChange={(value) => setActiveTab(value as PaymentMethodType)}
             className="mt-3"
           >
-            <TabsList className="grid grid-cols-5 mb-2">
-              <TabsTrigger value="all">All</TabsTrigger>
+            <TabsList className="grid grid-cols-4 mb-2">
               <TabsTrigger value="card" className="flex items-center gap-1">
                 <CreditCard className="h-3.5 w-3.5" />
                 <span>Cards</span>
@@ -111,7 +104,6 @@ const WalletManagement = () => {
                   paymentMethod={method}
                   onDelete={handleDelete}
                   onSetDefault={handleSetDefault}
-                  onEdit={handleEdit}
                   onToggleRecurring={handleToggleRecurring}
                 />
               ))}
@@ -146,3 +138,4 @@ const WalletManagement = () => {
 };
 
 export default WalletManagement;
+

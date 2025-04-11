@@ -1,5 +1,4 @@
-
-import { Bell, LogOut, ChevronDown, User, Users, Star, Building, AlertCircle, Check } from "lucide-react";
+import { Bell, LogOut, ChevronDown, Settings, Users, Star, Building, AlertCircle, Check } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -151,8 +150,8 @@ const TopNav = () => {
               className="flex items-center px-3 py-2 cursor-pointer"
               onClick={() => navigate('/settings')}
             >
-              <User className="h-4 w-4 mr-2" />
-              Profile Settings
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
             </DropdownMenuItem>
             <DropdownMenuItem 
               className="flex items-center px-3 py-2 cursor-pointer"

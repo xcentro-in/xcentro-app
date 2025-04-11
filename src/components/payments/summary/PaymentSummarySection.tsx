@@ -2,6 +2,7 @@
 import { DollarSign, Award } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
+import {formatCurrency} from "@/utils/formatters"
 
 interface PaymentSummarySectionProps {
   amount: number;
@@ -23,25 +24,25 @@ export const PaymentSummarySection = ({
       <div className="p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Amount</span>
-          <span className="font-medium">${amount.toFixed(2)}</span>
+          <span className="font-medium">{formatCurrency(amount)}</span>
         </div>
         
         <Separator className="my-2" />
         
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Platform Fee</span>
-          <span className="font-medium">${platformFee.toFixed(2)}</span>
+          <span className="font-medium">{formatCurrency(platformFee)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Payment Gateway Fee</span>
-          <span className="font-medium">${gatewayFee.toFixed(2)}</span>
+          <span className="font-medium">{formatCurrency(gatewayFee)}</span>
         </div>
         
         <Separator className="my-2" />
         
         <div className="flex justify-between font-medium text-base">
           <span>Total Amount</span>
-          <span>${totalAmount.toFixed(2)}</span>
+          <span>{formatCurrency(totalAmount)}</span>
         </div>
         
         <div className="flex justify-between text-sm text-green-600 bg-green-50 p-2 rounded-md items-center mt-3">

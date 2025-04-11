@@ -22,10 +22,12 @@ import {
   ReceiptIcon,
   BarChart,
   LineChart,
+  ReceiptText,
+  Landmark,
 } from "lucide-react";
 
 // Define interface for the menu items
-interface SidebarMenuItem {
+export interface SidebarMenuItem {
   title: string;
   url: string;
   icon: any; // Using 'any' here to accommodate Lucide icons
@@ -128,12 +130,17 @@ export const mainMenuItems: SidebarMenuItem[] = [
         title: "Cash Flow Projection",
         url: "/cash-flow-projection",
         icon: LineChart,
+      },
+      {
+        title: 'GST Reports',
+        icon: ReceiptText,
+        url: '/gst-reports',
+      },
+      {
+        title: 'Payroll Report',
+        icon: Landmark,
+        url: '/payroll-report',
       }
     ]
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
-  },
+  }
 ];

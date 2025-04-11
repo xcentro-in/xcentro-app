@@ -28,6 +28,9 @@ import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Network from "./pages/Network";
 import CashFlowProjection from "./pages/CashFlowProjection";
+import GSTReports from "./pages/GSTReports";
+import GSTPaymentHistory from "./pages/GSTPaymentHistory";
+import PayrollReport from "./pages/PayrollReport";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -37,6 +40,7 @@ import { Toaster } from "./components/ui/toaster";
 
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
+import SettingsLayout from "./components/settings/SettingsLayout";
 
 // Create a client
 const queryClient = new QueryClient()
@@ -44,14 +48,13 @@ const queryClient = new QueryClient()
 function App() {
   const { toast } = useToast();
 
-  
-
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <Router>
           <SidebarProvider>
             <Routes>
+              {/* Main application routes with standard layout */}
               <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="payments" element={<Payments />} />
@@ -61,6 +64,9 @@ function App() {
                 <Route path="approvals" element={<ApprovalInbox />} />
                 <Route path="insights" element={<Insights />} />
                 <Route path="cash-flow-projection" element={<CashFlowProjection />} />
+                <Route path="gst-reports" element={<GSTReports />} />
+                <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
+                <Route path="payroll-report" element={<PayrollReport />} />
                 <Route path="new-payment" element={<NewPayment />} />
                 <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:id" element={<TransactionDetails />} />
@@ -74,11 +80,17 @@ function App() {
                 <Route path="credit-card-bills" element={<CreditCardBills />} />
                 <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
                 <Route path="wallet" element={<WalletManagement />} />
-                <Route path="wallet/add-payment-method" element={<AddPaymentMethod />} />
-                <Route path="settings/*" element={<Settings />} />
+                <Route path="wallet/add" element={<AddPaymentMethod />} />
                 <Route path="user-access" element={<UserAccess />} />
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
               </Route>
+              
+              {/* Settings routes with custom layout */}
+              <Route path="/settings" element={<SettingsLayout />}>
+                <Route index element={<Settings />} />
+                <Route path="*" element={<Settings />} />
+              </Route>
+              
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="*" element={<NotFound />} />

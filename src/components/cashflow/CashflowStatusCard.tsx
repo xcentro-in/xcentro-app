@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUp, ArrowDown, AlertTriangle } from "lucide-react";
+import {formatCurrency} from "@/utils/formatters"
 
 const CashflowStatusCard: React.FC = () => {
   // This would normally come from your data source
@@ -34,7 +35,7 @@ const CashflowStatusCard: React.FC = () => {
         <div className="space-y-4">
           <div>
             <div className={`text-3xl font-bold ${statusColor}`}>
-              ${currentBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {formatCurrency(currentBalance)}
             </div>
             <div className="flex items-center mt-1 text-sm">
               {changePercentage >= 0 ? (
@@ -54,13 +55,13 @@ const CashflowStatusCard: React.FC = () => {
           <div className="grid grid-cols-2 gap-2 pt-2">
             <div className="space-y-1">
               <div className="text-sm text-muted-foreground">Safety Threshold</div>
-              <div className="font-medium">${safetyThreshold.toLocaleString()}</div>
+              <div className="font-medium">{formatCurrency(safetyThreshold)}</div>
             </div>
             
             <div className="space-y-1">
               <div className="text-sm text-muted-foreground">Projected Minimum</div>
               <div className="font-medium flex items-center">
-                ${projectedMinimum.toLocaleString()}
+                {formatCurrency(projectedMinimum)}
                 {willHitCritical && (
                   <AlertTriangle className="h-4 w-4 ml-1 text-amber-500" />
                 )}
