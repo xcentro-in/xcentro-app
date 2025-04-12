@@ -81,22 +81,6 @@ const PayeeHistory = () => {
           
           {/* Total amount paid and download actions */}
           <div className="flex flex-col gap-4">
-            <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-100">
-              <CardContent className="p-5">
-                <div className="flex flex-col">
-                  <span className="text-sm text-muted-foreground">Total Amount Paid</span>
-                  <span className="text-3xl font-bold text-purple-600">₹{totalPaid.toLocaleString()}</span>
-                  <span className="text-xs text-muted-foreground mt-1">
-                    Last payment: {lastTransactionDate ? new Date(lastTransactionDate).toLocaleDateString('en-IN', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                  }) : 'N/A'}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-            
             <div className="flex justify-end">
               <DownloadActions payeeName={payee.name} />
             </div>

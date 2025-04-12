@@ -1,7 +1,3 @@
-
-import { format } from "date-fns";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { 
   BankPayee, 
   BillerPayee, 
@@ -9,6 +5,8 @@ import {
   PayrollPayee 
 } from "@/types/payee";
 import { getPayeeIcon } from "@/utils/payeeUtils";
+import { TotalPaymentSummaryCard } from "./TotalPaymentSummaryCard"
+import { PayeeInfoCard } from "./PayeeInfoCard"
 
 interface PayeeDetailsCardProps {
   payee: Payee;
@@ -23,116 +21,44 @@ export const PayeeDetailsCard = ({
 }: PayeeDetailsCardProps) => {
   
   // Get payee-specific details
-  const getPayeeDetails = () => {
-    if (!payee) return null;
-    
+  const getPayeeInfo = () => {
+    if (!payee) return [];
+
     switch (payee.type) {
-      case "bank":
+      case "bank": {
         const bankPayee = payee as BankPayee;
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <Card className="bg-slate-50/50">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Bank Name</p>
-                    <p className="text-lg font-medium">{bankPayee.bankName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Account Number</p>
-                    <p className="text-lg font-medium tracking-wider font-mono">
-                      **** **** {bankPayee.accountNumber.slice(-4)}
-                    </p>
-                  </div>
-                  {bankPayee.gstin && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">GSTIN</p>
-                      <p className="text-lg font-medium tracking-wider font-mono">{bankPayee.gstin}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-      case "biller":
+        const info = [
+          { label: "Bank Name", value: bankPayee.bankName },
+          { label: "Account Number", value: bankPayee.accountNumber },
+        ];
+        // Optionally add GSTIN if available
+        if (bankPayee.gstin) {
+          info.push({ label: "GSTIN", value: bankPayee.gstin });
+        }
+        return info;
+      }
+      case "biller": {
         const billerPayee = payee as BillerPayee;
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <Card className="bg-slate-50/50">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Biller Name</p>
-                    <p className="text-lg font-medium">{billerPayee.billerName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Customer ID</p>
-                    <p className="text-lg font-medium tracking-wider font-mono">{billerPayee.customerId}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Billing Cycle</p>
-                    <p className="text-lg font-medium">{billerPayee.billingCycle}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Total Amount Paid</p>
-                  <p className="text-3xl font-bold text-purple-600">₹{totalPaid.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Last payment: {lastTransactionDate ? format(new Date(lastTransactionDate), 'dd MMM yyyy') : 'N/A'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-      case "payroll":
+        return [
+          { label: "Biller Name", value: billerPayee.billerName },
+          { label: "Customer ID", value: billerPayee.customerId },
+          { label: "Billing Cycle", value: billerPayee.billingCycle },
+        ];
+      }
+      case "payroll": {
         const payrollPayee = payee as PayrollPayee;
-        return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <Card className="bg-slate-50/50">
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Bank Name</p>
-                    <p className="text-lg font-medium">{payrollPayee.bankName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Account Number</p>
-                    <p className="text-lg font-medium tracking-wider font-mono">
-                      **** **** {payrollPayee.accountNumber.slice(-4)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Salary Type</p>
-                    <p className="text-lg font-medium">{payrollPayee.salaryType}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Total Amount Paid</p>
-                  <p className="text-3xl font-bold text-purple-600">₹{totalPaid.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Last payment: {lastTransactionDate ? format(new Date(lastTransactionDate), 'dd MMM yyyy') : 'N/A'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
+        return [
+          { label: "Bank Name", value: payrollPayee.bankName },
+          { label: "Account Number", value: payrollPayee.accountNumber },
+          { label: "Salary Type", value: payrollPayee.salaryType },
+        ];
+      }
       default:
-        return null;
+        return [];
     }
   };
+
+  const payeeInfo = getPayeeInfo();
 
   return (
     <div className="space-y-4">
@@ -144,7 +70,11 @@ export const PayeeDetailsCard = ({
           </h1>
         </div>
       </div>
-      {getPayeeDetails()}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <PayeeInfoCard info={payeeInfo} />
+        <TotalPaymentSummaryCard totalPaid={totalPaid} lastTransactionDate={lastTransactionDate} />
+      </div>
     </div>
   );
 };
