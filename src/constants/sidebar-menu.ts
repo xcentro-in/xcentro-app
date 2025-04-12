@@ -1,29 +1,23 @@
 
 import { 
   Home, 
-  CreditCard,
   History,
   Gift, 
   BarChart3, 
-  Settings,
   PlusCircle,
   Users,
   Wallet,
-  Star,
   CheckCircle2,
   CalendarDays,
   Receipt,
   BarChart2,
   CreditCardIcon,
-  FileText,
-  Banknote,
   Award,
-  TrendingUp,
-  ReceiptIcon,
   BarChart,
   LineChart,
   ReceiptText,
   Landmark,
+  Milestone,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -113,6 +107,11 @@ export const mainMenuItems: SidebarMenuItem[] = [
         title: "Insights",
         url: "/rewards/insights",
         icon: BarChart3,
+      },
+      {
+        title: "Milestones",
+        url: "/rewards/milestones",
+        icon: Milestone
       }
     ]
   },
