@@ -131,6 +131,15 @@ const TransactionDetails = () => {
                 <h1 className="text-xl font-bold mb-1">{transaction.vendor}</h1>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <span>Transaction ID: {transaction.transactionId}</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(transaction.transactionId);
+                      toast.success("Transaction ID copied to clipboard");
+                    }}
+                    className="hover:text-primary transition-colors"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
               <TransactionStatusBadge status={transaction.status} className="text-sm" />
