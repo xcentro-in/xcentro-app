@@ -104,9 +104,9 @@ export const mainMenuItems: SidebarMenuItem[] = [
         icon: Award,
       },
       {
-        title: "Insights",
-        url: "/rewards/insights",
-        icon: BarChart3,
+        title: "History",
+        url: "/rewards/history",
+        icon: History,
       },
       {
         title: "Milestones",

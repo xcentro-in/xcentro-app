@@ -71,7 +71,7 @@ function App() {
                 <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:id" element={<TransactionDetails />} />
                 <Route path="rewards" element={<Rewards />} />
-                <Route path="rewards/insights" element={<RewardsInsights />} />
+                <Route path="rewards/history" element={<RewardsInsights />} />
                 <Route path="rewards/milestones" element={<MilestoneRewards />} />
                 <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
                 <Route path="rewards/redeem" element={<RedemptionFlow />} />

@@ -34,7 +34,7 @@ const Rewards = () => {
   };
   
   const handleViewHistoryClick = () => {
-    navigate('/rewards/history');
+    navigate('/rewards/history',{ state: { tab: 'earning' } });
   };
 
   return (
