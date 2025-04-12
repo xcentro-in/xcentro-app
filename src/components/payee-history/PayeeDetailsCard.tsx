@@ -1,6 +1,5 @@
 
 import { format } from "date-fns";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { 
@@ -9,6 +8,7 @@ import {
   Payee, 
   PayrollPayee 
 } from "@/types/payee";
+import { getPayeeIcon } from "@/utils/payeeUtils";
 
 interface PayeeDetailsCardProps {
   payee: Payee;
@@ -50,18 +50,6 @@ export const PayeeDetailsCard = ({
                       <p className="text-lg font-medium tracking-wider font-mono">{bankPayee.gstin}</p>
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100">
-              <CardContent className="p-4">
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">Total Amount Paid</p>
-                  <p className="text-3xl font-bold text-purple-600">₹{totalPaid.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Last payment: {lastTransactionDate ? format(new Date(lastTransactionDate), 'dd MMM yyyy') : 'N/A'}
-                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -149,14 +137,11 @@ export const PayeeDetailsCard = ({
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-          {payee.name}
-        </h1>
-        <div className="flex items-center gap-2 mt-2">
-          <Badge variant="outline" className="capitalize">{payee.type}</Badge>
-          {payee.type === "bank" && (payee as BankPayee).gstin && (
-            <Badge variant="outline">GST Registered</Badge>
-          )}
+        <div className="flex items-center gap-2">
+          {getPayeeIcon(payee.type)}
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
+            {payee.name}
+          </h1>
         </div>
       </div>
       {getPayeeDetails()}
