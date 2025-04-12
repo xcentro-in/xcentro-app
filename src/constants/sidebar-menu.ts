@@ -117,12 +117,12 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ]
   },
   {
-    title: "Insights",
+    title: "Business Reports",
     url: "/insights",
     icon: BarChart3,
     submenu: [
       {
-        title: "Business Analytics",
+        title: "Expense Analytics",
         url: "/insights",
         icon: BarChart,
       },
