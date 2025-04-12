@@ -1,5 +1,3 @@
-
-import { CreditCard, BanknoteIcon } from "lucide-react";
 import SortIndicator from "./SortIndicator";
 
 interface TableHeaderProps {

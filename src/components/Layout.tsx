@@ -6,16 +6,16 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 const Layout = () => {
-  useEffect(() => {
-    // Simulate a welcome notification on first load
-    const timeout = setTimeout(() => {
-      toast("Welcome to PaySphere", {
-        description: "Your premium business payment platform",
-      });
-    }, 1000);
+  // useEffect(() => {
+  //   // Simulate a welcome notification on first load
+  //   const timeout = setTimeout(() => {
+  //     toast("Welcome to PaySphere", {
+  //       description: "Your premium business payment platform",
+  //     });
+  //   }, 1000);
     
-    return () => clearTimeout(timeout);
-  }, []);
+  //   return () => clearTimeout(timeout);
+  // }, []);
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">

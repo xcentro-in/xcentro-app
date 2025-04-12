@@ -2,13 +2,13 @@
 import { getCurrentLocale } from '@/config/locale';
 import { format, isThisYear } from 'date-fns';
 
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (amount: number, isPrecise: boolean = false): string => {
   const { currency, locale } = getCurrentLocale();
   
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: (isPrecise)? 2 : 0,
   }).format(amount);
 };
 
