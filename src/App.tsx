@@ -36,7 +36,7 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 
 import Layout from "./components/Layout";
-import { Toaster } from "./components/ui/toaster";
+import { Toaster } from "./components/ui/sonner";
 
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";

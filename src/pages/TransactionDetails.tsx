@@ -144,7 +144,7 @@ const TransactionDetails = () => {
               </div>
               <TransactionStatusBadge status={transaction.status} className="text-sm" />
             </div>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 mt-6">
               <div>
                 <div className="text-sm text-muted-foreground">Amount</div>
@@ -154,7 +154,7 @@ const TransactionDetails = () => {
                 })}
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-muted-foreground">Date</div>
                 <div className="font-medium">
@@ -164,12 +164,12 @@ const TransactionDetails = () => {
                   {format(new Date(transaction.date), "h:mm a")}
                 </div>
               </div>
-              
+
               <div>
-                
-                
+
+
               </div>
-              
+
               <div>
                 <div className="text-sm text-muted-foreground">Transaction Type</div>
                 <div className="flex items-center gap-2 font-medium">
@@ -201,7 +201,7 @@ const TransactionDetails = () => {
                   </span>
                 </p>
               </div>}
-            
+
             {transaction.description && <div className="mt-4">
                 <div className="text-sm text-muted-foreground">Description</div>
                 <p className="mt-1">{transaction.description}</p>
@@ -213,7 +213,7 @@ const TransactionDetails = () => {
         {(canApprove(transaction.status) || canReject(transaction.status) || canCancel(transaction.status)) && <Card className="animate-fade-in print:hidden">
             <CardContent className="p-6">
               <h2 className="text-base font-medium mb-4">Transaction Actions</h2>
-              
+
               <div className="space-y-4">
                 {canApprove(transaction.status) && <div className="flex justify-between items-center border-b pb-4">
                     <div>
@@ -227,7 +227,7 @@ const TransactionDetails = () => {
                       Approve
                     </Button>
                   </div>}
-                
+
                 {canReject(transaction.status) && <div className="flex justify-between items-center border-b pb-4">
                     <div>
                       <div className="font-medium">Reject Transaction</div>
@@ -240,7 +240,7 @@ const TransactionDetails = () => {
                       Reject
                     </Button>
                   </div>}
-                
+
                 {canCancel(transaction.status) && <div className="flex justify-between items-center">
                     <div>
                       <div className="font-medium">Cancel Transaction</div>
@@ -275,7 +275,7 @@ const TransactionDetails = () => {
                     })}
                     </td>
                   </tr>
-                  
+
                   {transaction.fees?.map((fee, index) => <tr key={index} className="border-b">
                       <td className="py-2 text-muted-foreground">{fee.type}</td>
                       <td className="py-2 text-right font-medium">
@@ -284,7 +284,7 @@ const TransactionDetails = () => {
                     })}
                       </td>
                     </tr>)}
-                  
+
                   <tr className="border-b bg-gray-50">
                     <td className="py-2 font-medium">Total Amount</td>
                     <td className="py-2 text-right font-bold">
@@ -296,7 +296,7 @@ const TransactionDetails = () => {
                 </tbody>
               </table>
             </div>
-            
+
             <div>
               <h3 className="font-medium mb-4">Payment Information</h3>
               <div className="space-y-3">
@@ -324,14 +324,14 @@ const TransactionDetails = () => {
                       Account ending in {transaction.accountDetails.accountNumberLast4}
                     </div>}
                 </div>
-                
+
                 {transaction.scheduledDate && <div>
                     <div className="text-sm text-muted-foreground">Scheduled Date</div>
                     <div className="font-medium mt-1">
                       {format(new Date(transaction.scheduledDate), "MMMM d, yyyy")}
                     </div>
                   </div>}
-                
+
                 {transaction.isRecurring && <div>
                     <div className="text-sm text-muted-foreground">Recurring Payment</div>
                     <div className="flex items-center gap-2 mt-1">
@@ -362,9 +362,9 @@ const TransactionDetails = () => {
                   {format(new Date(transaction.date), "MMMM d, yyyy 'at' h:mm a")}
                 </div>
               </div>}
-            
+
             <Separator />
-            
+
             {transaction.approvedBy ? <div>
                 <div className="text-sm text-muted-foreground">Approved By</div>
                 <div className="font-medium mt-1">{transaction.approvedBy.name}</div>
@@ -380,7 +380,7 @@ const TransactionDetails = () => {
                   <TransactionStatusBadge status={transaction.status} />
                 </div>
               </div>}
-            
+
             {transaction.notes && <>
                 <Separator />
                 <div>
@@ -393,7 +393,7 @@ const TransactionDetails = () => {
           </div>
         </TransactionDetailCard>
       </div>
-      
+
       {/* Audit Trail */}
       {transaction.auditTrail && transaction.auditTrail.length > 0 && <TransactionDetailCard title="Audit Trail" className="animate-fade-in" style={{
       animationDelay: "150ms"
