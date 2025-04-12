@@ -19,7 +19,7 @@ import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 // Import refactored components
-import QuickCreditCardInsightsPanel from "@/components/insights/QuickCreditCardInsightsPanel";
+
 import { 
   SpendingTrend,
   CategoryBreakdown,
@@ -72,7 +72,6 @@ const Insights = () => {
     showCategoryBreakdown: true,
     showTaxCompliance: true,
     showCashFlowForecast: true,
-    showCreditCardInsights: true,
     timePeriod: "thisMonth",
   });
   
@@ -123,29 +122,7 @@ const Insights = () => {
         </div>
       </div>
       
-      {viewOptions.showCreditCardInsights && (
-        <Collapsible
-          open={showInsights}
-          onOpenChange={setShowInsights}
-          className="w-full"
-        >
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Credit Card Insights</h3>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {showInsights ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </Button>
-            </CollapsibleTrigger>
-          </div>
-          <CollapsibleContent>
-            <QuickCreditCardInsightsPanel />
-          </CollapsibleContent>
-        </Collapsible>
-      )}
+      
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         {statCards.map((stat, index) => (
