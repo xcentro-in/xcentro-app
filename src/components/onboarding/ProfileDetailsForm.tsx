@@ -20,14 +20,19 @@ const ProfileDetailsForm = ({ formData, updateFormData }: ProfileDetailsFormProp
         </p>
       </div>
 
-      <div>
-        <Label htmlFor="name">Full Name</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => updateFormData({ name: e.target.value })}
-          placeholder="Enter your full name"
-        />
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="name">Full Name</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => updateFormData({ name: e.target.value })}
+            placeholder="Enter your full name"
+            className="w-full"
+          />
+        </div>
+        
+        {/* You could add more fields here in the future if needed */}
       </div>
     </div>
   );

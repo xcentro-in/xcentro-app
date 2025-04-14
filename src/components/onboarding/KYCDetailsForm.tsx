@@ -72,6 +72,9 @@ const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
                     Choose File
                   </Button>
                 </div>
+                {formData.aadharFrontUrl && (
+                  <div className="mt-3 text-sm text-green-600">File uploaded successfully</div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -100,6 +103,9 @@ const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
                     Choose File
                   </Button>
                 </div>
+                {formData.aadharBackUrl && (
+                  <div className="mt-3 text-sm text-green-600">File uploaded successfully</div>
+                )}
               </div>
             </CardContent>
           </Card>
