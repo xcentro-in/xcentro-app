@@ -1,10 +1,6 @@
 
 import { useState } from "react";
 import { ApprovalTransaction } from "@/types/approval";
-import { toast } from "sonner";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -41,7 +37,6 @@ const ApprovalTransactionList = ({
   const [rejectReason, setRejectReason] = useState("");
   const [changesRequested, setChangesRequested] = useState("");
   const [dialogType, setDialogType] = useState<"reject" | "changes" | "details">("details");
-  const [activeTab, setActiveTab] = useState("pending");
 
   const handleSelectAll = () => {
     if (selectedTransactions.length === transactions.length) {
@@ -121,60 +116,9 @@ const ApprovalTransactionList = ({
   const handleRowFlag = (id: string) => onFlag(id);
   const handleRowRequestChanges = (transaction: ApprovalTransaction) => openChangesDialog(transaction);
 
-  const filteredTransactions = transactions.filter(transaction => {
-    switch (activeTab) {
-      case "pending":
-        return transaction.status === "pending";
-      case "action_required":
-        return transaction.status === "flagged" || transaction.status === "changes_requested";
-      case "approved":
-        return transaction.status === "approved";
-      default:
-        return true;
-    }
-  });
-
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-9">
-            <TabsList>
-              <TabsTrigger value="pending" className="relative">
-                Pending
-                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                  {transactions.filter(t => t.status === "pending").length}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="action_required" className="relative">
-                Action Required
-                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                  {transactions.filter(t => t.status === "flagged" || t.status === "changes_requested").length}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="approved" className="relative">
-                Approved
-                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                  {transactions.filter(t => t.status === "approved").length}
-                </span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="h-9 w-9"
-            onClick={() => {
-              toast.success("Refreshing transactions...");
-              // TODO: Implement refresh logic here
-            }}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-
-      {filteredTransactions.length > 0 ? (
+      {transactions.length > 0 ? (
         <div className="rounded-md border">
           <ApprovalBatchActions 
             selectedCount={selectedTransactions.length} 
@@ -200,7 +144,7 @@ const ApprovalTransactionList = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTransactions.map((transaction) => (
+              {transactions.map((transaction) => (
                 <ApprovalTransactionRow 
                   key={transaction.id}
                   transaction={transaction}
