@@ -30,11 +30,14 @@ const ReferralInsights = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex flex-col bg-white p-4 rounded-lg border border-slate-200">
             <div className="text-sm text-muted-foreground flex items-center gap-2 mb-1">
-              <Users className="h-4 w-4 text-blue-500" />
-              This Month's Referral Score
+              <BadgeCheck className="h-4 w-4 text-green-500" />
+              Potential Revenue Impact
             </div>
-            <div className="text-2xl font-bold">
-              {totalJoined} <span className="text-lg font-normal text-muted-foreground">/ {totalReferrals} invited</span>
+            <div className="text-2xl font-bold text-green-600">
+              ₹{(totalPoints * 100).toLocaleString()}
+            </div>
+            <div className="text-sm text-muted-foreground mt-1">
+              Based on referral rewards utilization
             </div>
           </div>
           
