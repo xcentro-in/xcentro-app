@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ApprovalTransaction } from "@/types/approval";
 import {
@@ -15,6 +14,10 @@ import { toast } from "sonner";
 import ApprovalTransactionRow from "./ApprovalTransactionRow";
 import ApprovalTransactionDialog from "./ApprovalTransactionDialog";
 import ApprovalBatchActions from "./ApprovalBatchActions";
+import { Button } from "@/components/ui/button";
+import { RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 interface ApprovalTransactionListProps {
   transactions: ApprovalTransaction[];
@@ -22,6 +25,7 @@ interface ApprovalTransactionListProps {
   onReject: (id: string) => void;
   onFlag: (id: string) => void;
   onRequestChanges: (id: string) => void;
+  pendingCount: number;
 }
 
 const ApprovalTransactionList = ({ 
@@ -29,7 +33,8 @@ const ApprovalTransactionList = ({
   onApprove,
   onReject,
   onFlag,
-  onRequestChanges
+  onRequestChanges,
+  pendingCount
 }: ApprovalTransactionListProps) => {
   const navigate = useNavigate();
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
@@ -71,7 +76,7 @@ const ApprovalTransactionList = ({
     setDialogType("changes");
     setChangesRequested("");
   };
-  
+
   const openDetailsDialog = (transaction: ApprovalTransaction) => {
     setDialogTransaction(transaction);
     setDialogType("details");
@@ -124,7 +129,58 @@ const ApprovalTransactionList = ({
             selectedCount={selectedTransactions.length} 
             onBatchApprove={handleBatchApprove} 
           />
-          
+
+          <div className="flex items-center gap-4 mb-4">
+            <Tabs defaultValue="pending">
+              <TabsList className="h-9">
+                <TabsTrigger value="pending" className="relative">
+                  <span>✅ Pending Approval</span>
+                  {pendingCount > 0 && (
+                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                      {pendingCount}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="action_required" className="relative">
+                  <span>🚩 Action Required</span>
+                  {transactions.filter(t => t.status === 'flagged' || t.status === 'changes_requested').length > 0 && (
+                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                      {transactions.filter(t => t.status === 'flagged' || t.status === 'changes_requested').length}
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="relative">
+                  <span>✔️ Approved</span>
+                  {transactions.filter(t => t.status === 'approved').length > 0 && (
+                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                      {transactions.filter(t => t.status === 'approved').length}
+                    </span>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="pending">
+                {/* Pending Transactions */}
+              </TabsContent>
+              <TabsContent value="action_required">
+                {/* Action Required Transactions */}
+              </TabsContent>
+              <TabsContent value="approved">
+                {/* Approved Transactions */}
+              </TabsContent>
+            </Tabs>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-9 w-9"
+              onClick={() => {
+                // TODO: Implement refresh logic
+                toast.success("Refreshing transactions...");
+              }}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+
           <Table>
             <TableHeader>
               <TableRow>
