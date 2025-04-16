@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useToast } from "./hooks/use-toast";
 import { useEffect } from "react";
@@ -34,6 +33,7 @@ import PayrollReport from "./pages/PayrollReport";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import UserOnboarding from "./pages/UserOnboarding";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -42,7 +42,6 @@ import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SettingsLayout from "./components/settings/SettingsLayout";
 
-// Create a client
 const queryClient = new QueryClient()
 
 function App() {
@@ -54,7 +53,7 @@ function App() {
         <Router>
           <SidebarProvider>
             <Routes>
-              {/* Main application routes with standard layout */}
+              <Route path="/onboarding" element={<UserOnboarding />} />
               <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="payments" element={<Payments />} />
@@ -85,7 +84,6 @@ function App() {
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
               </Route>
               
-              {/* Settings routes with custom layout */}
               <Route path="/settings" element={<SettingsLayout />}>
                 <Route index element={<Settings />} />
                 <Route path="*" element={<Settings />} />
