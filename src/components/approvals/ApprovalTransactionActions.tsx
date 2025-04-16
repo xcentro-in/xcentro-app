@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, X, Flag, PenLine } from "lucide-react";
+import { CheckCircle2, X, Flag, PenLine, MoreVertical } from "lucide-react";
 import { ApprovalTransaction } from "@/types/approval";
 import {
   Dialog,
@@ -9,6 +9,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
@@ -52,44 +58,47 @@ const ApprovalTransactionActions = ({
 
   return (
     <>
-      <div className="flex items-center justify-end gap-1">
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
-          onClick={(e) => { e.stopPropagation(); setShowApproveDialog(true); }}
-          title="Approve"
-        >
-          <CheckCircle2 className="h-4 w-4" />
-        </Button>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={(e) => { e.stopPropagation(); onReject(transaction); }}
-          title="Reject"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-8 w-8 p-0 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
-          onClick={(e) => { e.stopPropagation(); setShowFlagDialog(true); }}
-          title="Flag for Review"
-        >
-          <Flag className="h-4 w-4" />
-        </Button>
-        <Button 
-          size="sm" 
-          variant="ghost" 
-          className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-          onClick={(e) => { e.stopPropagation(); onRequestChanges(transaction); }}
-          title="Request Changes"
-        >
-          <PenLine className="h-4 w-4" />
-        </Button>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="h-8 w-8 p-0"
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem 
+            className="text-green-600"
+            onClick={(e) => { e.stopPropagation(); setShowApproveDialog(true); }}
+          >
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            Approve
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            className="text-red-600"
+            onClick={(e) => { e.stopPropagation(); onReject(transaction); }}
+          >
+            <X className="h-4 w-4 mr-2" />
+            Reject
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            className="text-amber-600"
+            onClick={(e) => { e.stopPropagation(); setShowFlagDialog(true); }}
+          >
+            <Flag className="h-4 w-4 mr-2" />
+            Flag for Review
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            className="text-blue-600"
+            onClick={(e) => { e.stopPropagation(); onRequestChanges(transaction); }}
+          >
+            <PenLine className="h-4 w-4 mr-2" />
+            Request Changes
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Dialog open={showApproveDialog} onOpenChange={setShowApproveDialog}>
         <DialogContent>
