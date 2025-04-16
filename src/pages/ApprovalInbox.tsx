@@ -226,17 +226,62 @@ const ApprovalInbox = () => {
                 />
               </div>
             </div>
+
+            <TabsContent value="pending">
+              <ApprovalTransactionList
+                transactions={filteredTransactions.filter(t => t.status === "pending")}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onFlag={handleFlag}
+                onRequestChanges={handleRequestChanges}
+              />
+            </TabsContent>
+
+            <TabsContent value="action_required">
+              <ApprovalTransactionList
+                transactions={filteredTransactions.filter(t => 
+                  ["flagged", "urgent", "changes_requested"].includes(t.status)
+                )}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onFlag={handleFlag}
+                onRequestChanges={handleRequestChanges}
+              />
+            </TabsContent>
+
+            <TabsContent value="approved">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-0">
+                    Info
+                  </Badge>
+                  Displaying transactions approved within the last 14 days
+                </div>
+                <ApprovalTransactionList
+                  transactions={filteredTransactions.filter(t => {
+                    if (t.status !== "approved") return false;
+                    const twoWeeksAgo = new Date();
+                    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+                    return new Date(t.requestedDate) >= twoWeeksAgo;
+                  })}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onFlag={handleFlag}
+                  onRequestChanges={handleRequestChanges}
+                />
+              </div>
+            </TabsContent>
           </Tabs>
         </CardHeader>
 
         <CardContent>
-          <ApprovalTransactionList 
+          {/*<ApprovalTransactionList 
             transactions={filteredTransactions}
             onApprove={handleApprove}
             onReject={handleReject}
             onFlag={handleFlag}
             onRequestChanges={handleRequestChanges}
-          />
+          />*/}
 
           <div className="flex items-center justify-between mt-6 text-sm text-muted-foreground">
             <div>
