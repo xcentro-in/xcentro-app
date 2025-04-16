@@ -47,7 +47,10 @@ const ApprovalTransactionRow = ({
         className="font-medium cursor-pointer hover:text-primary"
         onClick={() => onRowClick(transaction)}
       >
-        {transaction.id}
+        <div className="flex items-center gap-2">
+          <TransactionPaymentMethod method={transaction.paymentMethod} variant="icon" size="sm" />
+          <span className="capitalize">{transaction.paymentMethod}</span>
+        </div>
       </TableCell>
       <TableCell 
         className="cursor-pointer hover:text-primary"
