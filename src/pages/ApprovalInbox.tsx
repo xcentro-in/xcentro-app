@@ -40,25 +40,7 @@ const ApprovalInbox = () => {
       transaction.initiatedBy.toLowerCase().includes(searchValue.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchValue.toLowerCase());
 
-    let matchesStatus = false;
-    const twoWeeksAgo = new Date();
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    const transactionDate = new Date(transaction.requestedDate);
-
-    switch (statusFilter) {
-      case "pending":
-        matchesStatus = transaction.status === "pending";
-        break;
-      case "action_required":
-        matchesStatus = ["flagged", "urgent", "changes_requested"].includes(transaction.status);
-        break;
-      case "approved":
-        matchesStatus = transaction.status === "approved" && transactionDate >= twoWeeksAgo;
-        break;
-      default:
-        matchesStatus = true;
-    }
-
+    const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
     const matchesDate = dateFilter === "all" || transaction.dateCategory === dateFilter;
 
     let matchesAmount = true;
@@ -204,17 +186,9 @@ const ApprovalInbox = () => {
                   </span>
                 </TabsTrigger>
                 <TabsTrigger value="approved" className="relative">
-                  <div className="flex flex-col items-center">
-                    <span>Approved</span>
-                    <span className="text-[10px] text-muted-foreground">Displaying last 14 days of approvals</span>
-                  </div>
+                  <span>Approved</span>
                   <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                    {transactions.filter(t => {
-                      const twoWeeksAgo = new Date();
-                      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-                      const transactionDate = new Date(t.requestedDate);
-                      return t.status === "approved" && transactionDate >= twoWeeksAgo;
-                    }).length}
+                    {transactions.filter(t => t.status === "approved").length}
                   </span>
                 </TabsTrigger>
                 <Button 
