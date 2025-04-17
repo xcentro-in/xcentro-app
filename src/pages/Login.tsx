@@ -29,10 +29,14 @@ const Login = () => {
     },
   });
 
-  const onSubmit = (values: LoginFormValues) => {
-    console.log(values);
-    toast.success("Login successful!");
-    navigate("/");
+  const onSubmit = async (values: LoginFormValues) => {
+    try {
+      await authService.login(values.email, values.password);
+      toast.success("Login successful!");
+      navigate("/");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Login failed");
+    }
   };
 
   const handleSSOLogin = () => {
