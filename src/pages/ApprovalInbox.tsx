@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -15,7 +14,8 @@ import {
   PenLine,
   CheckCheck,
   CreditCard,
-  BanknoteIcon
+  BanknoteIcon,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,24 +24,25 @@ import ApprovalFilters from "@/components/approvals/ApprovalFilters";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { useNavigate } from "react-router-dom";
 import { ApprovalTransaction } from "@/types/approval";
+import { toast } from "@/components/ui/use-toast";
 
 const ApprovalInbox = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("pending");
   const [amountFilter, setAmountFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
   const [transactions, setTransactions] = useState<ApprovalTransaction[]>(mockApprovalTransactions);
-  
+
   const filteredTransactions = transactions.filter(transaction => {
     const matchesSearch = 
       transaction.payee.toLowerCase().includes(searchValue.toLowerCase()) ||
       transaction.initiatedBy.toLowerCase().includes(searchValue.toLowerCase()) ||
       transaction.id.toLowerCase().includes(searchValue.toLowerCase());
-    
+
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
     const matchesDate = dateFilter === "all" || transaction.dateCategory === dateFilter;
-    
+
     let matchesAmount = true;
     if (amountFilter === "under1k") {
       matchesAmount = transaction.amount < 1000;
@@ -50,7 +51,7 @@ const ApprovalInbox = () => {
     } else if (amountFilter === "over5k") {
       matchesAmount = transaction.amount > 5000;
     }
-    
+
     return matchesSearch && matchesStatus && matchesAmount && matchesDate;
   });
 
@@ -58,6 +59,7 @@ const ApprovalInbox = () => {
   const urgentCount = transactions.filter(t => t.status === "urgent").length;
   const flaggedCount = transactions.filter(t => t.status === "flagged").length;
   const completedCount = transactions.filter(t => t.status === "approved" || t.status === "rejected").length;
+  const actionRequiredCount = transactions.filter(t => t.status === "flagged" || t.status === "changes_requested").length;
 
   const handleApprove = (id: string) => {
     setTransactions(prev => 
@@ -88,7 +90,7 @@ const ApprovalInbox = () => {
       )
     );
   };
-  
+
   const handleRequestChanges = (id: string) => {
     setTransactions(prev => 
       prev.map(transaction => 
@@ -98,7 +100,7 @@ const ApprovalInbox = () => {
       )
     );
   };
-  
+
   return (
     <div className="space-y-8">
       <div>
@@ -122,7 +124,7 @@ const ApprovalInbox = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-muted/50 animate-fade-in" style={{ animationDelay: "50ms" }}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -136,7 +138,7 @@ const ApprovalInbox = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-muted/50 animate-fade-in" style={{ animationDelay: "100ms" }}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -150,7 +152,7 @@ const ApprovalInbox = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-muted/50 animate-fade-in" style={{ animationDelay: "150ms" }}>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -173,16 +175,35 @@ const ApprovalInbox = () => {
               <TabsList className="h-9">
                 <TabsTrigger value="pending" className="relative">
                   <span>Pending</span>
-                  {pendingCount > 0 && (
-                    <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                      {pendingCount}
-                    </span>
-                  )}
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                    {pendingCount}
+                  </span>
                 </TabsTrigger>
-                <TabsTrigger value="all">All Transactions</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
+                <TabsTrigger value="action_required" className="relative">
+                  <span>Action Required</span>
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                    {actionRequiredCount}
+                  </span>
+                </TabsTrigger>
+                <TabsTrigger value="approved" className="relative">
+                  <span>Approved</span>
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                    {transactions.filter(t => t.status === "approved").length}
+                  </span>
+                </TabsTrigger>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="ml-2 h-9 w-9"
+                  onClick={() => {
+                    toast.success("Refreshing transactions...");
+                    // TODO: Add your refresh logic here
+                  }}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
               </TabsList>
-              
+
               <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-2 sm:gap-3">
                 <div className="relative flex-1 sm:w-[200px]">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -194,7 +215,7 @@ const ApprovalInbox = () => {
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
                 </div>
-                
+
                 <ApprovalFilters
                   statusFilter={statusFilter}
                   amountFilter={amountFilter}
@@ -205,18 +226,63 @@ const ApprovalInbox = () => {
                 />
               </div>
             </div>
+
+            <TabsContent value="pending">
+              <ApprovalTransactionList
+                transactions={filteredTransactions.filter(t => t.status === "pending")}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onFlag={handleFlag}
+                onRequestChanges={handleRequestChanges}
+              />
+            </TabsContent>
+
+            <TabsContent value="action_required">
+              <ApprovalTransactionList
+                transactions={filteredTransactions.filter(t => 
+                  ["flagged", "urgent", "changes_requested"].includes(t.status)
+                )}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onFlag={handleFlag}
+                onRequestChanges={handleRequestChanges}
+              />
+            </TabsContent>
+
+            <TabsContent value="approved">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-0">
+                    Info
+                  </Badge>
+                  Displaying transactions approved within the last 14 days
+                </div>
+                <ApprovalTransactionList
+                  transactions={filteredTransactions.filter(t => {
+                    if (t.status !== "approved") return false;
+                    const twoWeeksAgo = new Date();
+                    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+                    return new Date(t.requestedDate) >= twoWeeksAgo;
+                  })}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onFlag={handleFlag}
+                  onRequestChanges={handleRequestChanges}
+                />
+              </div>
+            </TabsContent>
           </Tabs>
         </CardHeader>
-        
+
         <CardContent>
-          <ApprovalTransactionList 
+          {/*<ApprovalTransactionList 
             transactions={filteredTransactions}
             onApprove={handleApprove}
             onReject={handleReject}
             onFlag={handleFlag}
             onRequestChanges={handleRequestChanges}
-          />
-          
+          />*/}
+
           <div className="flex items-center justify-between mt-6 text-sm text-muted-foreground">
             <div>
               Showing <span className="font-medium">{filteredTransactions.length}</span> of <span className="font-medium">{transactions.length}</span> transactions

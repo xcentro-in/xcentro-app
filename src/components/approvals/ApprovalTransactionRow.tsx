@@ -47,7 +47,10 @@ const ApprovalTransactionRow = ({
         className="font-medium cursor-pointer hover:text-primary"
         onClick={() => onRowClick(transaction)}
       >
-        {transaction.id}
+        <div className="flex items-center gap-2">
+          <TransactionPaymentMethod method={transaction.paymentMethod} variant="icon" size="sm" />
+          <span className="capitalize">{transaction.paymentMethod}</span>
+        </div>
       </TableCell>
       <TableCell 
         className="cursor-pointer hover:text-primary"
@@ -61,11 +64,8 @@ const ApprovalTransactionRow = ({
           <span className="text-xs text-muted-foreground">{transaction.initiatorRole}</span>
         </div>
       </TableCell>
-      <TableCell className="text-right font-medium">
-        <div className="flex items-center justify-end gap-2">
-          <TransactionPaymentMethod method={transaction.paymentMethod} variant="icon" size="sm" />
-          ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        </div>
+      <TableCell className="font-medium">
+        ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
       </TableCell>
       <TableCell><ApprovalStatusBadge status={transaction.status} /></TableCell>
       <TableCell>

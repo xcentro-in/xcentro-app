@@ -134,7 +134,7 @@ const ApprovalTransactionList = ({
                     onCheckedChange={handleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[100px]">Transaction ID</TableHead>
+                <TableHead className="w-[100px]">Payment Method</TableHead>
                 <TableHead>Payee</TableHead>
                 <TableHead>Initiated By</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
