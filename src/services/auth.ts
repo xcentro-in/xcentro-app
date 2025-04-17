@@ -20,7 +20,7 @@ interface LoginError {
 
 export const authService = {
   login: async (email: string, password: string): Promise<LoginResponse> => {
-    const response = await httpClient.post('user/login', { 
+    const response = await httpClient.post('users/login', {
       json: { 
         emailId: email, 
         password: password 
