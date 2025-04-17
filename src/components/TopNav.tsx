@@ -18,11 +18,12 @@ import LogoutConfirmationDialog from "./LogoutConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import NotificationPopup from "./notifications/NotificationPopup";
+import { authService } from "@/services/auth";
+import { toast } from "sonner";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   
   const {
@@ -37,17 +38,11 @@ const TopNav = () => {
   } = useNotifications();
   
   const handleLogout = () => {
-    // Here you would implement actual logout logic
-    // For example: authService.logout();
-    
-    // Show success toast
-    toast({
-      title: "Logged out successfully",
-      description: "You have been logged out of your account.",
-    });
+    authService.logout();
+    toast.success("Logout succesful!", {description: "You have been logged out of your account."})
     
     // Redirect to login page (or home page)
-    navigate("/");
+    navigate("/login");
   };
   
   return (
