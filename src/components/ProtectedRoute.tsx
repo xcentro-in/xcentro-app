@@ -1,8 +1,8 @@
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { authService } from '../services/auth';
 
-export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+export function ProtectedRoute () {
   const user = authService.getUser();
   const token = localStorage.getItem('jwt');
 
@@ -10,5 +10,5 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return <>{children}</>;
+  return <Outlet />;
 };

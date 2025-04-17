@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Mail, Lock, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { authService } from "@/services/auth";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),

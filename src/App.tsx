@@ -41,17 +41,9 @@ import { Toaster } from "./components/ui/sonner";
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SettingsLayout from "./components/settings/SettingsLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient()
-
-const isAuthenticated = () => {
-  // Replace with your actual authentication check
-  return localStorage.getItem('token') !== null;
-};
-
-const ProtectedRoute = ({ element, ...rest }) => {
-  return isAuthenticated() ? element : <Navigate to="/login" />;
-};
 
 
 function App() {
@@ -62,45 +54,49 @@ function App() {
       <ErrorBoundary>
         <Router>
           <SidebarProvider>
-            <Routes>
-              <Route path="/onboarding" element={<UserOnboarding />} />
-              <Route path="/" element={<ProtectedRoute element={<Layout />} />}>
-                <Route index element={<ProtectedRoute element={<Dashboard />} />} />
-                <Route path="payments" element={<ProtectedRoute element={<Payments />} />} />
-                <Route path="payment-calendar" element={<ProtectedRoute element={<PaymentCalendar />} />} />
-                <Route path="payees" element={<ProtectedRoute element={<PayeeManagement />} />} />
-                <Route path="payees/:payeeId" element={<ProtectedRoute element={<PayeeHistory />} />} />
-                <Route path="approvals" element={<ProtectedRoute element={<ApprovalInbox />} />} />
-                <Route path="insights" element={<ProtectedRoute element={<Insights />} />} />
-                <Route path="cash-flow-projection" element={<ProtectedRoute element={<CashFlowProjection />} />} />
-                <Route path="gst-reports" element={<ProtectedRoute element={<GSTReports />} />} />
-                <Route path="gst-payment-history" element={<ProtectedRoute element={<GSTPaymentHistory />} />} />
-                <Route path="payroll-report" element={<ProtectedRoute element={<PayrollReport />} />} />
-                <Route path="new-payment" element={<ProtectedRoute element={<NewPayment />} />} />
-                <Route path="pay-invoice" element={<ProtectedRoute element={<PayInvoice />} />} />
-                <Route path="payments/:id" element={<ProtectedRoute element={<TransactionDetails />} />} />
-                <Route path="rewards" element={<ProtectedRoute element={<Rewards />} />} />
-                <Route path="rewards/history" element={<ProtectedRoute element={<RewardsInsights />} />} />
-                <Route path="rewards/milestones" element={<ProtectedRoute element={<MilestoneRewards />} />} />
-                <Route path="rewards/redeem/:categoryId" element={<ProtectedRoute element={<RedemptionFlow />} />} />
-                <Route path="rewards/redeem" element={<ProtectedRoute element={<RedemptionFlow />} />} />
-                <Route path="network" element={<ProtectedRoute element={<Network />} />} />
-                <Route path="credit-cards" element={<ProtectedRoute element={<CreditCards />} />} />
-                <Route path="credit-card-bills" element={<ProtectedRoute element={<CreditCardBills />} />} />
-                <Route path="credit-card-analytics" element={<ProtectedRoute element={<CreditCardAnalytics />} />} />
-                <Route path="wallet" element={<ProtectedRoute element={<WalletManagement />} />} />
-                <Route path="wallet/add" element={<ProtectedRoute element={<AddPaymentMethod />} />} />
-                <Route path="user-access" element={<ProtectedRoute element={<UserAccess />} />} />
-                <Route path="business-onboarding" element={<ProtectedRoute element={<BusinessOnboarding />} />} />
+          <Routes>
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="payments" element={<Payments />} />
+                  <Route path="payment-calendar" element={<PaymentCalendar />} />
+                  <Route path="payees" element={<PayeeManagement />} />
+                  <Route path="payees/:payeeId" element={<PayeeHistory />} />
+                  <Route path="approvals" element={<ApprovalInbox />} />
+                  <Route path="insights" element={<Insights />} />
+                  <Route path="cash-flow-projection" element={<CashFlowProjection />} />
+                  <Route path="gst-reports" element={<GSTReports />} />
+                  <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
+                  <Route path="payroll-report" element={<PayrollReport />} />
+                  <Route path="new-payment" element={<NewPayment />} />
+                  <Route path="pay-invoice" element={<PayInvoice />} />
+                  <Route path="payments/:id" element={<TransactionDetails />} />
+                  <Route path="rewards" element={<Rewards />} />
+                  <Route path="rewards/history" element={<RewardsInsights />} />
+                  <Route path="rewards/milestones" element={<MilestoneRewards />} />
+                  <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
+                  <Route path="rewards/redeem" element={<RedemptionFlow />} />
+                  <Route path="network" element={<Network />} />
+                  <Route path="credit-cards" element={<CreditCards />} />
+                  <Route path="credit-card-bills" element={<CreditCardBills />} />
+                  <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
+                  <Route path="wallet" element={<WalletManagement />} />
+                  <Route path="wallet/add" element={<AddPaymentMethod />} />
+                  <Route path="user-access" element={<UserAccess />} />
+                  <Route path="business-onboarding" element={<BusinessOnboarding />} />
+                </Route>
+                
+                <Route path="/settings" element={<SettingsLayout />}>
+                  <Route index element={<Settings />} />
+                  <Route path="*" element={<Settings />} />
+                </Route>
               </Route>
-
-              <Route path="/settings" element={<ProtectedRoute element={<SettingsLayout />} />}>
-                <Route index element={<ProtectedRoute element={<Settings />} />} />
-                <Route path="*" element={<ProtectedRoute element={<Settings />} />} />
-              </Route>
-
+              
+              {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/onboarding" element={<UserOnboarding />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </SidebarProvider>

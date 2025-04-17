@@ -3,7 +3,7 @@ import ky from 'ky';
 
 // Create base HTTP client
 export const httpClient = ky.extend({
-  prefixUrl: 'http://0.0.0.0:8000',
+  prefixUrl: 'http://localhost:8000/api',
   hooks: {
     beforeRequest: [
       request => {
