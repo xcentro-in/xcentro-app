@@ -46,7 +46,7 @@ const Signup = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="/placeholder.svg" 
+              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo.png?updatedAt=1745093043060" 
               alt="PaySphere Logo" 
               className="h-12 w-auto" 
             />
