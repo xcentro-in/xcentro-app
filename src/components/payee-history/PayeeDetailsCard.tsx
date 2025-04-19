@@ -65,15 +65,7 @@ export const PayeeDetailsCard = ({
   return (
     <div className="space-y-6">
       <div>
-        <Button 
-          variant="ghost" 
-          className="pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-gray-600" 
-          onClick={() => navigate("/payees")}
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Payees
-        </Button>
-        <h1 className="text-4xl font-bold text-gray-900 mt-4">{payee.name}</h1>
+        <h1 className="text-4xl font-bold text-gray-900">{payee.name}</h1>
       </div>
       <Card className="border-0 shadow-none">
         <PayeeInfoCard info={getPayeeInfo()} />
