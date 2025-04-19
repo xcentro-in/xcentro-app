@@ -20,8 +20,15 @@ import {
   Trash, 
   Star, 
   StarIcon,
-  History
+  History,
+  MoreVertical
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { mockPayees } from "@/data/mockPayees";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
@@ -122,7 +129,6 @@ const PayeeList = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="hidden lg:table-cell">Added On</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -159,24 +165,28 @@ const PayeeList = () => {
                   </TableCell>
                   <TableCell>{getPayeeTypeBadge(payee.type)}</TableCell>
                   <TableCell className="hidden md:table-cell">{payee.email}</TableCell>
-                  <TableCell className="hidden lg:table-cell">{new Date(payee.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleViewHistory(payee.id)}
-                        title="View Transaction History"
-                      >
-                        <History className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(payee.id)}>
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewHistory(payee.id)}>
+                          <History className="h-4 w-4 mr-2" />
+                          View History
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(payee.id)}>
+                          <Trash className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
