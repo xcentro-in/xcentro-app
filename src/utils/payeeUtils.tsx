@@ -20,7 +20,7 @@ export const getPayeeTypeLabel = (type: PayeeType): string => {
     case "biller":
       return "Billers";
     case "payroll":
-      return "Employees";
+      return "Payroll";
     default:
       return "Unknown";
   }
