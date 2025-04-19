@@ -1,0 +1,33 @@
+[vite] connecting...
+[vite] connected.
+[vite] hot updated: /src/components/payee-history/PayeeInfoCard.tsx
+[vite] hot updated: /src/index.css
+PayeeInfoCard is not defined
+PayeeInfoCard is not defined
+The above error occurred in the <PayeeDetailsCard> component:
+
+    at PayeeDetailsCard (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/src/components/payee-history/PayeeDetailsCard.tsx?t=1745095817156:15:36)
+    at div
+    at div
+    at div
+    at PayeeHistory (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/src/pages/PayeeHistory.tsx:24:25)
+    at RenderedRoute (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:4069:5)
+    at Outlet (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:4444:26)
+    at div
+    at main
+    at div
+    at div
+    at Layout
+    at RenderedRoute (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:4069:5)
+    at Routes (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:4508:5)
+    at div
+    at Provider (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/chunk-LSQNWB54.js?v=68890eff:38:15)
+    at TooltipProvider (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=68890eff:63:5)
+    at https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/src/components/ui/sidebar.tsx:39:72
+    at Router (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:4451:15)
+    at BrowserRouter (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/react-router-dom.js?v=68890eff:5196:5)
+    at ErrorBoundary (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/src/components/ErrorBoundary.tsx:214:9)
+    at QueryClientProvider (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=68890eff:2794:3)
+    at App (https://15c5b297-68e5-4c08-a878-d6af44c4484b-00-1t4tlz9g87ghs.picard.replit.dev/src/App.tsx:53:23)
+
+React will try to recreate this component tree from scratch using the error boundary you provided, ErrorBoundary.
