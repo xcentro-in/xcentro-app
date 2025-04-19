@@ -1,4 +1,3 @@
-
 import { 
   BankPayee, 
   BillerPayee, 
@@ -10,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { PayeeInfoCard } from "./PayeeInfoCard"; // Corrected import path
 
 interface PayeeDetailsCardProps {
   payee: Payee;
@@ -23,7 +23,7 @@ export const PayeeDetailsCard = ({
   lastTransactionDate 
 }: PayeeDetailsCardProps) => {
   const navigate = useNavigate();
-  
+
   const getPayeeInfo = () => {
     if (!payee) return [];
 
