@@ -45,9 +45,9 @@ const Login = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo.png?updatedAt=1745093043060" 
+              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max" 
               alt="PaySphere Logo" 
-              className="h-12 w-auto" 
+              className="h-24 w-auto object-contain" 
             />
           </div>
           <h1 className="text-2xl font-bold">Welcome to PaySphere</h1>
