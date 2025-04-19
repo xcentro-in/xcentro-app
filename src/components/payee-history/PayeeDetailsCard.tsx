@@ -1,3 +1,4 @@
+
 import { 
   BankPayee, 
   BillerPayee, 
@@ -5,8 +6,10 @@ import {
   PayrollPayee 
 } from "@/types/payee";
 import { getPayeeIcon } from "@/utils/payeeUtils";
-import { TotalPaymentSummaryCard } from "./TotalPaymentSummaryCard"
-import { PayeeInfoCard } from "./PayeeInfoCard"
+import { Card } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface PayeeDetailsCardProps {
   payee: Payee;
@@ -19,23 +22,20 @@ export const PayeeDetailsCard = ({
   totalPaid, 
   lastTransactionDate 
 }: PayeeDetailsCardProps) => {
+  const navigate = useNavigate();
   
-  // Get payee-specific details
   const getPayeeInfo = () => {
     if (!payee) return [];
 
     switch (payee.type) {
       case "bank": {
         const bankPayee = payee as BankPayee;
-        const info = [
+        return [
           { label: "Bank Name", value: bankPayee.bankName },
           { label: "Account Number", value: bankPayee.accountNumber },
+          { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
+          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
         ];
-        // Optionally add GSTIN if available
-        if (bankPayee.gstin) {
-          info.push({ label: "GSTIN", value: bankPayee.gstin });
-        }
-        return info;
       }
       case "biller": {
         const billerPayee = payee as BillerPayee;
@@ -43,6 +43,8 @@ export const PayeeDetailsCard = ({
           { label: "Biller Name", value: billerPayee.billerName },
           { label: "Customer ID", value: billerPayee.customerId },
           { label: "Billing Cycle", value: billerPayee.billingCycle },
+          { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
+          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
         ];
       }
       case "payroll": {
@@ -51,6 +53,8 @@ export const PayeeDetailsCard = ({
           { label: "Bank Name", value: payrollPayee.bankName },
           { label: "Account Number", value: payrollPayee.accountNumber },
           { label: "Salary Type", value: payrollPayee.salaryType },
+          { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
+          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
         ];
       }
       default:
@@ -58,23 +62,22 @@ export const PayeeDetailsCard = ({
     }
   };
 
-  const payeeInfo = getPayeeInfo();
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div>
-        <div className="flex items-center gap-2">
-          {getPayeeIcon(payee.type)}
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-            {payee.name}
-          </h1>
-        </div>
+        <Button 
+          variant="ghost" 
+          className="pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-gray-600" 
+          onClick={() => navigate("/payees")}
+        >
+          <ArrowLeft className="mr-1 h-4 w-4" />
+          Back to Payees
+        </Button>
+        <h1 className="text-4xl font-bold text-gray-900 mt-4">{payee.name}</h1>
       </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <PayeeInfoCard info={payeeInfo} />
-        <TotalPaymentSummaryCard totalPaid={totalPaid} lastTransactionDate={lastTransactionDate} />
-      </div>
+      <Card className="border-0 shadow-none">
+        <PayeeInfoCard info={getPayeeInfo()} />
+      </Card>
     </div>
   );
 };
