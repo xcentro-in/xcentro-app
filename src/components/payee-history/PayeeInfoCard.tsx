@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 
 interface PayeeInfo {
@@ -15,8 +16,8 @@ export const PayeeInfoCard = ({ info }: PayeeInfoCardProps) => (
       <div className="space-y-3">
         {info.map((item, index) => (
           <div key={index}>
-            <p className="text-sm text-muted-foreground">{item.label}</p>
-            <p className="text-lg font-medium">{item.value}</p>
+            <p className="text-sm text-muted-foreground font-normal font-sans tracking-tight">{item.label}</p>
+            <p className="text-base font-serif text-foreground">{item.value}</p>
           </div>
         ))}
       </div>
