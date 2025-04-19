@@ -29,6 +29,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { mockPayees } from "@/data/mockPayees";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
@@ -41,6 +51,7 @@ const PayeeList = () => {
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [payees, setPayees] = useState(mockPayees);
+  const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
 
   const handleSetDefault = (id: string) => {
     setPayees(prev => 
@@ -181,7 +192,7 @@ const PayeeList = () => {
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(payee.id)}>
+                        <DropdownMenuItem onClick={() => setDeletePayeeId(payee.id)}>
                           <Trash className="h-4 w-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -194,6 +205,28 @@ const PayeeList = () => {
           </Table>
         </div>
       )}
+
+      <AlertDialog open={!!deletePayeeId} onOpenChange={() => setDeletePayeeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this payee?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the payee and remove their data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              if (deletePayeeId) {
+                handleDelete(deletePayeeId);
+                setDeletePayeeId(null);
+              }
+            }}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
