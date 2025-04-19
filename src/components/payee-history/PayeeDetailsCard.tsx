@@ -34,7 +34,11 @@ export const PayeeDetailsCard = ({
           { label: "Bank Name", value: bankPayee.bankName },
           { label: "Account Number", value: bankPayee.accountNumber },
           { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
-          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
+          { label: "Last Payment", value: lastTransactionDate ? new Date(lastTransactionDate).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }) : "No payments yet" }
         ];
       }
       case "biller": {
@@ -44,7 +48,11 @@ export const PayeeDetailsCard = ({
           { label: "Customer ID", value: billerPayee.customerId },
           { label: "Billing Cycle", value: billerPayee.billingCycle },
           { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
-          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
+          { label: "Last Payment", value: lastTransactionDate ? new Date(lastTransactionDate).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }) : "No payments yet" }
         ];
       }
       case "payroll": {
@@ -54,7 +62,11 @@ export const PayeeDetailsCard = ({
           { label: "Account Number", value: payrollPayee.accountNumber },
           { label: "Salary Type", value: payrollPayee.salaryType },
           { label: "Total Amount Paid", value: `₹ ${totalPaid.toLocaleString()}` },
-          { label: "Last Payment", value: lastTransactionDate || "No payments yet" }
+          { label: "Last Payment", value: lastTransactionDate ? new Date(lastTransactionDate).toLocaleDateString('en-US', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }) : "No payments yet" }
         ];
       }
       default:

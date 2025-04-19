@@ -16,7 +16,7 @@ export const PayeeInfoCard = ({ info }: PayeeInfoCardProps) => (
       {info.map((item, index) => (
         <div key={index}>
           <p className="text-gray-600 text-sm mb-1">{item.label}</p>
-          <p className="text-2xl font-semibold text-gray-900">{item.value}</p>
+          <p className="text-2xl font-normal text-gray-900">{item.value}</p>
         </div>
       ))}
     </CardContent>
