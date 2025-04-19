@@ -97,7 +97,7 @@ const UserOnboarding = () => {
             <div className="flex items-center justify-between">
               <h1 className="text-2xl font-bold">Complete Your Profile</h1>
               <img 
-                src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-150,h-150,c-at_max" 
+                src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_name_transaparent.png?updatedAt=1745093647693&tr=w-150,h-150,c-at_max" 
                 alt="PaySphere Logo" 
                 className="h-20 w-auto object-contain"
               />
