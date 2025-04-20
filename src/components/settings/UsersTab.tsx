@@ -17,15 +17,16 @@ const UsersTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div className="flex-1">
-          <UserAccessTabs
-            users={mockUsers}
-            pendingInvites={mockPendingInvites}
-          />
-        </div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">User Management</h2>
+      </div>
+      <div className="flex items-center justify-between">
+        <UserAccessTabs
+          users={mockUsers}
+          pendingInvites={mockPendingInvites}
+        />
         <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
-          <SelectTrigger className="w-[240px] ml-4">
+          <SelectTrigger className="w-[240px]">
             <div className="flex items-center gap-2">
               <Building className="h-4 w-4" />
               <SelectValue placeholder="Select business" />
