@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { 
   User, Building, CreditCard, BellRing, BadgeCheck,
-  Users, Shield, Globe, HelpCircle
+  Users, Shield, Globe, HelpCircle, ChevronLeft, ChevronRight
 } from "lucide-react";
 import AccountSettings from "@/components/settings/AccountSettings";
 import NotificationSettings from "@/components/settings/NotificationSettings";
