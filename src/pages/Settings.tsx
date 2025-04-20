@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const tabItems = [
     { id: "account", label: "Account", icon: <User className="h-4 w-4" /> },
@@ -48,8 +49,14 @@ const Settings = () => {
   return (
     <div className="h-full flex w-full flex-grow">
       {/* Left sidebar with tabs */}
-      <div className="w-64 shrink-0 border-r border-border bg-muted/10">
-        <nav className="sticky top-0 p-4 space-y-2">
+      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 border-r border-border bg-muted/10 transition-all duration-300`}>
+        <nav className="sticky top-0 p-4 space-y-2 relative">
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="absolute -right-3 top-4 bg-background rounded-full p-1 border border-border shadow-sm hover:bg-accent transition-colors"
+          >
+            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
           {tabItems.map((item) => (
             <button
               key={item.id}
@@ -58,11 +65,12 @@ const Settings = () => {
                 "w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-md transition-colors",
                 activeTab === item.id
                   ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50"
+                  : "text-muted-foreground hover:bg-accent/50",
+                sidebarCollapsed && "justify-center px-2"
               )}
             >
               {item.icon}
-              {item.label}
+              {!sidebarCollapsed && item.label}
             </button>
           ))}
         </nav>
