@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Users, Clock } from "lucide-react";
+import { PlusCircle, Users, Clock, Building } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { mockBusinesses } from "@/data/mockBusinesses";
 import { User, UserInvite } from "@/types/user";
 import UserList from "./UserList";
 import PendingInvites from "./PendingInvites";
@@ -56,6 +58,8 @@ const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
     toast.success("Invitation has been resent");
   };
 
+  const [selectedBusiness, setSelectedBusiness] = useState(mockBusinesses[0]?.id);
+
   return (
     <div>
       {showInviteForm ? (
@@ -74,7 +78,8 @@ const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
           </div>
 
           <Tabs defaultValue="users" className="w-full">
-            <TabsList className="mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <TabsList>
               <TabsTrigger value="users" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Active Users ({users.length})
@@ -83,7 +88,28 @@ const UserAccessTabs = ({ users, pendingInvites }: UserAccessTabsProps) => {
                 <Clock className="h-4 w-4" />
                 Pending Invites ({pendingInvites.length})
               </TabsTrigger>
-            </TabsList>
+              </TabsList>
+              <Select value={selectedBusiness} onValueChange={setSelectedBusiness}>
+                <SelectTrigger className="w-[240px]">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4" />
+                    <SelectValue placeholder="Select business" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {mockBusinesses.map((business) => (
+                    <SelectItem key={business.id} value={business.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{business.name}</span>
+                        {business.status === "verified" && (
+                          <span className="text-xs text-green-600">✓</span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             
             <TabsContent value="users">
               <UserList 
