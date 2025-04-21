@@ -1,104 +1,115 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { 
   Search, 
-  Filter, 
   AlertTriangle, 
   Clock, 
   CheckCircle2, 
-  X, 
   Flag, 
-  PenLine,
-  CheckCheck,
-  CreditCard,
-  BanknoteIcon,
   RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ApprovalTransactionList from "@/components/approvals/ApprovalTransactionList";
-import ApprovalFilters from "@/components/approvals/ApprovalFilters";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { useNavigate } from "react-router-dom";
 import { ApprovalTransaction } from "@/types/approval";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const ApprovalInbox = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState("pending");
-  const [amountFilter, setAmountFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
   const [transactions, setTransactions] = useState<ApprovalTransaction[]>(mockApprovalTransactions);
+  const [activeTab, setActiveTab] = useState<"pending" | "action_required" | "approved">("pending");
 
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesSearch = 
-      transaction.payee.toLowerCase().includes(searchValue.toLowerCase()) ||
-      transaction.initiatedBy.toLowerCase().includes(searchValue.toLowerCase()) ||
-      transaction.id.toLowerCase().includes(searchValue.toLowerCase());
-
-    const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
-    const matchesDate = dateFilter === "all" || transaction.dateCategory === dateFilter;
-
-    let matchesAmount = true;
-    if (amountFilter === "under1k") {
-      matchesAmount = transaction.amount < 1000;
-    } else if (amountFilter === "1kto5k") {
-      matchesAmount = transaction.amount >= 1000 && transaction.amount <= 5000;
-    } else if (amountFilter === "over5k") {
-      matchesAmount = transaction.amount > 5000;
-    }
-
-    return matchesSearch && matchesStatus && matchesAmount && matchesDate;
-  });
-
-  const pendingCount = transactions.filter(t => t.status === "pending" || t.status === "urgent" || t.status === "flagged").length;
+  // Transaction counts for status summary cards
+  const pendingCount = transactions.filter(t =>
+    t.status === "pending" || t.status === "urgent" || t.status === "flagged"
+  ).length;
   const urgentCount = transactions.filter(t => t.status === "urgent").length;
   const flaggedCount = transactions.filter(t => t.status === "flagged").length;
-  const completedCount = transactions.filter(t => t.status === "approved" || t.status === "rejected").length;
-  const actionRequiredCount = transactions.filter(t => t.status === "flagged" || t.status === "changes_requested").length;
+  const completedCount = transactions.filter(t =>
+    t.status === "approved" || t.status === "rejected"
+  ).length;
+  const actionRequiredCount = transactions.filter(t =>
+    t.status === "flagged" || t.status === "changes_requested"
+  ).length;
 
+  // Event handlers for transaction actions
   const handleApprove = (id: string) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id 
-          ? {...transaction, status: "approved"} 
+    setTransactions(prev =>
+      prev.map(transaction =>
+        transaction.id === id
+          ? { ...transaction, status: "approved" }
           : transaction
       )
     );
   };
 
   const handleReject = (id: string) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id 
-          ? {...transaction, status: "rejected"} 
+    setTransactions(prev =>
+      prev.map(transaction =>
+        transaction.id === id
+          ? { ...transaction, status: "rejected" }
           : transaction
       )
     );
   };
 
   const handleFlag = (id: string) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id 
-          ? {...transaction, status: "flagged"} 
+    setTransactions(prev =>
+      prev.map(transaction =>
+        transaction.id === id
+          ? { ...transaction, status: "flagged" }
           : transaction
       )
     );
   };
 
   const handleRequestChanges = (id: string) => {
-    setTransactions(prev => 
-      prev.map(transaction => 
-        transaction.id === id 
-          ? {...transaction, status: "changes_requested"} 
+    setTransactions(prev =>
+      prev.map(transaction =>
+        transaction.id === id
+          ? { ...transaction, status: "changes_requested" }
           : transaction
       )
     );
+  };
+
+  // For search (case insensitive, by payee, initiator, or transaction id)
+  const filteredTransactions = transactions.filter(transaction => {
+    const matchesSearch =
+      transaction.payee.toLowerCase().includes(searchValue.toLowerCase()) ||
+      transaction.initiatedBy.toLowerCase().includes(searchValue.toLowerCase()) ||
+      transaction.id.toLowerCase().includes(searchValue.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Tab-specific data getters
+  const getTabTransactions = () => {
+    if (activeTab === "pending") {
+      return filteredTransactions.filter(
+        t => t.status === "pending"
+      );
+    }
+    if (activeTab === "action_required") {
+      return filteredTransactions.filter(
+        t => ["flagged", "urgent", "changes_requested"].includes(t.status)
+      );
+    }
+    if (activeTab === "approved") {
+      // Last 14 days only for approved
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      return filteredTransactions.filter(t => {
+        if (t.status !== "approved") return false;
+        return new Date(t.requestedDate) >= twoWeeksAgo;
+      });
+    }
+    return [];
   };
 
   return (
@@ -170,7 +181,7 @@ const ApprovalInbox = () => {
 
       <Card className="animate-scale-in">
         <CardHeader className="pb-3">
-          <Tabs defaultValue="pending" className="w-full">
+          <Tabs value={activeTab} onValueChange={(tab: any) => setActiveTab(tab)} className="w-full">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <TabsList className="h-9">
                 <TabsTrigger value="pending" className="relative">
@@ -196,7 +207,9 @@ const ApprovalInbox = () => {
                   size="icon"
                   className="ml-2 h-9 w-9"
                   onClick={() => {
-                    toast.success("Refreshing transactions...");
+                    toast({
+                      description: "Refreshing transactions...",
+                    });
                     // TODO: Add your refresh logic here
                   }}
                 >
@@ -215,21 +228,12 @@ const ApprovalInbox = () => {
                     onChange={(e) => setSearchValue(e.target.value)}
                   />
                 </div>
-
-                <ApprovalFilters
-                  statusFilter={statusFilter}
-                  amountFilter={amountFilter}
-                  dateFilter={dateFilter}
-                  onStatusChange={setStatusFilter}
-                  onAmountChange={setAmountFilter}
-                  onDateChange={setDateFilter}
-                />
               </div>
             </div>
 
             <TabsContent value="pending">
               <ApprovalTransactionList
-                transactions={filteredTransactions.filter(t => t.status === "pending")}
+                transactions={getTabTransactions()}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onFlag={handleFlag}
@@ -239,9 +243,7 @@ const ApprovalInbox = () => {
 
             <TabsContent value="action_required">
               <ApprovalTransactionList
-                transactions={filteredTransactions.filter(t => 
-                  ["flagged", "urgent", "changes_requested"].includes(t.status)
-                )}
+                transactions={getTabTransactions()}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onFlag={handleFlag}
@@ -258,12 +260,7 @@ const ApprovalInbox = () => {
                   Displaying transactions approved within the last 14 days
                 </div>
                 <ApprovalTransactionList
-                  transactions={filteredTransactions.filter(t => {
-                    if (t.status !== "approved") return false;
-                    const twoWeeksAgo = new Date();
-                    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-                    return new Date(t.requestedDate) >= twoWeeksAgo;
-                  })}
+                  transactions={getTabTransactions()}
                   onApprove={handleApprove}
                   onReject={handleReject}
                   onFlag={handleFlag}
@@ -275,17 +272,9 @@ const ApprovalInbox = () => {
         </CardHeader>
 
         <CardContent>
-          {/*<ApprovalTransactionList 
-            transactions={filteredTransactions}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onFlag={handleFlag}
-            onRequestChanges={handleRequestChanges}
-          />*/}
-
           <div className="flex items-center justify-between mt-6 text-sm text-muted-foreground">
             <div>
-              Showing <span className="font-medium">{filteredTransactions.length}</span> of <span className="font-medium">{transactions.length}</span> transactions
+              Showing <span className="font-medium">{getTabTransactions().length}</span> of <span className="font-medium">{transactions.length}</span> transactions
             </div>
           </div>
         </CardContent>
@@ -295,3 +284,4 @@ const ApprovalInbox = () => {
 };
 
 export default ApprovalInbox;
+
