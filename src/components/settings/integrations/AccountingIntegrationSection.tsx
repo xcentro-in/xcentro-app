@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -10,22 +9,22 @@ import SoftwareSelectionDialog from "./SoftwareSelectionDialog";
 
 const accountingSoftwareOptions: AccountingSoftware[] = [
   {
-    id: "quickbooks",
-    name: "QuickBooks",
-    description: "Most popular accounting software for small businesses",
-    icon: "QB"
-  },
-  {
     id: "zoho",
     name: "Zoho Books",
     description: "Complete accounting solution for growing businesses",
-    icon: "ZB"
+    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/zohobooks_icon.png?updatedAt=1745244401455"
   },
   {
     id: "tally",
     name: "Tally",
     description: "Widely used in India for business accounting",
-    icon: "TL"
+    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/tally_logo.png?updatedAt=1745244442312"
+  },
+  {
+    id: "busy",
+    name: "Busy",
+    description: "Popular business accounting software",
+    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/busy_logo.png?updatedAt=1745245079718"
   }
 ];
 
@@ -42,16 +41,16 @@ const AccountingIntegrationSection = () => {
 
   const handleConnectSoftware = () => {
     if (!selectedSoftware) return;
-    
+
     setIsConnecting(true);
-    
+
     // Simulate API connection
     setTimeout(() => {
       setIsConnecting(false);
       setHasIntegration(true);
       setIntegrationStatus("connected");
       setShowSoftwareModal(false);
-      
+
       toast.success(`Successfully connected to ${accountingSoftwareOptions.find(s => s.id === selectedSoftware)?.name}`);
     }, 2000);
   };
@@ -65,7 +64,7 @@ const AccountingIntegrationSection = () => {
 
   const handleReconnect = () => {
     setIsConnecting(true);
-    
+
     // Simulate reconnection
     setTimeout(() => {
       setIsConnecting(false);
@@ -87,12 +86,10 @@ const AccountingIntegrationSection = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* No Integration State */}
         {!hasIntegration && (
           <NoIntegration onSelectSoftware={() => setShowSoftwareModal(true)} />
         )}
 
-        {/* Connected State */}
         {hasIntegration && integrationStatus === "connected" && (
           <ConnectedIntegration 
             selectedSoftware={selectedSoftware}
@@ -101,7 +98,6 @@ const AccountingIntegrationSection = () => {
           />
         )}
 
-        {/* Error State */}
         {hasIntegration && integrationStatus === "error" && (
           <ErrorIntegration 
             selectedSoftware={selectedSoftware}
@@ -111,7 +107,6 @@ const AccountingIntegrationSection = () => {
           />
         )}
 
-        {/* Software Selection Modal */}
         <SoftwareSelectionDialog
           open={showSoftwareModal}
           onOpenChange={setShowSoftwareModal}

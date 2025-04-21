@@ -16,16 +16,23 @@ const ConnectedIntegration = ({
   accountingSoftwareOptions,
   onChangeSoftware 
 }: ConnectedIntegrationProps) => {
+  const software = accountingSoftwareOptions.find(s => s.id === selectedSoftware);
   return (
     <div className="rounded-lg border p-6 space-y-4">
       <div className="flex items-start gap-4">
-        <div className="h-12 w-12 rounded-md bg-green-100 flex items-center justify-center text-green-700 font-semibold text-lg">
-          {accountingSoftwareOptions.find(s => s.id === selectedSoftware)?.icon}
+        <div className="h-12 w-12 rounded-md bg-green-100 flex items-center justify-center text-green-700 font-semibold text-lg overflow-hidden">
+          {software?.icon && (
+            <img
+              src={software.icon}
+              alt={`${software.name} logo`}
+              className="h-10 w-10 object-contain"
+            />
+          )}
         </div>
         <div className="space-y-1 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">
-              Connected to {accountingSoftwareOptions.find(s => s.id === selectedSoftware)?.name}
+              Connected to {software?.name}
             </h3>
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
               <Check className="h-3 w-3 mr-1" /> Active

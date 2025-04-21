@@ -49,8 +49,12 @@ const SoftwareSelectionDialog = ({
                 onClick={() => onSelectSoftware(software.id)}
               >
                 <RadioGroupItem value={software.id} id={software.id} className="sr-only" />
-                <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center font-semibold text-sm mr-4">
-                  {software.icon}
+                <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center font-semibold text-sm mr-4 overflow-hidden">
+                  <img
+                    src={software.icon}
+                    alt={`${software.name} logo`}
+                    className="h-8 w-8 object-contain"
+                  />
                 </div>
                 <div className="flex-1">
                   <label htmlFor={software.id} className="font-medium cursor-pointer">
