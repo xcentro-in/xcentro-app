@@ -79,6 +79,7 @@ const PayrollReviewStep = ({
       rewardPackage={rewardPackage}
       totalAmount={totalAmount}
       rewardPoints={rewardPoints}
+      frequency={frequency}
       employees={selectedEmployees.map(employee => ({
         name: employee.name,
         email: employee.email,
@@ -87,6 +88,7 @@ const PayrollReviewStep = ({
         salaryAmount: employee.salaryAmount
       }))}
       onBack={onBack}
+      onSubmit={onSubmit}
     />
   );
 };
