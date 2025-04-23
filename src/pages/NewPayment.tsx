@@ -20,7 +20,7 @@ const steps = {
   batch: ["Upload/Import", "Validate", "Payment method", "Reward Top-Up", "Review"],
   gst: ["Upload/Details", "Payment method", "Reward Top-Up", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Reward Top-Up", "Review"],
-  payroll: ["Entry Method & Details", "Payment method", "Reward Top-Up", "Review"],
+  payroll: ["Entry Method", "Details/Selection", "Payment method", "Reward Top-Up", "Review"],
   invoice: ["Upload Invoice", "Review Details", "Payment method", "Reward Top-Up", "Confirmation"]
 };
 

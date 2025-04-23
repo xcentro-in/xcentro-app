@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEntryMethodStep from "./payroll/PayrollEntryMethodStep";
@@ -66,15 +67,15 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const handleMethodSelect = (method: "manual" | "bulk" | "existing" | null) => {
     setEntryMethod(method);
     setCurrentStep('details');
-    // Keep progress bar in sync with step 0 since this is still the first step
-    onStepChange(0);
+    // Update the parent component's step counter
+    onStepChange(1);
   };
   
   const handleDetailsComplete = (selectedEmps: Employee[] = []) => {
     setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
-    // Update to step 1 in the parent component (was previously 2)
-    onStepChange(1);
+    // Update to step 2 in the parent component
+    onStepChange(2);
   };
   
   const handlePaymentMethodSelected = (methodId: string) => {
@@ -83,27 +84,27 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   
   const handleGoToRewardTopUp = () => {
     setCurrentStep('rewards');
-    // Update to step 2 in the parent component (was previously 3)
-    onStepChange(2);
+    // Update to step 3 in the parent component
+    onStepChange(3);
   };
 
   const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
     setSelectedRewardPackage(pkg);
     setCurrentStep('review');
-    // Update to step 3 in the parent component (was previously 4)
-    onStepChange(3);
+    // Update to step 4 in the parent component
+    onStepChange(4);
   };
   
   const handleBack = () => {
     if (currentStep === 'payment') {
       setCurrentStep('details');
-      onStepChange(0);  // Changed from 1 to 0
+      onStepChange(1);
     } else if (currentStep === 'rewards') {
       setCurrentStep('payment');
-      onStepChange(1);  // Changed from 2 to 1
+      onStepChange(2);
     } else if (currentStep === 'review') {
       setCurrentStep('rewards');
-      onStepChange(2);  // Changed from 3 to 2
+      onStepChange(3);
     } else if (currentStep === 'details') {
       setCurrentStep('selection');
       setEntryMethod(null);
