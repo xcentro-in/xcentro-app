@@ -1,72 +1,28 @@
+
 import { useState } from "react";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEntryMethodStep from "./payroll/PayrollEntryMethodStep";
 import PayrollDetailsStep from "./payroll/PayrollDetailsStep";
 import PayrollPaymentMethodStep from "./payroll/PayrollPaymentMethodStep";
 import PayrollReviewStep from "./payroll/PayrollReviewStep";
+import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
+import { Employee } from "./payroll/types";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
-  const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'review'>('selection');
+  const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'rewards' | 'review'>('selection');
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | "existing" | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
-  const [selectedEmployees, setSelectedEmployees] = useState<any[]>([]);
+  const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
+  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
   
   // Payment schedule states
   const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [frequency, setFrequency] = useState<string>("monthly");
-  
-  const mockEmployees = [
-    {
-      id: "emp-001",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      accountNumber: "1234567890",
-      bankName: "HDFC Bank",
-      salaryAmount: 45000,
-      contactNumber: "9876543210",
-    },
-    {
-      id: "emp-002",
-      name: "Jane Smith",
-      email: "jane.smith@example.com",
-      accountNumber: "2345678901",
-      bankName: "ICICI Bank",
-      salaryAmount: 52000,
-      contactNumber: "9876543211",
-    },
-    {
-      id: "emp-003",
-      name: "Raj Patel",
-      email: "raj.patel@example.com",
-      accountNumber: "3456789012",
-      bankName: "SBI Bank",
-      salaryAmount: 38000,
-      contactNumber: "9876543212",
-    },
-    {
-      id: "emp-004",
-      name: "Priya Sharma",
-      email: "priya.sharma@example.com",
-      accountNumber: "4567890123",
-      bankName: "Axis Bank",
-      salaryAmount: 48000,
-      contactNumber: "9876543213",
-    },
-    {
-      id: "emp-005",
-      name: "David Wilson",
-      email: "david.wilson@example.com",
-      accountNumber: "5678901234",
-      bankName: "HDFC Bank",
-      salaryAmount: 55000,
-      contactNumber: "9876543214",
-    }
-  ];
   
   const handleMethodSelect = (method: "manual" | "bulk" | "existing" | null) => {
     setEntryMethod(method);
@@ -74,7 +30,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     onStepChange(1);
   };
   
-  const handleDetailsComplete = (selectedEmps = []) => {
+  const handleDetailsComplete = (selectedEmps: Employee[] = []) => {
     setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
     onStepChange(2);
@@ -84,18 +40,27 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     setSelectedPaymentMethod(methodId);
   };
   
-  const handleGoToReview = () => {
-    setCurrentStep('review');
+  const handleGoToRewardTopUp = () => {
+    setCurrentStep('rewards');
     onStepChange(3);
+  };
+
+  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
+    setSelectedRewardPackage(pkg);
+    setCurrentStep('review');
+    onStepChange(4);
   };
   
   const handleBack = () => {
     if (currentStep === 'payment') {
       setCurrentStep('details');
       onStepChange(1);
-    } else if (currentStep === 'review') {
+    } else if (currentStep === 'rewards') {
       setCurrentStep('payment');
       onStepChange(2);
+    } else if (currentStep === 'review') {
+      setCurrentStep('rewards');
+      onStepChange(3);
     } else if (currentStep === 'details') {
       setCurrentStep('selection');
       setEntryMethod(null);
@@ -103,7 +68,9 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     }
   };
 
-  // Render the appropriate step based on currentStep
+  // Calculate total salary amount
+  const totalAmount = selectedEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0);
+
   if (currentStep === 'selection') {
     return <PayrollEntryMethodStep onMethodSelect={handleMethodSelect} />;
   }
@@ -131,7 +98,17 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         onScheduledDateChange={setScheduledDate}
         onFrequencyChange={setFrequency}
         onBack={handleBack}
-        onNext={handleGoToReview}
+        onNext={handleGoToRewardTopUp}
+      />
+    );
+  }
+
+  if (currentStep === 'rewards') {
+    return (
+      <RewardTopUpStep
+        amount={totalAmount}
+        onBack={handleBack}
+        onNext={handleRewardPackageSelected}
       />
     );
   }
@@ -144,6 +121,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
+        rewardPackage={selectedRewardPackage}
         onBack={handleBack}
         onSubmit={() => console.log("Payment submitted")}
       />

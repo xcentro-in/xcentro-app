@@ -68,7 +68,7 @@ interface ViewOptions {
   showCategoryBreakdown: boolean;
   showTaxCompliance: boolean;
   showCashFlowForecast: boolean;
-  showCreditCardInsights?: boolean;
+  showCreditCardInsights: boolean;
   timePeriod: string;
 }
 
@@ -80,6 +80,7 @@ const Insights = () => {
     showCategoryBreakdown: true,
     showTaxCompliance: true,
     showCashFlowForecast: true,
+    showCreditCardInsights: true,
     timePeriod: "thisMonth",
   });
   
@@ -130,8 +131,6 @@ const Insights = () => {
         </div>
       </div>
       
-      
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         {statCards.map((stat, index) => (
           <StatCard 

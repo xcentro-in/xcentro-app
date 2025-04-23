@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -33,7 +32,7 @@ interface TransactionSummaryProps {
   description: string;
   invoiceReference: string;
   frequency?: string;
-  payee?: Payee;
+  payee: Payee;
   paymentMethod?: PaymentMethod;
   platformFee: number;
   gatewayFee: number;
@@ -94,7 +93,20 @@ export const TransactionSummary = ({
         return method.upiId;
     }
   };
-  
+
+  const getBankDetails = (payee: Payee) => {
+    if ('bankName' in payee) {
+      return {
+        bankName: payee.bankName,
+        accountNumber: payee.accountNumber
+      };
+    }
+    return {
+      bankName: 'N/A',
+      accountNumber: 'N/A'
+    };
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -355,6 +367,23 @@ export const TransactionSummary = ({
             <Button className="flex-1">
               Confirm Payment
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-muted/30">
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Bank Name</span>
+              <span>{getBankDetails(payee).bankName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Account Number</span>
+              <span>
+                {getBankDetails(payee).accountNumber.replace(/\d(?=\d{4})/g, "•")}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>

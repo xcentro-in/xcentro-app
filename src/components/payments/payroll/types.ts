@@ -9,6 +9,13 @@ export interface Employee {
   contactNumber: string;
 }
 
-export type PayrollEntryMethod = "manual" | "bulk" | "existing" | null;
-
-export type PayrollStep = 'selection' | 'details' | 'payment' | 'review';
+export interface PayrollReviewStepProps {
+  selectedEmployees: Employee[];
+  selectedPaymentMethod?: string;
+  paymentType: "now" | "later" | "recurring";
+  scheduledDate?: Date;
+  frequency: string;
+  rewardPackage?: RewardPackage | null;
+  onBack: () => void;
+  onSubmit: () => void;
+}
