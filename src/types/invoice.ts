@@ -19,4 +19,15 @@ export interface InvoiceDetails {
   totalAmount?: number;
   status?: 'draft' | 'pending' | 'paid' | 'overdue';
   notes?: string;
+  amount?: number;
+  invoiceDate?: Date;
+  matchedVendor?: any;
+  paymentInstructions?: any;
+  gstDetails?: any;
+}
+
+export interface OCRProgress {
+  status: 'idle' | 'processing' | 'complete' | 'error';
+  progress: number;
+  message?: string;
 }

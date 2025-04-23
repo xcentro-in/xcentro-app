@@ -67,12 +67,14 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const handleMethodSelect = (method: "manual" | "bulk" | "existing" | null) => {
     setEntryMethod(method);
     setCurrentStep('details');
+    // Update the parent component's step counter
     onStepChange(1);
   };
   
   const handleDetailsComplete = (selectedEmps: Employee[] = []) => {
     setSelectedEmployees(selectedEmps);
     setCurrentStep('payment');
+    // Update to step 2 in the parent component
     onStepChange(2);
   };
   
@@ -82,12 +84,14 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   
   const handleGoToRewardTopUp = () => {
     setCurrentStep('rewards');
+    // Update to step 3 in the parent component
     onStepChange(3);
   };
 
   const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
     setSelectedRewardPackage(pkg);
     setCurrentStep('review');
+    // Update to step 4 in the parent component
     onStepChange(4);
   };
   

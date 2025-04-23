@@ -51,6 +51,20 @@ const PayrollReviewStep = ({
     [selectedPaymentMethod]
   );
 
+  // Transform employees data structure to match expected format
+  const transformedEmployees = useMemo(() => 
+    selectedEmployees.map(employee => ({
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      accountNumber: employee.accountNumber,
+      bankName: employee.bankName,
+      salaryAmount: employee.salaryAmount,
+      contactNumber: employee.contactNumber
+    })), 
+    [selectedEmployees]
+  );
+
   return (
     <TransactionSummary
       paymentType={paymentType as PaymentScheduleType}
@@ -80,13 +94,7 @@ const PayrollReviewStep = ({
       totalAmount={totalAmount}
       rewardPoints={rewardPoints}
       frequency={frequency}
-      employees={selectedEmployees.map(employee => ({
-        name: employee.name,
-        email: employee.email,
-        accountNumber: employee.accountNumber,
-        bankName: employee.bankName || "Bank",
-        salaryAmount: employee.salaryAmount
-      }))}
+      employees={transformedEmployees}
       onBack={onBack}
       onSubmit={onSubmit}
     />
