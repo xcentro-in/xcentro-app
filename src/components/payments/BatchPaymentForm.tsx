@@ -4,6 +4,7 @@ import { BatchPaymentFormProps, PaymentRow, BatchPaymentState } from "./batch/ty
 import UploadStep from "./batch/UploadStep";
 import ValidationStep from "./batch/ValidationStep";
 import PaymentMethodSelectionStep from "./batch/PaymentMethodSelectionStep";
+import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
 import ReviewStep from "./batch/ReviewStep";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
@@ -16,6 +17,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     scheduledDate: undefined,
     frequency: "monthly"
   });
+  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
 
   // Sample payment rows (in a real app, this would come from the uploaded file)
   const paymentRows: PaymentRow[] = [
@@ -87,6 +89,16 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     setState({ ...state, frequency: frequency });
   };
 
+  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
+    setSelectedRewardPackage(pkg);
+    handleNext();
+  };
+
+  const getTotalAmount = () => {
+    const selectedPaymentRows = paymentRows.filter(row => state.selectedRows.includes(row.id));
+    return selectedPaymentRows.reduce((sum, row) => sum + row.amount, 0);
+  };
+
   return (
     <div className="space-y-6">
       {step === 1 && (
@@ -122,6 +134,14 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       )}
 
       {step === 4 && (
+        <RewardTopUpStep 
+          amount={getTotalAmount()}
+          onBack={handleBack}
+          onNext={handleRewardPackageSelected}
+        />
+      )}
+
+      {step === 5 && (
         <ReviewStep 
           selectedRows={state.selectedRows}
           selectedPaymentMethodId={state.selectedPaymentMethod}
@@ -130,6 +150,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
           paymentType={state.paymentType}
           scheduledDate={state.scheduledDate}
           frequency={state.frequency}
+          rewardPackage={selectedRewardPackage}
         />
       )}
     </div>

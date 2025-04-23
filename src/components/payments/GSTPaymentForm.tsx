@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,13 +11,14 @@ import { TransactionDetailCard } from "@/components/transactions/TransactionDeta
 import { Separator } from "@/components/ui/separator";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PaymentMethodStep from "./PaymentMethodStep";
+import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface GSTPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
-type GSTPaymentStep = 1 | 2 | 3;
+type GSTPaymentStep = 1 | 2 | 3 | 4;
 type InputMethod = "upload" | "manual";
 
 const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
@@ -27,6 +29,7 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
   const [taxAmount, setTaxAmount] = useState("");
   const [description, setDescription] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
   
   // Payment schedule states
   const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
@@ -99,6 +102,21 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
 
   const handleTabChange = (value: string) => {
     setInputMethod(value as InputMethod);
+  };
+
+  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
+    setSelectedRewardPackage(pkg);
+    handleNext();
+  };
+
+  // Get total tax amount based on the input method
+  const getTaxAmount = () => {
+    return inputMethod === "upload" ? challanData.taxes.total : parseFloat(taxAmount) || 0;
+  };
+
+  const getRewardPackageCost = () => {
+    if (!selectedRewardPackage) return 0;
+    return getTaxAmount() * (selectedRewardPackage.percentage / 100);
   };
 
   return (
@@ -223,6 +241,14 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
       )}
 
       {step === 3 && (
+        <RewardTopUpStep
+          amount={getTaxAmount()}
+          onBack={handleBack}
+          onNext={handleRewardPackageSelected}
+        />
+      )}
+
+      {step === 4 && (
         <div className="space-y-6">
           <h3 className="font-medium text-lg mb-2">Review GST Payment</h3>
           
@@ -340,12 +366,35 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
                 <span className="font-medium">₹{challanData.fees.platformFee}</span>
               </div>
               
+              {selectedRewardPackage && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Reward Package ({selectedRewardPackage.name} {selectedRewardPackage.percentage}%)</span>
+                  <span className="font-medium">₹{getRewardPackageCost()}</span>
+                </div>
+              )}
+              
               <Separator className="my-2" />
               
               <div className="flex justify-between font-medium text-base bg-white p-3 rounded-md shadow-sm">
                 <span>Total Amount</span>
-                <span className="text-primary font-bold">₹{challanData.fees.total}</span>
+                <span className="text-primary font-bold">
+                  ₹{challanData.fees.total + getRewardPackageCost()}
+                </span>
               </div>
+              
+              {selectedRewardPackage && (
+                <div className="flex justify-between text-sm text-primary">
+                  <span>Total Rewards Earned</span>
+                  <span className="font-medium">
+                    {Math.floor(getTaxAmount() / 10 * selectedRewardPackage.multiplier)} points
+                    {selectedRewardPackage.multiplier > 1 && (
+                      <span className="text-green-500 ml-1">
+                        (+{Math.floor(getTaxAmount() / 10 * (selectedRewardPackage.multiplier - 1))})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
             </div>
           </TransactionDetailCard>
 

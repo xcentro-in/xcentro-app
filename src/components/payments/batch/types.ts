@@ -1,5 +1,6 @@
 
 import { PaymentScheduleType } from "../common/PaymentScheduleSelector";
+import { RewardPackage } from "../common/RewardTopUpStep";
 
 export interface PaymentRow {
   id: string;
@@ -10,14 +11,15 @@ export interface PaymentRow {
   ifsc: string;
 }
 
-export interface BatchPaymentFormProps {
-  onStepChange: (step: number) => void;
-}
-
 export interface BatchPaymentState {
   selectedRows: string[];
   selectedPaymentMethod?: string;
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
+  rewardPackage?: RewardPackage | null;
+}
+
+export interface BatchPaymentFormProps {
+  onStepChange: (step: number) => void;
 }

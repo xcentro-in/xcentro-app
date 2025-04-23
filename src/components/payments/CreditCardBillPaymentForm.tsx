@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreditCard, Upload } from "lucide-react";
 import PaymentMethodSelector from "./PaymentMethodSelector";
+import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
 import UploadBillTab from "./credit-card-bill/UploadBillTab";
 import QuickPayTab from "./credit-card-bill/QuickPayTab";
 import BillDetailsCard from "./credit-card-bill/BillDetailsCard";
@@ -22,6 +23,7 @@ export default function CreditCardBillPaymentForm({
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
   const [selectedMethod, setSelectedMethod] = useState<"upload" | "quick">(initialMethod);
+  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
   const [cardDetails, setCardDetails] = useState({
     cardIssuer: "",
     lastFourDigits: "",
@@ -60,6 +62,15 @@ export default function CreditCardBillPaymentForm({
     setStep(prevStep);
   };
   
+  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
+    setSelectedRewardPackage(pkg);
+    handleNext();
+  };
+
+  const getAmountValue = () => {
+    return parseFloat(amount) || 0;
+  };
+
   return (
     <div className="space-y-6">
       {step === 1 && (
@@ -121,17 +132,29 @@ export default function CreditCardBillPaymentForm({
               className="w-auto"
               disabled={!paymentMethod}
             >
-              Review Payment
+              Continue
             </Button>
           </div>
         </>
       )}
       
       {step === 3 && (
+        <RewardTopUpStep
+          amount={getAmountValue()}
+          onBack={handleBack}
+          onNext={handleRewardPackageSelected}
+        />
+      )}
+      
+      {step === 4 && (
         <>
           <h3 className="font-medium text-lg mb-6">Review Credit Card Bill Payment</h3>
           
-          <PaymentReviewCard cardDetails={cardDetails} amount={amount} />
+          <PaymentReviewCard 
+            cardDetails={cardDetails} 
+            amount={amount} 
+            rewardPackage={selectedRewardPackage}
+          />
           
           <div className="flex justify-between gap-3">
             <Button variant="outline" onClick={handleBack} className="w-auto">

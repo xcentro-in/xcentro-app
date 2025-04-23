@@ -1,4 +1,3 @@
-
 import { 
   BarChart2, 
   DollarSign, 
@@ -63,6 +62,15 @@ const statCards = [
   { title: "Active Vendors", value: "48", change: 2.1, trend: "up", icon: FileText, description: "vs. last month" },
   { title: "Upcoming Payments", value: "$35,400", change: -5.3, trend: "down", icon: Clock, description: "vs. last month" },
 ];
+
+interface ViewOptions {
+  showSpendingTrend: boolean;
+  showCategoryBreakdown: boolean;
+  showTaxCompliance: boolean;
+  showCashFlowForecast: boolean;
+  showCreditCardInsights?: boolean;
+  timePeriod: string;
+}
 
 const Insights = () => {
   const [showInsights, setShowInsights] = useState(true);
