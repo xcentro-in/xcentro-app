@@ -1,4 +1,6 @@
 
+import { RewardPackage } from "../common/RewardTopUpStep";
+
 export interface Employee {
   id: string;
   name: string;
@@ -19,6 +21,3 @@ export interface PayrollReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
 }
-
-// Import RewardPackage from the common module
-import { RewardPackage } from "../common/RewardTopUpStep";

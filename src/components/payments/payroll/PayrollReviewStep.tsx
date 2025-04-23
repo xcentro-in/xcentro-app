@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Employee } from "./types";
+import { Employee, PayrollReviewStepProps } from "./types";
 import { TransactionSummary } from "../common/TransactionSummary";
 import { useMemo } from "react";
 import { PaymentMethod } from "@/types/payment-method";
@@ -9,22 +9,13 @@ import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentScheduleType } from "../common/PaymentScheduleSelector";
 import { formatCurrency } from "@/utils/formatters";
 
-interface PayrollReviewStepProps {
-  selectedEmployees: Employee[];
-  selectedPaymentMethod?: string;
-  paymentType: "now" | "later" | "recurring";
-  scheduledDate?: Date;
-  frequency: string;
-  onBack: () => void;
-  onSubmit: () => void;
-}
-
 const PayrollReviewStep = ({
   selectedEmployees,
   selectedPaymentMethod,
   paymentType,
   scheduledDate,
   frequency,
+  rewardPackage,
   onBack,
   onSubmit
 }: PayrollReviewStepProps) => {
@@ -38,11 +29,22 @@ const PayrollReviewStep = ({
   
   const platformFee = useMemo(() => totalSalary * 0.015, [totalSalary]);
   const processingFee = useMemo(() => totalSalary * 0.005, [totalSalary]);
+  
+  // Calculate reward package costs if applicable
+  const rewardCost = useMemo(() => {
+    if (!rewardPackage) return 0;
+    return totalSalary * (rewardPackage.percentage / 100);
+  }, [totalSalary, rewardPackage]);
+  
   const totalAmount = useMemo(() => 
-    totalSalary + platformFee + processingFee, 
-    [totalSalary, platformFee, processingFee]
+    totalSalary + platformFee + processingFee + rewardCost, 
+    [totalSalary, platformFee, processingFee, rewardCost]
   );
-  const rewardPoints = useMemo(() => Math.floor(totalSalary / 10), [totalSalary]);
+  
+  const rewardPoints = useMemo(() => {
+    const basePoints = Math.floor(totalSalary / 10);
+    return rewardPackage ? basePoints * rewardPackage.multiplier : basePoints;
+  }, [totalSalary, rewardPackage]);
 
   const paymentMethod = useMemo(
     () => mockPaymentMethods.find(m => m.id === selectedPaymentMethod) as PaymentMethod | undefined,
@@ -74,6 +76,7 @@ const PayrollReviewStep = ({
       paymentMethod={paymentMethod}
       platformFee={platformFee}
       gatewayFee={processingFee}
+      rewardPackage={rewardPackage}
       totalAmount={totalAmount}
       rewardPoints={rewardPoints}
       employees={selectedEmployees.map(employee => ({
