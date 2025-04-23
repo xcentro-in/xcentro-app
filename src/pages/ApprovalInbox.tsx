@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import ApprovalInboxStatusCards from "@/components/approvals/ApprovalInboxStatusCards";
 import ApprovalInboxTabs from "@/components/approvals/ApprovalInboxTabs";
@@ -136,15 +135,6 @@ const ApprovalInbox = () => {
             tabs={tabs}
             activeTab={activeTab}
             setActiveTab={setActiveTab}
-            transactions={transactions}
-            tabTransactions={getTabTransactions()}
-            searchValue={searchValue}
-            setSearchValue={setSearchValue}
-            onApprove={handleApprove}
-            onReject={handleReject}
-            onFlag={handleFlag}
-            onRequestChanges={handleRequestChanges}
-            onRefresh={handleRefresh}
           />
         </CardHeader>
         <CardContent>

@@ -12,6 +12,46 @@ interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
+// Mock data for example employees
+const mockEmployees: Employee[] = [
+  {
+    id: "emp-001",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    accountNumber: "1234567890",
+    bankName: "HDFC Bank",
+    salaryAmount: 75000,
+    contactNumber: "+91 9876543210"
+  },
+  {
+    id: "emp-002",
+    name: "Jane Smith",
+    email: "jane.smith@example.com",
+    accountNumber: "9876543210",
+    bankName: "ICICI Bank",
+    salaryAmount: 82000,
+    contactNumber: "+91 8765432109"
+  },
+  {
+    id: "emp-003",
+    name: "Raj Patel",
+    email: "raj.patel@example.com",
+    accountNumber: "5432167890",
+    bankName: "SBI Bank",
+    salaryAmount: 95000,
+    contactNumber: "+91 7654321098"
+  },
+  {
+    id: "emp-004",
+    name: "Priya Singh",
+    email: "priya.singh@example.com",
+    accountNumber: "6789054321",
+    bankName: "Axis Bank",
+    salaryAmount: 68000,
+    contactNumber: "+91 6543210987"
+  }
+];
+
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'rewards' | 'review'>('selection');
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | "existing" | null>(null);

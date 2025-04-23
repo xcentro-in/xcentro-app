@@ -4,9 +4,23 @@ export interface InvoiceDetails {
   invoiceDate: string;
   dueDate: string;
   amount: number;
+  totalAmount?: number;
   vendorName: string;
   vendorGst?: string;
+  matchedVendor?: boolean;
   items: InvoiceItem[];
+  gstDetails?: {
+    cgst?: number;
+    sgst?: number;
+    igst?: number;
+    total: number;
+  };
+  paymentInstructions?: {
+    accountHolderName?: string;
+    bankAccount?: string;
+    ifscCode?: string;
+    upiId?: string;
+  };
 }
 
 export interface InvoiceItem {
@@ -14,6 +28,8 @@ export interface InvoiceItem {
   quantity: number;
   rate: number;
   amount: number;
+  tax?: number;
+  unitPrice?: number;
 }
 
 export interface OCRProgress {

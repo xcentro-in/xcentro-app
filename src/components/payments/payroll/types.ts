@@ -19,3 +19,6 @@ export interface PayrollReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
 }
+
+// Import RewardPackage from the common module
+import { RewardPackage } from "../common/RewardTopUpStep";
