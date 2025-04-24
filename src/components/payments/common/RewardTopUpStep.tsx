@@ -87,7 +87,7 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
               key={pkg.id}
               className={`cursor-pointer transition-all transform hover:scale-105 overflow-hidden ${
                 selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg' : ''
-              } relative`}
+              } relative ${isPremium ? 'border-2 border-amber-400' : ''}`}
               style={{
                 background: isBasic 
                   ? 'linear-gradient(145deg, #e6e6e6 0%, #ffffff 100%)'
@@ -98,6 +98,12 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
               }}
               onClick={() => setSelectedPackage(pkg)}
             >
+              {isPremium && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium">
+                  Most Picked
+                </div>
+              )}
+              
               <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
                 <h3 className={`font-semibold text-lg tracking-wider ${
                   isElite ? 'text-white' : ''
@@ -105,26 +111,23 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
                   {pkg.name.toUpperCase()}
                 </h3>
                 
-                <div className={`text-4xl font-bold ${isElite ? 'text-white' : ''}`}>
-                  {pkg.id === 'basic' ? '5,000' : pkg.id === 'premium' ? '10,000' : '25,000'}
+                <div className={`text-3xl font-bold ${isElite ? 'text-white' : ''}`}>
+                  {pkg.percentage}%
                 </div>
                 
                 <div className={`text-sm ${isElite ? 'text-white/80' : 'text-muted-foreground'}`}>
-                  Cost: {pkg.id === 'basic' ? '10,000' : pkg.id === 'premium' ? '20,000' : '50,000'} pts
+                  Package Rate: {formatCurrency(amount * (pkg.percentage / 100))}
                 </div>
                 
-                <div className="flex items-center justify-center h-12">
-                  {isBasic ? (
-                    <Check className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
-                  ) : isPremium ? (
-                    <Gift className="h-6 w-6" />
-                  ) : (
-                    <Shield className="h-6 w-6 text-white" />
-                  )}
+                <div className="flex flex-col items-center justify-center h-16 gap-1">
+                  <award className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
+                  <span className={`text-sm font-bold ${isElite ? 'text-white' : ''}`}>
+                    {pkg.multiplier}x Rewards
+                  </span>
                 </div>
                 
                 <div className={`text-sm font-medium ${isElite ? 'text-white' : ''}`}>
-                  {pkg.id === 'basic' ? 'Standard perks' : pkg.id === 'premium' ? 'Premium perks' : 'All perks'}
+                  {pkg.description.join(' • ')}
                 </div>
               </CardContent>
             </Card>
