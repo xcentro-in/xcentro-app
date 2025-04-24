@@ -1,5 +1,5 @@
 
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Payee, BankPayee, BillerPayee, PayrollPayee } from "@/types/payee"
 import { getPayeeTypeLabel } from "@/utils/payeeUtils"
 import { Badge } from "@/components/ui/badge"
@@ -81,55 +81,53 @@ export const PayeeDetailsDrawer = ({
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={onClose}>
-      <DrawerContent className="h-[85vh]">
-        <div className="mx-auto w-full max-w-4xl p-6">
-          <DrawerHeader className="pb-6">
-            <DrawerTitle>{payee.name}</DrawerTitle>
-          </DrawerHeader>
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+        <SheetHeader className="pb-6">
+          <SheetTitle>{payee.name}</SheetTitle>
+        </SheetHeader>
 
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">
-                {getPayeeTypeLabel(payee.type)}
-              </Badge>
-            </div>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Badge variant="outline">
+              {getPayeeTypeLabel(payee.type)}
+            </Badge>
+          </div>
 
-            <div className="space-y-1">
-              <p className="text-sm font-medium">Contact Information</p>
-              <p className="text-sm text-muted-foreground">
-                Email: {payee.email}<br />
-                Phone: {payee.contactNumber}
-              </p>
-            </div>
+          <div className="space-y-1">
+            <p className="text-sm font-medium">Contact Information</p>
+            <p className="text-sm text-muted-foreground">
+              Email: {payee.email}<br />
+              Phone: {payee.contactNumber}
+            </p>
+          </div>
 
-            {renderPayeeSpecificDetails()}
+          {renderPayeeSpecificDetails()}
 
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" size="sm" onClick={() => handleViewHistory(payee.id)}>
-                <History className="h-4 w-4 mr-2" />
-                View History
-              </Button>
-              <Button variant="outline" size="sm">
-                <Edit className="h-4 w-4 mr-2" />
-                Edit
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-destructive"
-                onClick={() => {
-                  onDelete(payee.id);
-                  onClose();
-                }}
-              >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
-              </Button>
-            </div>
+          <div className="flex gap-3 pt-4">
+            <Button variant="outline" size="sm" onClick={() => handleViewHistory(payee.id)}>
+              <History className="h-4 w-4 mr-2" />
+              View History
+            </Button>
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-destructive"
+              onClick={() => {
+                onDelete(payee.id);
+                onClose();
+              }}
+            >
+              <Trash className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
           </div>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </SheetContent>
+    </Sheet>
   )
 }
