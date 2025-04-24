@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Award } from "lucide-react";
+import { Award, Check } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 
@@ -76,17 +75,18 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8 px-4">
         {defaultRewardPackages.map((pkg) => {
           const isBasic = pkg.id === 'basic';
           const isPremium = pkg.id === 'premium';
           const isElite = pkg.id === 'elite';
+          const isSelected = selectedPackage?.id === pkg.id;
           
           return (
             <Card 
               key={pkg.id}
-              className={`cursor-pointer transition-all transform hover:scale-105 overflow-visible relative ${
-                selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg' : ''
+              className={`cursor-pointer transition-all transform hover:scale-105 overflow-visible relative w-full max-w-[280px] mx-auto ${
+                isSelected ? 'ring-2 ring-primary shadow-lg scale-105' : ''
               } ${isPremium ? 'border-2 border-amber-400' : ''}`}
               style={{
                 background: isBasic 
@@ -101,6 +101,12 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
               {isPremium && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium z-10 shadow-md">
                   Most Picked
+                </div>
+              )}
+              
+              {isSelected && (
+                <div className="absolute -top-2 -right-2 bg-green-500/20 rounded-full p-1 z-10">
+                  <Check className="h-5 w-5 text-green-500" />
                 </div>
               )}
               
@@ -134,6 +140,17 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
           );
         })}
       </div>
+      
+      {selectedPackage && (
+        <div className="text-center">
+          <button
+            onClick={() => setSelectedPackage(null)}
+            className="text-sm text-muted-foreground hover:text-primary transition-colors"
+          >
+            I don't want any rewards this time
+          </button>
+        </div>
+      )}
       
       <Card className="bg-muted/30">
         <CardContent className="p-4 space-y-3">
