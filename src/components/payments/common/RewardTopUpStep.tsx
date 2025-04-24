@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Check, BadgePercent, ArrowRight } from "lucide-react";
+import { Check, Gift, Shield } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 
@@ -77,52 +77,59 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
       </div>
       
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        {defaultRewardPackages.map((pkg) => (
-          <Card 
-            key={pkg.id}
-            className={`cursor-pointer transition-all hover:shadow-md ${
-              selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg' : ''
-            } ${pkg.isPopular ? 'shadow-md' : ''}`}
-            onClick={() => setSelectedPackage(pkg)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-lg">{pkg.name}</h3>
-                {selectedPackage?.id === pkg.id && (
-                  <div className="bg-primary w-5 h-5 rounded-full flex items-center justify-center">
-                    <Check className="h-3 w-3 text-white" />
-                  </div>
-                )}
-              </div>
-              
-              {pkg.label && (
-                <div className="bg-primary/10 text-primary text-xs rounded-full px-2 py-1 inline-block mb-2">
-                  {pkg.label}
+        {defaultRewardPackages.map((pkg) => {
+          const isBasic = pkg.id === 'basic';
+          const isPremium = pkg.id === 'premium';
+          const isElite = pkg.id === 'elite';
+          
+          return (
+            <Card 
+              key={pkg.id}
+              className={`cursor-pointer transition-all transform hover:scale-105 overflow-hidden ${
+                selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg' : ''
+              } relative`}
+              style={{
+                background: isBasic 
+                  ? 'linear-gradient(145deg, #e6e6e6 0%, #ffffff 100%)'
+                  : isPremium
+                  ? 'linear-gradient(145deg, #ffd700 0%, #ffb347 100%)'
+                  : 'linear-gradient(145deg, #1a2b4d 0%, #2c4c7c 100%)',
+                boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+              }}
+              onClick={() => setSelectedPackage(pkg)}
+            >
+              <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+                <h3 className={`font-semibold text-lg tracking-wider ${
+                  isElite ? 'text-white' : ''
+                }`}>
+                  {pkg.name.toUpperCase()}
+                </h3>
+                
+                <div className={`text-4xl font-bold ${isElite ? 'text-white' : ''}`}>
+                  {pkg.id === 'basic' ? '5,000' : pkg.id === 'premium' ? '10,000' : '25,000'}
                 </div>
-              )}
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-1">
-                  <BadgePercent className="h-4 w-4 text-primary" />
-                  <span className="font-medium">
-                    {pkg.multiplier}X Points {pkg.multiplier > 1 ? pkg.multiplier === 2 ? '🔥' : '🚀' : ''}
-                  </span>
+                
+                <div className={`text-sm ${isElite ? 'text-white/80' : 'text-muted-foreground'}`}>
+                  Cost: {pkg.id === 'basic' ? '10,000' : pkg.id === 'premium' ? '20,000' : '50,000'} pts
                 </div>
-                <div className="text-sm">
-                  {formatCurrency(amount * pkg.percentage / 100)} ({pkg.percentage}%)
+                
+                <div className="flex items-center justify-center h-12">
+                  {isBasic ? (
+                    <Check className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
+                  ) : isPremium ? (
+                    <Gift className="h-6 w-6" />
+                  ) : (
+                    <Shield className="h-6 w-6 text-white" />
+                  )}
                 </div>
-                <ul className="text-sm space-y-1">
-                  {pkg.description.map((item, i) => (
-                    <li key={i} className="flex items-start gap-2">
-                      <span className="text-green-500">•</span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                
+                <div className={`text-sm font-medium ${isElite ? 'text-white' : ''}`}>
+                  {pkg.id === 'basic' ? 'Standard perks' : pkg.id === 'premium' ? 'Premium perks' : 'All perks'}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
       
       <Card className="bg-muted/30">
@@ -157,14 +164,11 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
       </Card>
       
       <div className="flex justify-between mt-6">
-        <Button variant="outline" onClick={onBack} className="w-auto">
+        <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button 
-          onClick={() => onNext(selectedPackage)}
-          className="w-auto"
-        >
-          Continue <ArrowRight className="ml-2 h-4 w-4" />
+        <Button onClick={() => onNext(selectedPackage)}>
+          Continue
         </Button>
       </div>
     </div>
