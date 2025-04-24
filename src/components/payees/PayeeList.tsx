@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from "react";
 import { 
   Table, 
@@ -148,11 +149,7 @@ const PayeeList = () => {
             </TableHeader>
             <TableBody>
               {filteredPayees.map((payee) => (
-                <TableRow 
-                  key={payee.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedPayeeForDrawer(payee.id)}
-                >
+                <TableRow key={payee.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {getPayeeIcon(payee.type)}
@@ -184,27 +181,37 @@ const PayeeList = () => {
                   <TableCell>{getPayeeTypeBadge(payee.type)}</TableCell>
                   <TableCell className="hidden md:table-cell">{payee.email}</TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewHistory(payee.id)}>
-                          <History className="h-4 w-4 mr-2" />
-                          View History
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeletePayeeId(payee.id)}>
-                          <Trash className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        onClick={() => setSelectedPayeeForDrawer(payee.id)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewHistory(payee.id)}>
+                            <History className="h-4 w-4 mr-2" />
+                            View History
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeletePayeeId(payee.id)}>
+                            <Trash className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
