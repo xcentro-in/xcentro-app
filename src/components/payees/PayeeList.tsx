@@ -21,7 +21,8 @@ import {
   Star, 
   StarIcon,
   History,
-  MoreVertical
+  MoreVertical,
+  Eye
 } from "lucide-react";
 import {
   DropdownMenu,
