@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from "react";
 import { 
   Table, 
@@ -45,6 +44,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { PayeeDetailsDrawer } from "./PayeeDetailsDrawer";
 
 const PayeeList = () => {
   const navigate = useNavigate();
@@ -52,6 +52,7 @@ const PayeeList = () => {
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [payees, setPayees] = useState(mockPayees);
   const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
+  const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
   const handleSetDefault = (id: string) => {
     setPayees(prev => 
@@ -102,6 +103,8 @@ const PayeeList = () => {
     }
   };
 
+  const selectedPayee = payees.find(p => p.id === selectedPayeeForDrawer);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
@@ -145,7 +148,11 @@ const PayeeList = () => {
             </TableHeader>
             <TableBody>
               {filteredPayees.map((payee) => (
-                <TableRow key={payee.id}>
+                <TableRow 
+                  key={payee.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedPayeeForDrawer(payee.id)}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {getPayeeIcon(payee.type)}
@@ -227,6 +234,13 @@ const PayeeList = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <PayeeDetailsDrawer 
+        payee={selectedPayee || null}
+        isOpen={!!selectedPayeeForDrawer}
+        onClose={() => setSelectedPayeeForDrawer(null)}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };
