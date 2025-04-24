@@ -126,11 +126,11 @@ const TopNav = () => {
             >
               <div className="flex items-center gap-2 cursor-pointer">
                 <Avatar className="h-7 w-7 transition-transform hover:scale-105">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">JD</AvatarFallback>
+                  <AvatarFallback className="bg-primary/10 text-primary text-sm">AM</AvatarFallback>
                 </Avatar>
                 {!isMobile && (
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium leading-none">John Doe</span>
+                    <span className="text-sm font-medium leading-none">Arvind Mehta</span>
                     <span className="text-xs text-muted-foreground leading-tight">ABC Company</span>
                   </div>
                 )}

@@ -16,7 +16,7 @@ import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCar
 import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePaymentsCard";
 
 const insights = [
-  { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
+  { title: "Monthly Spend", value: 75493, change: 12.8, trend: "up" as const },
 ];
 
 const Dashboard = () => {
@@ -38,7 +38,7 @@ const Dashboard = () => {
           <Badge variant="outline" className="mb-2.5 px-3 py-1.5 text-xs font-medium bg-primary/5 border-primary/10 text-primary animate-fade-in">
             Business Dashboard
           </Badge>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Welcome back, John</h1>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Welcome back, Arvind</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Here's what's happening with your business finances today
           </p>

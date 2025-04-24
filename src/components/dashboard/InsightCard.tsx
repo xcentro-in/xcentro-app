@@ -2,6 +2,7 @@
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/utils/formatters";
 
 interface InsightCardProps {
   title: string;
@@ -18,7 +19,7 @@ const InsightCard = ({ title, value, change, trend, delay = 0 }: InsightCardProp
         <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent className="pb-2">
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold">{formatCurrency(value)}</div>
         <div className={cn(
           "flex items-center text-xs mt-1",
           trend === "up" ? "text-green-500" : "text-red-500"
