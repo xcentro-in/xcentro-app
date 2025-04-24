@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Check, Gift, Shield } from "lucide-react";
+import { Award } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 
@@ -85,9 +85,9 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
           return (
             <Card 
               key={pkg.id}
-              className={`cursor-pointer transition-all transform hover:scale-105 overflow-hidden ${
+              className={`cursor-pointer transition-all transform hover:scale-105 overflow-visible relative ${
                 selectedPackage?.id === pkg.id ? 'ring-2 ring-primary shadow-lg' : ''
-              } relative ${isPremium ? 'border-2 border-amber-400' : ''}`}
+              } ${isPremium ? 'border-2 border-amber-400' : ''}`}
               style={{
                 background: isBasic 
                   ? 'linear-gradient(145deg, #e6e6e6 0%, #ffffff 100%)'
@@ -99,12 +99,12 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
               onClick={() => setSelectedPackage(pkg)}
             >
               {isPremium && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium z-10 shadow-md">
                   Most Picked
                 </div>
               )}
               
-              <CardContent className="p-6 flex flex-col items-center text-center space-y-4">
+              <CardContent className="p-6 flex flex-col items-center text-center space-y-4 pt-6">
                 <h3 className={`font-semibold text-lg tracking-wider ${
                   isElite ? 'text-white' : ''
                 }`}>
@@ -120,7 +120,7 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
                 </div>
                 
                 <div className="flex flex-col items-center justify-center h-16 gap-1">
-                  <award className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
+                  <Award className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
                   <span className={`text-sm font-bold ${isElite ? 'text-white' : ''}`}>
                     {pkg.multiplier}x Rewards
                   </span>
