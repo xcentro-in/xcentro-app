@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Award } from "lucide-react";
+import { Check, Gift, Shield } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 
@@ -95,12 +95,11 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
                   ? 'linear-gradient(145deg, #ffd700 0%, #ffb347 100%)'
                   : 'linear-gradient(145deg, #1a2b4d 0%, #2c4c7c 100%)',
                 boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
-                marginTop: isPremium ? '15px' : '0', // Add top margin for premium card
               }}
               onClick={() => setSelectedPackage(pkg)}
             >
               {isPremium && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium shadow-md">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-amber-400 text-black text-xs px-3 py-1 rounded-full font-medium">
                   Most Picked
                 </div>
               )}
@@ -121,7 +120,7 @@ const RewardTopUpStep = ({ amount, onBack, onNext }: RewardTopUpProps) => {
                 </div>
                 
                 <div className="flex flex-col items-center justify-center h-16 gap-1">
-                  <Award className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
+                  <award className={`h-6 w-6 ${isElite ? 'text-white' : ''}`} />
                   <span className={`text-sm font-bold ${isElite ? 'text-white' : ''}`}>
                     {pkg.multiplier}x Rewards
                   </span>
