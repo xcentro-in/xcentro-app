@@ -220,9 +220,9 @@ const PayeeList = () => {
         </div>
       )}
 
-      <div className="bg-soft-purple p-4 rounded-lg border border-light-purple text-secondary-purple text-sm">
+      <div className="bg-soft-gray p-4 rounded-lg border border-gray-200 text-secondary-purple text-sm">
         <div className="flex items-center gap-3">
-          <StarIcon className="h-5 w-5 text-yellow-500 fill-yellow-500" />
+          <StarIcon className="h-5 w-5 text-sidebar-primary" />
           <p>
             Marking a payee as a favorite makes them easier to find during payments and helps us surface better insights for you.
           </p>
