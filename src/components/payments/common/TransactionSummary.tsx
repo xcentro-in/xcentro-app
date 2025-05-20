@@ -53,35 +53,6 @@ export const TransactionSummary = ({
   employees = []
 }: TransactionSummaryProps) => {
   const [isEmployeesDialogOpen, setIsEmployeesDialogOpen] = useState(false);
-  const { bankName, accountNumber } = payee as any;
-
-  const renderBankInfo = () => {
-    return (
-      <>
-        {bankName && (
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Bank Name</span>
-            <span>
-              {payee.type === "bank" || payee.type === "payroll" 
-                ? payee.bankName 
-                : "-"}
-            </span>
-          </div>
-        )}
-
-        {accountNumber && (
-          <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Account Number</span>
-            <span>
-              {payee.type === "bank" || payee.type === "payroll"
-                ? '••••' + payee.accountNumber.slice(-4)
-                : "-"}
-            </span>
-          </div>
-        )}
-      </>
-    );
-  };
 
   // Calculate total reward cost if applicable
   const rewardCost = rewardPackage ? (amount * (rewardPackage.percentage / 100)) : 0;
@@ -143,8 +114,6 @@ export const TransactionSummary = ({
         rewardPoints={rewardPoints}
       />
 
-      {renderBankInfo()}
-
       <div className="flex justify-between pt-4">
         <Button 
           variant="outline" 
@@ -153,9 +122,15 @@ export const TransactionSummary = ({
         >
           Back
         </Button>
-        {onSubmit && (
+        {onSubmit ? (
           <Button 
             onClick={onSubmit}
+            className="w-auto"
+          >
+            Confirm Payment
+          </Button>
+        ) : (
+          <Button 
             className="w-auto"
           >
             Confirm Payment
