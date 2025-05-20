@@ -1,4 +1,3 @@
-
 // Function to convert numbers to Indian currency format words
 export function convertToIndianCurrencyWords(num: number | string): string {
   if (!num || isNaN(Number(num))) return '';
@@ -19,21 +18,23 @@ export function convertToIndianCurrencyWords(num: number | string): string {
     
     let result = '';
     
-    // Handle hundreds place
+    // Handle hundreds place - display as number
     if (n >= 100) {
-      result = units[Math.floor(n / 100)] + ' Hundred';
+      result = n >= 200 ? units[Math.floor(n / 100)] + ' Hundred' : '1 Hundred';
       if (n % 100 !== 0) result += ' ';
     }
     
-    // Handle tens and units place
+    // Handle tens and units place - display as number if less than 20
     const remainder = n % 100;
     if (remainder > 0) {
       if (remainder < 20) {
-        result += units[remainder];
+        // For numbers less than 20, display as number
+        result += remainder.toString();
       } else {
+        // For larger numbers, keep word format for tens and show units as number
         result += tens[Math.floor(remainder / 10)];
         if (remainder % 10 !== 0) {
-          result += ' ' + units[remainder % 10];
+          result += ' ' + (remainder % 10).toString();
         }
       }
     }
@@ -85,7 +86,8 @@ export function convertToIndianCurrencyWords(num: number | string): string {
     let result = `${thousand} Thousand`;
     if (remainder > 0) {
       if (remainder < 100) {
-        result += ' ' + convertToIndianCurrencyWords(remainder).replace('Rupees ', '').replace(' only', '');
+        // For numbers less than 100, just show the number directly
+        result += ' ' + remainder.toString();
       } else {
         result += ' ' + convertLessThanThousand(remainder);
       }
