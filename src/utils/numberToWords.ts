@@ -8,59 +8,92 @@ export function convertToIndianCurrencyWords(num: number | string): string {
   // Handle zero separately
   if (number === 0) return 'Rupees Zero only';
   
-  // For very large numbers, use simpler format
-  if (number >= 1000000000) {
-    const billions = Math.floor(number / 1000000000);
-    return `Rupees ${billions} ${billions === 1 ? 'Arab' : 'Arab'} only`;
-  }
-  
-  if (number >= 10000000) {
-    const crores = Math.floor(number / 10000000);
-    return `Rupees ${crores} ${crores === 1 ? 'Crore' : 'Crore'} only`;
-  }
-  
-  if (number >= 100000) {
-    const lakhs = Math.floor(number / 100000);
-    return `Rupees ${lakhs} ${lakhs === 1 ? 'Lakh' : 'Lakh'} only`;
-  }
-  
-  if (number >= 1000) {
-    const thousands = Math.floor(number / 1000);
-    return `Rupees ${thousands} ${thousands === 1 ? 'Thousand' : 'Thousand'} only`;
-  }
-  
-  // For smaller numbers, use more detailed conversion
+  // Array of units and tens for conversion
   const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 
                 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
   
-  if (number < 20) {
-    return `Rupees ${units[number]} only`;
-  }
-  
-  if (number < 100) {
-    const unit = number % 10;
-    const ten = Math.floor(number / 10);
-    return `Rupees ${tens[ten]}${unit ? ' ' + units[unit] : ''} only`;
-  }
-  
-  if (number < 1000) {
-    const hundred = Math.floor(number / 100);
-    const remainder = number % 100;
+  // Function to convert numbers less than 1000
+  const convertLessThanThousand = (n: number): string => {
+    if (n === 0) return '';
     
-    let remainderText = '';
+    let result = '';
+    
+    // Handle hundreds place
+    if (n >= 100) {
+      result = units[Math.floor(n / 100)] + ' Hundred';
+      if (n % 100 !== 0) result += ' ';
+    }
+    
+    // Handle tens and units place
+    const remainder = n % 100;
     if (remainder > 0) {
       if (remainder < 20) {
-        remainderText = ` and ${units[remainder]}`;
+        result += units[remainder];
       } else {
-        const unit = remainder % 10;
-        const ten = Math.floor(remainder / 10);
-        remainderText = ` and ${tens[ten]}${unit ? ' ' + units[unit] : ''}`;
+        result += tens[Math.floor(remainder / 10)];
+        if (remainder % 10 !== 0) {
+          result += ' ' + units[remainder % 10];
+        }
       }
     }
     
-    return `Rupees ${units[hundred]} Hundred${remainderText} only`;
+    return result;
+  };
+  
+  // For very large numbers in Indian numbering system
+  if (number >= 1000000000) {
+    const arab = Math.floor(number / 1000000000);
+    const remainder = number % 1000000000;
+    
+    let result = `${arab} Arab`;
+    if (remainder > 0) {
+      result += ' ' + convertToIndianCurrencyWords(remainder).replace('Rupees ', '').replace(' only', '');
+    }
+    
+    return `Rupees ${result} only`;
   }
   
-  return '';
+  if (number >= 10000000) {
+    const crore = Math.floor(number / 10000000);
+    const remainder = number % 10000000;
+    
+    let result = `${crore} Crore`;
+    if (remainder > 0) {
+      result += ' ' + convertToIndianCurrencyWords(remainder).replace('Rupees ', '').replace(' only', '');
+    }
+    
+    return `Rupees ${result} only`;
+  }
+  
+  if (number >= 100000) {
+    const lakh = Math.floor(number / 100000);
+    const remainder = number % 100000;
+    
+    let result = `${lakh} Lakh`;
+    if (remainder > 0) {
+      result += ' ' + convertToIndianCurrencyWords(remainder).replace('Rupees ', '').replace(' only', '');
+    }
+    
+    return `Rupees ${result} only`;
+  }
+  
+  if (number >= 1000) {
+    const thousand = Math.floor(number / 1000);
+    const remainder = number % 1000;
+    
+    let result = `${thousand} Thousand`;
+    if (remainder > 0) {
+      if (remainder < 100) {
+        result += ' ' + convertToIndianCurrencyWords(remainder).replace('Rupees ', '').replace(' only', '');
+      } else {
+        result += ' ' + convertLessThanThousand(remainder);
+      }
+    }
+    
+    return `Rupees ${result} only`;
+  }
+  
+  // For numbers less than 1000
+  return `Rupees ${convertLessThanThousand(number)} only`;
 }
