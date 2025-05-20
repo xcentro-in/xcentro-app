@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { convertToIndianCurrencyWords } from "@/utils/numberToWords";
 
 export type PaymentType = "now" | "later" | "recurring";
 
@@ -122,13 +123,20 @@ export const PaymentDetailsStep = ({
 
       <div className="space-y-2">
         <Label>Amount</Label>
-        <Input 
-          type="number" 
-          placeholder="Enter amount" 
-          value={amount}
-          onChange={(e) => onAmountChange(e.target.value)}
-          className="max-w-[240px]"
-        />
+        <div className="relative">
+          <Input 
+            type="number" 
+            placeholder="Enter amount" 
+            value={amount}
+            onChange={(e) => onAmountChange(e.target.value)}
+            className="max-w-[240px]"
+          />
+          {amount && !isNaN(Number(amount)) && Number(amount) > 0 && (
+            <div className="mt-1 text-sm text-muted-foreground">
+              {convertToIndianCurrencyWords(amount)}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
