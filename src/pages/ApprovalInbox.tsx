@@ -1,10 +1,15 @@
+
 import { useState } from "react";
 import ApprovalInboxStatusCards from "@/components/approvals/ApprovalInboxStatusCards";
 import ApprovalInboxTabs from "@/components/approvals/ApprovalInboxTabs";
+import ApprovalTransactionList from "@/components/approvals/ApprovalTransactionList";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { ApprovalTransaction } from "@/types/approval";
 import { toast } from "@/hooks/use-toast";
+import ApprovalInboxSearch from "@/components/approvals/ApprovalInboxSearch";
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ApprovalInbox = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -33,6 +38,9 @@ const ApprovalInbox = () => {
           : transaction
       )
     );
+    toast({
+      description: `Transaction ${id} approved successfully`,
+    });
   };
 
   const handleReject = (id: string) => {
@@ -43,6 +51,9 @@ const ApprovalInbox = () => {
           : transaction
       )
     );
+    toast({
+      description: `Transaction ${id} rejected`,
+    });
   };
 
   const handleFlag = (id: string) => {
@@ -53,6 +64,9 @@ const ApprovalInbox = () => {
           : transaction
       )
     );
+    toast({
+      description: `Transaction ${id} flagged for review`,
+    });
   };
 
   const handleRequestChanges = (id: string) => {
@@ -63,6 +77,9 @@ const ApprovalInbox = () => {
           : transaction
       )
     );
+    toast({
+      description: `Changes requested for transaction ${id}`,
+    });
   };
 
   // Filter for search box (case insensitive, by payee, initiator, or transaction id)
@@ -131,18 +148,39 @@ const ApprovalInbox = () => {
 
       <Card className="animate-scale-in">
         <CardHeader className="pb-3">
-          <ApprovalInboxTabs
-            tabs={tabs}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-          />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <ApprovalInboxTabs
+              tabs={tabs}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <ApprovalInboxSearch 
+                value={searchValue}
+                onChange={setSearchValue}
+                className="w-full sm:w-auto"
+              />
+              <Button variant="outline" size="icon" onClick={handleRefresh}>
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between mt-6 text-sm text-muted-foreground">
+          <div className="flex items-center justify-between mt-2 mb-4 text-sm text-muted-foreground">
             <div>
               Showing <span className="font-medium">{getTabTransactions().length}</span> of <span className="font-medium">{transactions.length}</span> transactions
             </div>
           </div>
+          
+          {/* Add the transaction list component */}
+          <ApprovalTransactionList 
+            transactions={getTabTransactions()}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onFlag={handleFlag}
+            onRequestChanges={handleRequestChanges}
+          />
         </CardContent>
       </Card>
     </div>
