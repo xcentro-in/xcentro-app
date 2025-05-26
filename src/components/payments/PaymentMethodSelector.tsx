@@ -7,7 +7,6 @@ import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType, CardPaymentMethod } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import CreditCardDisplay from "./CreditCardDisplay";
 
 interface PaymentMethodSelectorProps {
   onSelect: (paymentMethodId: string) => void;
@@ -32,13 +31,26 @@ const PaymentMethodSelector = ({
         return <PhoneIcon className="h-4 w-4" />;
     }
   };
+
+  const getCardNetworkLogo = (cardType: string) => {
+    switch (cardType.toLowerCase()) {
+      case "visa":
+        return "/lovable-uploads/b9b4153b-9e1f-4d42-bf1a-d9542c830869.png";
+      case "mastercard":
+        return "/lovable-uploads/d410a8cf-777f-48c4-8430-bea8af7a96cc.png";
+      case "amex":
+        return "/lovable-uploads/e5fb902c-794e-4682-8d5a-8acf5a9e0c0d.png";
+      default:
+        return null;
+    }
+  };
   
   const getMethodDetails = (method: PaymentMethod) => {
     switch (method.type) {
       case "card":
         return {
-          title: `${method.cardType.toUpperCase()} •••• ${method.lastFourDigits}`,
-          subtitle: `${method.cardholderName} | Exp: ${method.expiryDate}`,
+          title: `HDFC Millenia`,
+          subtitle: `**** ${method.lastFourDigits}`,
           bgColor: "bg-primary/10",
           textColor: "text-primary"
         };
@@ -90,32 +102,7 @@ const PaymentMethodSelector = ({
         return acc;
       }, {} as Record<PaymentMethodType, PaymentMethod[]>);
 
-  // Render card methods using the new CreditCardDisplay component
-  const renderCardMethods = (cardMethods: CardPaymentMethod[]) => {
-    if (cardMethods.length === 0) {
-      return (
-        <div className="text-center py-4 text-muted-foreground">
-          <p className="text-sm">No credit card payment methods found</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {cardMethods.map((card) => (
-          <div key={card.id} className="relative">
-            <CreditCardDisplay
-              card={card}
-              isSelected={selectedMethodId === card.id}
-              onClick={() => onSelect(card.id)}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  // Render other payment methods in list view
+  // Render all payment methods in list view
   const renderMethodsList = (methods: PaymentMethod[]) => {
     if (methods.length === 0) {
       return (
@@ -141,18 +128,21 @@ const PaymentMethodSelector = ({
                 )}
               >
                 <div className={`h-8 w-8 rounded-full ${details.bgColor} flex items-center justify-center flex-shrink-0`}>
-                  {getMethodIcon(method.type)}
+                  {method.type === "card" ? (
+                    <img 
+                      src={getCardNetworkLogo((method as CardPaymentMethod).cardType)} 
+                      alt={(method as CardPaymentMethod).cardType}
+                      className="h-5 w-5 object-contain"
+                    />
+                  ) : (
+                    getMethodIcon(method.type)
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="font-medium text-sm truncate">
                       {details.title}
                     </div>
-                    {method.isDefault && !isSelected && (
-                      <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full flex-shrink-0">
-                        Default
-                      </span>
-                    )}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{details.subtitle}</div>
                 </div>
@@ -181,10 +171,7 @@ const PaymentMethodSelector = ({
             <h3 className="font-medium text-base">{getMethodTypeTitle(type as PaymentMethodType)}</h3>
           </div>
           
-          {type === "card" ? 
-            renderCardMethods(methods as CardPaymentMethod[]) : 
-            renderMethodsList(methods)
-          }
+          {renderMethodsList(methods)}
         </div>
       ))}
     </div>
