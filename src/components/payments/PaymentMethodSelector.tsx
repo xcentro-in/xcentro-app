@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
@@ -19,6 +19,16 @@ const PaymentMethodSelector = ({
   selectedMethodId,
   showOnlyCards = false 
 }: PaymentMethodSelectorProps) => {
+  // Find the default payment method and pre-select it if no method is selected
+  useEffect(() => {
+    if (!selectedMethodId) {
+      const defaultMethod = mockPaymentMethods.find(method => method.isDefault);
+      if (defaultMethod) {
+        onSelect(defaultMethod.id);
+      }
+    }
+  }, [selectedMethodId, onSelect]);
+
   const getMethodIcon = (type: PaymentMethodType) => {
     switch (type) {
       case "card":
@@ -149,10 +159,7 @@ const PaymentMethodSelector = ({
                 <RadioGroupItem 
                   value={method.id} 
                   id={method.id}
-                  className={cn(
-                    "flex-shrink-0",
-                    method.isDefault && isSelected ? "border-green-500 text-green-500" : ""
-                  )}
+                  className="flex-shrink-0"
                 />
               </Label>
             </div>
