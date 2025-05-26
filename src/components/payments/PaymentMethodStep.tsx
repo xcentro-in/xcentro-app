@@ -29,22 +29,37 @@ const PaymentMethodStep = ({
   onFrequencyChange
 }: PaymentMethodStepProps) => {
   return (
-    <div className="space-y-4">
-      <h3 className="font-medium mb-2">Select Payment Method</h3>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold mb-1">Select Payment Method & Schedule</h2>
+        <p className="text-muted-foreground">
+          Choose your payment method and when to process the payment
+        </p>
+      </div>
       
-      <PaymentMethodSelector 
-        onSelect={onSelect}
-        selectedMethodId={selectedPaymentMethod}
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Payment Method</h3>
+          <PaymentMethodSelector 
+            onSelect={onSelect}
+            selectedMethodId={selectedPaymentMethod}
+          />
+        </div>
 
-      <PaymentScheduleSelector
-        paymentType={paymentType}
-        scheduledDate={scheduledDate}
-        frequency={frequency}
-        onPaymentTypeChange={onPaymentTypeChange}
-        onScheduledDateChange={onScheduledDateChange}
-        onFrequencyChange={onFrequencyChange}
-      />
+        <div className="space-y-4">
+          <h3 className="font-medium text-lg">Payment Schedule</h3>
+          <div className="border rounded-lg p-4">
+            <PaymentScheduleSelector
+              paymentType={paymentType}
+              scheduledDate={scheduledDate}
+              frequency={frequency}
+              onPaymentTypeChange={onPaymentTypeChange}
+              onScheduledDateChange={onScheduledDateChange}
+              onFrequencyChange={onFrequencyChange}
+            />
+          </div>
+        </div>
+      </div>
 
       <div className="flex justify-between mt-6">
         <Button variant="outline" onClick={onBack} className="w-auto">Back</Button>

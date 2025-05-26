@@ -30,9 +30,7 @@ const PaymentScheduleSelector = ({
   onFrequencyChange,
 }: PaymentScheduleSelectorProps) => {
   return (
-    <div className="space-y-4 mt-6 border-t pt-6">
-      <h3 className="font-medium">When to schedule this payment</h3>
-      
+    <div className="space-y-4">      
       <RadioGroup 
         value={paymentType} 
         onValueChange={(value: PaymentScheduleType) => onPaymentTypeChange(value)}
@@ -97,7 +95,7 @@ const PaymentScheduleSelector = ({
 
       {paymentType === "recurring" && (
         <div className="ml-6 mt-2">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label className="text-sm">Payment frequency</Label>
               <Select value={frequency} onValueChange={onFrequencyChange}>
