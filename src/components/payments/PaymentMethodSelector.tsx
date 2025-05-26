@@ -1,11 +1,12 @@
 
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, Check } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { CreditCard, BanknoteIcon, IndianRupee, PhoneIcon } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType, CardPaymentMethod } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 import CreditCardDisplay from "./CreditCardDisplay";
 
 interface PaymentMethodSelectorProps {
@@ -19,22 +20,16 @@ const PaymentMethodSelector = ({
   selectedMethodId,
   showOnlyCards = false 
 }: PaymentMethodSelectorProps) => {
-  const [activeTab, setActiveTab] = useState<PaymentMethodType>("card");
-  
-  const filteredMethods = mockPaymentMethods.filter(method => 
-    showOnlyCards ? method.type === "card" : method.type === activeTab
-  );
-  
   const getMethodIcon = (type: PaymentMethodType) => {
     switch (type) {
       case "card":
-        return <CreditCard className="h-5 w-5" />;
+        return <CreditCard className="h-4 w-4" />;
       case "bank":
-        return <BanknoteIcon className="h-5 w-5" />;
+        return <BanknoteIcon className="h-4 w-4" />;
       case "bnpl":
-        return <IndianRupee className="h-5 w-5" />;
+        return <IndianRupee className="h-4 w-4" />;
       case "upi":
-        return <PhoneIcon className="h-5 w-5" />;
+        return <PhoneIcon className="h-4 w-4" />;
     }
   };
   
@@ -71,130 +66,127 @@ const PaymentMethodSelector = ({
     }
   };
 
+  const getMethodTypeTitle = (type: PaymentMethodType) => {
+    switch (type) {
+      case "card":
+        return "Credit/Debit Cards";
+      case "bank":
+        return "Bank Accounts";
+      case "bnpl":
+        return "Buy Now Pay Later";
+      case "upi":
+        return "UPI";
+    }
+  };
+
+  // Group methods by type
+  const groupedMethods = showOnlyCards 
+    ? { card: mockPaymentMethods.filter(method => method.type === "card") }
+    : mockPaymentMethods.reduce((acc, method) => {
+        if (!acc[method.type]) {
+          acc[method.type] = [];
+        }
+        acc[method.type].push(method);
+        return acc;
+      }, {} as Record<PaymentMethodType, PaymentMethod[]>);
+
   // Render card methods using the new CreditCardDisplay component
-  const renderCardMethods = () => {
-    const cardMethods = filteredMethods.filter(method => method.type === "card") as CardPaymentMethod[];
-    
+  const renderCardMethods = (cardMethods: CardPaymentMethod[]) => {
     if (cardMethods.length === 0) {
       return (
-        <div className="text-center py-6 text-muted-foreground">
-          <p>No credit card payment methods found</p>
+        <div className="text-center py-4 text-muted-foreground">
+          <p className="text-sm">No credit card payment methods found</p>
         </div>
       );
     }
     
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {cardMethods.map((card) => (
-          <CreditCardDisplay
-            key={card.id}
-            card={card}
-            isSelected={selectedMethodId === card.id}
-            onClick={() => onSelect(card.id)}
-          />
+          <div key={card.id} className="relative">
+            <CreditCardDisplay
+              card={card}
+              isSelected={selectedMethodId === card.id}
+              onClick={() => onSelect(card.id)}
+            />
+          </div>
         ))}
       </div>
     );
   };
 
-  // Render other payment methods (bank, bnpl, upi)
-  const renderOtherMethods = () => {
-    const otherMethods = filteredMethods.filter(method => method.type === activeTab && method.type !== "card");
-    
-    if (otherMethods.length === 0) {
+  // Render other payment methods in list view
+  const renderMethodsList = (methods: PaymentMethod[]) => {
+    if (methods.length === 0) {
       return (
-        <div className="text-center py-6 text-muted-foreground">
-          <p>No {activeTab} payment methods found</p>
+        <div className="text-center py-4 text-muted-foreground">
+          <p className="text-sm">No payment methods found</p>
         </div>
       );
     }
     
     return (
-      <div className="space-y-3">
-        {otherMethods.map((method) => {
+      <RadioGroup value={selectedMethodId} onValueChange={onSelect} className="space-y-2">
+        {methods.map((method) => {
           const details = getMethodDetails(method);
           const isSelected = selectedMethodId === method.id;
+          
           return (
-            <Card 
-              key={method.id}
-              className={cn(
-                "border transition-all cursor-pointer hover:shadow-md relative",
-                isSelected ? "ring-2 ring-primary bg-green-50" : ""
-              )}
-              onClick={() => onSelect(method.id)}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className={`h-10 w-10 rounded-full ${details.bgColor} flex items-center justify-center`}>
-                    {getMethodIcon(method.type)}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium flex items-center gap-2">
-                      {details.title}
-                      {method.isDefault && (
-                        <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">
-                          Default
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{details.subtitle}</div>
-                  </div>
-                  {isSelected && (
-                    <div className="absolute right-4 flex items-center">
-                      <div className="bg-green-500 text-white rounded-full p-1">
-                        <Check className="h-4 w-4" />
-                      </div>
-                      <span className="text-green-500 text-sm font-medium ml-1">Selected</span>
-                    </div>
-                  )}
+            <div key={method.id}>
+              <Label
+                htmlFor={method.id}
+                className={cn(
+                  "flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-accent/50",
+                  isSelected ? "border-primary bg-primary/5" : "border-border"
+                )}
+              >
+                <div className={`h-8 w-8 rounded-full ${details.bgColor} flex items-center justify-center flex-shrink-0`}>
+                  {getMethodIcon(method.type)}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="font-medium text-sm truncate">
+                      {details.title}
+                    </div>
+                    {method.isDefault && !isSelected && (
+                      <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full flex-shrink-0">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">{details.subtitle}</div>
+                </div>
+                <RadioGroupItem 
+                  value={method.id} 
+                  id={method.id}
+                  className={cn(
+                    "flex-shrink-0",
+                    method.isDefault && isSelected ? "border-green-500 text-green-500" : ""
+                  )}
+                />
+              </Label>
+            </div>
           );
         })}
-      </div>
+      </RadioGroup>
     );
   };
 
   return (
-    <div className="space-y-4">
-      {!showOnlyCards && (
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PaymentMethodType)}>
-          <TabsList className="grid grid-cols-4 mb-4 w-full">
-            <TabsTrigger 
-              value="card" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span className="text-xs">Card</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bank" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <BanknoteIcon className="h-4 w-4" />
-              <span className="text-xs">Bank</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bnpl" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <IndianRupee className="h-4 w-4" />
-              <span className="text-xs">BNPL</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="upi" 
-              className="flex items-center gap-2 py-2 h-auto w-full px-2"
-            >
-              <PhoneIcon className="h-4 w-4" />
-              <span className="text-xs">UPI</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      )}
-
-      {/* Render either card view or other payment methods view */}
-      {(showOnlyCards || activeTab === "card") ? renderCardMethods() : renderOtherMethods()}
+    <div className="space-y-6">
+      {Object.entries(groupedMethods).map(([type, methods]) => (
+        <div key={type} className="space-y-3">
+          <div className="flex items-center gap-2">
+            {getMethodIcon(type as PaymentMethodType)}
+            <h3 className="font-medium text-base">{getMethodTypeTitle(type as PaymentMethodType)}</h3>
+          </div>
+          
+          {type === "card" ? 
+            renderCardMethods(methods as CardPaymentMethod[]) : 
+            renderMethodsList(methods)
+          }
+        </div>
+      ))}
     </div>
   );
 };

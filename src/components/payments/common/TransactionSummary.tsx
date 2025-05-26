@@ -21,7 +21,7 @@ export interface TransactionSummaryProps {
   amount: number;
   description: string;
   invoiceReference: string;
-  payee: Payee;
+  payee?: Payee;
   paymentMethod?: PaymentMethod;
   platformFee: number;
   gatewayFee: number;
@@ -67,11 +67,13 @@ export const TransactionSummary = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <PayeeSection 
-          payee={payee}
-          employees={employees}
-          onViewEmployees={() => setIsEmployeesDialogOpen(true)}
-        />
+        {payee && (
+          <PayeeSection 
+            payee={payee}
+            employees={employees}
+            onViewEmployees={() => setIsEmployeesDialogOpen(true)}
+          />
+        )}
         <PaymentDetailsSection 
           paymentType={paymentType}
           scheduledDate={scheduledDate}

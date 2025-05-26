@@ -121,7 +121,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         />
       )}
 
-      {step === 5 && (
+      {step === 5 && payeeDetails && (
         <TransactionSummary
           paymentType={paymentType}
           scheduledDate={scheduledDate}
@@ -133,7 +133,6 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           paymentMethod={paymentMethodDetails}
           platformFee={platformFee}
           gatewayFee={gatewayFee}
-          rewardPackageCost={rewardPackageCost}
           rewardPackage={selectedRewardPackage}
           totalAmount={totalAmount}
           rewardPoints={rewardPoints}
