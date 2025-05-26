@@ -14,6 +14,8 @@ interface PaymentMethodStepProps {
   onPaymentTypeChange: (value: PaymentScheduleType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onFrequencyChange: (value: string) => void;
+  amount?: number;
+  payeeId?: string;
 }
 
 const PaymentMethodStep = ({
@@ -26,7 +28,9 @@ const PaymentMethodStep = ({
   frequency,
   onPaymentTypeChange,
   onScheduledDateChange,
-  onFrequencyChange
+  onFrequencyChange,
+  amount,
+  payeeId
 }: PaymentMethodStepProps) => {
   return (
     <div className="space-y-6">
@@ -43,6 +47,8 @@ const PaymentMethodStep = ({
           <PaymentMethodSelector 
             onSelect={onSelect}
             selectedMethodId={selectedPaymentMethod}
+            amount={amount}
+            payeeId={payeeId}
           />
         </div>
 

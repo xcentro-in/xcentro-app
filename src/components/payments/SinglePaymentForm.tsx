@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PaymentDetailsStep } from "./PaymentDetailsStep";
 import { TransactionSummary } from "./common/TransactionSummary";
@@ -110,6 +109,8 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           onFrequencyChange={setFrequency}
           onBack={handleBack}
           onNext={handleNext}
+          amount={parsedAmount}
+          payeeId={selectedPayee}
         />
       )}
 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -7,18 +6,32 @@ import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod, PaymentMethodType, CardPaymentMethod } from "@/types/payment-method";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import PaymentRecommendationCard from "./PaymentRecommendation";
+import { usePaymentRecommendations } from "@/hooks/usePaymentRecommendations";
 
 interface PaymentMethodSelectorProps {
   onSelect: (paymentMethodId: string) => void;
   selectedMethodId?: string;
   showOnlyCards?: boolean;
+  amount?: number;
+  payeeId?: string;
 }
 
 const PaymentMethodSelector = ({ 
   onSelect, 
   selectedMethodId,
-  showOnlyCards = false 
+  showOnlyCards = false,
+  amount,
+  payeeId
 }: PaymentMethodSelectorProps) => {
+  const [dismissedRecommendations, setDismissedRecommendations] = useState<Set<string>>(new Set());
+  
+  const { recommendations, isLoading: recommendationsLoading, submitFeedback } = usePaymentRecommendations({
+    amount,
+    payeeId,
+    enabled: !!amount && amount > 0
+  });
+
   // Find the default payment method and pre-select it if no method is selected
   useEffect(() => {
     if (!selectedMethodId) {
@@ -28,6 +41,18 @@ const PaymentMethodSelector = ({
       }
     }
   }, [selectedMethodId, onSelect]);
+
+  const handleRecommendationSelect = (methodId: string) => {
+    onSelect(methodId);
+  };
+
+  const handleRecommendationFeedback = (recommendationId: string, isHelpful: boolean) => {
+    submitFeedback(recommendationId, isHelpful);
+  };
+
+  const handleDismissRecommendation = (recommendationId: string) => {
+    setDismissedRecommendations(prev => new Set([...prev, recommendationId]));
+  };
 
   const getMethodIcon = (type: PaymentMethodType) => {
     switch (type) {
@@ -169,8 +194,29 @@ const PaymentMethodSelector = ({
     );
   };
 
+  // Filter out dismissed recommendations
+  const visibleRecommendations = recommendations.filter(
+    rec => !dismissedRecommendations.has(rec.paymentMethodId)
+  );
+
   return (
     <div className="space-y-6">
+      {/* Show recommendations if available */}
+      {visibleRecommendations.length > 0 && (
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm text-gray-700">Smart Recommendation</h4>
+          {visibleRecommendations.map((recommendation) => (
+            <PaymentRecommendationCard
+              key={recommendation.paymentMethodId}
+              recommendation={recommendation}
+              onSelect={handleRecommendationSelect}
+              onFeedback={(isHelpful) => handleRecommendationFeedback(recommendation.paymentMethodId, isHelpful)}
+              onDismiss={() => handleDismissRecommendation(recommendation.paymentMethodId)}
+            />
+          ))}
+        </div>
+      )}
+
       {Object.entries(groupedMethods).map(([type, methods]) => (
         <div key={type} className="space-y-3">
           <div className="flex items-center gap-2">
