@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +31,9 @@ const PaymentActivityMap = () => {
   const generateActivityData = (): ActivityData[] => {
     const data: ActivityData[] = [];
     const today = new Date();
-    const startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+    
+    // Start from 12 months ago + 1 day to avoid including the same month
+    const startDate = new Date(today.getFullYear() - 1, today.getMonth() + 1, 1);
     
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
       const day = d.getDate();
