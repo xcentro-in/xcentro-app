@@ -120,23 +120,32 @@ const PaymentActivityMap = () => {
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 
-  // Calculate month positions for proper alignment
+  // Calculate month positions based on actual week positions
   const getMonthPositions = () => {
     const positions: { month: string; position: number }[] = [];
-    let weekIndex = 0;
+    let currentMonth = -1;
+    const cellSize = 14; // 12px width + 2px gap
     
-    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
-      const month = monthLabels[monthIndex];
-      positions.push({ month, position: weekIndex * 4.5 }); // Approximate position
-      
-      // Add weeks for this month (roughly 4.3 weeks per month)
-      weekIndex += 4.3;
-    }
+    weeks.forEach((week, weekIndex) => {
+      if (week.length > 0) {
+        const firstDayOfWeek = week[0];
+        const month = firstDayOfWeek.date.getMonth();
+        
+        if (month !== currentMonth) {
+          currentMonth = month;
+          positions.push({
+            month: monthLabels[month],
+            position: weekIndex * cellSize + 28 // 28px offset for day labels
+          });
+        }
+      }
+    });
     
     return positions;
   };
 
   const monthPositions = getMonthPositions();
+  const totalWidth = weeks.length * 14 + 28; // Calculate total width needed
 
   return (
     <Card className="col-span-full animate-fade-in" style={{ animationDelay: "100ms" }}>
@@ -149,14 +158,14 @@ const PaymentActivityMap = () => {
       <CardContent className="space-y-6">
         {/* Container for responsive scrolling */}
         <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
+          <div style={{ minWidth: `${totalWidth}px` }}>
             {/* Month labels */}
             <div className="relative mb-2 h-4">
               {monthPositions.map((monthPos, index) => (
                 <span 
                   key={index} 
                   className="absolute text-xs text-muted-foreground"
-                  style={{ left: `${20 + monthPos.position}px` }}
+                  style={{ left: `${monthPos.position}px` }}
                 >
                   {monthPos.month}
                 </span>
@@ -166,11 +175,11 @@ const PaymentActivityMap = () => {
             {/* Activity grid */}
             <div className="space-y-1">
               {dayLabels.map((dayLabel, dayOfWeek) => (
-                <div key={dayOfWeek} className="flex items-center gap-1">
-                  <div className="w-6 text-xs text-muted-foreground text-right">
+                <div key={dayOfWeek} className="flex items-center gap-0.5">
+                  <div className="w-6 text-xs text-muted-foreground text-right flex-shrink-0">
                     {dayLabel}
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-0.5 ml-1">
                     {weeks.map((week, weekIndex) => {
                       const dayData = week.find(d => d.date.getDay() === dayOfWeek);
                       return (
