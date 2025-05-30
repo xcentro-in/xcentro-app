@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame, TrendingUp, Clock, Calendar } from "lucide-react";
+import { Flame, TrendingUp, Clock, Calendar, Lightbulb } from "lucide-react";
 
 interface ActivityData {
   date: Date;
@@ -120,6 +120,24 @@ const PaymentActivityMap = () => {
   const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const dayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
 
+  // Calculate month positions for proper alignment
+  const getMonthPositions = () => {
+    const positions: { month: string; position: number }[] = [];
+    let weekIndex = 0;
+    
+    for (let monthIndex = 0; monthIndex < 12; monthIndex++) {
+      const month = monthLabels[monthIndex];
+      positions.push({ month, position: weekIndex * 4.5 }); // Approximate position
+      
+      // Add weeks for this month (roughly 4.3 weeks per month)
+      weekIndex += 4.3;
+    }
+    
+    return positions;
+  };
+
+  const monthPositions = getMonthPositions();
+
   return (
     <Card className="col-span-full animate-fade-in" style={{ animationDelay: "100ms" }}>
       <CardHeader>
@@ -129,37 +147,48 @@ const PaymentActivityMap = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Month labels */}
-        <div className="flex justify-between px-3 text-xs text-muted-foreground">
-          {monthLabels.map((month, index) => (
-            <span key={index} className="flex-1 text-center">{month}</span>
-          ))}
-        </div>
-
-        {/* Activity grid */}
-        <div className="space-y-1">
-          {dayLabels.map((dayLabel, dayOfWeek) => (
-            <div key={dayOfWeek} className="flex items-center gap-1">
-              <div className="w-6 text-xs text-muted-foreground text-right">
-                {dayLabel}
-              </div>
-              <div className="flex gap-1">
-                {weeks.map((week, weekIndex) => {
-                  const dayData = week.find(d => d.date.getDay() === dayOfWeek);
-                  return (
-                    <div
-                      key={weekIndex}
-                      className={`w-3 h-3 rounded-sm cursor-pointer transition-all hover:scale-110 border border-gray-200 ${
-                        dayData ? getIntensityClass(dayData.intensity) : 'bg-gray-100'
-                      }`}
-                      onMouseEnter={dayData ? (e) => handleCellHover(e, dayData) : undefined}
-                      onMouseLeave={handleCellLeave}
-                    />
-                  );
-                })}
-              </div>
+        {/* Container for responsive scrolling */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Month labels */}
+            <div className="relative mb-2 h-4">
+              {monthPositions.map((monthPos, index) => (
+                <span 
+                  key={index} 
+                  className="absolute text-xs text-muted-foreground"
+                  style={{ left: `${20 + monthPos.position}px` }}
+                >
+                  {monthPos.month}
+                </span>
+              ))}
             </div>
-          ))}
+
+            {/* Activity grid */}
+            <div className="space-y-1">
+              {dayLabels.map((dayLabel, dayOfWeek) => (
+                <div key={dayOfWeek} className="flex items-center gap-1">
+                  <div className="w-6 text-xs text-muted-foreground text-right">
+                    {dayLabel}
+                  </div>
+                  <div className="flex gap-1">
+                    {weeks.map((week, weekIndex) => {
+                      const dayData = week.find(d => d.date.getDay() === dayOfWeek);
+                      return (
+                        <div
+                          key={weekIndex}
+                          className={`w-3 h-3 cursor-pointer transition-all hover:scale-110 border border-gray-200 ${
+                            dayData ? getIntensityClass(dayData.intensity) : 'bg-gray-100'
+                          }`}
+                          onMouseEnter={dayData ? (e) => handleCellHover(e, dayData) : undefined}
+                          onMouseLeave={handleCellLeave}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Legend */}
@@ -169,12 +198,15 @@ const PaymentActivityMap = () => {
             {[0, 1, 2, 3, 4].map(level => (
               <div
                 key={level}
-                className={`w-3 h-3 rounded-sm border border-gray-200 ${getIntensityClass(level)}`}
+                className={`w-3 h-3 border border-gray-200 ${getIntensityClass(level)}`}
               />
             ))}
           </div>
           <span>More</span>
-          <span className="ml-4">💡 Darker = More payments that day</span>
+          <span className="ml-4 flex items-center gap-1">
+            <Lightbulb className="h-3 w-3" />
+            Darker = More payments that day
+          </span>
         </div>
 
         {/* Insights Grid */}
