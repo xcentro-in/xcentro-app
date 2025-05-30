@@ -5,7 +5,6 @@ import {
   FileText, 
   Clock,
   Calendar,
-  Download,
   SlidersHorizontal,
   ChevronUp,
   ChevronDown,
@@ -69,7 +68,7 @@ interface ViewOptions {
   showCategoryBreakdown: boolean;
   showTaxCompliance: boolean;
   showCashFlowForecast: boolean;
-  showCreditCardInsights: boolean;
+  showPaymentActivityMap: boolean;
   timePeriod: string;
 }
 
@@ -81,7 +80,7 @@ const Insights = () => {
     showCategoryBreakdown: true,
     showTaxCompliance: true,
     showCashFlowForecast: true,
-    showCreditCardInsights: true,
+    showPaymentActivityMap: true,
     timePeriod: "thisMonth",
   });
   
@@ -109,11 +108,6 @@ const Insights = () => {
               <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button variant="outline" className="h-10 gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
           
           <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
             <DialogTrigger asChild>
@@ -148,7 +142,7 @@ const Insights = () => {
       </div>
 
       {/* Payment Activity Section */}
-      <PaymentActivityMap />
+      {viewOptions.showPaymentActivityMap && <PaymentActivityMap />}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {viewOptions.showSpendingTrend && (
