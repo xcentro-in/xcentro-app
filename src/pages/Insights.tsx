@@ -27,6 +27,7 @@ import {
 } from "@/components/insights/InsightsCharts";
 import CustomizeViewDialog from "@/components/insights/CustomizeViewDialog";
 import StatCard from "@/components/insights/StatCard";
+import PaymentActivityMap from "@/components/insights/PaymentActivityMap";
 
 // Mock data for charts
 const spendingData = [
@@ -145,6 +146,9 @@ const Insights = () => {
           />
         ))}
       </div>
+
+      {/* Payment Activity Section */}
+      <PaymentActivityMap />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {viewOptions.showSpendingTrend && (
