@@ -72,6 +72,12 @@ const ApprovalInbox = () => {
         completedCount={completedCount}
       />
 
+      <ApprovalInboxTabs 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        tabs={tabs}
+      />
+
       <Card className="animate-scale-in">
         <CardContent className="pt-6">
           <div className="space-y-6">
