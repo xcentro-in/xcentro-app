@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,11 +19,19 @@ const ApprovalInbox = () => {
   const [selectedAmountRange, setSelectedAmountRange] = useState<string>("all");
   const [selectedDateRange, setSelectedDateRange] = useState<string>("all");
 
+  // Calculate status counts
+  const pendingCount = mockApprovalTransactions.filter(t => t.status === "pending").length;
+  const urgentCount = mockApprovalTransactions.filter(t => t.status === "urgent").length;
+  const flaggedCount = mockApprovalTransactions.filter(t => t.status === "flagged").length;
+  const completedCount = mockApprovalTransactions.filter(t => 
+    t.status === "approved" || t.status === "rejected" || t.status === "changes_requested"
+  ).length;
+
   // Filter transactions based on active tab and filters
   const filteredTransactions = mockApprovalTransactions.filter(transaction => {
     const matchesStatus = transaction.status === activeTab;
     const matchesSearch = searchTerm === "" || 
-      transaction.payeeName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.payee.toLowerCase().includes(searchTerm.toLowerCase()) ||
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase());
     
     return matchesStatus && matchesSearch;
@@ -32,6 +41,16 @@ const ApprovalInbox = () => {
     // Add refresh logic here
     console.log("Refreshing approval transactions...");
   };
+
+  // Define tabs with proper structure
+  const tabs = [
+    { value: "pending", label: "Pending", count: pendingCount },
+    { value: "urgent", label: "Urgent", count: urgentCount },
+    { value: "flagged", label: "Flagged", count: flaggedCount },
+    { value: "approved", label: "Approved", count: mockApprovalTransactions.filter(t => t.status === "approved").length },
+    { value: "rejected", label: "Rejected", count: mockApprovalTransactions.filter(t => t.status === "rejected").length },
+    { value: "changes_requested", label: "Changes Requested", count: mockApprovalTransactions.filter(t => t.status === "changes_requested").length }
+  ];
 
   return (
     <div className="space-y-8">
@@ -46,16 +65,16 @@ const ApprovalInbox = () => {
         </p>
       </div>
 
-      <ApprovalInboxStatusCards />
+      <ApprovalInboxStatusCards 
+        pendingCount={pendingCount}
+        urgentCount={urgentCount}
+        flaggedCount={flaggedCount}
+        completedCount={completedCount}
+      />
 
       <Card className="animate-scale-in">
         <CardContent className="pt-6">
           <div className="space-y-6">
-            <ApprovalInboxTabs 
-              activeTab={activeTab} 
-              onTabChange={setActiveTab} 
-            />
-            
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -78,20 +97,12 @@ const ApprovalInbox = () => {
               </Button>
             </div>
 
-            <ApprovalFilters
-              selectedPaymentMethod={selectedPaymentMethod}
-              onPaymentMethodChange={setSelectedPaymentMethod}
-              selectedAmountRange={selectedAmountRange}
-              onAmountRangeChange={setSelectedAmountRange}
-              selectedDateRange={selectedDateRange}
-              onDateRangeChange={setSelectedDateRange}
-            />
-
             <ApprovalTransactionList 
               transactions={filteredTransactions}
               onApprove={(id) => console.log("Approve:", id)}
               onReject={(id) => console.log("Reject:", id)}
-              onView={(id) => console.log("View:", id)}
+              onFlag={(id) => console.log("Flag:", id)}
+              onRequestChanges={(id) => console.log("Request changes:", id)}
             />
           </div>
         </CardContent>
