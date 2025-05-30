@@ -3,21 +3,17 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, CreditCard, BanknoteIcon, IndianRupee, PhoneIcon, ShieldCheck, Clock, Star, TrendingUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import PaymentMethodCard from "@/components/wallet/PaymentMethodCard";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import { PaymentMethod, PaymentMethodType } from "@/types/payment-method";
+import { PaymentMethod } from "@/types/payment-method";
 import { toast } from "sonner";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
-  const [activeTab, setActiveTab] = useState<PaymentMethodType>("card");
-  
-  const filteredPaymentMethods = paymentMethods.filter(method => method.type === activeTab);
   
   const handleDelete = (id: string) => {
     setPaymentMethods(prev => prev.filter(method => method.id !== id));
@@ -40,19 +36,6 @@ const WalletManagement = () => {
         enabledForRecurring: method.id === id ? enabled : method.enabledForRecurring
       }))
     );
-  };
-
-  const getPaymentMethodIcon = (type: PaymentMethodType) => {
-    switch (type) {
-      case "card":
-        return <CreditCard className="h-4 w-4" />;
-      case "bank":
-        return <BanknoteIcon className="h-4 w-4" />;
-      case "bnpl":
-        return <IndianRupee className="h-4 w-4" />;
-      case "upi":
-        return <PhoneIcon className="h-4 w-4" />;
-    }
   };
 
   const getUsageLevel = (methodId: string) => {
@@ -127,98 +110,72 @@ const WalletManagement = () => {
               Add New Payment Method
             </Button>
           </div>
-          
-          <Tabs 
-            defaultValue="card" 
-            value={activeTab} 
-            onValueChange={(value) => setActiveTab(value as PaymentMethodType)}
-          >
-            <TabsList className="grid grid-cols-4">
-              <TabsTrigger value="card" className="flex items-center gap-1">
-                <CreditCard className="h-3.5 w-3.5" />
-                <span>Cards</span>
-              </TabsTrigger>
-              <TabsTrigger value="bank" className="flex items-center gap-1">
-                <BanknoteIcon className="h-3.5 w-3.5" />
-                <span>Bank</span>
-              </TabsTrigger>
-              <TabsTrigger value="bnpl" className="flex items-center gap-1">
-                <IndianRupee className="h-3.5 w-3.5" />
-                <span>BNPL</span>
-              </TabsTrigger>
-              <TabsTrigger value="upi" className="flex items-center gap-1">
-                <PhoneIcon className="h-3.5 w-3.5" />
-                <span>UPI</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
         </div>
         
         <div className="p-0">
-          {filteredPaymentMethods.length > 0 ? (
+          {paymentMethods.length > 0 ? (
             <div className="space-y-0">
-              {filteredPaymentMethods.map((method, index) => {
+              {paymentMethods.map((method, index) => {
                 const usage = getUsageLevel(method.id);
-                const isLast = index === filteredPaymentMethods.length - 1;
+                const isLast = index === paymentMethods.length - 1;
                 
                 return (
                   <div 
                     key={method.id}
-                    className={`flex items-center p-6 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group ${
+                    className={`flex items-center p-5 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group ${
                       method.isDefault ? 'bg-blue-50/50 border-l-4 border-l-blue-500' : ''
                     } ${!isLast ? 'border-b border-slate-100' : ''}`}
                   >
                     {/* Icon */}
-                    <div className={`w-14 h-9 rounded-lg flex items-center justify-center mr-6 flex-shrink-0 shadow-sm ${
-                      method.type === 'card' 
-                        ? method.cardType === 'visa' ? 'bg-gradient-to-br from-blue-800 to-blue-900' 
-                          : method.cardType === 'mastercard' ? 'bg-gradient-to-br from-red-600 to-orange-500'
-                          : method.cardType === 'amex' ? 'bg-gradient-to-br from-blue-600 to-blue-700'
-                          : 'bg-gradient-to-br from-slate-600 to-slate-700'
-                        : method.type === 'bank' ? 'bg-gradient-to-br from-emerald-600 to-emerald-700'
-                        : method.type === 'bnpl' ? 'bg-gradient-to-br from-purple-600 to-purple-700'
-                        : 'bg-gradient-to-br from-indigo-600 to-indigo-700'
-                    }`}>
+                    <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
                       {method.type === 'card' && getCardNetworkIcon(method.cardType) ? (
                         <img 
                           src={getCardNetworkIcon(method.cardType)} 
                           alt={method.cardType}
-                          className="h-5 w-5 object-contain"
+                          className="h-6 w-auto object-contain"
                         />
                       ) : (
-                        <span className="text-white text-xs font-bold">
-                          {method.type === 'card' ? method.cardType.toUpperCase().slice(0, 4)
-                           : method.type === 'bank' ? (method.bankName?.slice(0, 4).toUpperCase() || 'BANK')
-                           : method.type === 'bnpl' ? 'BNPL'
-                           : 'UPI'}
-                        </span>
+                        <div className={`w-12 h-8 rounded-lg flex items-center justify-center ${
+                          method.type === 'card' 
+                            ? 'bg-gradient-to-br from-slate-600 to-slate-700'
+                            : method.type === 'bank' ? 'bg-gradient-to-br from-emerald-600 to-emerald-700'
+                            : method.type === 'bnpl' ? 'bg-gradient-to-br from-purple-600 to-purple-700'
+                            : 'bg-gradient-to-br from-indigo-600 to-indigo-700'
+                        }`}>
+                          <span className="text-white text-xs font-medium">
+                            {method.type === 'card' ? method.cardType.toUpperCase().slice(0, 4)
+                             : method.type === 'bank' ? (method.bankName?.slice(0, 4).toUpperCase() || 'BANK')
+                             : method.type === 'bnpl' ? 'BNPL'
+                             : 'UPI'}
+                          </span>
+                        </div>
                       )}
                     </div>
 
                     {/* Main Content */}
                     <div className="flex-1 min-w-0">
                       {/* Header */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold text-lg text-slate-900">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-base text-slate-900">
                             {method.type === 'card' ? `${method.cardholderName}`
                              : method.type === 'bank' ? `${method.bankName}`
                              : method.type === 'bnpl' ? method.provider
                              : method.upiId}
                           </h3>
                           {method.isDefault && (
-                            <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs">
+                            <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs px-2 py-0.5">
                               Primary
                             </Badge>
                           )}
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full animate-pulse ${
+                          <div className={`w-1.5 h-1.5 rounded-full ${
                             usage.level === 'high' ? 'bg-green-500' 
                             : usage.level === 'medium' ? 'bg-amber-500' 
                             : 'bg-slate-400'
                           }`}></div>
-                          <span className={`text-xs font-semibold uppercase tracking-wider ${
+                          <span className={`text-xs font-medium uppercase tracking-wide ${
                             usage.level === 'high' ? 'text-green-600' 
                             : usage.level === 'medium' ? 'text-amber-600' 
                             : 'text-slate-500'
@@ -229,32 +186,32 @@ const WalletManagement = () => {
                       </div>
 
                       {/* Details */}
-                      <div className="flex items-center gap-4 mb-3">
-                        <span className="font-mono text-slate-600">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-mono text-sm text-slate-600">
                           {method.type === 'card' ? `•••• •••• •••• ${method.lastFourDigits}`
                            : method.type === 'bank' ? `Account ending ${method.lastFourDigits}`
                            : method.type === 'bnpl' ? `Available: ₹${method.availableCredit.toLocaleString()}`
                            : method.linkedBank || 'UPI Payment'}
                         </span>
                         {method.type === 'card' && (
-                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs px-2 py-0.5">
                             Credit
                           </Badge>
                         )}
                       </div>
 
                       {/* Meta */}
-                      <div className="flex items-center gap-6 text-sm text-slate-500">
+                      <div className="flex items-center gap-5 text-xs text-slate-500">
                         <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
+                          <Clock className="h-3 w-3" />
                           <span>Used {usage.lastUsed}</span>
                         </div>
                         {method.type === 'card' && (
                           <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4" />
+                            <Star className="h-3 w-3" />
                             <span>2% cashback on utilities</span>
                             {method.isDefault && (
-                              <Badge className="ml-2 bg-amber-100 text-amber-700 text-xs">
+                              <Badge className="ml-1 bg-amber-100 text-amber-700 text-xs px-1 py-0">
                                 Best Rate
                               </Badge>
                             )}
@@ -264,17 +221,17 @@ const WalletManagement = () => {
                     </div>
 
                     {/* Stats */}
-                    <div className="flex gap-8 ml-8">
+                    <div className="flex gap-6 ml-6">
                       <div className="text-center">
-                        <div className="text-xl font-bold text-slate-900">{usage.transactions}</div>
+                        <div className="text-lg font-semibold text-slate-900">{usage.transactions}</div>
                         <div className="text-xs text-slate-500 uppercase tracking-wider">Uses</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-slate-900">{usage.amount}</div>
+                        <div className="text-lg font-semibold text-slate-900">{usage.amount}</div>
                         <div className="text-xs text-slate-500 uppercase tracking-wider">Amount</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-xl font-bold text-slate-900">
+                        <div className="text-lg font-semibold text-slate-900">
                           {method.type === 'card' ? '2.1K' : '₹0'}
                         </div>
                         <div className="text-xs text-slate-500 uppercase tracking-wider">
@@ -288,7 +245,7 @@ const WalletManagement = () => {
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">No payment methods found for this type.</p>
+              <p className="text-muted-foreground">No payment methods found.</p>
               <Button 
                 variant="outline" 
                 className="mt-4"
