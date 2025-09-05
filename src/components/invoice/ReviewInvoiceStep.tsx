@@ -265,7 +265,7 @@ const ReviewInvoiceStep = ({
                     )}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {formatDate(invoiceDetails.invoiceDate)}
+                    {formatDate(invoiceDetails.invoiceDate?.toString() || '')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -292,7 +292,7 @@ const ReviewInvoiceStep = ({
                     )}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {formatDate(invoiceDetails.dueDate)}
+                    {formatDate(invoiceDetails.dueDate?.toString() || '')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -343,11 +343,11 @@ const ReviewInvoiceStep = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Invoice Date:</span>
-                  <span>{formatDate(invoiceDetails.invoiceDate)}</span>
+                  <span>{formatDate(invoiceDetails.invoiceDate?.toString() || '')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Due Date:</span>
-                  <span>{formatDate(invoiceDetails.dueDate)}</span>
+                  <span>{formatDate(invoiceDetails.dueDate?.toString() || '')}</span>
                 </div>
                 <div className="flex justify-between font-medium pt-2 border-t">
                   <span>Total Amount:</span>

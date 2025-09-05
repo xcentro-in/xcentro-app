@@ -44,14 +44,14 @@ const UploadInvoiceStep = ({
     
     // Simulate a completed OCR process after 4 seconds
     setTimeout(() => {
-      setOcrProgress({ status: 'completed', message: 'Invoice details extracted successfully', progress: 100 });
+      setOcrProgress({ status: 'complete', message: 'Invoice details extracted successfully', progress: 100 });
       
       // Mock data that would normally come from OCR
       const mockExtractedDetails: InvoiceDetails = {
         invoiceNumber: "INV-2023-10512",
         vendorName: "TechSupplies Inc.",
-        invoiceDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        invoiceDate: new Date(),
+        dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         totalAmount: 4850.75,
         gstDetails: {
           cgst: 437.18,
@@ -67,6 +67,7 @@ const UploadInvoiceStep = ({
           {
             description: "Office Supplies",
             quantity: 10,
+            rate: 250,
             unitPrice: 250,
             amount: 2500,
             tax: 450
@@ -74,6 +75,7 @@ const UploadInvoiceStep = ({
           {
             description: "Software License",
             quantity: 1,
+            rate: 1500,
             unitPrice: 1500,
             amount: 1500,
             tax: 270

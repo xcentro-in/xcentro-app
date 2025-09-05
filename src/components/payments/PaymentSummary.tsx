@@ -3,14 +3,7 @@ import { TransactionSummary } from "./common/TransactionSummary";
 import { PaymentType } from "./PaymentDetailsStep";
 import { Payee } from "@/types/payee";
 import { PaymentMethod } from "@/types/payment-method";
-
-interface Employee {
-  name: string;
-  email: string;
-  accountNumber: string;
-  bankName: string;
-  salaryAmount: number;
-}
+import { Employee } from "./payroll/types";
 
 interface PaymentSummaryProps {
   paymentType: PaymentType;

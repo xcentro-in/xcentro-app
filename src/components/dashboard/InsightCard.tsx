@@ -6,7 +6,7 @@ import { formatCurrency } from "@/utils/formatters";
 
 interface InsightCardProps {
   title: string;
-  value: string;
+  value: number;
   change: number;
   trend: "up" | "down";
   delay?: number;

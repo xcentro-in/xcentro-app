@@ -18,7 +18,7 @@ const PayInvoice = ({ onStepChange }: PayInvoiceProps) => {
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
-  const [ocrProgress, setOcrProgress] = useState<OCRProgress>({ status: 'idle' });
+  const [ocrProgress, setOcrProgress] = useState<OCRProgress>({ status: 'idle', progress: 0 });
   
   // Update parent component's step state whenever currentStep changes
   useEffect(() => {
