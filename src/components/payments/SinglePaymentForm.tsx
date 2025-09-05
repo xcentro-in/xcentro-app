@@ -54,11 +54,6 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     handleNext();
   };
 
-  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
-    setSelectedRewardPackage(pkg);
-    handleNext();
-  };
-
   const handleSubmit = () => {
     toast({
       title: "Payment Initiated",
@@ -138,17 +133,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         </div>
       )}
 
-      {step === 4 && (
-        <ConditionalRewardStep
-          amount={parsedAmount}
-          selectedPaymentMethod={selectedPaymentMethod}
-          enableConditionalRewardTopup={enableConditionalRewardTopup}
-          onBack={handleBack}
-          onNext={handleRewardPackageSelected}
-        />
-      )}
-
-      {step === 5 && payeeDetails && selectedPaymentMethod && (
+      {step === 4 && payeeDetails && selectedPaymentMethod && (
         <PaymentMethodAndReviewStep
           paymentType={paymentType}
           scheduledDate={scheduledDate}
@@ -162,8 +147,11 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           gatewayFee={gatewayFee}
           totalAmount={totalAmount}
           rewardPoints={rewardPoints}
+          selectedPaymentMethod={selectedPaymentMethod}
+          enableConditionalRewardTopup={enableConditionalRewardTopup}
           onBack={handleBack}
           onSubmit={handleSubmit}
+          onRewardPackageChange={setSelectedRewardPackage}
         />
       )}
     </div>

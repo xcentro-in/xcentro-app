@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PaymentMethodSelector from "./PaymentMethodSelector";
-import { PaymentMethod } from "@/types/payment-method";
-import { Payee } from "@/types/payee";
-import { RewardPackage } from "./common/RewardTopUpStep";
-import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
+import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
+import { PaymentMethod } from "@/types/payment-method";
+import { Payee } from "@/types/payee";
 import { PaymentType } from "./CombinedDetailsStep";
-import { format } from "date-fns";
+import { RewardPackage } from "./common/RewardTopUpStep";
+import PaymentMethodSelector from "./PaymentMethodSelector";
+import RewardTopUpStep from "./common/RewardTopUpStep";
 
 interface PaymentMethodAndReviewStepProps {
   paymentType: PaymentType;
@@ -19,13 +19,16 @@ interface PaymentMethodAndReviewStepProps {
   invoiceReference: string;
   frequency: string;
   payee: Payee;
-  selectedRewardPackage: RewardPackage | null;
+  selectedRewardPackage?: RewardPackage | null;
   platformFee: number;
   gatewayFee: number;
   totalAmount: number;
   rewardPoints: number;
+  selectedPaymentMethod?: string;
+  enableConditionalRewardTopup?: boolean;
   onBack: () => void;
-  onSubmit?: () => void;
+  onSubmit: () => void;
+  onRewardPackageChange?: (pkg: RewardPackage | null) => void;
 }
 
 const PaymentMethodAndReviewStep = ({
@@ -41,179 +44,244 @@ const PaymentMethodAndReviewStep = ({
   gatewayFee,
   totalAmount,
   rewardPoints,
+  selectedPaymentMethod: initialPaymentMethod,
+  enableConditionalRewardTopup = false,
   onBack,
-  onSubmit
+  onSubmit,
+  onRewardPackageChange
 }: PaymentMethodAndReviewStepProps) => {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(initialPaymentMethod || "");
+  const [showRewardSection, setShowRewardSection] = useState(false);
 
   const paymentMethodDetails = selectedPaymentMethod 
     ? mockPaymentMethods.find(method => method.id === selectedPaymentMethod)
     : undefined;
 
-  const rewardCost = selectedRewardPackage ? (amount * selectedRewardPackage.percentage / 100) : 0;
+  // Check if reward top-up should be available for the selected payment method
+  const shouldShowRewardTopup = enableConditionalRewardTopup && 
+    paymentMethodDetails?.type === 'bank';
 
-  const handleConfirmPayment = () => {
-    if (onSubmit) {
-      onSubmit();
+  const handlePaymentMethodSelect = (methodId: string) => {
+    setSelectedPaymentMethod(methodId);
+  };
+
+  const formatScheduleText = () => {
+    if (paymentType === "now") return "Immediate";
+    if (paymentType === "later" && scheduledDate) {
+      return `Scheduled for ${scheduledDate.toLocaleDateString()}`;
+    }
+    if (paymentType === "recurring" && scheduledDate) {
+      return `Recurring ${frequency} starting ${scheduledDate.toLocaleDateString()}`;
+    }
+    return "Not specified";
+  };
+
+  const getPaymentMethodDisplay = (method: PaymentMethod) => {
+    switch (method.type) {
+      case 'card':
+        return `${method.cardType} **** ${method.lastFourDigits}`;
+      case 'bank':
+        return `${method.bankName} **** ${method.lastFourDigits}`;
+      case 'upi':
+        return method.upiId;
+      case 'bnpl':
+        return method.provider;
     }
   };
 
+  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
+    onRewardPackageChange?.(pkg);
+    setShowRewardSection(false);
+  };
+
+  // Calculate totals with current reward package
+  const currentRewardPackageCost = selectedRewardPackage ? (amount * selectedRewardPackage.percentage / 100) : 0;
+  const currentTotalAmount = amount + platformFee + gatewayFee + currentRewardPackageCost;
+  
+  const baseRewardPoints = Math.floor(amount / 10);
+  const currentRewardPoints = selectedRewardPackage 
+    ? Math.floor(baseRewardPoints * selectedRewardPackage.multiplier)
+    : baseRewardPoints;
+
+  const handleConfirmPayment = () => {
+    onSubmit();
+  };
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold mb-1">Payment Method & Review</h2>
+        <h2 className="text-2xl font-semibold mb-1">Final Review</h2>
         <p className="text-muted-foreground">
-          Choose your payment method and review the transaction
+          Review your payment details and confirm the transaction
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Payment Method Selection */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Select Payment Method</h3>
-          <PaymentMethodSelector
-            onSelect={setSelectedPaymentMethod}
-            selectedMethodId={selectedPaymentMethod}
-          />
-        </div>
+      {/* Payment Method Selection */}
+      {!selectedPaymentMethod && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Select Payment Method</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PaymentMethodSelector 
+              onSelect={handlePaymentMethodSelect}
+              selectedMethodId={selectedPaymentMethod}
+            />
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Transaction Review */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-medium">Transaction Summary</h3>
-          
-          <div className="space-y-4">
-            {/* Payee Details */}
-            <TransactionDetailCard title="Payee Details">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium">{payee.name}</span>
+      {/* Payment Method Display and Reward Options */}
+      {selectedPaymentMethod && paymentMethodDetails && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Selected Payment Method */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Payment Method</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-3 p-3 border rounded-md">
+                <div className={`h-10 w-10 rounded-full ${
+                  paymentMethodDetails.type === 'card' ? 'bg-primary/10' : 
+                  paymentMethodDetails.type === 'bank' ? 'bg-purple-500/10' : 
+                  paymentMethodDetails.type === 'upi' ? 'bg-blue-500/10' : 
+                  'bg-green-500/10'
+                } flex items-center justify-center`}>
+                  {/* Icon would go here */}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Email:</span>
-                  <span>{payee.email}</span>
+                <div className="flex-1">
+                  <div className="font-medium">{getPaymentMethodDisplay(paymentMethodDetails)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {paymentMethodDetails.type === 'card' && `Exp: ${paymentMethodDetails.expiryDate}`}
+                    {paymentMethodDetails.type === 'bank' && `${paymentMethodDetails.transactionType.toUpperCase()}`}
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Type:</span>
-                  <span className="capitalize">{payee.type}</span>
-                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setSelectedPaymentMethod("")}
+                  className="w-auto"
+                >
+                  Change
+                </Button>
               </div>
-            </TransactionDetailCard>
 
-            {/* Payment Details */}
-            <TransactionDetailCard title="Payment Details">
+              {/* Reward Top-Up Option */}
+              {shouldShowRewardTopup && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="font-medium">Reward Booster</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedRewardPackage 
+                          ? `${selectedRewardPackage.name} - ${selectedRewardPackage.multiplier}x points`
+                          : 'Earn extra rewards on this payment'
+                        }
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setShowRewardSection(!showRewardSection)}
+                      className="w-auto"
+                    >
+                      {selectedRewardPackage ? 'Change' : 'Add Booster'}
+                    </Button>
+                  </div>
+                  
+                  {showRewardSection && (
+                    <div className="mt-4">
+                      <RewardTopUpStep
+                        amount={amount}
+                        onBack={() => setShowRewardSection(false)}
+                        onNext={handleRewardPackageSelected}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Payment Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Payment Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount:</span>
+                  <span className="text-muted-foreground">To: {payee.name}</span>
                   <span className="font-medium">{formatCurrency(amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Description:</span>
-                  <span>{description || "No description"}</span>
+                  <span className="text-muted-foreground">Schedule</span>
+                  <span className="text-sm">{formatScheduleText()}</span>
                 </div>
-                {invoiceReference && (
+                {description && (
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Invoice Ref:</span>
-                    <span>{invoiceReference}</span>
+                    <span className="text-muted-foreground">Description</span>
+                    <span className="text-sm max-w-32 text-right">{description}</span>
                   </div>
                 )}
+                {invoiceReference && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Reference</span>
+                    <span className="text-sm">{invoiceReference}</span>
+                  </div>
+                )}
+              </div>
+
+              <Separator />
+
+              <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Schedule:</span>
-                  <span className="capitalize">
-                    {paymentType === "now" ? "Pay Now" : 
-                     paymentType === "later" ? `Scheduled: ${scheduledDate ? format(scheduledDate, "PPP") : ""}` :
-                     `Recurring: ${frequency} from ${scheduledDate ? format(scheduledDate, "PPP") : ""}`}
+                  <span className="text-muted-foreground">Payment Amount</span>
+                  <span className="font-medium">{formatCurrency(amount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Platform Fee</span>
+                  <span className="font-medium">{formatCurrency(platformFee)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gateway Fee</span>
+                  <span className="font-medium">{formatCurrency(gatewayFee)}</span>
+                </div>
+                
+                {selectedRewardPackage && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Reward Booster ({selectedRewardPackage.percentage}%)
+                    </span>
+                    <span className="font-medium">{formatCurrency(currentRewardPackageCost)}</span>
+                  </div>
+                )}
+                
+                <Separator />
+                
+                <div className="flex justify-between font-semibold">
+                  <span>Total Payable</span>
+                  <span className="text-lg">{formatCurrency(currentTotalAmount)}</span>
+                </div>
+                
+                <div className="flex justify-between text-primary">
+                  <span>Reward Points</span>
+                  <span className="font-medium">
+                    {currentRewardPoints.toLocaleString()} points
+                    {selectedRewardPackage && (
+                      <span className="text-green-500 ml-1">
+                        (+{currentRewardPoints - baseRewardPoints} bonus)
+                      </span>
+                    )}
                   </span>
                 </div>
               </div>
-            </TransactionDetailCard>
-
-            {/* Payment Method */}
-            {paymentMethodDetails && (
-              <TransactionDetailCard title="Payment Method">
-                <div className="space-y-2">
-                  {paymentMethodDetails.type === "card" && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Card:</span>
-                        <span>**** {paymentMethodDetails.lastFourDigits}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Holder:</span>
-                        <span>{paymentMethodDetails.cardholderName}</span>
-                      </div>
-                    </>
-                  )}
-                  {paymentMethodDetails.type === "bank" && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Bank:</span>
-                        <span>{paymentMethodDetails.bankName}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Account:</span>
-                        <span>**** {paymentMethodDetails.lastFourDigits}</span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </TransactionDetailCard>
-            )}
-
-            {/* Reward Package */}
-            {selectedRewardPackage && (
-              <TransactionDetailCard title="Reward Package">
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Package:</span>
-                    <span className="font-medium">{selectedRewardPackage.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Cost:</span>
-                    <span>{formatCurrency(rewardCost)}</span>
-                  </div>
-                </div>
-              </TransactionDetailCard>
-            )}
-
-            {/* Payment Summary */}
-            <TransactionDetailCard title="Payment Summary">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Amount:</span>
-                  <span>{formatCurrency(amount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Platform Fee:</span>
-                  <span>{formatCurrency(platformFee)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Gateway Fee:</span>
-                  <span>{formatCurrency(gatewayFee)}</span>
-                </div>
-                {selectedRewardPackage && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reward Cost:</span>
-                    <span>{formatCurrency(rewardCost)}</span>
-                  </div>
-                )}
-                <div className="border-t pt-2">
-                  <div className="flex justify-between font-semibold">
-                    <span>Total Amount:</span>
-                    <span>{formatCurrency(totalAmount)}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between text-primary">
-                  <span className="text-muted-foreground">Reward Points:</span>
-                  <span className="font-medium">{rewardPoints} points</span>
-                </div>
-              </div>
-            </TransactionDetailCard>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      )}
 
-      <div className="flex justify-between pt-6">
+      <div className="flex justify-between gap-4">
         <Button variant="outline" onClick={onBack} className="w-auto">
           Back
         </Button>
