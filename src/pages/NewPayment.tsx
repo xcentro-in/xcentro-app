@@ -16,7 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
 const steps = {
-  single: ["Details & Payee", "Review", "Payment Method", "Final Review"],
+  single: ["Details & Payee", "Payment Method & Review"],
   batch: ["Upload/Import", "Validate", "Payment method", "Reward Top-Up", "Review"],
   gst: ["Upload/Details", "Payment method", "Reward Top-Up", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Reward Top-Up", "Review"],
