@@ -1,12 +1,9 @@
 import { useState } from "react";
-import { PaymentDetailsStep } from "./PaymentDetailsStep";
-import { TransactionSummary } from "./common/TransactionSummary";
-import PayeeSelectionStep from "./PayeeSelectionStep";
-import PaymentMethodStep from "./PaymentMethodStep";
+import CombinedDetailsStep, { PaymentType } from "./CombinedDetailsStep";
 import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
+import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
 import { mockPayees } from "@/data/mockPayees";
-import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
+import { toast } from "@/hooks/use-toast";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;
@@ -14,14 +11,13 @@ interface SinglePaymentFormProps {
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const [step, setStep] = useState(1);
-  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
+  const [paymentType, setPaymentType] = useState<PaymentType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [invoiceReference, setInvoiceReference] = useState<string>("");
   const [frequency, setFrequency] = useState<string>("monthly");
   const [selectedPayee, setSelectedPayee] = useState<string>();
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
   const [favoritePayees, setFavoritePayees] = useState<string[]>(["1", "3"]);
   const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
   
@@ -50,10 +46,14 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     handleNext();
   };
 
+  const handleSubmit = () => {
+    toast({
+      title: "Payment Initiated",
+      description: "Your payment has been successfully processed.",
+    });
+  };
+
   const payeeDetails = selectedPayee ? mockPayees.find(payee => payee.id === selectedPayee) : undefined;
-  
-  const paymentMethodDetails = selectedPaymentMethod ? 
-    mockPaymentMethods.find(method => method.id === selectedPaymentMethod) : undefined;
 
   const parsedAmount = amount ? parseFloat(amount) : 0;
   const rewardPackageCost = selectedRewardPackage ? (parsedAmount * selectedRewardPackage.percentage / 100) : 0;
@@ -69,52 +69,27 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   return (
     <div className="space-y-6">
       {step === 1 && (
-        <PaymentDetailsStep
-          paymentType="now"
+        <CombinedDetailsStep
+          paymentType={paymentType}
           scheduledDate={scheduledDate}
           amount={amount}
           description={description}
           invoiceReference={invoiceReference}
           frequency={frequency}
+          selectedPayee={selectedPayee}
+          favoritePayees={favoritePayees}
           onPaymentTypeChange={setPaymentType}
           onScheduledDateChange={setScheduledDate}
           onAmountChange={setAmount}
           onDescriptionChange={setDescription}
           onInvoiceReferenceChange={setInvoiceReference}
           onFrequencyChange={setFrequency}
+          onPayeeSelect={setSelectedPayee}
           onNext={handleNext}
         />
       )}
 
       {step === 2 && (
-        <PayeeSelectionStep
-          selectedPayee={selectedPayee}
-          setSelectedPayee={setSelectedPayee}
-          favoritePayees={favoritePayees}
-          toggleFavorite={toggleFavorite}
-          onBack={handleBack}
-          onNext={handleNext}
-        />
-      )}
-
-      {step === 3 && (
-        <PaymentMethodStep
-          selectedPaymentMethod={selectedPaymentMethod}
-          onSelect={setSelectedPaymentMethod}
-          paymentType={paymentType}
-          scheduledDate={scheduledDate}
-          frequency={frequency}
-          onPaymentTypeChange={setPaymentType}
-          onScheduledDateChange={setScheduledDate}
-          onFrequencyChange={setFrequency}
-          onBack={handleBack}
-          onNext={handleNext}
-          amount={parsedAmount}
-          payeeId={selectedPayee}
-        />
-      )}
-
-      {step === 4 && (
         <RewardTopUpStep
           amount={parsedAmount}
           onBack={handleBack}
@@ -122,8 +97,8 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         />
       )}
 
-      {step === 5 && payeeDetails && (
-        <TransactionSummary
+      {step === 3 && payeeDetails && (
+        <PaymentMethodAndReviewStep
           paymentType={paymentType}
           scheduledDate={scheduledDate}
           amount={parsedAmount}
@@ -131,13 +106,13 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           invoiceReference={invoiceReference}
           frequency={frequency}
           payee={payeeDetails}
-          paymentMethod={paymentMethodDetails}
+          selectedRewardPackage={selectedRewardPackage}
           platformFee={platformFee}
           gatewayFee={gatewayFee}
-          rewardPackage={selectedRewardPackage}
           totalAmount={totalAmount}
           rewardPoints={rewardPoints}
           onBack={handleBack}
+          onSubmit={handleSubmit}
         />
       )}
     </div>
