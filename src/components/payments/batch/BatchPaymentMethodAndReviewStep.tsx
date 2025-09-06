@@ -9,7 +9,6 @@ import { PaymentRow } from "./types";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
 import { PaymentScheduleType } from "../common/PaymentScheduleSelector";
-import PaymentScheduleSelector from "../common/PaymentScheduleSelector";
 import { CreditCard, Building2, Smartphone } from "lucide-react";
 
 interface BatchPaymentMethodAndReviewStepProps {
@@ -20,9 +19,6 @@ interface BatchPaymentMethodAndReviewStepProps {
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
-  onScheduledDateChange: (date?: Date) => void;
-  onFrequencyChange: (value: string) => void;
 }
 
 const BatchPaymentMethodAndReviewStep = ({
@@ -32,10 +28,7 @@ const BatchPaymentMethodAndReviewStep = ({
   onSubmit,
   paymentType,
   scheduledDate,
-  frequency,
-  onPaymentTypeChange,
-  onScheduledDateChange,
-  onFrequencyChange
+  frequency
 }: BatchPaymentMethodAndReviewStepProps) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
 
@@ -187,17 +180,6 @@ const BatchPaymentMethodAndReviewStep = ({
                 )}
               </TabsContent>
             </Tabs>
-
-            <div className="mt-6">
-              <PaymentScheduleSelector
-                paymentType={paymentType}
-                scheduledDate={scheduledDate}
-                frequency={frequency}
-                onPaymentTypeChange={onPaymentTypeChange}
-                onScheduledDateChange={onScheduledDateChange}
-                onFrequencyChange={onFrequencyChange}
-              />
-            </div>
           </CardContent>
         </Card>
 
@@ -281,7 +263,7 @@ const BatchPaymentMethodAndReviewStep = ({
         </Button>
         <Button 
           onClick={onSubmit}
-          disabled={!selectedPaymentMethod || (paymentType === "later" && !scheduledDate) || (paymentType === "recurring" && (!scheduledDate || !frequency))}
+          disabled={!selectedPaymentMethod}
           className="w-auto"
         >
           Confirm Payment

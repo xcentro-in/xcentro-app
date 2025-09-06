@@ -107,6 +107,12 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
           onSelectAll={handleSelectAll}
           onBack={handleBack}
           onNext={handleNext}
+          paymentType={state.paymentType}
+          scheduledDate={state.scheduledDate}
+          frequency={state.frequency}
+          onPaymentTypeChange={handlePaymentTypeChange}
+          onScheduledDateChange={handleScheduledDateChange}
+          onFrequencyChange={handleFrequencyChange}
         />
       )}
 
@@ -119,9 +125,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
           paymentType={state.paymentType}
           scheduledDate={state.scheduledDate}
           frequency={state.frequency}
-          onPaymentTypeChange={handlePaymentTypeChange}
-          onScheduledDateChange={handleScheduledDateChange}
-          onFrequencyChange={handleFrequencyChange}
         />
       )}
     </div>
