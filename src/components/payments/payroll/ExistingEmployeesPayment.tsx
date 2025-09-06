@@ -143,11 +143,15 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
         </div>
       )}
 
-      {selectedEmployees.length > 0 && (
+      <div className="flex justify-between gap-3 mt-4">
         <div className="text-sm text-muted-foreground">
-          Selected {selectedEmployees.length} out of {filteredEmployees.length} employees
+          {selectedEmployees.length > 0 ? (
+            <>Selected {selectedEmployees.length} out of {filteredEmployees.length} employees</>
+          ) : (
+            <>Select employees to proceed</>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
