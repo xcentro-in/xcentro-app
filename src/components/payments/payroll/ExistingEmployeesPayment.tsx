@@ -151,6 +151,13 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
             <>Select employees to proceed</>
           )}
         </div>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={selectedEmployees.length === 0}
+          className="w-auto"
+        >
+          Continue to Payment Method
+        </Button>
       </div>
     </div>
   );
