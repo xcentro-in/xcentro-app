@@ -1,12 +1,10 @@
 
 import { useState } from "react";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
-import PayrollEntryMethodStep from "./payroll/PayrollEntryMethodStep";
-import PayrollDetailsStep from "./payroll/PayrollDetailsStep";
-import PayrollPaymentMethodStep from "./payroll/PayrollPaymentMethodStep";
-import PayrollReviewStep from "./payroll/PayrollReviewStep";
-import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
+import PayrollEmployeeSelectionStep from "./payroll/PayrollEmployeeSelectionStep";
+import PayrollPaymentMethodAndReviewStep from "./payroll/PayrollPaymentMethodAndReviewStep";
 import { Employee } from "./payroll/types";
+import { toast } from "sonner";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
@@ -53,121 +51,66 @@ const mockEmployees: Employee[] = [
 ];
 
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
-  const [currentStep, setCurrentStep] = useState<'selection' | 'details' | 'payment' | 'rewards' | 'review'>('selection');
-  const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | "existing" | null>(null);
+  const [currentStep, setCurrentStep] = useState<'employees' | 'payment-review'>('employees');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
-  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
   
   // Payment schedule states
   const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [frequency, setFrequency] = useState<string>("monthly");
   
-  const handleMethodSelect = (method: "manual" | "bulk" | "existing" | null) => {
-    setEntryMethod(method);
-    setCurrentStep('details');
-    // Update the parent component's step counter
+  const handleEmployeesSelect = (employees: Employee[]) => {
+    setSelectedEmployees(employees);
+  };
+  
+  const handleNext = () => {
+    setCurrentStep('payment-review');
     onStepChange(1);
   };
   
-  const handleDetailsComplete = (selectedEmps: Employee[] = []) => {
-    setSelectedEmployees(selectedEmps);
-    setCurrentStep('payment');
-    // Update to step 2 in the parent component
-    onStepChange(2);
+  const handleBack = () => {
+    setCurrentStep('employees');
+    onStepChange(0);
   };
-  
+
   const handlePaymentMethodSelected = (methodId: string) => {
     setSelectedPaymentMethod(methodId);
   };
-  
-  const handleGoToRewardTopUp = () => {
-    setCurrentStep('rewards');
-    // Update to step 3 in the parent component
-    onStepChange(3);
+
+  const handleSubmit = () => {
+    toast.success("Payroll payment initiated successfully!");
+    console.log("Payroll payment submitted");
   };
 
-  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
-    setSelectedRewardPackage(pkg);
-    setCurrentStep('review');
-    // Update to step 4 in the parent component
-    onStepChange(4);
-  };
-  
-  const handleBack = () => {
-    if (currentStep === 'payment') {
-      setCurrentStep('details');
-      onStepChange(1);
-    } else if (currentStep === 'rewards') {
-      setCurrentStep('payment');
-      onStepChange(2);
-    } else if (currentStep === 'review') {
-      setCurrentStep('rewards');
-      onStepChange(3);
-    } else if (currentStep === 'details') {
-      setCurrentStep('selection');
-      setEntryMethod(null);
-      onStepChange(0);
-    }
-  };
-
-  // Calculate total salary amount
-  const totalAmount = selectedEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0);
-
-  if (currentStep === 'selection') {
-    return <PayrollEntryMethodStep onMethodSelect={handleMethodSelect} />;
-  }
-
-  if (currentStep === 'details' && entryMethod) {
+  if (currentStep === 'employees') {
     return (
-      <PayrollDetailsStep
-        entryMethod={entryMethod}
-        onBack={handleBack}
-        onSubmit={handleDetailsComplete}
-        mockEmployees={mockEmployees}
-      />
-    );
-  }
-  
-  if (currentStep === 'payment') {
-    return (
-      <PayrollPaymentMethodStep 
-        selectedPaymentMethod={selectedPaymentMethod}
+      <PayrollEmployeeSelectionStep
+        employees={mockEmployees}
+        selectedEmployees={selectedEmployees}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
-        onPaymentMethodChange={handlePaymentMethodSelected}
+        onEmployeesSelect={handleEmployeesSelect}
         onPaymentTypeChange={setPaymentType}
         onScheduledDateChange={setScheduledDate}
         onFrequencyChange={setFrequency}
-        onBack={handleBack}
-        onNext={handleGoToRewardTopUp}
-      />
-    );
-  }
-
-  if (currentStep === 'rewards') {
-    return (
-      <RewardTopUpStep
-        amount={totalAmount}
-        onBack={handleBack}
-        onNext={handleRewardPackageSelected}
+        onNext={handleNext}
       />
     );
   }
   
-  if (currentStep === 'review') {
+  if (currentStep === 'payment-review') {
     return (
-      <PayrollReviewStep
+      <PayrollPaymentMethodAndReviewStep
         selectedEmployees={selectedEmployees}
         selectedPaymentMethod={selectedPaymentMethod}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
-        rewardPackage={selectedRewardPackage}
+        onPaymentMethodChange={handlePaymentMethodSelected}
         onBack={handleBack}
-        onSubmit={() => console.log("Payment submitted")}
+        onSubmit={handleSubmit}
       />
     );
   }
