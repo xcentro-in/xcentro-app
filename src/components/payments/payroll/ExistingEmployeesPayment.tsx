@@ -143,21 +143,12 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
         </div>
       )}
 
-      <div className="flex justify-between gap-3 mt-4">
-        <div className="text-sm text-muted-foreground">
-          {selectedEmployees.length > 0 ? (
-            <>Selected {selectedEmployees.length} out of {filteredEmployees.length} employees</>
-          ) : (
-            <>Select employees to proceed</>
-          )}
-        </div>
-        <Button 
-          onClick={handleSubmit} 
-          disabled={selectedEmployees.length === 0}
-          className="w-auto"
-        >
-          Continue to Payment Method
-        </Button>
+      <div className="text-sm text-muted-foreground mt-4">
+        {selectedEmployees.length > 0 ? (
+          <>Selected {selectedEmployees.length} out of {filteredEmployees.length} employees</>
+        ) : (
+          <>Select employees to proceed</>
+        )}
       </div>
     </div>
   );

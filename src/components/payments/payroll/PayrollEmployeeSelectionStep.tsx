@@ -37,6 +37,12 @@ const PayrollEmployeeSelectionStep = ({
     onEmployeesSelect(employees);
   };
 
+  // Auto-trigger when local selection changes
+  const handleEmployeeToggle = (employees: Employee[]) => {
+    setLocalSelectedEmployees(employees);
+    onEmployeesSelect(employees);
+  };
+
   const handleNext = () => {
     if (localSelectedEmployees.length > 0) {
       onNext();
@@ -49,7 +55,7 @@ const PayrollEmployeeSelectionStep = ({
         <h3 className="text-lg font-medium mb-4">Select Employees for Payroll</h3>
         <ExistingEmployeesPayment 
           employees={employees} 
-          onSubmit={handleEmployeeSelectionSubmit} 
+          onSubmit={handleEmployeeToggle} 
         />
       </div>
 
