@@ -55,7 +55,8 @@ const PayrollEmployeeSelectionStep = ({
         <h3 className="text-lg font-medium mb-4">Select Employees for Payroll</h3>
         <ExistingEmployeesPayment 
           employees={employees} 
-          onSubmit={handleEmployeeToggle} 
+          onSubmit={handleEmployeeSelectionSubmit}
+          onSelectionChange={handleEmployeeToggle}
         />
       </div>
 

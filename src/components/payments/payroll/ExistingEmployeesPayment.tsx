@@ -20,9 +20,10 @@ interface Employee {
 interface ExistingEmployeesPaymentProps {
   employees: Employee[];
   onSubmit: (selectedEmployees: Employee[]) => void;
+  onSelectionChange?: (selectedEmployees: Employee[]) => void;
 }
 
-const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaymentProps) => {
+const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: ExistingEmployeesPaymentProps) => {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectAll, setSelectAll] = useState(false);
@@ -34,25 +35,37 @@ const ExistingEmployeesPayment = ({ employees, onSubmit }: ExistingEmployeesPaym
   );
 
   const handleToggleSelectAll = () => {
+    let newSelection: string[];
     if (selectAll) {
-      setSelectedEmployees([]);
+      newSelection = [];
       setSelectAll(false);
     } else {
-      setSelectedEmployees(filteredEmployees.map(emp => emp.id));
+      newSelection = filteredEmployees.map(emp => emp.id);
       setSelectAll(true);
     }
+    setSelectedEmployees(newSelection);
+    
+    // Auto-trigger parent callback when selection changes
+    const employeesToPay = employees.filter(emp => newSelection.includes(emp.id));
+    onSelectionChange?.(employeesToPay);
   };
 
   const handleToggleEmployee = (id: string) => {
+    let newSelection: string[];
     if (selectedEmployees.includes(id)) {
-      setSelectedEmployees(selectedEmployees.filter(empId => empId !== id));
+      newSelection = selectedEmployees.filter(empId => empId !== id);
       setSelectAll(false);
     } else {
-      setSelectedEmployees([...selectedEmployees, id]);
+      newSelection = [...selectedEmployees, id];
       if (selectedEmployees.length + 1 === filteredEmployees.length) {
         setSelectAll(true);
       }
     }
+    setSelectedEmployees(newSelection);
+    
+    // Auto-trigger parent callback when selection changes
+    const employeesToPay = employees.filter(emp => newSelection.includes(emp.id));
+    onSelectionChange?.(employeesToPay);
   };
 
   const handleSubmit = () => {
