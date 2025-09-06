@@ -3,9 +3,7 @@ import { useState } from "react";
 import { BatchPaymentFormProps, PaymentRow, BatchPaymentState } from "./batch/types";
 import UploadStep from "./batch/UploadStep";
 import ValidationStep from "./batch/ValidationStep";
-import PaymentMethodSelectionStep from "./batch/PaymentMethodSelectionStep";
-import RewardTopUpStep, { RewardPackage } from "./common/RewardTopUpStep";
-import ReviewStep from "./batch/ReviewStep";
+import BatchPaymentMethodAndReviewStep from "./batch/BatchPaymentMethodAndReviewStep";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
@@ -17,7 +15,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     scheduledDate: undefined,
     frequency: "monthly"
   });
-  const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
 
   // Sample payment rows (in a real app, this would come from the uploaded file)
   const paymentRows: PaymentRow[] = [
@@ -89,14 +86,9 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     setState({ ...state, frequency: frequency });
   };
 
-  const handleRewardPackageSelected = (pkg: RewardPackage | null) => {
-    setSelectedRewardPackage(pkg);
-    handleNext();
-  };
-
-  const getTotalAmount = () => {
-    const selectedPaymentRows = paymentRows.filter(row => state.selectedRows.includes(row.id));
-    return selectedPaymentRows.reduce((sum, row) => sum + row.amount, 0);
+  const handleSubmit = () => {
+    // Handle payment submission
+    console.log("Payment submitted");
   };
 
   return (
@@ -119,38 +111,17 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
       )}
 
       {step === 3 && (
-        <PaymentMethodSelectionStep 
-          selectedPaymentMethod={state.selectedPaymentMethod}
-          onSelect={handleSelectPaymentMethod}
+        <BatchPaymentMethodAndReviewStep 
+          selectedRows={state.selectedRows}
+          paymentRows={paymentRows}
           onBack={handleBack}
-          onNext={handleNext}
+          onSubmit={handleSubmit}
           paymentType={state.paymentType}
           scheduledDate={state.scheduledDate}
           frequency={state.frequency}
           onPaymentTypeChange={handlePaymentTypeChange}
           onScheduledDateChange={handleScheduledDateChange}
           onFrequencyChange={handleFrequencyChange}
-        />
-      )}
-
-      {step === 4 && (
-        <RewardTopUpStep 
-          amount={getTotalAmount()}
-          onBack={handleBack}
-          onNext={handleRewardPackageSelected}
-        />
-      )}
-
-      {step === 5 && (
-        <ReviewStep 
-          selectedRows={state.selectedRows}
-          selectedPaymentMethodId={state.selectedPaymentMethod}
-          paymentRows={paymentRows}
-          onBack={handleBack}
-          paymentType={state.paymentType}
-          scheduledDate={state.scheduledDate}
-          frequency={state.frequency}
-          rewardPackage={selectedRewardPackage}
         />
       )}
     </div>
