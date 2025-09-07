@@ -31,6 +31,7 @@ import GSTReports from "./pages/GSTReports";
 import GSTPaymentHistory from "./pages/GSTPaymentHistory";
 import PayrollReport from "./pages/PayrollReport";
 import Invoices from "./pages/Invoices";
+import NewBill from "./pages/NewBill";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,7 @@ function App() {
                 <Route path="payees" element={<PayeeManagement />} />
                 <Route path="payees/:payeeId" element={<PayeeHistory />} />
                 <Route path="invoices" element={<Invoices />} />
+                <Route path="invoices/new" element={<NewBill />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
                 <Route path="insights" element={<Insights />} />
                 <Route path="cash-flow-projection" element={<CashFlowProjection />} />

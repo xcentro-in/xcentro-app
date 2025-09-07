@@ -7,8 +7,10 @@ import { mockInvoices, Invoice } from "@/data/mockInvoices";
 import InvoiceList from "@/components/invoices/InvoiceList";
 import InvoiceDetails from "@/components/invoices/InvoiceDetails";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { useNavigate } from "react-router-dom";
 
 const Invoices = () => {
+  const navigate = useNavigate();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -51,7 +53,7 @@ const Invoices = () => {
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => navigate('/invoices/new')}>
                     <Plus className="h-4 w-4 mr-2" />
                     New
                   </Button>
