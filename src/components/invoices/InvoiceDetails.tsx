@@ -41,30 +41,8 @@ const InvoiceDetails = ({ invoice }: InvoiceDetailsProps) => {
           </div>
         </div>
         <div className="flex-1 bg-gray-50">
-          <object 
-            data="/Printer-Friendly-Invoice-Template-Word.pdf" 
-            type="application/pdf" 
-            width="100%" 
-            height="100%"
-            className="min-h-full"
-          >
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="text-2xl mb-2">📄</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">PDF View</h3>
-                <p className="text-gray-500">
-                  Your browser doesn't support PDF viewing. 
-                  <a 
-                    href="/Printer-Friendly-Invoice-Template-Word.pdf" 
-                    className="text-blue-600 hover:underline ml-1"
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    Download the PDF instead
-                  </a>
-                </p>
-              </div>
-            </div>
+          <object data="http://africau.edu/images/default/sample.pdf" type="application/pdf" width="100%" height="100%">
+            <p>Alternative text - include a link <a href="http://africau.edu/images/default/sample.pdf">to the PDF!</a></p>
           </object>
         </div>
       </div>
