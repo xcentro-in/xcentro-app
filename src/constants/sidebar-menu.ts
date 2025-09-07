@@ -18,6 +18,7 @@ import {
   ReceiptText,
   Landmark,
   Milestone,
+  FileText,
 } from "lucide-react";
 
 // Define interface for the menu items
@@ -63,6 +64,11 @@ export const mainMenuItems: SidebarMenuItem[] = [
     title: "Manage Payees",
     url: "/payees",
     icon: Users,
+  },
+  {
+    title: "Invoices",
+    url: "/invoices",
+    icon: FileText,
   },
   {
     title: "Wallet",
