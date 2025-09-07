@@ -2,15 +2,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/utils/formatters";
 import { Invoice } from "@/data/mockInvoices";
+import { X } from "lucide-react";
 import { useState } from "react";
 
 interface InvoiceDetailsProps {
   invoice: Invoice;
+  onClose: () => void;
 }
 
-const InvoiceDetails = ({ invoice }: InvoiceDetailsProps) => {
+const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
   const [showPDF, setShowPDF] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -38,6 +41,9 @@ const InvoiceDetails = ({ invoice }: InvoiceDetailsProps) => {
               checked={showPDF} 
               onCheckedChange={setShowPDF} 
             />
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </div>
         <div className="flex-1 bg-gray-50">
@@ -60,6 +66,9 @@ const InvoiceDetails = ({ invoice }: InvoiceDetailsProps) => {
             checked={showPDF} 
             onCheckedChange={setShowPDF} 
           />
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 

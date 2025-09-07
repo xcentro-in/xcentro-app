@@ -89,7 +89,10 @@ const Invoices = () => {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={60} minSize={30}>
               <div className="h-full animate-slide-in-right">
-                <InvoiceDetails invoice={selectedInvoice} />
+                <InvoiceDetails 
+                  invoice={selectedInvoice} 
+                  onClose={() => setSelectedInvoice(null)}
+                />
               </div>
             </ResizablePanel>
           </>
