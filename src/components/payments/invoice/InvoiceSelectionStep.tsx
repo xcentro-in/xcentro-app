@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -36,6 +37,7 @@ const InvoiceSelectionStep = ({
 }: InvoiceSelectionStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [localSelectedInvoices, setLocalSelectedInvoices] = useState<Invoice[]>(selectedInvoices);
+  const navigate = useNavigate();
 
   const filteredInvoices = invoices.filter(invoice =>
     invoice.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -48,8 +50,7 @@ const InvoiceSelectionStep = ({
   };
 
   const handleAddNewInvoice = () => {
-    // TODO: Navigate to add new invoice
-    console.log("Add new invoice...");
+    navigate('/invoices/new');
   };
 
   const handleToggleInvoice = (invoice: Invoice) => {
