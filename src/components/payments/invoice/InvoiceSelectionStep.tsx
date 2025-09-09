@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Calendar, FileText, AlertCircle } from "lucide-react";
+import { Search, Calendar, FileText, AlertCircle, RefreshCw, Plus } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
 import PaymentScheduleSelector, { PaymentScheduleType } from "../common/PaymentScheduleSelector";
 import { Invoice } from "@/data/mockInvoices";
@@ -42,14 +42,14 @@ const InvoiceSelectionStep = ({
     invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleToggleSelectAll = () => {
-    if (localSelectedInvoices.length === filteredInvoices.length) {
-      setLocalSelectedInvoices([]);
-      onInvoicesSelect([]);
-    } else {
-      setLocalSelectedInvoices(filteredInvoices);
-      onInvoicesSelect(filteredInvoices);
-    }
+  const handleRefresh = () => {
+    // TODO: Implement refresh functionality
+    console.log("Refreshing invoices...");
+  };
+
+  const handleAddNewInvoice = () => {
+    // TODO: Navigate to add new invoice
+    console.log("Add new invoice...");
   };
 
   const handleToggleInvoice = (invoice: Invoice) => {
@@ -90,7 +90,7 @@ const InvoiceSelectionStep = ({
         <h3 className="text-lg font-medium mb-4">Select Invoices for Payment</h3>
         
         {/* Search and Controls */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-3 mb-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -103,10 +103,28 @@ const InvoiceSelectionStep = ({
           <Button
             variant="outline"
             size="sm"
-            onClick={handleToggleSelectAll}
+            onClick={handleRefresh}
+            className="gap-2"
           >
-            {localSelectedInvoices.length === filteredInvoices.length ? "Deselect All" : "Select All"}
+            <RefreshCw className="h-4 w-4" />
           </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={handleAddNewInvoice}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add New Invoice
+          </Button>
+        </div>
+
+        {/* Helper Text */}
+        <div className="mb-4 p-3 bg-muted/30 rounded-lg border">
+          <p className="text-sm text-muted-foreground">
+            <strong>Don't see your invoice?</strong> Invoices are automatically synced from your ERP system. 
+            You can also manually add new invoices using the button above or refresh to sync the latest data.
+          </p>
         </div>
 
         {/* Invoices Table */}
@@ -117,10 +135,7 @@ const InvoiceSelectionStep = ({
                 <thead className="bg-muted/50 border-b">
                   <tr>
                     <th className="w-12 p-4 text-left">
-                      <Checkbox
-                        checked={localSelectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0}
-                        onCheckedChange={handleToggleSelectAll}
-                      />
+                      Select
                     </th>
                     <th className="p-4 text-left font-medium">Vendor</th>
                     <th className="p-4 text-left font-medium">Invoice #</th>
