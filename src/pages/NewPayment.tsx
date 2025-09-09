@@ -10,7 +10,7 @@ import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
 import PayrollPaymentForm from "@/components/payments/PayrollPaymentForm";
 import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
-import PayInvoice from "./PayInvoice";
+import InvoicePaymentForm from "@/components/payments/InvoicePaymentForm";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
@@ -21,7 +21,7 @@ const steps = {
   gst: ["Upload/Details", "Payment method", "Reward Top-Up", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Reward Top-Up", "Review"],
   payroll: ["Employee Selection", "Payment Method & Review"],
-  invoice: ["Upload Invoice", "Review Details", "Payment method", "Reward Top-Up", "Confirmation"]
+  invoice: ["Invoice Selection", "Payment Method & Review"]
 };
 
 const paymentTitles = {
@@ -41,7 +41,7 @@ const paymentSubtitles = {
   gst: "Pay your GST taxes",
   creditcard: "Pay your credit card bills",
   payroll: "Process payroll for your employees",
-  invoice: "Upload and pay vendor invoices"
+  invoice: "Select and pay multiple vendor invoices"
 };
 
 const NewPayment = () => {
@@ -126,7 +126,7 @@ const NewPayment = () => {
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
               {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} initialMethod={paymentMethod === "quick" ? "quick" : "upload"} />}
               {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
-              {paymentCategory === "invoice" && <PayInvoice onStepChange={setStep} />}
+              {paymentCategory === "invoice" && <InvoicePaymentForm onStepChange={setStep} />}
             </>
           )}
         </CardContent>
