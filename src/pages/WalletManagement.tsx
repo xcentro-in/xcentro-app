@@ -71,9 +71,7 @@ const WalletManagement = () => {
     return (
       <div 
         key={method.id}
-        className={`flex items-center p-5 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group ${
-          method.isDefault ? 'bg-blue-50/50 border-l-4 border-l-blue-500' : ''
-        } border-b border-slate-100 last:border-b-0`}
+        className="flex items-center p-5 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group border-b border-slate-100 last:border-b-0"
       >
         {/* Icon */}
         <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
