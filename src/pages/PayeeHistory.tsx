@@ -130,7 +130,7 @@ const PayeeHistory = () => {
       
       {/* Tab-based Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 h-auto">
+        <TabsList className="inline-flex bg-transparent p-0 h-auto gap-8">
           <TabsTrigger 
             value="overview" 
             className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
