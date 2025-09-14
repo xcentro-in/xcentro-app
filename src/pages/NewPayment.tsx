@@ -80,29 +80,30 @@ const NewPayment = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-            {paymentTitles[paymentCategory]}
-          </h1>
-          <p className="text-muted-foreground mt-1 animate-slide-up" style={{
-            animationDelay: "50ms"
-          }}>
-            {paymentSubtitles[paymentCategory]}
-          </p>
-        </div>
-        
+      <div className="flex flex-col gap-4">
         {paymentCategory !== "selection" && (
           <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleReset} 
-            className="gap-2 animate-slide-down bg-lime-500 hover:bg-lime-400"
+            variant="ghost" 
+            className="w-fit pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-muted-foreground"
+            onClick={handleReset}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Change payment type
           </Button>
         )}
+        
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
+              {paymentTitles[paymentCategory]}
+            </h1>
+            <p className="text-muted-foreground mt-1 animate-slide-up" style={{
+              animationDelay: "50ms"
+            }}>
+              {paymentSubtitles[paymentCategory]}
+            </p>
+          </div>
+        </div>
       </div>
 
       <Card className="animate-scale-in">
