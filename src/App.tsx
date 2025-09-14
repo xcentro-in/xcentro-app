@@ -42,7 +42,7 @@ import { Toaster } from "./components/ui/sonner";
 
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
-import SettingsLayout from "./components/settings/SettingsLayout";
+
 
 const queryClient = new QueryClient()
 
@@ -86,12 +86,9 @@ function App() {
                 <Route path="wallet/add" element={<AddPaymentMethod />} />
                 <Route path="user-access" element={<UserAccess />} />
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
               
-              <Route path="/settings" element={<SettingsLayout />}>
-                <Route index element={<Settings />} />
-                <Route path="*" element={<Settings />} />
-              </Route>
               
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
