@@ -230,9 +230,7 @@ const Sidebar = React.forwardRef<
               : "group-data-[collapsible=icon]:w-[--sidebar-width-icon]"
             )}
           >
-            <SidebarTrigger className="absolute -right-3 top-4 bg-background rounded-full p-1 border border-border shadow-sm hover:bg-accent transition-colors">
-              {state === "expanded" ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            </SidebarTrigger>
+            <div />
           </div>
         <div
           className={cn(
