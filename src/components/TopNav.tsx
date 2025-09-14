@@ -18,12 +18,14 @@ import LogoutConfirmationDialog from "./LogoutConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import NotificationPopup from "./notifications/NotificationPopup";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { title } = usePageTitle();
   
   const {
     notifications,
@@ -53,7 +55,10 @@ const TopNav = () => {
   return (
     <header className="h-16 border-b border-border px-6 flex items-center justify-between z-20 bg-background/90 backdrop-blur-sm">
       <div className="flex-1">
-        <div className="peer-data-[state=collapsed]/sidebar:block hidden">
+        {title && (
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        )}
+        <div className={cn("peer-data-[state=collapsed]/sidebar:block", title ? "hidden" : "block")}>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-2">

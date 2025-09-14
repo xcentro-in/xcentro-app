@@ -4,6 +4,7 @@ import AppSidebar from "./AppSidebar";
 import TopNav from "./TopNav";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { PageTitleProvider } from "@/contexts/PageTitleContext";
 
 const Layout = () => {
   // useEffect(() => {
@@ -18,17 +19,19 @@ const Layout = () => {
   // }, []);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background">
-      <AppSidebar />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <TopNav />
-        <main className="flex-1 overflow-auto p-6">
-          <div className="mx-auto max-w-7xl">
-            <Outlet />
-          </div>
-        </main>
+    <PageTitleProvider>
+      <div className="flex h-screen w-full overflow-hidden bg-background">
+        <AppSidebar />
+        <div className="flex flex-col flex-1 overflow-hidden">
+          <TopNav />
+          <main className="flex-1 overflow-auto p-6">
+            <div className="mx-auto max-w-7xl">
+              <Outlet />
+            </div>
+          </main>
+        </div>
       </div>
-    </div>
+    </PageTitleProvider>
   );
 };
 

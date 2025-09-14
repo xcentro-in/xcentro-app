@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
@@ -47,6 +48,7 @@ const paymentSubtitles = {
 const NewPayment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
   const locationState = location.state as {
     paymentCategory?: PaymentCategory;
     paymentMethod?: string;
@@ -63,6 +65,16 @@ const NewPayment = () => {
       setStep(1);
     }
   }, [locationState]);
+
+  // Update page title when category changes
+  useEffect(() => {
+    setTitle(paymentTitles[paymentCategory]);
+    
+    // Clean up title when component unmounts
+    return () => {
+      setTitle('');
+    };
+  }, [paymentCategory, setTitle]);
 
   const handleCategorySelect = (category: PaymentCategory) => {
     setPaymentCategory(category);
@@ -92,17 +104,12 @@ const NewPayment = () => {
           </Button>
         )}
         
-        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-              {paymentTitles[paymentCategory]}
-            </h1>
-            <p className="text-muted-foreground mt-1 animate-slide-up" style={{
-              animationDelay: "50ms"
-            }}>
-              {paymentSubtitles[paymentCategory]}
-            </p>
-          </div>
+        <div className="flex flex-col">
+          <p className="text-muted-foreground animate-slide-up" style={{
+            animationDelay: "50ms"
+          }}>
+            {paymentSubtitles[paymentCategory]}
+          </p>
         </div>
       </div>
 
