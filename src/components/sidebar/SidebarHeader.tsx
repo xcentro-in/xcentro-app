@@ -33,19 +33,17 @@ export const SidebarHeader = () => {
       {hasMultipleBusinesses ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center justify-between gap-2 w-full text-sm outline-none">
-              <div className="flex items-center gap-2">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10">
-                  <Building className="h-3 w-3 text-primary" />
-                </div>
-                {open && (
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">{currentBusiness.name}</span>
-                    <span className="text-xs text-muted-foreground">{currentBusiness.type}</span>
-                  </div>
-                )}
+            <button className="flex items-center gap-2 text-sm outline-none">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10">
+                <Building className="h-3 w-3 text-primary" />
               </div>
-              {open && <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              {open && (
+                <div className="flex flex-col items-start">
+                  <span className="font-medium">{currentBusiness.name}</span>
+                  <span className="text-xs text-muted-foreground">{currentBusiness.type}</span>
+                </div>
+              )}
+              {open && <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56">
