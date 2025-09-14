@@ -8,11 +8,18 @@ import InvoiceList from "@/components/invoices/InvoiceList";
 import InvoiceDetails from "@/components/invoices/InvoiceDetails";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { useNavigate } from "react-router-dom";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const Invoices = () => {
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  useEffect(() => {
+    setTitle("Invoices");
+  }, [setTitle]);
 
   const filteredInvoices = mockInvoices.filter(invoice =>
     invoice.vendorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -25,7 +32,6 @@ const Invoices = () => {
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Invoices</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Manage and track all your invoices
           </p>

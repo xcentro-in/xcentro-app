@@ -14,6 +14,8 @@ import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCard";
 import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePaymentsCard";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const insights = [
   { title: "Monthly Spend", value: 75493, change: 12.8, trend: "up" as const },
@@ -21,6 +23,11 @@ const insights = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Welcome back, Arvind");
+  }, [setTitle]);
   
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(
@@ -38,7 +45,6 @@ const Dashboard = () => {
           <Badge variant="outline" className="mb-2.5 px-3 py-1.5 text-xs font-medium bg-primary/5 border-primary/10 text-primary animate-fade-in">
             Business Dashboard
           </Badge>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Welcome back, Arvind</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Here's what's happening with your business finances today
           </p>

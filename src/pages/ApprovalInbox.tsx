@@ -11,9 +11,16 @@ import { ApprovalStatus } from "@/types/approval";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Search } from "lucide-react";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const ApprovalInbox = () => {
   const [activeTab, setActiveTab] = useState<ApprovalStatus>("pending");
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Approval Inbox");
+  }, [setTitle]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("all");
   const [selectedAmountRange, setSelectedAmountRange] = useState<string>("all");
@@ -55,9 +62,6 @@ const ApprovalInbox = () => {
   return (
     <div className="space-y-8">
       <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-          Approval Inbox
-        </h1>
         <p className="text-muted-foreground animate-slide-up" style={{
           animationDelay: "50ms"
         }}>

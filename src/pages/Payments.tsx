@@ -8,6 +8,8 @@ import FiltersContainer from "@/components/payments/FiltersContainer";
 import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer";
 import { usePaymentFilters } from "@/hooks/usePaymentFilters";
 import { useTransactionTable } from "@/hooks/useTransactionTable";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 // Mock transaction data - would be replaced with an API call in a real application
 const transactions: Transaction[] = [
@@ -102,6 +104,12 @@ const transactions: Transaction[] = [
 ];
 
 const Payments = () => {
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Payment History");
+  }, [setTitle]);
+
   // Use our custom hooks
   const filterState = usePaymentFilters();
   

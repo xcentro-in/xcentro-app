@@ -27,6 +27,8 @@ import {
 import CustomizeViewDialog from "@/components/insights/CustomizeViewDialog";
 import StatCard from "@/components/insights/StatCard";
 import PaymentActivityMap from "@/components/insights/PaymentActivityMap";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 // Mock data for charts
 const spendingData = [
@@ -73,8 +75,13 @@ interface ViewOptions {
 }
 
 const Insights = () => {
+  const { setTitle } = usePageTitle();
   const [showInsights, setShowInsights] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  
+  useEffect(() => {
+    setTitle("Financial Insights");
+  }, [setTitle]);
   const [viewOptions, setViewOptions] = useState({
     showSpendingTrend: true,
     showCategoryBreakdown: true,
@@ -88,7 +95,6 @@ const Insights = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Financial Insights</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Analytics and insights to optimize your business spending
           </p>

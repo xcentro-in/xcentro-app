@@ -5,7 +5,7 @@ import { CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PaymentCalendarHeaderProps {
-  title: string;
+  title?: string;
   description?: string;
 }
 
@@ -17,20 +17,22 @@ const PaymentCalendarHeader: React.FC<PaymentCalendarHeaderProps> = ({
 
   return (
     <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-3 animate-slide-up">{title}</h1>
-        {description && (
-          <p 
-            className="text-muted-foreground mb-4 animate-slide-up" 
-            style={{ animationDelay: "50ms" }}
-          >
-            {description}
-          </p>
-        )}
-      </div>
+      {(title || description) && (
+        <div>
+          {title && <h1 className="text-3xl font-bold tracking-tight mb-3 animate-slide-up">{title}</h1>}
+          {description && (
+            <p 
+              className="text-muted-foreground mb-4 animate-slide-up" 
+              style={{ animationDelay: "50ms" }}
+            >
+              {description}
+            </p>
+          )}
+        </div>
+      )}
       
       <div 
-        className="flex items-center gap-3 animate-slide-down" 
+        className={`flex items-center gap-3 animate-slide-down ${!(title || description) ? 'justify-end w-full' : ''}`}
         style={{ animationDelay: "100ms" }}
       >
         <Button 

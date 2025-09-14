@@ -7,7 +7,7 @@ export const PageHeader: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">GST Reports</h1>
+        {/* Title moved to TopNav */}
       </div>
       
       <Card className="bg-indigo-50 border-indigo-100 dark:bg-indigo-900/20 dark:border-indigo-800/30">

@@ -9,10 +9,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
 import { toast } from "sonner";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
+  
+  useEffect(() => {
+    setTitle("Payment Sources");
+  }, [setTitle]);
   
   const handleDelete = (id: string) => {
     setPaymentMethods(prev => prev.filter(method => method.id !== id));
@@ -171,7 +178,6 @@ const WalletManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Payment Sources</h1>
           <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
         </div>
         

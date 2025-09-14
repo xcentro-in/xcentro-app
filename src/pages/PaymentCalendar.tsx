@@ -16,11 +16,17 @@ import MonthSelector from "@/components/payments/MonthSelector";
 import ViewToggler from "@/components/payments/ViewToggler";
 import PaymentCalendarHeader from "@/components/payments/PaymentCalendarHeader";
 import PaymentInsightsGrid from "@/components/payments/PaymentInsightsGrid";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 type ViewType = "list" | "calendar";
 
 const PaymentCalendar = () => {
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Upcoming Payments");
+  }, [setTitle]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [monthData, setMonthData] = useState<MonthData | null>(null);
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
@@ -131,7 +137,6 @@ const PaymentCalendar = () => {
       ) : (
         <>
           <PaymentCalendarHeader 
-            title="Upcoming Payments"
             description="View and manage all your scheduled payments in one place"
           />
           

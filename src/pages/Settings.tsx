@@ -14,10 +14,17 @@ import BusinessesTab from "@/components/settings/BusinessesTab";
 import RewardsTab from "@/components/settings/RewardsTab";
 import UsersTab from "@/components/settings/UsersTab";
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Settings");
+  }, [setTitle]);
 
   const tabItems = [
     { id: "account", label: "Account", icon: <User className="h-4 w-4" /> },

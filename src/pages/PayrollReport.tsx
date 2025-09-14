@@ -10,9 +10,16 @@ import ComplianceTrackerCard from "@/components/payroll/ComplianceTrackerCard";
 import PaydaySimulationCard from "@/components/payroll/PaydaySimulationCard";
 import EmployeeSalaryBreakdownCard from "@/components/payroll/EmployeeSalaryBreakdownCard";
 import PayrollVarianceReportCard from "@/components/payroll/PayrollVarianceReportCard";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const PayrollReport = () => {
   const { payrollData, payDate, setPayDate } = usePayrollData();
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Payroll Report");
+  }, [setTitle]);
   
   const simulatePaydayChange = (newDate: number) => {
     setPayDate(newDate);
@@ -22,7 +29,6 @@ const PayrollReport = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Payroll Report</h1>
         <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
           Optimize your salary payments and track compliance
         </p>
