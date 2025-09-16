@@ -10,7 +10,7 @@ import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarMonthView from "@/components/calendar/CalendarMonthView";
 import CalendarEventDetails from "@/components/calendar/CalendarEventDetails";
-import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer";
+import UpcomingPaymentsTableContainer from "@/components/payments/UpcomingPaymentsTableContainer";
 import { useTransactionTable } from "@/hooks/useTransactionTable";
 import MonthSelector from "@/components/payments/MonthSelector";
 import ViewToggler from "@/components/payments/ViewToggler";
@@ -155,7 +155,7 @@ const PaymentCalendar = () => {
           <PaymentInsightsGrid transactions={upcomingTransactions} />
           
           <div className="calendar-container rounded-xl border bg-white animate-fade-in">
-            <PaymentsTableContainer 
+            <UpcomingPaymentsTableContainer 
               transactions={filteredTransactions}
               searchValue={searchValue}
               onSearchChange={setSearchValue}
