@@ -8,7 +8,7 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 
 interface ColumnFilterProps {
-  type: "category" | "status" | "date" | "method";
+  type: "category" | "status" | "date";
   selectedValues: string[];
   dateRange?: DateRange;
   onSelectionChange: (values: string[]) => void;
@@ -33,12 +33,6 @@ const filterOptions = {
     { value: "30days", label: "Last 30 Days" },
     { value: "quarter", label: "Last Quarter" },
     { value: "custom", label: "Custom Range" }
-  ],
-  method: [
-    { value: "upi", label: "UPI" },
-    { value: "bank_transfer", label: "Bank Transfer" },
-    { value: "credit_card", label: "Credit Card" },
-    { value: "debit_card", label: "Debit Card" }
   ]
 };
 

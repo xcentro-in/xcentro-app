@@ -7,8 +7,8 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Transaction } from "@/types/transaction";
-import { useInlineFilters } from "@/hooks/useInlineFilters";
+import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
+import { DateRange } from "react-day-picker";
 
 // Import new components
 import { TableSearchBar } from "./TableSearchBar";
@@ -18,30 +18,23 @@ import { EmptyTransactionsState } from "./EmptyTransactionsState";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
+  appliedFilters: {
+    status: TransactionStatus | "all";
+    method: PaymentMethod | "all";
+    dateRange: DateRange | undefined;
+  };
+  onResetFilters: () => void;
 }
 
 export const TransactionsTable = ({ 
-  transactions
+  transactions, 
+  appliedFilters,
+  onResetFilters
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  
-  // Use inline filters hook
-  const {
-    filteredTransactions: inlineFiltered,
-    categoryFilter,
-    statusFilter,
-    dateFilter,
-    dateRange,
-    methodFilter,
-    setCategoryFilter,
-    setStatusFilter,
-    setDateFilter,
-    setDateRange,
-    setMethodFilter
-  } = useInlineFilters(transactions);
   
   // Handle sorting
   const handleSort = (column: string) => {
@@ -55,12 +48,13 @@ export const TransactionsTable = ({
 
   // Handle row click to navigate to transaction details
   const handleRowClick = (transactionId: string) => {
+    // Navigate to the transaction details page
     navigate(`/payments/${transactionId}`);
   };
   
-  // Apply search filter and sorting to inline filtered results
-  const finalTransactions = useMemo(() => {
-    let filtered = [...inlineFiltered];
+  // Filter and sort transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = [...transactions];
     
     // Apply search filter
     if (searchTerm) {
@@ -69,6 +63,26 @@ export const TransactionsTable = ({
              t.invoice?.toLowerCase().includes(searchTerm.toLowerCase()) ||
              t.transactionId.toLowerCase().includes(searchTerm.toLowerCase())
       );
+    }
+    
+    // Apply status filter from applied filters
+    if (appliedFilters.status !== "all") {
+      filtered = filtered.filter(t => t.status === appliedFilters.status);
+    }
+    
+    // Apply payment method filter from applied filters
+    if (appliedFilters.method !== "all") {
+      filtered = filtered.filter(t => t.method === appliedFilters.method);
+    }
+    
+    // Apply date range filter from applied filters
+    if (appliedFilters.dateRange?.from) {
+      filtered = filtered.filter(t => {
+        const transactionDate = new Date(t.date);
+        if (appliedFilters.dateRange?.from && transactionDate < appliedFilters.dateRange.from) return false;
+        if (appliedFilters.dateRange?.to && transactionDate > appliedFilters.dateRange.to) return false;
+        return true;
+      });
     }
     
     // Sort filtered results
@@ -97,14 +111,12 @@ export const TransactionsTable = ({
     });
     
     return filtered;
-  }, [inlineFiltered, searchTerm, sortColumn, sortDirection]);
+  }, [transactions, searchTerm, appliedFilters, sortColumn, sortDirection]);
 
   // Check if there are any active filters
-  const hasActiveFilters = categoryFilter.length !== 4 || 
-                           statusFilter.length !== 4 || 
-                           !dateFilter.includes("7days") ||
-                           dateFilter.length !== 1 ||
-                           (methodFilter && methodFilter.length !== 4);
+  const hasActiveFilters = appliedFilters.status !== "all" || 
+                           appliedFilters.method !== "all" || 
+                           !!appliedFilters.dateRange?.from;
 
   return (
     <Card>
@@ -120,20 +132,10 @@ export const TransactionsTable = ({
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onSort={handleSort}
-              categoryFilter={categoryFilter}
-              statusFilter={statusFilter}
-              dateFilter={dateFilter}
-              dateRange={dateRange}
-              methodFilter={methodFilter}
-              onCategoryFilterChange={setCategoryFilter}
-              onStatusFilterChange={setStatusFilter}
-              onDateFilterChange={setDateFilter}
-              onDateRangeChange={setDateRange}
-              onMethodFilterChange={setMethodFilter}
             />
             <TableBody>
-              {finalTransactions.length > 0 ? (
-                finalTransactions.map((transaction) => (
+              {filteredTransactions.length > 0 ? (
+                filteredTransactions.map((transaction) => (
                   <TransactionTableRow 
                     key={transaction.id}
                     transaction={transaction} 
@@ -145,13 +147,7 @@ export const TransactionsTable = ({
                   <EmptyTransactionsState 
                     searchTerm={searchTerm}
                     hasActiveFilters={hasActiveFilters}
-                    onResetFilters={() => {
-                      setCategoryFilter(["vendor", "supplier", "biller", "payroll"]);
-                      setStatusFilter(["completed", "pending", "upcoming", "failed"]);
-                      setDateFilter(["7days"]);
-                      setDateRange(undefined);
-                      if (setMethodFilter) setMethodFilter(["upi", "bank_transfer", "credit_card", "debit_card"]);
-                    }}
+                    onResetFilters={onResetFilters}
                   />
                 </TableRow>
               )}
