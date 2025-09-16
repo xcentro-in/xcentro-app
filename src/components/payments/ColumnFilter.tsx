@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Filter, ChevronDown, Calendar } from "lucide-react";
+import { Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
