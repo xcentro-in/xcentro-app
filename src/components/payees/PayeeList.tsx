@@ -15,20 +15,11 @@ import {
   LightbulbIcon, 
   UsersIcon, 
   SearchIcon, 
-  Edit, 
-  Trash, 
   Star, 
   StarIcon,
-  History,
-  MoreVertical,
-  Eye
+  Eye,
+  SquareArrowOutUpRight
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -185,32 +176,18 @@ const PayeeList = () => {
                       <Button 
                         variant="ghost" 
                         size="icon"
+                        onClick={() => handleViewHistory(payee.id)}
+                      >
+                        <SquareArrowOutUpRight className="h-4 w-4" />
+                      </Button>
+                      
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
                         onClick={() => setSelectedPayeeForDrawer(payee.id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewHistory(payee.id)}>
-                            <History className="h-4 w-4 mr-2" />
-                            View History
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setDeletePayeeId(payee.id)}>
-                            <Trash className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
                     </div>
                   </TableCell>
                 </TableRow>
