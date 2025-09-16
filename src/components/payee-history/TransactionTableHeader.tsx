@@ -1,17 +1,35 @@
 
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ColumnFilter } from "@/components/payments/ColumnFilter";
+import { DateRange } from "react-day-picker";
 
 interface TransactionTableHeaderProps {
   sortColumn: string;
   sortDirection: "asc" | "desc";
   onSort: (column: string) => void;
+  categoryFilter: string[];
+  statusFilter: string[];
+  dateFilter: string[];
+  dateRange?: DateRange;
+  onCategoryChange: (values: string[]) => void;
+  onStatusChange: (values: string[]) => void;
+  onDateChange: (values: string[]) => void;
+  onDateRangeChange: (range: DateRange | undefined) => void;
 }
 
 export const TransactionTableHeader = ({
   sortColumn,
   sortDirection,
-  onSort
+  onSort,
+  categoryFilter,
+  statusFilter,
+  dateFilter,
+  dateRange,
+  onCategoryChange,
+  onStatusChange,
+  onDateChange,
+  onDateRangeChange
 }: TransactionTableHeaderProps) => {
   const renderSortIcon = (column: string) => {
     if (sortColumn === column) {
@@ -47,13 +65,40 @@ export const TransactionTableHeader = ({
           className="cursor-pointer"
           onClick={() => onSort("date")}
         >
-          Payment Date
-          {sortColumn === "date" && (
-            <span className="ml-1">{renderSortIcon("date")}</span>
-          )}
+          <div className="flex items-center justify-between">
+            <span>Payment Date</span>
+            <div className="flex items-center gap-1">
+              {sortColumn === "date" && renderSortIcon("date")}
+              <ColumnFilter
+                type="date"
+                selectedValues={dateFilter}
+                dateRange={dateRange}
+                onSelectionChange={onDateChange}
+                onDateRangeChange={onDateRangeChange}
+              />
+            </div>
+          </div>
         </TableHead>
-        <TableHead>Payment Status</TableHead>
-        <TableHead>Payment Method</TableHead>
+        <TableHead>
+          <div className="flex items-center justify-between">
+            <span>Payment Status</span>
+            <ColumnFilter
+              type="status"
+              selectedValues={statusFilter}
+              onSelectionChange={onStatusChange}
+            />
+          </div>
+        </TableHead>
+        <TableHead>
+          <div className="flex items-center justify-between">
+            <span>Category</span>
+            <ColumnFilter
+              type="category"
+              selectedValues={categoryFilter}
+              onSelectionChange={onCategoryChange}
+            />
+          </div>
+        </TableHead>
         <TableHead>Description</TableHead>
       </TableRow>
     </TableHeader>

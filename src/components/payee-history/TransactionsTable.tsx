@@ -7,8 +7,8 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
-import { DateRange } from "react-day-picker";
+import { Transaction } from "@/types/transaction";
+import { useInlineFilters } from "@/hooks/useInlineFilters";
 
 // Import new components
 import { TableSearchBar } from "./TableSearchBar";
@@ -18,23 +18,28 @@ import { EmptyTransactionsState } from "./EmptyTransactionsState";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
-  appliedFilters: {
-    status: TransactionStatus | "all";
-    method: PaymentMethod | "all";
-    dateRange: DateRange | undefined;
-  };
-  onResetFilters: () => void;
 }
 
 export const TransactionsTable = ({ 
-  transactions, 
-  appliedFilters,
-  onResetFilters
+  transactions
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  
+  // Use inline filters hook
+  const {
+    filteredTransactions: initialFiltered,
+    categoryFilter,
+    statusFilter,
+    dateFilter,
+    dateRange,
+    setCategoryFilter,
+    setStatusFilter,
+    setDateFilter,
+    setDateRange
+  } = useInlineFilters(transactions);
   
   // Handle sorting
   const handleSort = (column: string) => {
@@ -52,9 +57,18 @@ export const TransactionsTable = ({
     navigate(`/payments/${transactionId}`);
   };
   
+  // Reset filters
+  const resetFilters = () => {
+    setCategoryFilter(["vendor", "supplier", "biller", "payroll"]);
+    setStatusFilter(["completed", "pending", "upcoming", "failed"]);
+    setDateFilter(["7days"]);
+    setDateRange(undefined);
+  };
+  
   // Filter and sort transactions
   const filteredTransactions = useMemo(() => {
-    let filtered = [...transactions];
+    // Start with already filtered transactions from hook
+    let filtered = [...initialFiltered];
     
     // Apply search filter
     if (searchTerm) {
@@ -63,26 +77,6 @@ export const TransactionsTable = ({
              t.invoice?.toLowerCase().includes(searchTerm.toLowerCase()) ||
              t.transactionId.toLowerCase().includes(searchTerm.toLowerCase())
       );
-    }
-    
-    // Apply status filter from applied filters
-    if (appliedFilters.status !== "all") {
-      filtered = filtered.filter(t => t.status === appliedFilters.status);
-    }
-    
-    // Apply payment method filter from applied filters
-    if (appliedFilters.method !== "all") {
-      filtered = filtered.filter(t => t.method === appliedFilters.method);
-    }
-    
-    // Apply date range filter from applied filters
-    if (appliedFilters.dateRange?.from) {
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        if (appliedFilters.dateRange?.from && transactionDate < appliedFilters.dateRange.from) return false;
-        if (appliedFilters.dateRange?.to && transactionDate > appliedFilters.dateRange.to) return false;
-        return true;
-      });
     }
     
     // Sort filtered results
@@ -111,12 +105,13 @@ export const TransactionsTable = ({
     });
     
     return filtered;
-  }, [transactions, searchTerm, appliedFilters, sortColumn, sortDirection]);
+  }, [initialFiltered, searchTerm, sortColumn, sortDirection]);
 
   // Check if there are any active filters
-  const hasActiveFilters = appliedFilters.status !== "all" || 
-                           appliedFilters.method !== "all" || 
-                           !!appliedFilters.dateRange?.from;
+  const hasActiveFilters = !dateFilter.includes("7days") || 
+                           dateFilter.length !== 1 ||
+                           statusFilter.length !== 4 ||
+                           categoryFilter.length !== 4;
 
   return (
     <Card>
@@ -132,6 +127,14 @@ export const TransactionsTable = ({
               sortColumn={sortColumn}
               sortDirection={sortDirection}
               onSort={handleSort}
+              categoryFilter={categoryFilter}
+              statusFilter={statusFilter}
+              dateFilter={dateFilter}
+              dateRange={dateRange}
+              onCategoryChange={setCategoryFilter}
+              onStatusChange={setStatusFilter}
+              onDateChange={setDateFilter}
+              onDateRangeChange={setDateRange}
             />
             <TableBody>
               {filteredTransactions.length > 0 ? (
@@ -147,7 +150,7 @@ export const TransactionsTable = ({
                   <EmptyTransactionsState 
                     searchTerm={searchTerm}
                     hasActiveFilters={hasActiveFilters}
-                    onResetFilters={onResetFilters}
+                    onResetFilters={resetFilters}
                   />
                 </TableRow>
               )}
