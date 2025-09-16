@@ -8,7 +8,7 @@ import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 
 interface ColumnFilterProps {
-  type: "category" | "status" | "date";
+  type: "category" | "status" | "date" | "method";
   selectedValues: string[];
   dateRange?: DateRange;
   onSelectionChange: (values: string[]) => void;

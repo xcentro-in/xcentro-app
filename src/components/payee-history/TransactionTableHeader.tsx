@@ -10,10 +10,12 @@ interface TransactionTableHeaderProps {
   onSort: (column: string) => void;
   categoryFilter: string[];
   statusFilter: string[];
+  methodFilter: string[];
   dateFilter: string[];
   dateRange?: DateRange;
   onCategoryChange: (values: string[]) => void;
   onStatusChange: (values: string[]) => void;
+  onMethodChange: (values: string[]) => void;
   onDateChange: (values: string[]) => void;
   onDateRangeChange: (range: DateRange | undefined) => void;
 }
@@ -24,10 +26,12 @@ export const TransactionTableHeader = ({
   onSort,
   categoryFilter,
   statusFilter,
+  methodFilter,
   dateFilter,
   dateRange,
   onCategoryChange,
   onStatusChange,
+  onMethodChange,
   onDateChange,
   onDateRangeChange
 }: TransactionTableHeaderProps) => {
@@ -91,11 +95,11 @@ export const TransactionTableHeader = ({
         </TableHead>
         <TableHead>
           <div className="flex items-center justify-between">
-            <span>Category</span>
+            <span>Payment Method</span>
             <ColumnFilter
-              type="category"
-              selectedValues={categoryFilter}
-              onSelectionChange={onCategoryChange}
+              type="method"
+              selectedValues={methodFilter}
+              onSelectionChange={onMethodChange}
             />
           </div>
         </TableHead>

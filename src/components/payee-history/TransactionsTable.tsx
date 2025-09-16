@@ -33,10 +33,12 @@ export const TransactionsTable = ({
     filteredTransactions: initialFiltered,
     categoryFilter,
     statusFilter,
+    methodFilter,
     dateFilter,
     dateRange,
     setCategoryFilter,
     setStatusFilter,
+    setMethodFilter,
     setDateFilter,
     setDateRange
   } = useInlineFilters(transactions);
@@ -129,10 +131,12 @@ export const TransactionsTable = ({
               onSort={handleSort}
               categoryFilter={categoryFilter}
               statusFilter={statusFilter}
+              methodFilter={methodFilter}
               dateFilter={dateFilter}
               dateRange={dateRange}
               onCategoryChange={setCategoryFilter}
               onStatusChange={setStatusFilter}
+              onMethodChange={setMethodFilter}
               onDateChange={setDateFilter}
               onDateRangeChange={setDateRange}
             />
