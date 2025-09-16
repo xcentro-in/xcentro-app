@@ -159,9 +159,6 @@ const PaymentCalendar = () => {
               transactions={filteredTransactions}
               searchValue={searchValue}
               onSearchChange={setSearchValue}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={setItemsPerPage}
             />

@@ -118,9 +118,6 @@ const Payments = () => {
           transactions={transactions}
           searchValue=""
           onSearchChange={() => {}}
-          sortField={null}
-          sortDirection="desc"
-          onSort={() => {}}
           itemsPerPage={10}
           onItemsPerPageChange={() => {}}
         />

@@ -16,9 +16,6 @@ interface TransactionsTableProps {
   transactions: Transaction[];
   searchValue: string;
   onSearchChange: (value: string) => void;
-  sortField: string | null;
-  sortDirection: "asc" | "desc";
-  onSort: (field: string) => void;
   itemsPerPage: number;
   onItemsPerPageChange: (value: number) => void;
 }
@@ -27,9 +24,6 @@ const TransactionsTable = ({
   transactions,
   searchValue,
   onSearchChange,
-  sortField,
-  sortDirection,
-  onSort,
   itemsPerPage,
   onItemsPerPageChange
 }: TransactionsTableProps) => {
@@ -82,9 +76,6 @@ const TransactionsTable = ({
       <div className="rounded-md border overflow-hidden">
         {/* Table Header */}
         <TableHeader 
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={onSort}
           categoryFilter={categoryFilter}
           statusFilter={statusFilter}
           dateFilter={dateFilter}
