@@ -44,7 +44,7 @@ export const ColumnFilter = ({
   onDateRangeChange 
 }: ColumnFilterProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(type === "date" && selectedValues.includes("custom"));
 
   const options = filterOptions[type];
   const hasActiveFilters = type === "date" 
@@ -52,13 +52,24 @@ export const ColumnFilter = ({
     : selectedValues.length !== options.length;
 
   const handleCheckboxChange = (value: string, checked: boolean) => {
-    if (type === "date" && value === "custom") {
-      if (checked) {
-        setShowDatePicker(true);
-        onSelectionChange([value]);
+    if (type === "date") {
+      if (value === "custom") {
+        if (checked) {
+          setShowDatePicker(true);
+          onSelectionChange(["custom"]);
+        } else {
+          setShowDatePicker(false);
+          onSelectionChange(["7days"]);
+        }
       } else {
-        setShowDatePicker(false);
-        onSelectionChange(["7days"]); // Default back to 7 days
+        // Radio-like behavior for date filters
+        if (checked) {
+          setShowDatePicker(false);
+          onSelectionChange([value]);
+        } else {
+          // Prevent none state
+          onSelectionChange(["7days"]);
+        }
       }
       return;
     }
@@ -80,8 +91,15 @@ export const ColumnFilter = ({
   };
 
   const handleClearAll = () => {
-    onSelectionChange([]);
+    if (type === "date") {
+      onSelectionChange(["7days"]);
+      setShowDatePicker(false);
+    } else {
+      onSelectionChange([]);
+    }
   };
+
+  const expanded = type === "date" && showDatePicker && selectedValues.includes("custom");
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -94,52 +112,58 @@ export const ColumnFilter = ({
           <Filter className="h-3 w-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-56 p-0" align="start">
-        <div className="p-3">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium">Filter {type}</h4>
-            <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={handleSelectAll}
-              >
-                All
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={handleClearAll}
-              >
-                None
-              </Button>
+      <PopoverContent className={`${expanded ? "w-[720px]" : "w-56"} p-0 z-50`} align="start">
+        <div className={`flex ${expanded ? "" : ""}`}>
+          {/* Left column: options */}
+          <div className={`${expanded ? "w-56 border-r" : "w-full"} p-3`}>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-medium">Filter {type}</h4>
+              {type !== "date" && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={handleSelectAll}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={handleClearAll}
+                  >
+                    None
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {options.map((option) => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={option.value}
+                    checked={selectedValues.includes(option.value)}
+                    onCheckedChange={(checked) => 
+                      handleCheckboxChange(option.value, checked as boolean)
+                    }
+                  />
+                  <label
+                    htmlFor={option.value}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {option.label}
+                  </label>
+                </div>
+              ))}
             </div>
           </div>
-          
-          <div className="space-y-2">
-            {options.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
-                <Checkbox
-                  id={option.value}
-                  checked={selectedValues.includes(option.value)}
-                  onCheckedChange={(checked) => 
-                    handleCheckboxChange(option.value, checked as boolean)
-                  }
-                />
-                <label
-                  htmlFor={option.value}
-                  className="text-sm font-normal cursor-pointer"
-                >
-                  {option.label}
-                </label>
-              </div>
-            ))}
-          </div>
 
-          {type === "date" && showDatePicker && selectedValues.includes("custom") && (
-            <div className="mt-3 pt-3 border-t">
+          {/* Right column: date range picker */}
+          {expanded && (
+            <div className="flex-1 p-3">
               <div className="text-xs text-muted-foreground mb-2">Select date range:</div>
               <CalendarComponent
                 mode="range"

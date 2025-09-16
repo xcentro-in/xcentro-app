@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { DateRange } from "react-day-picker";
 import { Transaction } from "@/types/transaction";
 import { subDays, startOfQuarter, isWithinInterval } from "date-fns";
+import { parseTransactionDate } from "@/utils/parseTransactionDate";
 
 export const useInlineFilters = (transactions: Transaction[]) => {
   // Default filters - all categories and statuses selected, last 7 days for date
@@ -24,7 +25,8 @@ export const useInlineFilters = (transactions: Transaction[]) => {
 
       // Date filter
       if (dateFilter.length > 0) {
-        const transactionDate = new Date(transaction.date);
+        const parsed = parseTransactionDate(transaction.date as any);
+        const transactionDate = parsed ?? new Date();
         const today = new Date();
 
         if (dateFilter.includes("7days")) {
