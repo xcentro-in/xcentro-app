@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Filter, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label";
 import { mockPayees } from "@/data/mockPayees";
 import { getPayeeTransactions, getPayeeTotalPayments, getPayeeLastTransactionDate } from "@/data/mockPayeeTransactions";
 import { Payee, BankPayee, BillerPayee, PayrollPayee } from "@/types/payee";
-import { Transaction } from "@/types/transaction";
+import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
+import { DateRange } from "react-day-picker";
 
 // Import refactored components
+import { FilterCard } from "@/components/payee-history/FilterCard";
 import { TransactionsTable } from "@/components/payee-history/TransactionsTable";
 import { DownloadActions } from "@/components/payee-history/DownloadActions";
 const PayeeHistory = () => {
@@ -21,6 +23,11 @@ const PayeeHistory = () => {
   const [payee, setPayee] = useState<Payee | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
+  const [appliedFilters, setAppliedFilters] = useState({
+    status: "all" as TransactionStatus | "all",
+    method: "all" as PaymentMethod | "all",
+    dateRange: undefined as DateRange | undefined
+  });
   
   // Edit state management
   const [isEditingCompany, setIsEditingCompany] = useState(false);
@@ -82,6 +89,23 @@ const PayeeHistory = () => {
   const totalPaid = getPayeeTotalPayments(payeeId || "");
   const lastTransactionDate = getPayeeLastTransactionDate(payeeId || "");
 
+  // Handle filter application
+  const handleApplyFilters = (filters: {
+    status: TransactionStatus | "all";
+    method: PaymentMethod | "all";
+    dateRange: DateRange | undefined;
+  }) => {
+    setAppliedFilters(filters);
+  };
+
+  // Handle filter reset
+  const handleResetFilters = () => {
+    setAppliedFilters({
+      status: "all",
+      method: "all",
+      dateRange: undefined
+    });
+  };
   
   // IFSC validation function
   const validateIfsc = async (ifsc: string) => {
@@ -439,8 +463,17 @@ const PayeeHistory = () => {
         </TabsContent>
         
         <TabsContent value="history" className="mt-6 space-y-6">
+          {/* Filters Section */}
+          <div>
+            <h3 className="text-lg font-medium mb-2 flex items-center">
+              <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+              Filters
+            </h3>
+            <FilterCard onApplyFilters={handleApplyFilters} />
+          </div>
+          
           {/* Transactions Table */}
-          <TransactionsTable transactions={transactions} />
+          <TransactionsTable transactions={transactions} appliedFilters={appliedFilters} onResetFilters={handleResetFilters} />
         </TabsContent>
       </Tabs>
     </div>;
