@@ -4,10 +4,7 @@ import { Transaction } from "@/types/transaction";
 
 // Import new components and hooks
 import PaymentsHeader from "@/components/payments/PaymentsHeader";
-import FiltersContainer from "@/components/payments/FiltersContainer";
 import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer";
-import { usePaymentFilters } from "@/hooks/usePaymentFilters";
-import { useTransactionTable } from "@/hooks/useTransactionTable";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useEffect } from "react";
 
@@ -110,88 +107,22 @@ const Payments = () => {
     setTitle("Payment History");
   }, [setTitle]);
 
-  // Use our custom hooks
-  const filterState = usePaymentFilters();
-  
-  const {
-    dateFilter,
-    dateRange,
-    statusFilter,
-    methodFilter,
-    categoryFilter,
-    showCustomDateRange,
-    filtersChanged,
-    activeFilters,
-    appliedDateRange,
-    appliedStatusFilter,
-    appliedMethodFilter,
-    appliedCategoryFilter,
-    applyFilters,
-    handleDateFilterChange,
-    handleStatusFilterChange,
-    handleMethodFilterChange,
-    handleCategoryFilterChange,
-    removeFilter,
-    resetToDefaultFilters,
-    handleDateRangeChange
-  } = filterState;
-
-  const tableState = useTransactionTable({
-    transactions,
-    appliedStatusFilter,
-    appliedMethodFilter,
-    appliedCategoryFilter,
-    appliedDateRange
-  });
-
-  const {
-    searchValue,
-    setSearchValue,
-    sortField,
-    sortDirection,
-    itemsPerPage,
-    setItemsPerPage,
-    handleSort,
-    filteredAndSortedTransactions
-  } = tableState;
-  
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PaymentsHeader />
 
       <Card className="animate-scale-in">
-        {/* Filter Section */}
-        <FiltersContainer 
-          dateFilter={dateFilter}
-          dateRange={dateRange}
-          statusFilter={statusFilter}
-          methodFilter={methodFilter}
-          categoryFilter={categoryFilter}
-          showCustomDateRange={showCustomDateRange}
-          filtersChanged={filtersChanged}
-          activeFilters={activeFilters}
-          appliedDateRange={appliedDateRange}
-          onDateFilterChange={handleDateFilterChange}
-          onStatusFilterChange={handleStatusFilterChange}
-          onMethodFilterChange={handleMethodFilterChange}
-          onCategoryFilterChange={handleCategoryFilterChange}
-          onDateRangeChange={handleDateRangeChange}
-          onApplyFilters={applyFilters}
-          onResetFilters={resetToDefaultFilters}
-          onRemoveFilter={removeFilter}
-        />
-        
-        {/* Transactions Table Container */}
+        {/* Transactions Table Container with inline filters */}
         <PaymentsTableContainer 
-          transactions={filteredAndSortedTransactions}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          sortField={sortField}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={setItemsPerPage}
+          transactions={transactions}
+          searchValue=""
+          onSearchChange={() => {}}
+          sortField={null}
+          sortDirection="desc"
+          onSort={() => {}}
+          itemsPerPage={10}
+          onItemsPerPageChange={() => {}}
         />
       </Card>
     </div>

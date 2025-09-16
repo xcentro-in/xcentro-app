@@ -10,6 +10,7 @@ import TransactionRow from "./TransactionRow";
 import EmptyTransactionsState from "./EmptyTransactionsState";
 import TablePagination from "./TablePagination";
 import { PaymentFilters } from "./PaymentFilters";
+import { useInlineFilters } from "@/hooks/useInlineFilters";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
@@ -35,9 +36,29 @@ const TransactionsTable = ({
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   
+  // Use inline filters hook
+  const {
+    filteredTransactions: baseFilteredTransactions,
+    categoryFilter,
+    statusFilter,
+    dateFilter,
+    dateRange,
+    setCategoryFilter,
+    setStatusFilter,
+    setDateFilter,
+    setDateRange
+  } = useInlineFilters(transactions);
+
+  // Apply search filter on top of inline filters
+  const searchFilteredTransactions = baseFilteredTransactions.filter(transaction =>
+    transaction.vendor.toLowerCase().includes(searchValue.toLowerCase()) ||
+    transaction.transactionId.toLowerCase().includes(searchValue.toLowerCase()) ||
+    transaction.type.toLowerCase().includes(searchValue.toLowerCase())
+  );
+  
   // Pagination
-  const totalPages = Math.ceil(transactions.length / itemsPerPage);
-  const paginatedTransactions = transactions.slice(
+  const totalPages = Math.ceil(searchFilteredTransactions.length / itemsPerPage);
+  const paginatedTransactions = searchFilteredTransactions.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -64,6 +85,14 @@ const TransactionsTable = ({
           sortField={sortField}
           sortDirection={sortDirection}
           onSort={onSort}
+          categoryFilter={categoryFilter}
+          statusFilter={statusFilter}
+          dateFilter={dateFilter}
+          dateRange={dateRange}
+          onCategoryFilterChange={setCategoryFilter}
+          onStatusFilterChange={setStatusFilter}
+          onDateFilterChange={setDateFilter}
+          onDateRangeChange={setDateRange}
         />
         
         {/* Transaction Rows */}
@@ -83,11 +112,11 @@ const TransactionsTable = ({
       </div>
       
       {/* Pagination */}
-      {transactions.length > 0 && (
+      {searchFilteredTransactions.length > 0 && (
         <TablePagination 
           currentPage={currentPage}
           totalPages={totalPages}
-          totalItems={transactions.length}
+          totalItems={searchFilteredTransactions.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />
