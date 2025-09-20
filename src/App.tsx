@@ -1,6 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useToast } from "./hooks/use-toast";
-import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import Dashboard from "./pages/Dashboard";
@@ -43,12 +41,17 @@ import { Toaster } from "./components/ui/sonner";
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
 import SettingsLayout from "./components/settings/SettingsLayout";
+import { canViewFeature } from "@/lib/featureFlags";
+import { getUser } from "./lib/getUser";
 
 
 const queryClient = new QueryClient()
 
 function App() {
-  const { toast } = useToast();
+  const RewardsEnabled = canViewFeature("REWARD_POINT_SYSTEM", getUser());
+  const AnalyticsEnabled = canViewFeature("BUSINESS_ANALYTICS", getUser());
+  const CreditCardBillEnabled = canViewFeature("REWARD_POINT_SYSTEM", getUser());
+  const ReferralEnabled = canViewFeature("REFERRAL_SYSTEM", getUser());
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -66,23 +69,37 @@ function App() {
                 <Route path="invoices" element={<Invoices />} />
                 <Route path="invoices/new" element={<NewBill />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
-                <Route path="insights" element={<Insights />} />
-                <Route path="cash-flow-projection" element={<CashFlowProjection />} />
-                <Route path="gst-reports" element={<GSTReports />} />
-                <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
-                <Route path="payroll-report" element={<PayrollReport />} />
+                {AnalyticsEnabled && (
+                  <>
+                  <Route path="insights" element={<Insights />} />
+                  <Route path="cash-flow-projection" element={<CashFlowProjection />} />
+                  <Route path="gst-reports" element={<GSTReports />} />
+                  <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
+                  <Route path="payroll-report" element={<PayrollReport />} />
+                  </>
+                )}
                 <Route path="new-payment" element={<NewPayment />} />
                 <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:id" element={<TransactionDetails />} />
-                <Route path="rewards" element={<Rewards />} />
-                <Route path="rewards/history" element={<RewardsInsights />} />
-                <Route path="rewards/milestones" element={<MilestoneRewards />} />
-                <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
-                <Route path="rewards/redeem" element={<RedemptionFlow />} />
-                <Route path="network" element={<Network />} />
-                <Route path="credit-cards" element={<CreditCards />} />
-                <Route path="credit-card-bills" element={<CreditCardBills />} />
-                <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
+                {RewardsEnabled && (
+                  <>
+                  <Route path="rewards" element={<Rewards />} />
+                  <Route path="rewards/history" element={<RewardsInsights />} />
+                  <Route path="rewards/milestones" element={<MilestoneRewards />} />
+                  <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
+                  <Route path="rewards/redeem" element={<RedemptionFlow />} />
+                  </>
+                )}
+                {ReferralEnabled && (
+                  <Route path="network" element={<Network />} />
+                )}
+                {CreditCardBillEnabled && (
+                  <>
+                  <Route path="credit-cards" element={<CreditCards />} />
+                  <Route path="credit-card-bills" element={<CreditCardBills />} />
+                  <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
+                  </>
+                )}
                 <Route path="wallet" element={<WalletManagement />} />
                 <Route path="wallet/add" element={<AddPaymentMethod />} />
                 <Route path="user-access" element={<UserAccess />} />

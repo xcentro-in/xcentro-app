@@ -24,7 +24,7 @@ const SidebarMenu = () => {
         {mainMenuItems.map((item: SidebarMenuItem) => {
           const featureFlag = categoryFeatureFlags[item.id] || 'ALLOWED_FIELDS';
           return (
-            <FeatureEnabled featureFlag={featureFlag} key={item.title}>
+            <FeatureEnabled featureFlag={featureFlag}>
               <SidebarMenuItemComponent 
                 title={item.title} 
                 url={item.url} 
