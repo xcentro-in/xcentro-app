@@ -56,7 +56,8 @@ const Settings = () => {
   };
 
   const categoryFeatureFlags: Record<string, FeatureFlagName> = {
-    integration: 'ERP_INTEGRATION'
+    integration: 'ERP_INTEGRATION',
+    rewards: 'REWARD_POINT_SYSTEM',
   } as const;
 
   return (

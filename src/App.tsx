@@ -20,7 +20,6 @@ import PayeeHistory from "./pages/PayeeHistory";
 import TransactionDetails from "./pages/TransactionDetails";
 import NewPayment from "./pages/NewPayment";
 import PayInvoice from "./pages/PayInvoice";
-import UserAccess from "./pages/UserAccess";
 import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Network from "./pages/Network";
@@ -102,7 +101,6 @@ function App() {
                 )}
                 <Route path="wallet" element={<WalletManagement />} />
                 <Route path="wallet/add" element={<AddPaymentMethod />} />
-                <Route path="user-access" element={<UserAccess />} />
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
               </Route>
               
