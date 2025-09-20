@@ -23,6 +23,7 @@ import {
 
 // Define interface for the menu items
 export interface SidebarMenuItem {
+  id: string;
   title: string;
   url: string;
   icon: any; // Using 'any' here to accommodate Lucide icons
@@ -30,6 +31,7 @@ export interface SidebarMenuItem {
   highlightColor?: "amber" | "green";
   state?: any;
   submenu?: Array<{
+    id: string;
     title: string;
     url: string;
     icon: any;
@@ -39,11 +41,13 @@ export interface SidebarMenuItem {
 // Main menu items
 export const mainMenuItems: SidebarMenuItem[] = [
   {
+    id: "dashboard",
     title: "Dashboard",
     url: "/",
     icon: Home,
   },
   {
+    id: "quickpay",
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
@@ -51,41 +55,49 @@ export const mainMenuItems: SidebarMenuItem[] = [
     highlightColor: "green" as const,
   },
   {
+    id: "futurePayment",
     title: "Upcoming Payments",
     url: "/payment-calendar",
     icon: CalendarDays,
   },
   {
+    id: "paymentHistory",
     title: "Payment History",
     url: "/payments",
     icon: History,
   },
   {
+    id: "payeeManagement",
     title: "Manage Payees",
     url: "/payees",
     icon: Users,
   },
   {
+    id: "invoices",
     title: "Invoices",
     url: "/invoices",
     icon: FileText,
   },
   {
+    id: "wallet",
     title: "Wallet",
     url: "/wallet",
     icon: Wallet,
   },
   {
+    id: "creditcard",
     title: "Credit Cards",
     url: "/credit-cards",
     icon: CreditCardIcon,
     submenu: [
       {
+        id: "cardBillPayment",
         title: "Card Bill Payment",
         url: "/credit-card-bills",
         icon: Receipt,
       },
       {
+        id: "cardInsightsAnalytics",
         title: "Card Insights & Analytics",
         url: "/credit-card-analytics",
         icon: BarChart2,
@@ -93,28 +105,33 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ]
   },
   {
+    id: "approvals",
     title: "Approvals",
     url: "/approvals",
     icon: CheckCircle2,
     highlight: true,
   },
   {
+    id: "rewardmanagement",
     title: "My Rewards",
     url: "/rewards",
     icon: Gift,
     highlight: true,
     submenu: [
       {
+        id: "rewardsDashboard",
         title: "Dashboard",
         url: "/rewards",
         icon: Award,
       },
       {
+        id: "rewardsHistory",
         title: "History",
         url: "/rewards/history",
         icon: History,
       },
       {
+        id: "rewardsMilestones",
         title: "Milestones",
         url: "/rewards/milestones",
         icon: Milestone
@@ -122,26 +139,31 @@ export const mainMenuItems: SidebarMenuItem[] = [
     ]
   },
   {
+    id: "businessanalytics",
     title: "Business Reports",
     url: "/insights",
     icon: BarChart3,
     submenu: [
       {
+        id: "expenseAnalytics",
         title: "Expense Analytics",
         url: "/insights",
         icon: BarChart,
       },
       {
+        id: "cashFlowProjection",
         title: "Cash Flow Projection",
         url: "/cash-flow-projection",
         icon: LineChart,
       },
       {
+        id: "gstReports",
         title: 'GST Reports',
         icon: ReceiptText,
         url: '/gst-reports',
       },
       {
+        id: "payrollReport",
         title: 'Payroll Report',
         icon: Landmark,
         url: '/payroll-report',

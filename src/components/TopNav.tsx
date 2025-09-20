@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import NotificationPopup from "./notifications/NotificationPopup";
 import { usePageTitle } from "@/contexts/PageTitleContext";
+import { FeatureEnabled } from "./FeatureEnabled";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
@@ -96,6 +97,7 @@ const TopNav = () => {
       </div>
       
       <div className="flex items-center gap-3">
+        <FeatureEnabled featureFlag="REWARD_POINT_SYSTEM">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -108,6 +110,7 @@ const TopNav = () => {
           <span className="font-medium">24,530</span>
           <span className="text-xs text-muted-foreground">points</span>
         </Button>
+        </FeatureEnabled>
         
         <Button 
           variant="ghost" 
@@ -158,13 +161,15 @@ const TopNav = () => {
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="flex items-center px-3 py-2 cursor-pointer"
-              onClick={() => navigate('/network', { state: { activeTab: "referrals" } })}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Referrals
-            </DropdownMenuItem>
+            <FeatureEnabled featureFlag="REFERRAL_SYSTEM">
+              <DropdownMenuItem 
+                className="flex items-center px-3 py-2 cursor-pointer"
+                onClick={() => navigate('/network', { state: { activeTab: "referrals" } })}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Referrals
+              </DropdownMenuItem>
+            </FeatureEnabled>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem 
               className="flex items-center px-3 py-2 cursor-pointer text-destructive hover:text-destructive focus:text-destructive"

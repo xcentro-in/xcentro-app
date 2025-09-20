@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { Plus, ShoppingBag, Calendar } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import InsightCard from "@/components/dashboard/InsightCard";
@@ -15,6 +15,7 @@ import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCard";
 import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePaymentsCard";
 import { usePageTitle } from "@/contexts/PageTitleContext";
+import { FeatureEnabled } from "@/components/FeatureEnabled"
 import { useEffect } from "react";
 
 const insights = [
@@ -79,9 +80,11 @@ const Dashboard = () => {
         <div className="lg:col-span-1">
           <RecentTransactions />
         </div>
+        <FeatureEnabled featureFlag="REWARD_POINT_SYSTEM">
         <div className="lg:col-span-2">
           <RewardStatus />
         </div>
+        </FeatureEnabled>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
