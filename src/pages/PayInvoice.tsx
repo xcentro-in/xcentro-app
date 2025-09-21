@@ -6,7 +6,7 @@ import UploadInvoiceStep from "@/components/invoice/UploadInvoiceStep";
 import ReviewInvoiceStep from "@/components/invoice/ReviewInvoiceStep";
 import PaymentMethodStep from "@/components/invoice/PaymentMethodStep";
 import PaymentConfirmationStep from "@/components/invoice/PaymentConfirmationStep";
-import RewardTopUpStep, { RewardPackage } from "@/components/payments/common/RewardTopUpStep";
+import RewardTopUpStep, { RewardPackage } from "@/components/payments/new-payment/shared/common/RewardTopUpStep";
 
 interface PayInvoiceProps {
   onStepChange?: (step: number) => void;

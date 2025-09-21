@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/card";
 import { Transaction } from "@/types/transaction";
 
 // Import new components and hooks
-import PaymentsHeader from "@/components/payments/PaymentsHeader";
-import PaymentsTableContainer from "@/components/payments/PaymentsTableContainer";
+import PaymentsHeader from "@/components/payments/shared/ui/PaymentsHeader";
+import PaymentsTableContainer from "@/components/payments/payment-history/tables/PaymentsTableContainer";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useEffect } from "react";
 

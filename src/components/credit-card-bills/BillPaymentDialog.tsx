@@ -11,7 +11,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { CreditCardBill } from "@/types/credit-card-bill";
-import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/payments/new-payment/shared/payment-methods/PaymentMethodSelector";
 import PaymentOptions from "./PaymentOptions";
 import BillSummary from "./BillSummary";
 import PaymentSummary from "./PaymentSummary";

@@ -10,12 +10,12 @@ import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import CalendarHeader from "@/components/calendar/CalendarHeader";
 import CalendarMonthView from "@/components/calendar/CalendarMonthView";
 import CalendarEventDetails from "@/components/calendar/CalendarEventDetails";
-import UpcomingPaymentsTableContainer from "@/components/payments/UpcomingPaymentsTableContainer";
+import UpcomingPaymentsTableContainer from "@/components/payments/payment-history/tables/UpcomingPaymentsTableContainer";
 import { useTransactionTable } from "@/hooks/useTransactionTable";
-import MonthSelector from "@/components/payments/MonthSelector";
-import ViewToggler from "@/components/payments/ViewToggler";
-import PaymentCalendarHeader from "@/components/payments/PaymentCalendarHeader";
-import PaymentInsightsGrid from "@/components/payments/PaymentInsightsGrid";
+import MonthSelector from "@/components/payments/shared/ui/MonthSelector";
+import ViewToggler from "@/components/payments/shared/ui/ViewToggler";
+import PaymentCalendarHeader from "@/components/payments/shared/ui/PaymentCalendarHeader";
+import PaymentInsightsGrid from "@/components/payments/upcoming-payments/insights/PaymentInsightsGrid";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 
 type ViewType = "list" | "calendar";

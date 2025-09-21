@@ -9,7 +9,7 @@ import RewardStatus from "@/components/dashboard/RewardStatus";
 import QuickActions from "@/components/dashboard/QuickActions";
 import DashboardCalendarWidget from "@/components/calendar/DashboardCalendarWidget";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
-import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
+import RecentVendorsCard from "@/components/payments/upcoming-payments/insights/RecentVendorsCard";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCard";

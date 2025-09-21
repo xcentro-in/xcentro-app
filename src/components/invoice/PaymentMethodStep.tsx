@@ -2,8 +2,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { InvoiceDetails } from "@/types/invoice";
-import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
-import PaymentScheduleSelector, { PaymentScheduleType } from "@/components/payments/common/PaymentScheduleSelector";
+import PaymentMethodSelector from "@/components/payments/new-payment/shared/payment-methods/PaymentMethodSelector";
+import PaymentScheduleSelector, { PaymentScheduleType } from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
 
 interface PaymentMethodStepProps {
   invoiceDetails: InvoiceDetails;
