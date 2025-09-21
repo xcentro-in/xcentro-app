@@ -6,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { convertToIndianCurrencyWords } from "@/utils/numberToWords";
 import { OutlinedInput } from "@/components/ui/outlined-input";
@@ -101,27 +100,23 @@ const CombinedDetailsStep = ({
             />
 
             {/* Payment Schedule */}
-            <Card>
-              <CardHeader>
-                <CardTitle>When to schedule this payment?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup value={paymentType} onValueChange={onPaymentTypeChange}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="now" id="now" />
-                    <Label htmlFor="now">Pay Now</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="later" id="later" />
-                    <Label htmlFor="later">Schedule Payment</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="recurring" id="recurring" />
-                    <Label htmlFor="recurring">Recurring Payment</Label>
-                  </div>
-                </RadioGroup>
-              </CardContent>
-            </Card>
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Payment Schedule</Label>
+              <RadioGroup value={paymentType} onValueChange={onPaymentTypeChange}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="now" id="now" />
+                  <Label htmlFor="now">Pay Now</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="later" id="later" />
+                  <Label htmlFor="later">Schedule Payment</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="recurring" id="recurring" />
+                  <Label htmlFor="recurring">Recurring Payment</Label>
+                </div>
+              </RadioGroup>
+            </div>
 
             {paymentType === "later" && (
               <div className="space-y-2">
