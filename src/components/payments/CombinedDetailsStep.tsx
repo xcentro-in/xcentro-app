@@ -1,20 +1,12 @@
-import { Calendar } from "lucide-react";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { convertToIndianCurrencyWords } from "@/utils/numberToWords";
 import { OutlinedInput } from "@/components/ui/outlined-input";
 import PayeeAutocompleteInput from "./PayeeAutocompleteInput";
-
-export type PaymentType = "now" | "later" | "recurring";
+import PaymentScheduleSelector, { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 
 interface CombinedDetailsStepProps {
-  paymentType: PaymentType;
+  paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   amount: string;
   description: string;
@@ -22,7 +14,7 @@ interface CombinedDetailsStepProps {
   frequency: string;
   selectedPayee?: string;
   favoritePayees: string[];
-  onPaymentTypeChange: (value: PaymentType) => void;
+  onPaymentTypeChange: (value: PaymentScheduleType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onAmountChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
@@ -98,99 +90,6 @@ const CombinedDetailsStep = ({
               value={invoiceReference}
               onChange={(e) => onInvoiceReferenceChange(e.target.value)}
             />
-
-            {/* Payment Schedule */}
-            <div className="space-y-4">
-              <Label className="text-base font-medium">Payment Schedule</Label>
-              <RadioGroup value={paymentType} onValueChange={onPaymentTypeChange}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="now" id="now" />
-                  <Label htmlFor="now">Pay Now</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="later" id="later" />
-                  <Label htmlFor="later">Schedule Payment</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="recurring" id="recurring" />
-                  <Label htmlFor="recurring">Recurring Payment</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {paymentType === "later" && (
-              <div className="space-y-2">
-                <Label>Schedule Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !scheduledDate && "text-muted-foreground"
-                      )}
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {scheduledDate ? format(scheduledDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={scheduledDate}
-                      onSelect={onScheduledDateChange}
-                      initialFocus
-                      className="p-3"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            {paymentType === "recurring" && (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Frequency</Label>
-                  <Select value={frequency} onValueChange={onFrequencyChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Start Date</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !scheduledDate && "text-muted-foreground"
-                        )}
-                      >
-                        <Calendar className="mr-2 h-4 w-4" />
-                        {scheduledDate ? format(scheduledDate, "PPP") : <span>Start date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <CalendarComponent
-                        mode="single"
-                        selected={scheduledDate}
-                        onSelect={onScheduledDateChange}
-                        initialFocus
-                        className="p-3"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
@@ -206,13 +105,30 @@ const CombinedDetailsStep = ({
         </div>
       </div>
 
+      {/* Payment Schedule */}
+      <Card>
+        <CardHeader>
+          <CardTitle>When to Schedule Payment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentScheduleSelector
+            paymentType={paymentType}
+            scheduledDate={scheduledDate}
+            frequency={frequency}
+            onPaymentTypeChange={onPaymentTypeChange}
+            onScheduledDateChange={onScheduledDateChange}
+            onFrequencyChange={onFrequencyChange}
+          />
+        </CardContent>
+      </Card>
+
       <div className="flex justify-end pt-6">
         <Button 
           onClick={onNext} 
           disabled={!isFormValid}
           className="w-auto"
         >
-          Continue to Rewards
+          Select Payment Method
         </Button>
       </div>
     </div>
