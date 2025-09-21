@@ -1,6 +1,6 @@
 
 import { TransactionSummary } from "./common/TransactionSummary";
-import { PaymentType } from "./PaymentDetailsStep";
+import { PaymentType } from "@/types/payments";
 import { Payee } from "@/types/payee";
 import { PaymentMethod } from "@/types/payment-method";
 import { Employee } from "./payroll/types";

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import CombinedDetailsStep, { PaymentType } from "./CombinedDetailsStep";
+import CombinedDetailsStep from "./CombinedDetailsStep";
 import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
 import { mockPayees } from "@/data/mockPayees";
 import { toast } from "@/hooks/use-toast";
+import { PaymentType } from "@/types/payments";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;

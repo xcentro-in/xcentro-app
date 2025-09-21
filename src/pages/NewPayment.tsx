@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { usePageTitle } from "@/contexts/PageTitleContext";
-import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
+import SinglePaymentForm from "@/components/payments/quick-pay/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
 import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
 import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";

@@ -1,7 +1,7 @@
 
 import { format } from "date-fns";
 import { FileText } from "lucide-react";
-import { PaymentType } from "../PaymentDetailsStep";
+import { PaymentType } from "@/types/payments";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 
 interface PaymentDetailsSectionProps {

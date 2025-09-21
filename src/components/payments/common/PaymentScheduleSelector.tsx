@@ -9,14 +9,13 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-
-export type PaymentScheduleType = "now" | "later" | "recurring";
+import { PaymentType } from "@/types/payments";
 
 interface PaymentScheduleSelectorProps {
-  paymentType: PaymentScheduleType;
+  paymentType: PaymentType;
   scheduledDate?: Date;
   frequency: string;
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
+  onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onFrequencyChange: (value: string) => void;
 }
@@ -33,7 +32,7 @@ const PaymentScheduleSelector = ({
     <div className="space-y-4">      
       <RadioGroup 
         value={paymentType} 
-        onValueChange={(value: PaymentScheduleType) => onPaymentTypeChange(value)}
+        onValueChange={(value: PaymentType) => onPaymentTypeChange(value)}
         className="space-y-3"
       >
         <div className="flex items-center space-x-2">

@@ -8,7 +8,7 @@ import { formatCurrency } from "@/utils/formatters";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
 import { Payee } from "@/types/payee";
-import { PaymentType } from "./CombinedDetailsStep";
+import { PaymentType } from "@/types/payments";
 import { CreditCard, Building2, Smartphone } from "lucide-react";
 
 interface PaymentMethodAndReviewStepProps {

@@ -2,11 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { convertToIndianCurrencyWords } from "@/utils/numberToWords";
 import { OutlinedInput } from "@/components/ui/outlined-input";
-import PayeeAutocompleteInput from "./PayeeAutocompleteInput";
-import PaymentScheduleSelector, { PaymentScheduleType } from "./common/PaymentScheduleSelector";
+import PayeeAutocompleteInput from "../PayeeAutocompleteInput";
+import PaymentScheduleSelector from "../common/PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 
 interface CombinedDetailsStepProps {
-  paymentType: PaymentScheduleType;
+  paymentType: PaymentType;
   scheduledDate?: Date;
   amount: string;
   description: string;
@@ -14,7 +15,7 @@ interface CombinedDetailsStepProps {
   frequency: string;
   selectedPayee?: string;
   favoritePayees: string[];
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
+  onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onAmountChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
