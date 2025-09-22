@@ -30,14 +30,6 @@ const Invoices = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-            Manage and track all your invoices
-          </p>
-        </div>
-      </div>
-
       <ResizablePanelGroup direction="horizontal" className="flex-1">
         <ResizablePanel defaultSize={selectedInvoice ? 40 : 100} minSize={30}>
           <div className="h-full flex flex-col">
@@ -59,7 +51,7 @@ const Invoices = () => {
                   </Badge>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigate('/invoices/new')}>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/bills/new')}>
                     <Plus className="h-4 w-4 mr-2" />
                     New
                   </Button>

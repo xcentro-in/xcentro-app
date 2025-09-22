@@ -50,7 +50,7 @@ const InvoiceSelectionStep = ({
   };
 
   const handleAddNewInvoice = () => {
-    navigate('/invoices/new');
+    navigate('/bills/new');
   };
 
   const handleToggleInvoice = (invoice: Invoice) => {

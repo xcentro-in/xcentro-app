@@ -73,9 +73,9 @@ export const mainMenuItems: SidebarMenuItem[] = [
     icon: Users,
   },
   {
-    id: "invoices",
-    title: "Invoices",
-    url: "/invoices",
+    id: "bills",
+    title: "Bills",
+    url: "/bills",
     icon: FileText,
   },
   {

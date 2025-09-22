@@ -57,7 +57,7 @@ The application is organized around the main navigation items defined in `src/co
 - **Manage Payees** (`/payees`) - Payee management
 - **Credit Cards** (`/credit-cards`) - Card management with bill payment submenu
 - **Wallet** (`/wallet`) - Payment methods and wallet management
-- **Invoices** (`/invoices`) - Invoice processing and payment
+- **Invoices** (`/bills`) - Invoice processing and payment
 - **Approvals** (`/approvals`) - Transaction approval workflows
 - **My Rewards** (`/rewards`) - Rewards dashboard, history, and milestones
 - **Business Reports** (`/insights`) - Analytics and reporting with multiple submenu items

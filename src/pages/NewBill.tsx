@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +8,15 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Upload, Paperclip, Plus, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { InvoiceDetails, OCRProgress } from "@/types/invoice";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const NewBill = () => {
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
+  useEffect(() => {
+    setTitle("New Bill");
+  }, [setTitle]);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [ocrProgress, setOcrProgress] = useState<OCRProgress>({
@@ -114,15 +120,19 @@ const NewBill = () => {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/invoices')}>
-            <ArrowLeft className="h-4 w-4" />
+      <div className="flex items-center justify-between p-3 border-b">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost"
+            className="w-fit pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-muted-foreground"
+            size="icon" 
+            onClick={() => navigate('/bills')}
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" /> 
+            Back to Bills
           </Button>
-          <h1 className="text-2xl font-semibold">New Bill</h1>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline">Cancel</Button>
           <Button>Save & Continue</Button>
         </div>
       </div>

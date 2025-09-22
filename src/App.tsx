@@ -27,7 +27,7 @@ import CashFlowProjection from "./pages/CashFlowProjection";
 import GSTReports from "./pages/GSTReports";
 import GSTPaymentHistory from "./pages/GSTPaymentHistory";
 import PayrollReport from "./pages/PayrollReport";
-import Invoices from "./pages/Invoices";
+import Invoices from "./pages/Bills";
 import NewBill from "./pages/NewBill";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -65,8 +65,8 @@ function App() {
                 <Route path="payment-calendar" element={<PaymentCalendar />} />
                 <Route path="payees" element={<PayeeManagement />} />
                 <Route path="payees/:payeeId" element={<PayeeHistory />} />
-                <Route path="invoices" element={<Invoices />} />
-                <Route path="invoices/new" element={<NewBill />} />
+                <Route path="bills" element={<Invoices />} />
+                <Route path="bills/new" element={<NewBill />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
                 {AnalyticsEnabled && (
                   <>
