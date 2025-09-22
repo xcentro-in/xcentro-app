@@ -160,6 +160,28 @@ class ApiService {
     }
   };
 
+  // Upcoming Payments endpoints - TODO: Implement when backend is ready
+  upcomingPayments = {
+    getAll: async (params: {
+      businessId: string;
+      page?: number;
+      limit?: number;
+      month?: string; // '2024-01' format for calendar view
+      search?: string;
+      sortBy?: 'date' | 'amount' | 'vendor';
+      sortOrder?: 'asc' | 'desc';
+    }) => {
+      // TODO: Get upcoming payments with pagination and filtering
+      // const query = new URLSearchParams(
+      //   Object.entries(params).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)])
+      // ).toString();
+      // return this.request(`/payments/upcoming?${query}`);
+
+      console.log('TODO: Implement upcomingPayments.getAll API call', params);
+      throw new Error('API not implemented yet');
+    }
+  };
+
   // Dashboard endpoints - TODO: Implement when backend is ready
   dashboard = {
     getInsights: async () => {
@@ -244,6 +266,7 @@ export const {
   auth: authAPI,
   user: userAPI,
   payments: paymentsAPI,
+  upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,
   paymentInsights: paymentInsightsAPI,
   notifications: notificationsAPI

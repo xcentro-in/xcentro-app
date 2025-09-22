@@ -7,17 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, FileText, AlertCircle, RefreshCw, Plus } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import PaymentScheduleSelector, { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
+import PaymentScheduleSelector from "../shared/common/PaymentScheduleSelector";
 import { Invoice } from "@/data/mockInvoices";
+import { PaymentType } from "@/types/payments";
 
 interface InvoiceSelectionStepProps {
   invoices: Invoice[];
   selectedInvoices: Invoice[];
-  paymentType: PaymentScheduleType;
+  paymentType: PaymentType;
   scheduledDate?: Date;
   frequency: string;
   onInvoicesSelect: (invoices: Invoice[]) => void;
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
+  onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onFrequencyChange: (value: string) => void;
   onNext: () => void;
