@@ -73,7 +73,7 @@ const MOCK_USER_DATA: AuthUser = {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: false, // Start with false, will be set to true during refresh check
+  isLoading: true, // Start with true to prevent flicker during auth check
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -145,13 +145,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Initialize auth state on mount
+  // Initialize auth state on mount - check for existing session
   useEffect(() => {
     const initAuth = async () => {
       const token = localStorage.getItem('auth-token');
-      if (token) {
-        await refreshAuth();
+      const userData = localStorage.getItem('user-data');
+
+      if (token && userData) {
+        try {
+          // TODO: In production, validate token with backend first
+          // const isValid = await authAPI.validateToken(token);
+          // if (!isValid) throw new Error('Invalid token');
+
+          // For now, directly restore from localStorage (synchronous)
+          const user: AuthUser = JSON.parse(userData);
+          dispatch({ type: 'SET_USER', payload: user });
+        } catch (error) {
+          console.error('Token validation failed:', error);
+          localStorage.removeItem('auth-token');
+          localStorage.removeItem('user-data');
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
       } else {
+        // No token found - user needs to login
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     };

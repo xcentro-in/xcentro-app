@@ -61,21 +61,24 @@ function App() {
         <AuthProvider>
           <PageTitleProvider>
             <Router>
-              <SidebarProvider>
             <Routes>
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
 
-              {/* Protected routes */}
+              {/* Protected routes outside sidebar */}
               <Route path="/onboarding" element={
                 <ProtectedRoute>
                   <UserOnboarding />
                 </ProtectedRoute>
               } />
+
+              {/* Main app routes with sidebar */}
               <Route path="/" element={
                 <ProtectedRoute>
-                  <Layout />
+                  <SidebarProvider>
+                    <Layout />
+                  </SidebarProvider>
                 </ProtectedRoute>
               }>
                 <Route index element={<Dashboard />} />
@@ -124,16 +127,18 @@ function App() {
 
               <Route path="/settings" element={
                 <ProtectedRoute>
-                  <SettingsLayout />
+                  <SidebarProvider>
+                    <SettingsLayout />
+                  </SidebarProvider>
                 </ProtectedRoute>
               }>
                 <Route index element={<Settings />} />
                 <Route path="*" element={<Settings />} />
               </Route>
 
+              {/* 404 route outside sidebar */}
               <Route path="*" element={<NotFound />} />
                 </Routes>
-              </SidebarProvider>
             </Router>
           </PageTitleProvider>
         </AuthProvider>
