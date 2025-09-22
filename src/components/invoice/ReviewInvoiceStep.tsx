@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatPaymentDate } from "@/utils/dateFormatting";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -67,9 +68,11 @@ const ReviewInvoiceStep = ({
     toast.success("Vendor saved for future use");
   };
   
+  // Use centralized date formatting - shows as "4 Oct 2025" format
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "MMM dd, yyyy");
+      const date = new Date(dateString);
+      return format(date, "d MMM yyyy");
     } catch (error) {
       return dateString;
     }

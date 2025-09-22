@@ -29,7 +29,7 @@ const TransactionsTable = ({
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Use inline filters hook
   const {
     filteredTransactions: baseFilteredTransactions,
@@ -49,7 +49,7 @@ const TransactionsTable = ({
     transaction.transactionId.toLowerCase().includes(searchValue.toLowerCase()) ||
     transaction.type.toLowerCase().includes(searchValue.toLowerCase())
   );
-  
+
   // Pagination
   const totalPages = Math.ceil(searchFilteredTransactions.length / itemsPerPage);
   const paginatedTransactions = searchFilteredTransactions.slice(
@@ -75,7 +75,8 @@ const TransactionsTable = ({
       {/* Transactions Table */}
       <div className="rounded-md border overflow-hidden">
         {/* Table Header */}
-        <TableHeader 
+        {/* Table Header */}
+        <TableHeader
           categoryFilter={categoryFilter}
           statusFilter={statusFilter}
           dateFilter={dateFilter}
@@ -90,7 +91,7 @@ const TransactionsTable = ({
         <div className="divide-y">
           {paginatedTransactions.length > 0 ? (
             paginatedTransactions.map((transaction) => (
-              <TransactionRow 
+              <TransactionRow
                 key={transaction.id}
                 transaction={transaction}
                 onClick={handleTransactionClick}
@@ -103,8 +104,9 @@ const TransactionsTable = ({
       </div>
       
       {/* Pagination */}
+      {/* Pagination */}
       {searchFilteredTransactions.length > 0 && (
-        <TablePagination 
+        <TablePagination
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={searchFilteredTransactions.length}

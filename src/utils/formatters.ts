@@ -30,14 +30,9 @@ export const formatCurrency = (amount: number, isPrecise: boolean = false): stri
   }).format(amount);
 };
 
-export const formatDate = (date: string | Date): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  // Return just the date and month if it's current year
-  if (isThisYear(dateObj)) {
-    return format(dateObj, "d MMMM, h:mm aaa");
-  }
-  
-  // Include the year if it's a different year
-  return format(dateObj, "d MMMM yyyy, h:mm aaa");
-};
+// Removed formatDate - use centralized functions from @/utils/dateFormatting instead:
+// - formatPaymentDate() for payment displays
+// - formatCompactDate() for compact displays
+// - formatRelativeDate() for relative time
+// - formatTimeOnly() for time only
+// - formatDateForInput() for form inputs

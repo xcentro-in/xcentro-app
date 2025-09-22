@@ -3,6 +3,7 @@ import { Transaction } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/formatters";
+import { formatPaymentDate } from "@/utils/dateFormatting";
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -46,7 +47,7 @@ const TransactionRow = ({ transaction, onClick }: TransactionRowProps) => {
       </div>
 
       <div className="flex items-center">
-        <span className="text-sm">{transaction.date}</span>
+        <span className="text-sm">{formatPaymentDate(transaction.date)}</span>
       </div>
 
       <div className="flex items-center justify-end font-medium">

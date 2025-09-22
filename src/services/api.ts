@@ -201,6 +201,41 @@ class ApiService {
     }
   };
 
+  // Payment History endpoints - TODO: Implement when backend is ready
+  paymentHistory = {
+    getAll: async (params: {
+      businessId: string;
+      // Column header filters (trigger API calls)
+      dateRange?: 'last7days' | 'last30days' | 'last3months' | 'custom';
+      dateFrom?: string;
+      dateTo?: string;
+      status?: string[]; // ['completed', 'pending', 'failed', 'cancelled']
+      paymentMethod?: string[]; // ['credit', 'bank', 'upi', 'bnpl']
+      // Pagination (triggers API calls)
+      page?: number;
+      limit?: number; // rows per page
+      // Sorting (triggers API calls)
+      sortBy?: 'date' | 'amount' | 'vendor' | 'status';
+      sortOrder?: 'asc' | 'desc';
+    }) => {
+      // TODO: Get payment history with server-side filtering and pagination
+      // const query = new URLSearchParams();
+      // Object.entries(params).forEach(([key, value]) => {
+      //   if (value !== undefined) {
+      //     if (Array.isArray(value)) {
+      //       query.append(key, value.join(','));
+      //     } else {
+      //       query.append(key, String(value));
+      //     }
+      //   }
+      // });
+      // return this.request(`/payments/history?${query}`);
+
+      console.log('TODO: Implement paymentHistory.getAll API call', params);
+      throw new Error('API not implemented yet');
+    }
+  };
+
   // Upcoming Payments endpoints - TODO: Implement when backend is ready
   upcomingPayments = {
     getAll: async (params: {
@@ -308,6 +343,7 @@ export const {
   user: userAPI,
   payments: paymentsAPI,
   payees: payeesAPI,
+  paymentHistory: paymentHistoryAPI,
   upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,
   paymentInsights: paymentInsightsAPI,

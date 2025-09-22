@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/utils/formatters";
+import { formatCompactDate } from "@/utils/dateFormatting";
 
 interface Transaction {
   id: number;
@@ -69,7 +70,7 @@ const RecentTransactions = () => {
                 </div>
                 <div>
                   <div className="font-medium text-sm truncate max-w-[120px]">{transaction.vendor}</div>
-                  <div className="text-xs text-muted-foreground">{transaction.date}</div>
+                  <div className="text-xs text-muted-foreground">{formatCompactDate(transaction.date)}</div>
                 </div>
               </div>
               <div className="flex flex-col items-end">
