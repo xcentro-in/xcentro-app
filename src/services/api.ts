@@ -160,6 +160,47 @@ class ApiService {
     }
   };
 
+  // Payees endpoints - TODO: Implement when backend is ready
+  payees = {
+    getAll: async (businessId: string) => {
+      // TODO: Get all payees for business
+      // return this.request(`/payees?businessId=${businessId}`);
+
+      console.log('TODO: Implement payees.getAll API call', { businessId });
+      throw new Error('API not implemented yet');
+    },
+
+    create: async (payeeData: any) => {
+      // TODO: Create new payee
+      // return this.request('/payees', {
+      //   method: 'POST',
+      //   body: JSON.stringify(payeeData),
+      // });
+
+      console.log('TODO: Implement payees.create API call', payeeData);
+      throw new Error('API not implemented yet');
+    },
+
+    update: async (id: string, updates: any) => {
+      // TODO: Update payee
+      // return this.request(`/payees/${id}`, {
+      //   method: 'PUT',
+      //   body: JSON.stringify(updates),
+      // });
+
+      console.log('TODO: Implement payees.update API call', { id, updates });
+      throw new Error('API not implemented yet');
+    },
+
+    delete: async (id: string) => {
+      // TODO: Delete payee
+      // return this.request(`/payees/${id}`, { method: 'DELETE' });
+
+      console.log('TODO: Implement payees.delete API call', { id });
+      throw new Error('API not implemented yet');
+    }
+  };
+
   // Upcoming Payments endpoints - TODO: Implement when backend is ready
   upcomingPayments = {
     getAll: async (params: {
@@ -266,6 +307,7 @@ export const {
   auth: authAPI,
   user: userAPI,
   payments: paymentsAPI,
+  payees: payeesAPI,
   upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,
   paymentInsights: paymentInsightsAPI,

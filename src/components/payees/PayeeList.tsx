@@ -30,35 +30,40 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { mockPayees } from "@/data/mockPayees";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PayeeDetailsDrawer } from "./PayeeDetailsDrawer";
+import { usePayees } from "@/hooks/usePayees";
 
 const PayeeList = () => {
   const navigate = useNavigate();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
-  const [payees, setPayees] = useState(mockPayees);
   const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
-  const handleSetDefault = (id: string) => {
-    setPayees(prev => 
-      prev.map(payee => ({
-        ...payee,
-        isDefault: payee.id === id ? true : payee.isDefault
-      }))
-    );
-    toast.success("Default payee updated");
+  // Fetch payees using the hook
+  const { payees, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees();
+
+  const handleSetDefault = async (id: string) => {
+    try {
+      await updatePayee(id, { isDefault: true });
+      toast.success("Default payee updated");
+    } catch (err) {
+      toast.error("Failed to update default payee");
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setPayees(prev => prev.filter(payee => payee.id !== id));
-    toast.success("Payee deleted successfully");
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePayeeFromApi(id);
+      toast.success("Payee deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete payee");
+    }
   };
 
   const handleViewHistory = (payeeId: string) => {
@@ -96,6 +101,35 @@ const PayeeList = () => {
   };
 
   const selectedPayee = payees.find(p => p.id === selectedPayeeForDrawer);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
+          <div className="h-12 bg-gray-200 rounded"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center py-8">
+          <div className="text-muted-foreground mb-4">{error}</div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
