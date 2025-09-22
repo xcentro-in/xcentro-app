@@ -22,6 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious
 } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Icons
 import {
@@ -158,22 +159,25 @@ const BillsTable = ({
         </div>
 
         {/* Items per page */}
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-muted-foreground">Show</span>
-          <select
-            value={itemsPerPage}
-            onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-            className="border rounded px-2 py-1 text-sm"
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
+          <Select 
+            value={String(itemsPerPage)} 
+            onValueChange={(value) => onItemsPerPageChange(Number(value))}
           >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-          <span className="text-sm text-muted-foreground">rows</span>
+            <SelectTrigger className="w-[80px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="10">20</SelectItem>
+              <SelectItem value="25">25</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </div>
 
+      </div>
       {/* Bills Table */}
       <div className="rounded-md border overflow-hidden">
         <Table>

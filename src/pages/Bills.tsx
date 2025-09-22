@@ -125,30 +125,71 @@ const Bills = () => {
                 New Bill
               </Button>
 
-              <Button variant="ghost" size="sm">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </div>
 
         {/* Bills Table */}
         <div className="flex-1 overflow-auto p-4">
-          <BillsTable
-            bills={bills}
-            pagination={pagination}
-            appliedFilters={appliedFilters}
-            searchValue={searchValue}
-            onSearchChange={handleSearchChange}
-            itemsPerPage={billsFilters.limit}
-            onItemsPerPageChange={handleItemsPerPageChange}
-            onPageChange={handlePageChange}
-            onSortChange={handleSortChange}
-            onStatusFilterChange={handleStatusFilterChange}
-            onBillSelect={handleBillSelect}
-            onPayBill={handlePayBill}
-            isLoading={isLoading}
-          />
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="animate-pulse space-y-4">
+                {/* Search and Filter Bar Skeleton */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="h-10 w-80 bg-gray-200 rounded"></div>
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                      <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                      <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                      <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+                {/* Table Skeleton */}
+                <div className="rounded-md border overflow-hidden">
+                  <div className="h-12 bg-gray-100 border-b"></div>
+                  <div className="space-y-0">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div key={i} className="h-16 border-b bg-white"></div>
+                    ))}
+                  </div>
+                </div>
+                {/* Pagination Skeleton */}
+                <div className="flex items-center justify-between mt-4">
+                  <div className="h-4 w-48 bg-gray-200 rounded"></div>
+                  <div className="flex items-center space-x-2">
+                    <div className="h-8 w-20 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <BillsTable
+              bills={bills}
+              pagination={pagination}
+              appliedFilters={appliedFilters}
+              searchValue={searchValue}
+              onSearchChange={handleSearchChange}
+              itemsPerPage={billsFilters.limit}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              onPageChange={handlePageChange}
+              onSortChange={handleSortChange}
+              onStatusFilterChange={handleStatusFilterChange}
+              onBillSelect={handleBillSelect}
+              onPayBill={handlePayBill}
+              isLoading={isLoading}
+            />
+          )}
         </div>
       </div>
 
