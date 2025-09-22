@@ -11,14 +11,14 @@ import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useEffect } from "react";
 
-const Invoices = () => {
+const Bills = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   
   useEffect(() => {
-    setTitle("Invoices");
+    setTitle("Bills");
   }, [setTitle]);
 
   const filteredInvoices = mockInvoices.filter(invoice =>
@@ -102,4 +102,4 @@ const Invoices = () => {
   );
 };
 
-export default Invoices;
+export default Bills;
