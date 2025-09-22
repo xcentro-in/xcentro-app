@@ -187,6 +187,28 @@ class ApiService {
     }
   };
 
+  // Payment Insights endpoints - TODO: Implement when backend is ready
+  paymentInsights = {
+    getAll: async (businessId: string) => {
+      // TODO: Get all payment insights from cache
+      // return this.request(`/payments/insights?businessId=${businessId}`);
+
+      console.log('TODO: Implement paymentInsights.getAll API call', { businessId });
+      throw new Error('API not implemented yet');
+    },
+
+    refresh: async (businessId: string) => {
+      // TODO: Trigger insights recalculation
+      // return this.request(`/payments/insights/refresh`, {
+      //   method: 'POST',
+      //   body: JSON.stringify({ businessId }),
+      // });
+
+      console.log('TODO: Implement paymentInsights.refresh API call', { businessId });
+      throw new Error('API not implemented yet');
+    }
+  };
+
   // Notification endpoints - TODO: Implement when backend is ready
   notifications = {
     getAll: async () => {
@@ -223,5 +245,6 @@ export const {
   user: userAPI,
   payments: paymentsAPI,
   dashboard: dashboardAPI,
+  paymentInsights: paymentInsightsAPI,
   notifications: notificationsAPI
 } = apiService;

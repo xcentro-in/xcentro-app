@@ -4,102 +4,65 @@ import { Clock, CreditCard, RefreshCw, AlertTriangle, BarChart3 } from "lucide-r
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import PaymentInsightCard from "@/components/insights/PaymentInsightCard";
-import { Transaction } from "@/types/transaction";
-import { addDays, parseISO, isBefore, isAfter, format } from "date-fns";
+import { usePaymentInsights } from "@/hooks/usePaymentInsights";
 
-interface PaymentInsightsGridProps {
-  transactions: Transaction[];
-}
+interface PaymentInsightsGridProps {}
 
-const PaymentInsightsGrid: React.FC<PaymentInsightsGridProps> = ({ transactions }) => {
-  const insightStats = {
-    dueNext7Days: {
-      amount: transactions
-        .filter(t => {
-          const txDate = parseISO(t.date);
-          const next7Days = addDays(new Date(), 7);
-          return isBefore(txDate, next7Days) && isAfter(txDate, new Date());
-        })
-        .reduce((sum, t) => sum + t.amount, 0),
-      count: transactions
-        .filter(t => {
-          const txDate = parseISO(t.date);
-          const next7Days = addDays(new Date(), 7);
-          return isBefore(txDate, next7Days) && isAfter(txDate, new Date());
-        }).length
-    },
-    cardFriendly: {
-      amount: transactions
-        .filter(t => t.method === 'credit' || t.vendor.toLowerCase().includes('utility'))
-        .reduce((sum, t) => sum + t.amount, 0),
-      potential: Math.floor(2500 + Math.random() * 1500)
-    },
-    recurring: {
-      count: transactions.filter(t => t.isRecurring).length,
-      thisWeek: transactions.filter(t => {
-        const txDate = parseISO(t.date);
-        const next7Days = addDays(new Date(), 7);
-        return isBefore(txDate, next7Days) && t.isRecurring;
-      }).length
-    },
-    cashIntensive: {
-      amount: transactions
-        .filter(t => t.amount > 25000 && t.method === 'bank')
-        .reduce((sum, t) => sum + t.amount, 0),
-      count: transactions.filter(t => t.amount > 25000 && t.method === 'bank').length
-    },
-    monthToDate: {
-      scheduled: transactions
-        .filter(t => t.date.startsWith(format(new Date(), 'yyyy-MM')))
-        .reduce((sum, t) => sum + t.amount, 0),
-      target: 1500000, // 15 lakhs target
+const PaymentInsightsGrid: React.FC<PaymentInsightsGridProps> = () => {
+  const { insights, isLoading, error } = usePaymentInsights();
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        {[...Array(5)].map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+              </div>
+              <div className="h-6 bg-gray-200 rounded w-16 mb-1"></div>
+              <div className="h-3 bg-gray-200 rounded w-20"></div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !insights) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+        <Card className="col-span-full">
+          <CardContent className="p-6 text-center">
+            <div className="text-muted-foreground">
+              {error || 'Unable to load payment insights'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Helper to safely render month-to-date card with validation
+  const renderMonthToDateCard = () => {
+    const monthData = insights.monthToDate;
+
+    // Validate required data for this specific card
+    if (!monthData ||
+        typeof monthData.scheduled !== 'number' ||
+        typeof monthData.target !== 'number' ||
+        monthData.scheduled < 0 ||
+        monthData.target <= 0) {
+      return null; // Don't render if invalid data
     }
-  };
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-      <PaymentInsightCard
-        title="Due in Next 7 Days"
-        value={`₹${insightStats.dueNext7Days.amount.toLocaleString()}`}
-        description={`across ${insightStats.dueNext7Days.count} vendors`}
-        icon={Clock}
-        iconColor="text-green-500"
-        iconBgColor="bg-green-500/10"
-        animationDelay={0}
-      />
-      
-      <PaymentInsightCard
-        title="Card-friendly Payouts"
-        value={`₹${insightStats.cardFriendly.amount.toLocaleString()}`}
-        description={`Earn ${insightStats.cardFriendly.potential} points`}
-        icon={CreditCard}
-        iconColor="text-blue-500"
-        iconBgColor="bg-blue-500/10"
-        animationDelay={50}
-        accentText={true}
-      />
-      
-      <PaymentInsightCard
-        title="Recurring Payments"
-        value={`${insightStats.recurring.count} Payments`}
-        description={`${insightStats.recurring.thisWeek} auto-scheduled this week`}
-        icon={RefreshCw}
-        iconColor="text-purple-500"
-        iconBgColor="bg-purple-500/10"
-        animationDelay={100}
-      />
-      
-      <PaymentInsightCard
-        title="Cash-Intensive Week"
-        value={`₹${insightStats.cashIntensive.amount.toLocaleString()}`}
-        description={`Consider using card for ${Math.min(3, insightStats.cashIntensive.count)} of ${insightStats.cashIntensive.count} payouts`}
-        icon={AlertTriangle}
-        iconColor="text-amber-500"
-        iconBgColor="bg-amber-500/10"
-        animationDelay={150}
-        accentText={true}
-      />
-      
+    const progressPercentage = monthData.progressPercentage ||
+                               Math.round((monthData.scheduled / monthData.target) * 100);
+
+    return (
       <Card className="animate-scale-in" style={{ animationDelay: "200ms" }}>
         <CardContent className="p-6">
           <div className="flex flex-col space-y-2">
@@ -109,25 +72,84 @@ const PaymentInsightsGrid: React.FC<PaymentInsightsGridProps> = ({ transactions 
                 <h3 className="font-medium text-sm">Month-to-Date</h3>
               </div>
               <span className="text-xs text-muted-foreground">
-                {Math.round((insightStats.monthToDate.scheduled / insightStats.monthToDate.target) * 100)}%
+                {Math.round(progressPercentage)}%
               </span>
             </div>
-            
+
             <div className="text-2xl font-bold">
-              ₹{Math.round(insightStats.monthToDate.scheduled / 100000).toLocaleString()}L
+              ₹{Math.round(monthData.scheduled / 100000).toLocaleString()}L
             </div>
-            
+
             <div className="text-xs text-muted-foreground">
-              of ₹{Math.round(insightStats.monthToDate.target / 100000)}L target
+              of ₹{Math.round(monthData.target / 100000)}L target
             </div>
-            
+
             <Progress
-              value={(insightStats.monthToDate.scheduled / insightStats.monthToDate.target) * 100}
+              value={progressPercentage}
               className="h-2 mt-1"
             />
           </div>
         </CardContent>
       </Card>
+    );
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+      {/* Each card validates its own data and renders only if valid */}
+
+      {insights.dueNext7Days && (
+        <PaymentInsightCard
+          title="Due in Next 7 Days"
+          value={`₹${insights.dueNext7Days.amount?.toLocaleString() || '0'}`}
+          description={insights.dueNext7Days.count ? `across ${insights.dueNext7Days.count} vendors` : undefined}
+          icon={Clock}
+          iconColor="text-green-500"
+          iconBgColor="bg-green-500/10"
+          animationDelay={0}
+        />
+      )}
+
+      {insights.cardFriendly && (
+        <PaymentInsightCard
+          title="Card-friendly Payouts"
+          value={`₹${insights.cardFriendly.amount?.toLocaleString() || '0'}`}
+          description={insights.cardFriendly.potentialPoints ? `Earn ${insights.cardFriendly.potentialPoints} points` : undefined}
+          icon={CreditCard}
+          iconColor="text-blue-500"
+          iconBgColor="bg-blue-500/10"
+          animationDelay={50}
+          accentText={true}
+        />
+      )}
+
+      {insights.recurring && (
+        <PaymentInsightCard
+          title="Recurring Payments"
+          value={`${insights.recurring.totalCount || 0} Payments`}
+          description={insights.recurring.thisWeekCount ? `${insights.recurring.thisWeekCount} auto-scheduled this week` : undefined}
+          icon={RefreshCw}
+          iconColor="text-purple-500"
+          iconBgColor="bg-purple-500/10"
+          animationDelay={100}
+        />
+      )}
+
+      {insights.cashIntensive && (
+        <PaymentInsightCard
+          title="Cash-Intensive Week"
+          value={`₹${insights.cashIntensive.amount?.toLocaleString() || '0'}`}
+          description={insights.cashIntensive.recommendation}
+          icon={AlertTriangle}
+          iconColor="text-amber-500"
+          iconBgColor="bg-amber-500/10"
+          animationDelay={150}
+          accentText={true}
+        />
+      )}
+
+      {/* Month-to-date card with custom validation */}
+      {renderMonthToDateCard()}
     </div>
   );
 };
