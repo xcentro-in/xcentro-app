@@ -42,6 +42,9 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import SettingsLayout from "./components/settings/SettingsLayout";
 import { canViewFeature } from "@/lib/featureFlags";
 import { getUser } from "./lib/getUser";
+import { AuthProvider } from "./contexts/AuthContext";
+import { PageTitleProvider } from "./contexts/PageTitleContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 
 const queryClient = new QueryClient()
@@ -55,11 +58,26 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
-        <Router>
-          <SidebarProvider>
+        <AuthProvider>
+          <PageTitleProvider>
+            <Router>
+              <SidebarProvider>
             <Routes>
-              <Route path="/onboarding" element={<UserOnboarding />} />
-              <Route path="/" element={<Layout />}>
+              {/* Public routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+
+              {/* Protected routes */}
+              <Route path="/onboarding" element={
+                <ProtectedRoute>
+                  <UserOnboarding />
+                </ProtectedRoute>
+              } />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }>
                 <Route index element={<Dashboard />} />
                 <Route path="payments" element={<Payments />} />
                 <Route path="payment-calendar" element={<PaymentCalendar />} />
@@ -103,19 +121,22 @@ function App() {
                 <Route path="wallet/add" element={<AddPaymentMethod />} />
                 <Route path="business-onboarding" element={<BusinessOnboarding />} />
               </Route>
-              
-              <Route path="/settings" element={<SettingsLayout />}>
+
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <SettingsLayout />
+                </ProtectedRoute>
+              }>
                 <Route index element={<Settings />} />
                 <Route path="*" element={<Settings />} />
               </Route>
-              
-              
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </SidebarProvider>
-        </Router>
+                </Routes>
+              </SidebarProvider>
+            </Router>
+          </PageTitleProvider>
+        </AuthProvider>
         <Toaster />
       </ErrorBoundary>
     </QueryClientProvider>

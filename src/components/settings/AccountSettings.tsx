@@ -61,15 +61,6 @@ const AccountSettings = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-2xl font-semibold">
-              JD
-            </div>
-            <div>
-              <Button variant="outline" size="sm" disabled={!editingPersonal}>Upload Photo</Button>
-            </div>
-          </div>
-          
           <div className="space-y-4">
             <div className="flex items-center">
               <Label className="w-32 font-medium">Name:</Label>

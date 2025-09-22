@@ -20,6 +20,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import NotificationPopup from "./notifications/NotificationPopup";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { FeatureEnabled } from "./FeatureEnabled";
+import { useAuth } from "@/contexts/AuthContext";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
@@ -27,6 +28,7 @@ const TopNav = () => {
   const { toast } = useToast();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { title } = usePageTitle();
+  const { user, logout: authLogout } = useAuth();
   
   const {
     notifications,
@@ -40,15 +42,15 @@ const TopNav = () => {
   } = useNotifications();
   
   const handleLogout = () => {
-    // Here you would implement actual logout logic
-    // For example: authService.logout();
-    
+    // TODO: This will call the actual backend logout API
+    authLogout();
+
     // Show success toast
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of your account.",
     });
-    
+
     // Redirect to login page (or home page)
     navigate("/");
   };
@@ -66,7 +68,7 @@ const TopNav = () => {
                 <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
                   <Building className="h-3.5 w-3.5 text-indigo-600" />
                 </div>
-                <span className="font-medium">ABC Company</span>
+                <span className="font-medium">{user?.businessName || "ABC Company"}</span>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
@@ -98,18 +100,18 @@ const TopNav = () => {
       
       <div className="flex items-center gap-3">
         <FeatureEnabled featureFlag="REWARD_POINT_SYSTEM">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="gap-1.5 pr-3 hidden md:flex"
-          onClick={() => navigate('/rewards')}
-        >
-          <div className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-500/10">
-            <Star className="h-3.5 w-3.5 text-amber-500" />
-          </div>
-          <span className="font-medium">24,530</span>
-          <span className="text-xs text-muted-foreground">points</span>
-        </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1.5 pr-3 hidden md:flex"
+            onClick={() => navigate('/rewards')}
+          >
+            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-500/10">
+              <Star className="h-3.5 w-3.5 text-amber-500" />
+            </div>
+            <span className="font-medium">{user?.rewardPoints?.toLocaleString() || "24,530"}</span>
+            <span className="text-xs text-muted-foreground">points</span>
+          </Button>
         </FeatureEnabled>
         
         <Button 
@@ -133,13 +135,14 @@ const TopNav = () => {
               className="h-9 px-2 py-1.5 rounded-lg hover:bg-accent transition-colors"
             >
               <div className="flex items-center gap-2 cursor-pointer">
-                <Avatar className="h-7 w-7 transition-transform hover:scale-105">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">AM</AvatarFallback>
-                </Avatar>
                 {!isMobile && (
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium leading-none">Arvind Mehta</span>
-                    <span className="text-xs text-muted-foreground leading-tight">ABC Company</span>
+                    <span className="text-sm font-medium leading-none">
+                      {user?.name || "Arvind Mehta"}
+                    </span>
+                    <span className="text-xs text-muted-foreground leading-tight">
+                      {user?.businessName || "ABC Company"}
+                    </span>
                   </div>
                 )}
                 <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />

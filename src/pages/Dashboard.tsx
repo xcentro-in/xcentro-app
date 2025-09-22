@@ -17,6 +17,7 @@ import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePayme
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { FeatureEnabled } from "@/components/FeatureEnabled"
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const insights = [
   { title: "Monthly Spend", value: 75493, change: 12.8, trend: "up" as const },
@@ -25,10 +26,13 @@ const insights = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
-  
+  const { user } = useAuth();
+
   useEffect(() => {
-    setTitle("Welcome back, Arvind");
-  }, [setTitle]);
+    // TODO: This will be populated from backend after login
+    const userName = user?.name?.split(' ')[0] || 'User';
+    setTitle(`Welcome back, ${userName}`);
+  }, [setTitle, user]);
   
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(

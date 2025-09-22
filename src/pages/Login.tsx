@@ -1,6 +1,6 @@
 
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Mail, Lock, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { useAuth } from "@/contexts/AuthContext";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -21,18 +22,43 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // TODO: Need to carefully take down these parts after testing 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "arvind@abccompany.com", // Pre-fill with mock email for testing
+      password: "password123", // Pre-fill with mock password for testing
     },
   });
 
-  const onSubmit = (values: LoginFormValues) => {
-    console.log(values);
-    toast.success("Login successful!");
-    navigate("/");
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, location]);
+
+  const onSubmit = async (values: LoginFormValues) => {
+    setIsSubmitting(true);
+
+    try {
+      await login(values.email, values.password);
+      toast.success("Login successful! Welcome to PaySphere.");
+
+      // Navigate to intended page or dashboard
+      const from = location.state?.from?.pathname || "/";
+      navigate(from, { replace: true });
+    } catch (error) {
+      toast.error("Login failed. Please check your credentials.");
+      console.error("Login error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSSOLogin = () => {
@@ -99,8 +125,21 @@ const Login = () => {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                <LogIn className="mr-2 h-4 w-4" /> Log In
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting || isLoading}
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-4 w-4" /> Log In
+                  </>
+                )}
               </Button>
             </form>
           </Form>
