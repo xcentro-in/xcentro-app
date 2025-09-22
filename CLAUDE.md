@@ -21,6 +21,23 @@ npm run lint
 npm run preview
 ```
 
+## Development Status
+
+### Recent Major Refactoring (Completed)
+1. **Payment Method Unification**: Consolidated duplicate payment method components across payment types
+2. **Authentication System**: Implemented complete AuthContext with anti-flicker mechanisms
+3. **API Architecture**: Created layered API service + custom hooks pattern with mock data
+4. **PaymentCalendar Refactoring**: Applied SOLID principles, separated table/calendar responsibilities
+5. **Payee Management**: Implemented single API call with frontend filtering strategy
+6. **UI Centering Fixes**: Resolved sidebar layout interference with loading/404 pages
+
+### Current Implementation Patterns
+- **Mock Development**: All APIs use mock data with dynamic imports for development
+- **Production Ready**: API service layer ready for backend integration (uncomment real calls)
+- **Type Safety**: Discriminated unions for complex types (Payee, Transaction)
+- **Loading States**: Consistent loading/error handling across all data fetching
+- **Responsive UI**: Anti-flicker auth, properly centered loading states and error pages
+
 ## Tech Stack
 
 - **Frontend**: React 18 + TypeScript + Vite
@@ -102,6 +119,32 @@ Current feature flags include:
 
 ### Data Flow Patterns
 
+#### Backend Integration Architecture
+The application follows a layered approach for API integration:
+
+**API Service Layer** (`src/services/api.ts`):
+- Centralized API client with authentication handling
+- Defines all endpoint signatures and request/response types
+- Currently contains placeholder implementations with TODO comments
+- Acts as contract for backend team - ready for production integration
+
+**Custom Hooks Layer** (`src/hooks/`):
+- React-specific data fetching and state management
+- Currently uses mock data for development (`/data/mock*.ts`)
+- Handles loading states, error handling, and data caching
+- Examples: `useUpcomingPayments`, `usePayees`, `usePaymentInsights`
+
+**Data Fetching Strategy**:
+- **Upcoming Payments**: Hybrid approach - server pagination for table view, frontend filtering for calendar view
+- **Payees**: Single API call with frontend filtering (optimal for 20-30 records)
+- **Payment Insights**: Single API call with partial data handling for resilient UI
+
+#### Authentication System
+- **AuthContext** (`src/contexts/AuthContext.tsx`): Global auth state management
+- **ProtectedRoute** component: Route-level authentication guards
+- **Token-based**: JWT tokens stored in localStorage with refresh capability
+- **Anti-flicker**: Auth loading states prevent login page flash on page reload
+
 #### Form Handling
 Forms use React Hook Form with Zod validation:
 - Form schemas defined close to components
@@ -110,12 +153,13 @@ Forms use React Hook Form with Zod validation:
 
 #### State Management
 - **Local State**: React useState for component-specific state
-- **Server State**: TanStack Query for API data
-- **Global State**: Context providers for app-wide state (PageTitle, Theme)
+- **Server State**: Custom hooks for API data (replacing TanStack Query pattern)
+- **Global State**: Context providers for app-wide state (Auth, PageTitle)
 
 #### Routing and Navigation
 - File-based routing with React Router
-- Route protection handled at component level
+- Route protection handled through ProtectedRoute wrapper
+- SidebarProvider only wraps main app routes (excludes login, 404, loading states)
 - Navigation state managed through sidebar context
 
 ### TypeScript Configuration
