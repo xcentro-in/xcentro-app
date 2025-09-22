@@ -1,40 +1,65 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Filter, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { mockPayees } from "@/data/mockPayees";
-import { getPayeeTransactions, getPayeeTotalPayments, getPayeeLastTransactionDate } from "@/data/mockPayeeTransactions";
 import { Payee, BankPayee, BillerPayee, PayrollPayee } from "@/types/payee";
-import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
+import { TransactionStatus, PaymentMethod } from "@/types/transaction";
 import { DateRange } from "react-day-picker";
+import { usePayeeDetails } from "@/hooks/usePayeeDetails";
+import { usePayeeTransactions } from "@/hooks/usePayeeTransactions";
 
 // Import refactored components
-import { FilterCard } from "@/components/payee-history/FilterCard";
-import { TransactionsTable } from "@/components/payee-history/TransactionsTable";
 import { DownloadActions } from "@/components/payee-history/DownloadActions";
+// Use main reusable TransactionsTable with inline column filters
+import TransactionsTable from "@/components/payments/payment-history/tables/TransactionsTable";
 const PayeeHistory = () => {
   const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();
-  const [payee, setPayee] = useState<Payee | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  // Use server-side hook for payee overview data
+  const {
+    overview,
+    isLoading: isLoadingOverview,
+    error: overviewError,
+    updatePayeeDetails,
+    validateIfsc
+  } = usePayeeDetails(payeeId || "");
+
+  // Transaction history state for the main TransactionsTable
   const [activeTab, setActiveTab] = useState("overview");
-  const [appliedFilters, setAppliedFilters] = useState({
-    status: "all" as TransactionStatus | "all",
-    method: "all" as PaymentMethod | "all",
-    dateRange: undefined as DateRange | undefined
+  const [transactionFilters, setTransactionFilters] = useState({
+    status: 'all' as TransactionStatus | 'all',
+    paymentMethod: 'all' as PaymentMethod | 'all',
+    dateRange: undefined as DateRange | undefined,
+    page: 1,
+    limit: 20,
+    sortBy: 'date' as 'date' | 'amount' | 'status' | 'method',
+    sortOrder: 'desc' as 'asc' | 'desc'
   });
-  
+  const [searchValue, setSearchValue] = useState("");
+
+  // Use server-side hook for payee transactions - only when history tab is active
+  const {
+    transactions,
+    pagination: transactionPagination,
+    appliedFilters: transactionAppliedFilters,
+    isLoading: isLoadingTransactions,
+    error: transactionError
+  } = usePayeeTransactions(
+    payeeId || "",
+    activeTab === "history" ? transactionFilters : { ...transactionFilters, page: 0, limit: 0 } // Don't load until history tab
+  );
+
   // Edit state management
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [isEditingBank, setIsEditingBank] = useState(false);
   const [isValidatingIfsc, setIsValidatingIfsc] = useState(false);
   const [ifscValid, setIfscValid] = useState<boolean | null>(null);
-  
+
   // Form data for editing
   const [editData, setEditData] = useState({
     email: "",
@@ -44,18 +69,52 @@ const PayeeHistory = () => {
     bankName: ""
   });
 
-  // Load payee and transaction data
+  // Transaction table handlers
+  const handleSearchChange = (value: string) => {
+    setSearchValue(value);
+  };
+
+  const handleItemsPerPageChange = (value: number) => {
+    setTransactionFilters(prev => ({ ...prev, limit: value, page: 1 }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setTransactionFilters(prev => ({ ...prev, page }));
+  };
+
+  const handleSortChange = (column: 'date' | 'amount' | 'vendor' | 'status') => {
+    setTransactionFilters(prev => ({
+      ...prev,
+      sortBy: column === 'vendor' ? 'date' : column, // Map vendor to date for now
+      sortOrder: prev.sortBy === column && prev.sortOrder === 'desc' ? 'asc' : 'desc',
+      page: 1
+    }));
+  };
+
+  const handleStatusFilterChange = (statuses: string[]) => {
+    const status = statuses.length === 0 ? 'all' : statuses[0] as TransactionStatus;
+    setTransactionFilters(prev => ({ ...prev, status, page: 1 }));
+  };
+
+  const handlePaymentMethodFilterChange = (methods: string[]) => {
+    const paymentMethod = methods.length === 0 ? 'all' : methods[0] as PaymentMethod;
+    setTransactionFilters(prev => ({ ...prev, paymentMethod, page: 1 }));
+  };
+
+  const handleDateRangeChange = (range: 'last7days' | 'last30days' | 'last3months' | 'custom') => {
+    // TODO: Convert range to DateRange format
+    console.log('Date range changed:', range);
+    setTransactionFilters(prev => ({ ...prev, page: 1 }));
+  };
+
+  // Initialize edit data when overview data loads
   useEffect(() => {
-    if (!payeeId) return;
-    const payeeData = mockPayees.find(p => p.id === payeeId);
-    if (payeeData) {
-      setPayee(payeeData);
-      const payeeTransactions = getPayeeTransactions(payeeId);
-      setTransactions(payeeTransactions);
-      
+    if (overview?.payee) {
+      const payee = overview.payee;
+
       // Initialize edit data based on payee type
-      if (payeeData.type === 'bank') {
-        const bankPayee = payeeData as BankPayee;
+      if (payee.type === 'bank') {
+        const bankPayee = payee as BankPayee;
         setEditData({
           email: bankPayee.email,
           contactNumber: bankPayee.contactNumber,
@@ -63,8 +122,8 @@ const PayeeHistory = () => {
           ifscCode: bankPayee.ifscCode || "",
           bankName: bankPayee.bankName
         });
-      } else if (payeeData.type === 'payroll') {
-        const payrollPayee = payeeData as PayrollPayee;
+      } else if (payee.type === 'payroll') {
+        const payrollPayee = payee as PayrollPayee;
         setEditData({
           email: payrollPayee.email,
           contactNumber: payrollPayee.contactNumber,
@@ -72,8 +131,8 @@ const PayeeHistory = () => {
           ifscCode: payrollPayee.ifscCode || "",
           bankName: payrollPayee.bankName
         });
-      } else if (payeeData.type === 'biller') {
-        const billerPayee = payeeData as BillerPayee;
+      } else if (payee.type === 'biller') {
+        const billerPayee = payee as BillerPayee;
         setEditData({
           email: billerPayee.email,
           contactNumber: billerPayee.contactNumber,
@@ -83,83 +142,74 @@ const PayeeHistory = () => {
         });
       }
     }
-  }, [payeeId]);
+  }, [overview]);
 
-  // Calculate totals
-  const totalPaid = getPayeeTotalPayments(payeeId || "");
-  const lastTransactionDate = getPayeeLastTransactionDate(payeeId || "");
-
-  // Handle filter application
-  const handleApplyFilters = (filters: {
-    status: TransactionStatus | "all";
-    method: PaymentMethod | "all";
-    dateRange: DateRange | undefined;
-  }) => {
-    setAppliedFilters(filters);
-  };
-
-  // Handle filter reset
-  const handleResetFilters = () => {
-    setAppliedFilters({
-      status: "all",
-      method: "all",
-      dateRange: undefined
-    });
-  };
+  // Totals now come from overview hook data
   
-  // IFSC validation function
-  const validateIfsc = async (ifsc: string) => {
+  // IFSC validation using hook
+  const handleIfscValidation = async (ifsc: string) => {
     if (ifsc.length !== 11) {
       setIfscValid(false);
       return;
     }
-    
+
     setIsValidatingIfsc(true);
-    // Simulate IFSC validation API call
-    setTimeout(() => {
-      const mockBankNames: { [key: string]: string } = {
-        'SBIN0000001': 'State Bank of India - Main Branch',
-        'HDFC0000001': 'HDFC Bank - Corporate Branch',
-        'ICIC0000001': 'ICICI Bank - Business Branch',
-        'AXIS0000001': 'Axis Bank - Commercial Branch'
-      };
-      
-      if (mockBankNames[ifsc]) {
-        setEditData(prev => ({ ...prev, bankName: mockBankNames[ifsc] }));
+    try {
+      const result = await validateIfsc(ifsc);
+      if (result.valid && result.bankName) {
+        setEditData(prev => ({ ...prev, bankName: result.bankName! }));
         setIfscValid(true);
       } else {
         setIfscValid(false);
       }
+    } catch (error) {
+      setIfscValid(false);
+    } finally {
       setIsValidatingIfsc(false);
-    }, 1000);
+    }
   };
   
   // Handle IFSC change
   const handleIfscChange = (value: string) => {
     const upperValue = value.toUpperCase();
     setEditData(prev => ({ ...prev, ifscCode: upperValue }));
-    
+
     if (upperValue.length === 11) {
-      validateIfsc(upperValue);
+      handleIfscValidation(upperValue);
     } else {
       setIfscValid(null);
       setEditData(prev => ({ ...prev, bankName: "" }));
     }
   };
   
-  // Handle save
-  const handleSave = (section: 'company' | 'bank') => {
-    // Here you would typically make an API call to save the data
-    console.log(`Saving ${section} data:`, editData);
-    
-    if (section === 'company') {
-      setIsEditingCompany(false);
-    } else {
-      setIsEditingBank(false);
+  // Handle save using hook
+  const handleSave = async (section: 'company' | 'bank') => {
+    try {
+      // Prepare updates based on section
+      let updates: any = {};
+
+      if (section === 'company') {
+        updates.email = editData.email;
+        updates.contactNumber = editData.contactNumber;
+      } else if (section === 'bank') {
+        // Bank-specific fields for BankPayee and PayrollPayee
+        updates.accountNumber = editData.accountNumber;
+        updates.ifscCode = editData.ifscCode;
+        updates.bankName = editData.bankName;
+      }
+
+      await updatePayeeDetails(updates);
+
+      // Close edit mode on success
+      if (section === 'company') {
+        setIsEditingCompany(false);
+      } else {
+        setIsEditingBank(false);
+      }
+    } catch (error) {
+      console.error(`Error saving ${section} data:`, error);
+      // TODO: Show error toast
     }
-    
-    // Update the payee data in state (in a real app, this would be handled by the API)
-    // For now, we'll just close the edit mode
   };
   
   // Handle cancel
@@ -169,9 +219,10 @@ const PayeeHistory = () => {
     } else {
       setIsEditingBank(false);
     }
-    
-    // Reset edit data to original values
-    if (payee) {
+
+    // Reset edit data to original values from overview
+    if (overview?.payee) {
+      const payee = overview.payee;
       if (payee.type === 'bank') {
         const bankPayee = payee as BankPayee;
         setEditData({
@@ -204,7 +255,9 @@ const PayeeHistory = () => {
   };
   // Helper function to get company details
   const getCompanyDetails = () => {
-    if (!payee) return [];
+    if (!overview?.payee) return [];
+
+    const payee = overview.payee;
     
     switch (payee.type) {
       case 'bank':
@@ -238,8 +291,9 @@ const PayeeHistory = () => {
   
   // Helper function to get bank details
   const getBankDetails = () => {
-    if (!payee || payee.type === 'biller') return [];
-    
+    if (!overview?.payee || overview.payee.type === 'biller') return [];
+
+    const payee = overview.payee;
     if (payee.type === 'bank') {
       const bankPayee = payee as BankPayee;
       return [
@@ -260,14 +314,19 @@ const PayeeHistory = () => {
     return [];
   };
 
-  if (!payee) {
-    return <div className="p-8 text-center">
+  // Only show error if overview fails to load
+  if (overviewError && !overview?.payee) {
+    return (
+      <div className="p-8 text-center">
         <h2 className="text-xl font-semibold">Payee not found</h2>
-        <p className="text-muted-foreground mt-2">The payee you are looking for does not exist.</p>
+        <p className="text-muted-foreground mt-2">
+          {overviewError || "The payee you are looking for does not exist."}
+        </p>
         <Button className="mt-4" onClick={() => navigate("/payees")}>
           Back to Payees
         </Button>
-      </div>;
+      </div>
+    );
   }
 
   const companyDetails = getCompanyDetails();
@@ -283,10 +342,16 @@ const PayeeHistory = () => {
         
         <div className="flex flex-col md:flex-row justify-between items-start gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">{payee.name}</h1>
-            <p className="text-muted-foreground text-sm mt-1 capitalize">{payee.type} Payee</p>
+            <h1 className="text-2xl font-semibold text-foreground">
+              {overview?.payee?.name || "Loading..."}
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1 capitalize">
+              {overview?.payee?.type ? `${overview.payee.type} Payee` : "Payee Details"}
+            </p>
           </div>
-          <DownloadActions payeeName={payee.name} />
+          {overview?.payee && (
+            <DownloadActions payeeName={overview.payee.name} />
+          )}
         </div>
       </div>
       
@@ -308,8 +373,17 @@ const PayeeHistory = () => {
         </TabsList>
         
         <TabsContent value="overview" className="mt-6 space-y-6">
-          {/* Company Details Section */}
-          <Card>
+          {/* Overview loading state */}
+          {isLoadingOverview ? (
+            <div className="p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <h3 className="text-lg font-semibold">Loading payee overview...</h3>
+              <p className="text-muted-foreground mt-2">Please wait while we fetch the payee details.</p>
+            </div>
+          ) : overview?.payee ? (
+            <>
+              {/* Company Details Section */}
+              <Card>
             <CardContent className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-medium text-foreground">Company Details</h3>
@@ -460,20 +534,49 @@ const PayeeHistory = () => {
               </CardContent>
             </Card>
           )}
+            </>
+          ) : (
+            <div className="p-8 text-center">
+              <h3 className="text-lg font-semibold">Unable to load payee details</h3>
+              <p className="text-muted-foreground mt-2">
+                {overviewError || "There was an error loading the payee information."}
+              </p>
+              <Button className="mt-4" onClick={() => window.location.reload()}>
+                Try Again
+              </Button>
+            </div>
+          )}
         </TabsContent>
-        
-        <TabsContent value="history" className="mt-6 space-y-6">
-          {/* Filters Section */}
-          <div>
-            <h3 className="text-lg font-medium mb-2 flex items-center">
-              <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-              Filters
-            </h3>
-            <FilterCard onApplyFilters={handleApplyFilters} />
-          </div>
-          
-          {/* Transactions Table */}
-          <TransactionsTable transactions={transactions} appliedFilters={appliedFilters} onResetFilters={handleResetFilters} />
+
+        <TabsContent value="history" className="mt-6">
+          {/* Loading state for transactions */}
+          {isLoadingTransactions ? (
+            <div className="p-8 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-muted-foreground">Loading transaction history...</p>
+            </div>
+          ) : transactionError ? (
+            <div className="p-8 text-center">
+              <p className="text-destructive mb-4">{transactionError}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          ) : (
+            /* Transactions Table with inline column filters */
+            <TransactionsTable
+              transactions={transactions}
+              pagination={transactionPagination}
+              appliedFilters={transactionAppliedFilters}
+              searchValue={searchValue}
+              onSearchChange={handleSearchChange}
+              itemsPerPage={transactionFilters.limit}
+              onItemsPerPageChange={handleItemsPerPageChange}
+              onPageChange={handlePageChange}
+              onSortChange={handleSortChange}
+              onDateRangeChange={handleDateRangeChange}
+              onStatusFilterChange={handleStatusFilterChange}
+              onPaymentMethodFilterChange={handlePaymentMethodFilterChange}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>;

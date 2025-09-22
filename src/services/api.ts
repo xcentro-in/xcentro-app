@@ -198,6 +198,60 @@ class ApiService {
 
       console.log('TODO: Implement payees.delete API call', { id });
       throw new Error('API not implemented yet');
+    },
+
+    // Get detailed payee information with overview analytics
+    getDetails: async (businessId: string, payeeId: string) => {
+      // TODO: Get payee details with overview analytics
+      // return this.request(`/payees/${payeeId}/details?businessId=${businessId}`);
+
+      console.log('TODO: Implement payees.getDetails API call', { businessId, payeeId });
+      throw new Error('API not implemented yet');
+    },
+
+    // Get transactions for a specific payee
+    getTransactions: async (businessId: string, payeeId: string, params: {
+      status?: string;
+      paymentMethod?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      // TODO: Get payee transactions with server-side filtering
+      // const queryParams = new URLSearchParams({
+      //   businessId,
+      //   ...Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null))
+      // });
+      // return this.request(`/payees/${payeeId}/transactions?${queryParams}`);
+
+      console.log('TODO: Implement payees.getTransactions API call', { businessId, payeeId, params });
+      throw new Error('API not implemented yet');
+    },
+
+    // Update payee details (for edit functionality)
+    updateDetails: async (businessId: string, payeeId: string, updates: any) => {
+      // TODO: Update payee details
+      // return this.request(`/payees/${payeeId}/details`, {
+      //   method: 'PUT',
+      //   body: JSON.stringify({ businessId, ...updates }),
+      // });
+
+      console.log('TODO: Implement payees.updateDetails API call', { businessId, payeeId, updates });
+      throw new Error('API not implemented yet');
+    }
+  };
+
+  // Banks/IFSC validation endpoints
+  banks = {
+    validateIfsc: async (ifscCode: string) => {
+      // TODO: Validate IFSC code and get bank details
+      // return this.request(`/banks/validate-ifsc?ifsc=${ifscCode}`);
+
+      console.log('TODO: Implement banks.validateIfsc API call', { ifscCode });
+      throw new Error('API not implemented yet');
     }
   };
 
@@ -343,6 +397,7 @@ export const {
   user: userAPI,
   payments: paymentsAPI,
   payees: payeesAPI,
+  banks: banksAPI,
   paymentHistory: paymentHistoryAPI,
   upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,

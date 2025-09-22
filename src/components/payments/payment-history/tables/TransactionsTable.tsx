@@ -18,6 +18,15 @@ interface TransactionsTableProps {
   onSearchChange: (value: string) => void;
   itemsPerPage: number;
   onItemsPerPageChange: (value: number) => void;
+
+  // Optional server-side props for hybrid filtering
+  pagination?: any;
+  appliedFilters?: any;
+  onPageChange?: (page: number) => void;
+  onSortChange?: (column: 'date' | 'amount' | 'vendor' | 'status') => void;
+  onDateRangeChange?: (range: 'last7days' | 'last30days' | 'last3months' | 'custom') => void;
+  onStatusFilterChange?: (statuses: string[]) => void;
+  onPaymentMethodFilterChange?: (methods: string[]) => void;
 }
 
 const TransactionsTable = ({
@@ -25,12 +34,20 @@ const TransactionsTable = ({
   searchValue,
   onSearchChange,
   itemsPerPage,
-  onItemsPerPageChange
+  onItemsPerPageChange,
+  // Server-side filtering props (optional)
+  pagination,
+  appliedFilters,
+  onPageChange,
+  onSortChange,
+  onDateRangeChange,
+  onStatusFilterChange,
+  onPaymentMethodFilterChange
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use inline filters hook
+  // Use inline filters hook for client-side filtering
   const {
     filteredTransactions: baseFilteredTransactions,
     categoryFilter,
@@ -42,6 +59,32 @@ const TransactionsTable = ({
     setDateFilter,
     setDateRange
   } = useInlineFilters(transactions);
+
+  // Enhanced filter change handlers that trigger server-side API calls
+  const handleStatusFilterChange = (statuses: string[]) => {
+    setStatusFilter(statuses);
+    // TODO: Trigger server-side API call for status filter
+    if (onStatusFilterChange) {
+      onStatusFilterChange(statuses);
+    }
+  };
+
+  const handleDateRangeChange = (range: any) => {
+    setDateRange(range);
+    // TODO: Trigger server-side API call for date range filter
+    if (onDateRangeChange) {
+      // Convert DateRange to server format if needed
+      console.log('Date range changed, will trigger API call:', range);
+    }
+  };
+
+  const handleCategoryFilterChange = (categories: string[]) => {
+    setCategoryFilter(categories);
+    // TODO: Map category filter to payment method filter for server-side
+    if (onPaymentMethodFilterChange) {
+      onPaymentMethodFilterChange(categories);
+    }
+  };
 
   // Apply search filter on top of inline filters
   const searchFilteredTransactions = baseFilteredTransactions.filter(transaction =>
@@ -74,17 +117,16 @@ const TransactionsTable = ({
       
       {/* Transactions Table */}
       <div className="rounded-md border overflow-hidden">
-        {/* Table Header */}
-        {/* Table Header */}
+        {/* Table Header with server-side filter callbacks */}
         <TableHeader
           categoryFilter={categoryFilter}
           statusFilter={statusFilter}
           dateFilter={dateFilter}
           dateRange={dateRange}
-          onCategoryFilterChange={setCategoryFilter}
-          onStatusFilterChange={setStatusFilter}
+          onCategoryFilterChange={handleCategoryFilterChange}
+          onStatusFilterChange={handleStatusFilterChange}
           onDateFilterChange={setDateFilter}
-          onDateRangeChange={setDateRange}
+          onDateRangeChange={handleDateRangeChange}
         />
         
         {/* Transaction Rows */}
