@@ -5,16 +5,46 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/utils/formatters";
 import { Invoice } from "@/data/mockInvoices";
-import { X } from "lucide-react";
+import { X, CreditCard, CheckCircle, AlertTriangle, AlertCircle, Eye } from "lucide-react";
 import { useState } from "react";
 
 interface InvoiceDetailsProps {
   invoice: Invoice;
   onClose: () => void;
+  onPayBill?: (billId: string) => void;
 }
 
-const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
+const InvoiceDetails = ({ invoice, onClose, onPayBill }: InvoiceDetailsProps) => {
   const [showPDF, setShowPDF] = useState(false);
+
+  // Mock OCR confidence data
+  const getOcrConfidence = (field: string): number => {
+    const confidences: { [key: string]: number } = {
+      vendorName: 0.95,
+      invoiceNumber: 0.92,
+      amount: 0.89,
+      dueDate: 0.87,
+      billDate: 0.91,
+      gstin: 0.78,
+      items: 0.85
+    };
+    return confidences[field] || 0.8;
+  };
+
+  const getConfidenceColor = (confidence: number): string => {
+    if (confidence >= 0.9) return "text-green-600";
+    if (confidence >= 0.7) return "text-yellow-600";
+    return "text-red-600";
+  };
+
+  const getConfidenceIcon = (confidence: number) => {
+    if (confidence >= 0.9) return <CheckCircle className="h-3 w-3 text-green-600" />;
+    if (confidence >= 0.7) return <AlertTriangle className="h-3 w-3 text-yellow-600" />;
+    return <AlertCircle className="h-3 w-3 text-red-600" />;
+  };
+
+  const canPay = invoice.status === 'open' || invoice.status === 'overdue';
+  const isOverdue = invoice.status === 'overdue';
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -31,7 +61,7 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
 
   if (showPDF) {
     return (
-      <div className="h-full flex flex-col">
+      <div className="h-full flex flex-col min-h-0">
         <div className="flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">Invoice {invoice.invoiceNumber}</h2>
           <div className="flex items-center space-x-2">
@@ -56,15 +86,35 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col min-h-0">
       <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-lg font-semibold">Invoice {invoice.invoiceNumber}</h2>
+        <div className="flex items-center space-x-3">
+          <h2 className="text-lg font-semibold">Invoice {invoice.invoiceNumber}</h2>
+          <Badge className={getStatusColor(invoice.status)}>
+            {invoice.status.toUpperCase()}
+          </Badge>
+          {/* OCR Quality Indicator */}
+          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+            <Eye className="h-3 w-3" />
+            <span>OCR Parsed</span>
+          </div>
+        </div>
         <div className="flex items-center space-x-2">
+          {canPay && onPayBill && (
+            <Button
+              variant={isOverdue ? "destructive" : "default"}
+              size="sm"
+              onClick={() => onPayBill(invoice.id)}
+            >
+              <CreditCard className="h-4 w-4 mr-2" />
+              {isOverdue ? "Pay Overdue" : "Pay Now"}
+            </Button>
+          )}
           <Label htmlFor="pdf-view">Show PDF View</Label>
-          <Switch 
-            id="pdf-view" 
-            checked={showPDF} 
-            onCheckedChange={setShowPDF} 
+          <Switch
+            id="pdf-view"
+            checked={showPDF}
+            onCheckedChange={setShowPDF}
           />
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
@@ -72,17 +122,33 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
-        <div className="space-y-6">
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-6 min-h-0">
           {/* Header Section */}
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold mb-2">BILL</h1>
-              <p className="text-lg font-medium">Bill# {invoice.invoiceNumber}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-lg font-medium">Bill# {invoice.invoiceNumber}</p>
+                <div className="flex items-center gap-1">
+                  {getConfidenceIcon(getOcrConfidence('invoiceNumber'))}
+                  <span className={`text-xs ${getConfidenceColor(getOcrConfidence('invoiceNumber'))}`}>
+                    {Math.round(getOcrConfidence('invoiceNumber') * 100)}%
+                  </span>
+                </div>
+              </div>
             </div>
             <div className="text-right">
               <div className="text-sm text-gray-600 mb-1">Balance Due</div>
-              <div className="text-2xl font-bold">{formatCurrency(invoice.amount)}</div>
+              <div className="flex items-center gap-2 justify-end">
+                <div className="text-2xl font-bold">{formatCurrency(invoice.amount)}</div>
+                <div className="flex items-center gap-1">
+                  {getConfidenceIcon(getOcrConfidence('amount'))}
+                  <span className={`text-xs ${getConfidenceColor(getOcrConfidence('amount'))}`}>
+                    {Math.round(getOcrConfidence('amount') * 100)}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -94,11 +160,27 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Bill Date:</label>
+                  <div className="flex items-center gap-2 mb-1">
+                    <label className="text-sm font-medium text-gray-600">Bill Date:</label>
+                    <div className="flex items-center gap-1">
+                      {getConfidenceIcon(getOcrConfidence('billDate'))}
+                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('billDate'))}`}>
+                        {Math.round(getOcrConfidence('billDate') * 100)}%
+                      </span>
+                    </div>
+                  </div>
                   <p className="text-gray-900">{invoice.billDate}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-600">Due Date:</label>
+                  <div className="flex items-center gap-2 mb-1">
+                    <label className="text-sm font-medium text-gray-600">Due Date:</label>
+                    <div className="flex items-center gap-1">
+                      {getConfidenceIcon(getOcrConfidence('dueDate'))}
+                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('dueDate'))}`}>
+                        {Math.round(getOcrConfidence('dueDate') * 100)}%
+                      </span>
+                    </div>
+                  </div>
                   <p className="text-gray-900">{invoice.dueDate}</p>
                 </div>
                 <div>
@@ -121,12 +203,26 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
               <CardTitle className="text-lg">Bill From</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-blue-600 font-medium mb-2">{invoice.vendorName}</div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-blue-600 font-medium">{invoice.vendorName}</div>
+                <div className="flex items-center gap-1">
+                  {getConfidenceIcon(getOcrConfidence('vendorName'))}
+                  <span className={`text-xs ${getConfidenceColor(getOcrConfidence('vendorName'))}`}>
+                    {Math.round(getOcrConfidence('vendorName') * 100)}%
+                  </span>
+                </div>
+              </div>
               <div className="text-gray-700 whitespace-pre-line">{invoice.vendorAddress}</div>
               {invoice.gstin && (
-                <div className="mt-2">
+                <div className="mt-2 flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-600">GSTIN:</span>
-                  <span className="ml-2 text-gray-900">{invoice.gstin}</span>
+                  <span className="text-gray-900">{invoice.gstin}</span>
+                  <div className="flex items-center gap-1">
+                    {getConfidenceIcon(getOcrConfidence('gstin'))}
+                    <span className={`text-xs ${getConfidenceColor(getOcrConfidence('gstin'))}`}>
+                      {Math.round(getOcrConfidence('gstin') * 100)}%
+                    </span>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -135,7 +231,15 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
           {/* Items */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Items</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Items</CardTitle>
+                <div className="flex items-center gap-1">
+                  {getConfidenceIcon(getOcrConfidence('items'))}
+                  <span className={`text-xs ${getConfidenceColor(getOcrConfidence('items'))}`}>
+                    {Math.round(getOcrConfidence('items') * 100)}%
+                  </span>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
@@ -189,9 +293,17 @@ const InvoiceDetails = ({ invoice, onClose }: InvoiceDetailsProps) => {
                   </div>
                 )}
                 <hr className="my-2" />
-                <div className="flex justify-between font-bold text-lg">
+                <div className="flex justify-between items-center font-bold text-lg">
                   <span>Total:</span>
-                  <span>{formatCurrency(invoice.amount)}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{formatCurrency(invoice.amount)}</span>
+                    <div className="flex items-center gap-1">
+                      {getConfidenceIcon(getOcrConfidence('amount'))}
+                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('amount'))}`}>
+                        {Math.round(getOcrConfidence('amount') * 100)}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

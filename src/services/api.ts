@@ -387,6 +387,154 @@ class ApiService {
       throw new Error('API not implemented yet');
     }
   };
+
+  // Bills endpoints - TODO: Implement when backend is ready
+  bills = {
+    getAll: async (businessId: string, params: {
+      // Status filter
+      status?: 'paid' | 'open' | 'overdue';
+
+      // Date filters
+      billDateFrom?: string;
+      billDateTo?: string;
+      dueDateFrom?: string;
+      dueDateTo?: string;
+      dueWithin?: number; // bills due within X days
+
+      // Vendor filter
+      vendors?: string[];
+
+      // Amount range filter
+      amountMin?: number;
+      amountMax?: number;
+
+      // Pagination
+      page?: number;
+      limit?: number;
+
+      // Sorting
+      sortBy?: 'dueDate' | 'billDate' | 'amount' | 'vendor' | 'status';
+      sortOrder?: 'asc' | 'desc';
+    }) => {
+      // TODO: Get all bills with server-side filtering
+      // const queryParams = new URLSearchParams({
+      //   businessId,
+      //   ...Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null))
+      // });
+      // return this.request(`/bills?${queryParams}`);
+
+      console.log('TODO: Implement bills.getAll API call', { businessId, params });
+      throw new Error('API not implemented yet');
+    },
+
+    getDetails: async (businessId: string, billId: string) => {
+      // TODO: Get detailed bill information with OCR data
+      // return this.request(`/bills/${billId}/details?businessId=${businessId}`);
+
+      console.log('TODO: Implement bills.getDetails API call', { businessId, billId });
+      throw new Error('API not implemented yet');
+    },
+
+    pay: async (businessId: string, billId: string, paymentData: {
+      paymentMethod: string;
+      amount: number;
+      paymentDate?: string;
+      notes?: string;
+    }) => {
+      // TODO: Process payment for a bill
+      // return this.request(`/bills/${billId}/pay`, {
+      //   method: 'POST',
+      //   body: JSON.stringify({ businessId, ...paymentData }),
+      // });
+
+      console.log('TODO: Implement bills.pay API call', { businessId, billId, paymentData });
+      throw new Error('API not implemented yet');
+    },
+
+    bulkPay: async (businessId: string, billIds: string[], paymentData: {
+      paymentMethod: string;
+      paymentDate?: string;
+      notes?: string;
+    }) => {
+      // TODO: Process bulk payment for multiple bills
+      // return this.request('/bills/bulk-pay', {
+      //   method: 'POST',
+      //   body: JSON.stringify({ businessId, billIds, ...paymentData }),
+      // });
+
+      console.log('TODO: Implement bills.bulkPay API call', { businessId, billIds, paymentData });
+      throw new Error('API not implemented yet');
+    },
+
+    upload: async (businessId: string, file: File, metadata?: any) => {
+      // TODO: Upload bill for OCR processing
+      // const formData = new FormData();
+      // formData.append('file', file);
+      // formData.append('businessId', businessId);
+      // if (metadata) formData.append('metadata', JSON.stringify(metadata));
+      //
+      // return this.request('/bills/upload', {
+      //   method: 'POST',
+      //   body: formData,
+      //   headers: {} // Remove Content-Type to let browser set multipart boundary
+      // });
+
+      console.log('TODO: Implement bills.upload API call', { businessId, fileName: file.name, metadata });
+      throw new Error('API not implemented yet');
+    },
+
+    getOcrData: async (businessId: string, billId: string) => {
+      // TODO: Get OCR parsing results and confidence scores
+      // return this.request(`/bills/${billId}/ocr?businessId=${businessId}`);
+
+      console.log('TODO: Implement bills.getOcrData API call', { businessId, billId });
+      throw new Error('API not implemented yet');
+    },
+
+    updateOcrData: async (businessId: string, billId: string, ocrData: any) => {
+      // TODO: Update/correct OCR parsed data
+      // return this.request(`/bills/${billId}/ocr`, {
+      //   method: 'PUT',
+      //   body: JSON.stringify({ businessId, ...ocrData }),
+      // });
+
+      console.log('TODO: Implement bills.updateOcrData API call', { businessId, billId, ocrData });
+      throw new Error('API not implemented yet');
+    },
+
+    getPaymentHistory: async (businessId: string, billId: string) => {
+      // TODO: Get payment history for a specific bill
+      // return this.request(`/bills/${billId}/payments?businessId=${businessId}`);
+
+      console.log('TODO: Implement bills.getPaymentHistory API call', { businessId, billId });
+      throw new Error('API not implemented yet');
+    },
+
+    delete: async (businessId: string, billId: string) => {
+      // TODO: Delete a bill
+      // return this.request(`/bills/${billId}?businessId=${businessId}`, { method: 'DELETE' });
+
+      console.log('TODO: Implement bills.delete API call', { businessId, billId });
+      throw new Error('API not implemented yet');
+    },
+
+    exportData: async (businessId: string, params: {
+      format: 'csv' | 'excel' | 'pdf';
+      dateFrom?: string;
+      dateTo?: string;
+      status?: string[];
+    }) => {
+      // TODO: Export bills data in various formats
+      // const queryParams = new URLSearchParams({
+      //   businessId,
+      //   ...Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null))
+      // });
+      // return this.request(`/bills/export?${queryParams}`);
+
+      console.log('TODO: Implement bills.exportData API call', { businessId, params });
+      throw new Error('API not implemented yet');
+    }
+  };
 }
 
 export const apiService = new ApiService();
@@ -398,6 +546,7 @@ export const {
   payments: paymentsAPI,
   payees: payeesAPI,
   banks: banksAPI,
+  bills: billsAPI,
   paymentHistory: paymentHistoryAPI,
   upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,
