@@ -2,6 +2,7 @@ import { useState } from "react";
 import PaymentMethodAndReviewStep from "../../shared/PaymentMethodAndReviewStep";
 import { Payee } from "@/types/payee";
 import { PaymentType } from "@/types/payments";
+import { formatCompactDate } from "@/utils/dateFormatting";
 
 interface QuickPaymentMethodAndReviewStepProps {
   paymentType: PaymentType;
@@ -32,7 +33,7 @@ const QuickPaymentMethodAndReviewStep = ({
     if (paymentType === "now") {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      return `T+1 (${tomorrow.toLocaleDateString()})`;
+      return formatCompactDate(tomorrow.toISOString());
     }
     if (paymentType === "later" && scheduledDate) {
       return `Scheduled for ${scheduledDate.toLocaleDateString()}`;

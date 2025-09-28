@@ -1,6 +1,7 @@
 import PaymentMethodAndReviewStep from "../../shared/PaymentMethodAndReviewStep";
 import { Employee } from "./types";
 import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
+import { formatCompactDate } from "@/utils/dateFormatting";
 
 interface PayrollPaymentMethodAndReviewStepProps {
   selectedEmployees: Employee[];
@@ -29,7 +30,7 @@ const PayrollPaymentMethodAndReviewStep = ({
     if (paymentType === "now") {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      return `T+1 (${tomorrow.toLocaleDateString()})`;
+      return formatCompactDate(tomorrow.toISOString());
     }
     if (paymentType === "later" && scheduledDate) {
       return `Scheduled for ${scheduledDate.toLocaleDateString()}`;
