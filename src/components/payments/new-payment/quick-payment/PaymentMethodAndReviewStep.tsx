@@ -29,7 +29,11 @@ const QuickPaymentMethodAndReviewStep = ({
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
 
   const formatScheduleText = () => {
-    if (paymentType === "now") return "Immediate";
+    if (paymentType === "now") {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return `T+1 (${tomorrow.toLocaleDateString()})`;
+    }
     if (paymentType === "later" && scheduledDate) {
       return `Scheduled for ${scheduledDate.toLocaleDateString()}`;
     }

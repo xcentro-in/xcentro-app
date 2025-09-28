@@ -127,7 +127,7 @@ const PaymentMethodAndReviewStep = ({
         </>
       )}
       <div className="flex justify-between">
-        <span className="text-muted-foreground">Schedule</span>
+        <span className="text-muted-foreground">Settlement Date</span>
         <span className="text-sm">{scheduleText}</span>
       </div>
       {additionalSummaryData?.invoiceReference && (
@@ -148,7 +148,7 @@ const PaymentMethodAndReviewStep = ({
         <span className="font-medium">{paymentItems.length}</span>
       </div>
       <div className="flex justify-between">
-        <span className="text-muted-foreground">Schedule</span>
+        <span className="text-muted-foreground">Settlement Date</span>
         <span className="text-sm">{scheduleText}</span>
       </div>
     </div>

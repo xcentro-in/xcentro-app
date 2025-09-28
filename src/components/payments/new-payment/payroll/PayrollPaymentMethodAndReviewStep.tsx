@@ -26,7 +26,11 @@ const PayrollPaymentMethodAndReviewStep = ({
   const totalSalary = selectedEmployees.reduce((sum, emp) => sum + emp.salaryAmount, 0);
 
   const formatScheduleText = () => {
-    if (paymentType === "now") return "Immediate";
+    if (paymentType === "now") {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      return `T+1 (${tomorrow.toLocaleDateString()})`;
+    }
     if (paymentType === "later" && scheduledDate) {
       return `Scheduled for ${scheduledDate.toLocaleDateString()}`;
     }
