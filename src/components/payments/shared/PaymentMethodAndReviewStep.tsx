@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
-import { CreditCard, Building2, Smartphone } from "lucide-react";
+import { CreditCard, Building2, Smartphone, Info } from "lucide-react";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface PaymentItem {
   id: string;
@@ -223,7 +224,19 @@ const PaymentMethodAndReviewStep = ({
                 <span className="font-medium">{formatCurrency(processingFee)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">GST (18%)</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-muted-foreground">GST (18%)</span>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>GST levied on the processing fee</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <span className="font-medium">{formatCurrency(gst)}</span>
               </div>
 
