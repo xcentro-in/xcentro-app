@@ -104,13 +104,6 @@ const NewPayment = () => {
           </Button>
         )}
         
-        <div className="flex flex-col">
-          <p className="text-muted-foreground animate-slide-up" style={{
-            animationDelay: "50ms"
-          }}>
-            {paymentSubtitles[paymentCategory]}
-          </p>
-        </div>
       </div>
 
       <Card className="animate-scale-in">
