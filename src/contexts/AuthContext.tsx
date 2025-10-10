@@ -68,6 +68,12 @@ const MOCK_USER_DATA: AuthUser = {
   businessId: "b1",
   businessName: "ABC Company",
   rewardPoints: 24530,
+  
+  // Onboarding tracking - set to false to see empty state
+  hasCompletedOnboarding: false,
+  hasAddedPaymentMethod: false,
+  hasAddedVendor: false,
+  hasCreatedFirstPayment: false,
 };
 
 const initialState: AuthState = {

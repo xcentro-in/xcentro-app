@@ -8,6 +8,12 @@ export interface AuthUser {
   businessName: string;
   rewardPoints?: number;
   avatar?: string;
+  
+  // Onboarding tracking flags
+  hasCompletedOnboarding?: boolean;
+  hasAddedPaymentMethod?: boolean;
+  hasAddedVendor?: boolean;
+  hasCreatedFirstPayment?: boolean;
 }
 
 export interface AuthState {

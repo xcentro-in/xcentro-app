@@ -18,6 +18,7 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { FeatureEnabled } from "@/components/FeatureEnabled"
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import EmptyStateDashboard from "@/components/dashboard/EmptyStateDashboard";
 
 const insights = [
   { title: "Monthly Spend", value: 75493, change: 12.8, trend: "up" as const },
@@ -28,11 +29,21 @@ const Dashboard = () => {
   const { setTitle } = usePageTitle();
   const { user } = useAuth();
 
+  // Check if we should show empty state
+  const showEmptyState = 
+    user?.hasCompletedOnboarding === false || 
+    (!user?.hasAddedPaymentMethod && !user?.hasAddedVendor && !user?.hasCreatedFirstPayment);
+
   useEffect(() => {
     // TODO: This will be populated from backend after login
     const userName = user?.name?.split(' ')[0] || 'User';
-    setTitle(`Welcome back, ${userName}`);
-  }, [setTitle, user]);
+    
+    if (showEmptyState) {
+      setTitle(`Let's get started, ${userName}`);
+    } else {
+      setTitle(`Welcome back, ${userName}`);
+    }
+  }, [setTitle, user, showEmptyState]);
   
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(
@@ -42,6 +53,26 @@ const Dashboard = () => {
   const urgentCount = mockApprovalTransactions.filter(
     t => t.status === "urgent"
   ).length;
+  
+  // Show empty state for new users
+  if (showEmptyState) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <div>
+            <Badge variant="outline" className="mb-2.5 px-3 py-1.5 text-xs font-medium bg-primary/5 border-primary/10 text-primary animate-fade-in">
+              Getting Started
+            </Badge>
+            <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+              Complete these steps to unlock your business finance dashboard
+            </p>
+          </div>
+        </div>
+        
+        <EmptyStateDashboard />
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-8">
