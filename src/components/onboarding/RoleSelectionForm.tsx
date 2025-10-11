@@ -56,7 +56,7 @@ const RoleSelectionForm = ({ formData, updateFormData }: RoleSelectionFormProps)
       <div className="space-y-4">
         <div>
           <Label htmlFor="role">Role</Label>
-          <Select value={formData.role} onValueChange={(value) => updateFormData({ role: value })}>
+          <Select value={formData?.role || ""} onValueChange={(value) => updateFormData({ role: value })}>
             <SelectTrigger id="role">
               <SelectValue placeholder="Select your role" />
             </SelectTrigger>
@@ -69,7 +69,7 @@ const RoleSelectionForm = ({ formData, updateFormData }: RoleSelectionFormProps)
           </Select>
         </div>
 
-        {formData.role && (
+        {formData?.role && (
           <div className="rounded-lg border bg-muted/30 p-4">
             <h4 className="text-sm font-medium mb-2">Role Permissions</h4>
             <ul className="text-sm text-muted-foreground space-y-1">
