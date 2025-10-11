@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, CreditCard, Building2, ShieldCheck, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,12 +10,16 @@ import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
 import { toast } from "sonner";
 import { usePageTitle } from "@/contexts/PageTitleContext";
-import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { EmptyWallet } from "@/components/wallet/EmptyWallet";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
+  const { user } = useAuth();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(mockPaymentMethods);
+  
+  const showEmptyState = !user?.hasAddedPaymentMethod || paymentMethods.length === 0;
   
   useEffect(() => {
     setTitle("Payment Sources");
@@ -68,6 +72,11 @@ const WalletManagement = () => {
         return null;
     }
   };
+
+  // Show empty state if no payment methods
+  if (showEmptyState) {
+    return <EmptyWallet />;
+  }
 
   const cardMethods = paymentMethods.filter(method => method.type === 'card');
   const bankMethods = paymentMethods.filter(method => method.type === 'bank');
@@ -186,7 +195,7 @@ const WalletManagement = () => {
           onClick={() => navigate("/wallet/add")}
         >
           <Plus className="h-4 w-4" />
-          Add New Payment Method
+          Configure Payment Source
         </Button>
       </div>
 

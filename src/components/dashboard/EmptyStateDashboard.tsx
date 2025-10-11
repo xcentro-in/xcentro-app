@@ -27,7 +27,7 @@ const EmptyStateDashboard = () => {
       title: 'Add your payment sources',
       description: 'Connect your business credit cards or bank accounts to start making payments seamlessly.',
       icon: CreditCard,
-      ctaText: 'Add Payment Method',
+      ctaText: 'Add Payment Source',
       ctaLink: '/wallet',
       checkFlag: 'hasAddedPaymentMethod',
     },
