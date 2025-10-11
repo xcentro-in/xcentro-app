@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, AlertCircle, User, MapPin, FileText } from "lucide-react";
+import { Check, AlertCircle, User, Shield, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface ReviewDetailsFormProps {
@@ -11,25 +11,38 @@ interface ReviewDetailsFormProps {
       panNumber: string;
       dateOfBirth: string;
     };
-    contact: {
-      address: string;
-      city: string;
-      state: string;
-      country: string;
-      postalCode: string;
-      email: string;
-      phone: string;
+    role: {
+      role: string;
     };
   };
 }
+
+const getRoleLabel = (role: string): string => {
+  const labels: Record<string, string> = {
+    owner: 'Business Owner',
+    admin: 'Admin',
+    finance_manager: 'Approver',
+    accountant: 'Auditor'
+  };
+  return labels[role] || 'Not selected';
+};
+
+const getRoleDescription = (role: string): string => {
+  const descriptions: Record<string, string> = {
+    owner: 'Full super admin rights',
+    admin: 'Rights to make changes',
+    finance_manager: 'Approve expense payables',
+    accountant: 'View-only access'
+  };
+  return descriptions[role] || '';
+};
 
 const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
   const isComplete = formData.kyc.name &&
                     formData.kyc.aadharNumber && 
                     formData.kyc.panNumber &&
                     formData.kyc.dateOfBirth &&
-                    formData.contact.email &&
-                    formData.contact.phone;
+                    formData.role.role;
 
   return (
     <div className="space-y-6">
@@ -64,31 +77,28 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
             </div>
             <div>
               <h3 className="text-lg font-medium">{formData.kyc.name || "Name not provided"}</h3>
-              <p className="text-sm text-muted-foreground">{formData.contact.email || "Email not provided"}</p>
             </div>
           </div>
 
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Contact Details</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Address</p>
-                <p className="font-medium">{formData.contact.address || "Not provided"}</p>
+            <h4 className="text-sm font-medium mb-3">Selected Role</h4>
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-primary" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">City</p>
-                <p className="font-medium">{formData.contact.city || "Not provided"}</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{getRoleLabel(formData.role.role)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {getRoleDescription(formData.role.role)}
+                </p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">State</p>
-                <p className="font-medium">{formData.contact.state || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{formData.contact.phone || "Not provided"}</p>
-              </div>
+              {formData.role.role ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+              )}
             </div>
           </div>
 

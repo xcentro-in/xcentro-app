@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
-import ContactDetailsForm from "@/components/onboarding/ContactDetailsForm";
+import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 
 type OnboardingFormData = {
@@ -15,14 +15,8 @@ type OnboardingFormData = {
     panNumber: string;
     dateOfBirth: string;
   };
-  contact: {
-    address: string;
-    city: string;
-    state: string;
-    country: string;
-    postalCode: string;
-    email: string;
-    phone: string;
+  role: {
+    role: string;
   };
 };
 
@@ -33,18 +27,12 @@ const initialFormData: OnboardingFormData = {
     panNumber: "",
     dateOfBirth: "",
   },
-  contact: {
-    address: "",
-    city: "",
-    state: "",
-    country: "",
-    postalCode: "",
-    email: "",
-    phone: "",
+  role: {
+    role: "",
   },
 };
 
-const steps = ["KYC Details", "Contact Information", "Review"];
+const steps = ["KYC Details", "Select Your Role", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
@@ -165,9 +153,9 @@ const UserOnboarding = () => {
               )}
 
               {currentStep === 2 && (
-                <ContactDetailsForm
-                  formData={formData.contact}
-                  updateFormData={(data) => updateFormData("contact", data)}
+                <RoleSelectionForm
+                  formData={formData.role}
+                  updateFormData={(data) => updateFormData("role", data)}
                 />
               )}
 
