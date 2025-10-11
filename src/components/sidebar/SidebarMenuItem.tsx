@@ -168,7 +168,7 @@ export const SidebarMenuItemComponent = ({
   const menuButton = (
     <SidebarMenuButton
       isActive={isActive}
-      tooltip={!open ? title : undefined}
+      tooltip={!open && !isLocked ? title : undefined}
       asChild
       className={cn(
         highlight ? "relative" : "",
