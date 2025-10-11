@@ -252,7 +252,7 @@ const RedemptionFlow: React.FC = () => {
     <div className="space-y-8">
       <RedemptionHeader 
         title="Redeem Your Points" 
-        description="Convert your PaySphere points to premium rewards" 
+        description="Convert your Xcentro points to premium rewards" 
       />
       
       <ProgressSteps step={step} />

@@ -9,7 +9,7 @@ const Layout = () => {
   // useEffect(() => {
   //   // Simulate a welcome notification on first load
   //   const timeout = setTimeout(() => {
-  //     toast("Welcome to PaySphere", {
+  //     toast("Welcome to Xcentro", {
   //       description: "Your premium business payment platform",
   //     });
   //   }, 1000);

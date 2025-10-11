@@ -46,7 +46,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           </div>
           <div className="flex justify-between pb-3 border-b">
             <span className="text-muted-foreground">Points to Redeem</span>
-            <span className="font-medium">{pointsToRedeem.toLocaleString()} PaySphere Points</span>
+            <span className="font-medium">{pointsToRedeem.toLocaleString()} Xcentro Points</span>
           </div>
           <div className="flex justify-between pb-3 border-b">
             <span className="text-muted-foreground">You'll Receive</span>
@@ -54,7 +54,7 @@ const ConfirmationStep: React.FC<ConfirmationStepProps> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Remaining Balance</span>
-            <span className="font-medium">{(availablePoints - pointsToRedeem).toLocaleString()} PaySphere Points</span>
+            <span className="font-medium">{(availablePoints - pointsToRedeem).toLocaleString()} Xcentro Points</span>
           </div>
         </div>
       </div>

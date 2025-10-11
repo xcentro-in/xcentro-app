@@ -47,13 +47,13 @@ const Signup = () => {
           <div className="flex justify-center mb-4">
             <img 
               src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max" 
-              alt="PaySphere Logo" 
+              alt="Xcentro Logo" 
               className="h-24 w-auto object-contain" 
             />
           </div>
           <h1 className="text-2xl font-bold">Create an Account</h1>
           <p className="text-sm text-muted-foreground">
-            Enter your details to create your PaySphere account
+            Enter your details to create your Xcentro account
           </p>
         </CardHeader>
         <CardContent>

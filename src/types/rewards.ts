@@ -5,7 +5,7 @@ export interface RedemptionItem {
   description: string;
   pointsCost: number;
   image?: string;
-  conversionRatio?: number; // For partner programs (e.g., 1 PaySphere point = 0.5 partner points)
+  conversionRatio?: number; // For partner programs (e.g., 1 Xcentro point = 0.5 partner points)
 }
 
 export interface RedemptionCategory {
@@ -21,7 +21,7 @@ export interface LoyaltyPartner {
   id: string;
   name: string;
   type: 'airline' | 'hotel' | 'car' | 'event' | 'other';
-  conversionRatio: number; // How many partner points per 1 PaySphere point
+  conversionRatio: number; // How many partner points per 1 Xcentro point
   category: string; // Maps to a category ID in redemptionCategories
   membershipDetails?: {
     membershipNumber?: string;
