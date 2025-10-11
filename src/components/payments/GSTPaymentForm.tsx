@@ -362,7 +362,7 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
                 <span className="font-medium">₹{challanData.fees.processingFeeGovt}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Platform Fee (PaySphere)</span>
+                <span className="text-muted-foreground">Platform Fee (Xcentro)</span>
                 <span className="font-medium">₹{challanData.fees.platformFee}</span>
               </div>
               

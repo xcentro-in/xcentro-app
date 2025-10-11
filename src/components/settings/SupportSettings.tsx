@@ -284,7 +284,7 @@ const SupportSettings = () => {
             <Mail className="h-4 w-4 text-primary" />
             <div>
               <h4 className="text-sm font-medium">Email Support</h4>
-              <p className="text-sm text-muted-foreground">support@PaySphere.com</p>
+              <p className="text-sm text-muted-foreground">support@Xcentro.com</p>
             </div>
           </div>
           <div className="flex items-center gap-2 rounded-md border p-3 flex-1">

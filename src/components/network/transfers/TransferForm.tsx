@@ -101,7 +101,7 @@ const TransferForm = ({ availablePoints }: TransferFormProps) => {
                     <p className="text-muted-foreground mt-1">
                       Can't find them? 
                       <Button variant="link" className="h-auto p-0 ml-1">
-                        Invite them to PaySphere
+                        Invite them to Xcentro
                       </Button>
                     </p>
                   </div>
