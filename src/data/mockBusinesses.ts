@@ -10,8 +10,8 @@ export interface Business {
   pan: string;
   status: BusinessStatus;
   documents?: {
+    cin?: string;
     deed?: string;
-    gst?: string;
     other?: string[];
   };
 }
@@ -20,20 +20,19 @@ export const mockBusinesses: Business[] = [
   {
     id: "b1",
     name: "ABC Company",
-    type: "Private Limited",
+    type: "Private Limited Company",
     model: "B2B",
     turnover: "$500K - $1M",
     pan: "ABCDE1234F",
     status: "verified",
     documents: {
-      deed: "business_deed_abc.pdf",
-      gst: "gst_certificate_abc.pdf"
+      cin: "L12345MH2020PTC123456"
     }
   },
   {
     id: "b2",
     name: "XYZ Enterprises",
-    type: "Proprietorship",
+    type: "Sole Proprietorship",
     model: "D2C",
     turnover: "$100K - $500K",
     pan: "XYZAB5678G",
@@ -45,11 +44,14 @@ export const mockBusinesses: Business[] = [
   {
     id: "b3",
     name: "New Venture LLC",
-    type: "Limited Liability Company",
+    type: "Limited Liability Partnership (LLP)",
     model: "B2C",
     turnover: "< $100K",
     pan: "NVPQR9012H",
-    status: "pending"
+    status: "pending",
+    documents: {
+      cin: "U67890DL2023LLP045678"
+    }
   }
 ];
 

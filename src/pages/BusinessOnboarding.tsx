@@ -18,8 +18,8 @@ type BusinessFormData = {
   model: string;
   turnover: string;
   documents: {
+    cin?: string;
     deed?: File | null;
-    gst?: File | null;
   };
 };
 
@@ -31,9 +31,21 @@ const initialFormData: BusinessFormData = {
   model: "",
   turnover: "",
   documents: {
+    cin: "",
     deed: null,
-    gst: null,
   }
+};
+
+// Helper function to determine if a business type requires CIN
+const requiresCIN = (businessType: string): boolean => {
+  const corporateEntities = [
+    "Private Limited Company",
+    "Public Limited Company",
+    "One Person Company (OPC)",
+    "Section 8 Company (Non-profit)",
+    "Limited Liability Partnership (LLP)"
+  ];
+  return corporateEntities.includes(businessType);
 };
 
 const steps = ["Basic Info", "Business Details", "Documents", "Review"];
@@ -45,7 +57,23 @@ const BusinessOnboarding = () => {
   
   const progress = (currentStep / steps.length) * 100;
   
+  const canProceedFromStep3 = (): boolean => {
+    if (requiresCIN(formData.type)) {
+      // For corporate entities, CIN is required (21 characters)
+      return formData.documents.cin !== undefined && 
+             formData.documents.cin.length === 21;
+    } else {
+      // For other entities, Business Deed is required
+      return formData.documents.deed !== null;
+    }
+  };
+  
   const handleNext = () => {
+    if (currentStep === 3 && !canProceedFromStep3()) {
+      toast.error("Please complete all required fields");
+      return;
+    }
+    
     if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
@@ -186,7 +214,10 @@ const BusinessOnboarding = () => {
           
           {currentStep === 3 && (
             <BusinessDocumentsForm 
-              formData={formData} 
+              formData={{
+                type: formData.type,
+                documents: formData.documents
+              }}
               updateNestedFormData={updateNestedFormData}
             />
           )}
