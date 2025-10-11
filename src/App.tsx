@@ -72,6 +72,11 @@ function App() {
                   <UserOnboarding />
                 </ProtectedRoute>
               } />
+              <Route path="/business-onboarding" element={
+                <ProtectedRoute>
+                  <BusinessOnboarding />
+                </ProtectedRoute>
+              } />
 
               {/* Main app routes with sidebar */}
               <Route path="/" element={
@@ -122,7 +127,6 @@ function App() {
                 )}
                 <Route path="wallet" element={<WalletManagement />} />
                 <Route path="wallet/add" element={<AddPaymentMethod />} />
-                <Route path="business-onboarding" element={<BusinessOnboarding />} />
               </Route>
 
               <Route path="/settings" element={
