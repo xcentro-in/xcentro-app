@@ -65,14 +65,12 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
         <TabsContent value="card">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="cardholderName">Cardholder Name</Label>
-              <Input id="cardholderName" placeholder="As it appears on the card" required />
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="cardNumber">Card Number</Label>
               <Input 
-                id="cardNumber" 
+                id="cardNumber"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="XXXX XXXX XXXX XXXX" 
                 maxLength={19}
                 required 
@@ -82,11 +80,27 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="expiryDate">Expiry Date</Label>
-                <Input id="expiryDate" placeholder="MM/YY" maxLength={5} required />
+                <Input 
+                  id="expiryDate"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9/]*"
+                  placeholder="MM/YY" 
+                  maxLength={5} 
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cvv">CVV</Label>
-                <Input id="cvv" type="password" placeholder="XXX" maxLength={4} required />
+                <Input 
+                  id="cvv" 
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="XXX" 
+                  maxLength={4} 
+                  required 
+                />
               </div>
             </div>
             
@@ -100,15 +114,20 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
                   <SelectItem value="visa">Visa</SelectItem>
                   <SelectItem value="mastercard">Mastercard</SelectItem>
                   <SelectItem value="amex">American Express</SelectItem>
-                  <SelectItem value="discover">Discover</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="dinersclub">Diners Club</SelectItem>
+                  <SelectItem value="rupay">RuPay</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="billingAddress">Billing Address (Optional)</Label>
-              <Input id="billingAddress" placeholder="Enter billing address" />
+              <Label htmlFor="cardholderName">Cardholder Name</Label>
+              <Input 
+                id="cardholderName"
+                type="text"
+                placeholder="As it appears on the card" 
+                required 
+              />
             </div>
             
             <div className="flex items-center space-x-2">
@@ -130,55 +149,55 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
         
         <TabsContent value="bank">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="accountHolderName">Account Holder Name</Label>
-              <Input id="accountHolderName" placeholder="Full name on the account" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bankName">Bank Name</Label>
-              <Select>
-                <SelectTrigger id="bankName">
-                  <SelectValue placeholder="Select your bank" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="hdfc">HDFC Bank</SelectItem>
-                  <SelectItem value="icici">ICICI Bank</SelectItem>
-                  <SelectItem value="sbi">State Bank of India</SelectItem>
-                  <SelectItem value="axis">Axis Bank</SelectItem>
-                  <SelectItem value="kotak">Kotak Mahindra Bank</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="accountNumber">Account Number</Label>
-              <Input id="accountNumber" placeholder="Enter account number" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="confirmAccountNumber">Confirm Account Number</Label>
-              <Input id="confirmAccountNumber" placeholder="Re-enter account number" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="ifscCode">IFSC Code</Label>
-              <Input id="ifscCode" placeholder="XXXX0000000" required />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="transactionType">Transaction Type</Label>
-              <Select defaultValue="neft">
-                <SelectTrigger id="transactionType">
-                  <SelectValue placeholder="Select transaction type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="neft">NEFT</SelectItem>
-                  <SelectItem value="rtgs">RTGS</SelectItem>
-                  <SelectItem value="imps">IMPS</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="accountHolderName">Account Holder Name</Label>
+                <Input 
+                  id="accountHolderName"
+                  type="text"
+                  placeholder="Full name on the account" 
+                  required 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="bankName">Bank Name</Label>
+                <Select>
+                  <SelectTrigger id="bankName">
+                    <SelectValue placeholder="Select your bank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="hdfc">HDFC Bank</SelectItem>
+                    <SelectItem value="icici">ICICI Bank</SelectItem>
+                    <SelectItem value="sbi">State Bank of India</SelectItem>
+                    <SelectItem value="axis">Axis Bank</SelectItem>
+                    <SelectItem value="kotak">Kotak Mahindra Bank</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="accountNumber">Account Number</Label>
+                <Input 
+                  id="accountNumber"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="Enter account number" 
+                  required 
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="ifscCode">IFSC Code</Label>
+                <Input 
+                  id="ifscCode"
+                  type="text"
+                  placeholder="XXXX0000000" 
+                  required 
+                />
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">

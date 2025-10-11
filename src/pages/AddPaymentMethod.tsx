@@ -95,9 +95,46 @@ const AddPaymentMethod = () => {
             <TabsContent value="card">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="cardNumber">Card Number</Label>
+                    <Input 
+                      id="cardNumber"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="XXXX XXXX XXXX XXXX" 
+                      maxLength={19}
+                      required 
+                      className="bg-white dark:bg-gray-950"
+                    />
+                  </div>
+                  
                   <div className="space-y-2">
-                    <Label htmlFor="cardholderName">Cardholder Name</Label>
-                    <Input id="cardholderName" placeholder="As it appears on the card" required className="bg-white dark:bg-gray-950" />
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input 
+                      id="expiryDate"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9/]*"
+                      placeholder="MM/YY" 
+                      maxLength={5} 
+                      required 
+                      className="bg-white dark:bg-gray-950"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input 
+                      id="cvv" 
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="XXX" 
+                      maxLength={4} 
+                      required 
+                      className="bg-white dark:bg-gray-950"
+                    />
                   </div>
                   
                   <div className="space-y-2">
@@ -110,52 +147,20 @@ const AddPaymentMethod = () => {
                         <SelectItem value="visa">Visa</SelectItem>
                         <SelectItem value="mastercard">Mastercard</SelectItem>
                         <SelectItem value="amex">American Express</SelectItem>
-                        <SelectItem value="discover">Discover</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="dinersclub">Diners Club</SelectItem>
+                        <SelectItem value="rupay">RuPay</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input 
-                      id="cardNumber" 
-                      placeholder="XXXX XXXX XXXX XXXX" 
-                      maxLength={19}
-                      required 
-                      className="bg-white dark:bg-gray-950"
-                    />
-                  </div>
-                  
                   <div className="space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Label htmlFor="cardholderName">Cardholder Name</Label>
                     <Input 
-                      id="expiryDate" 
-                      placeholder="MM/YY" 
-                      maxLength={5} 
+                      id="cardholderName"
+                      type="text"
+                      placeholder="As it appears on the card" 
                       required 
-                      className="bg-white dark:bg-gray-950"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input 
-                      id="cvv" 
-                      type="password" 
-                      placeholder="XXX" 
-                      maxLength={4} 
-                      required 
-                      className="bg-white dark:bg-gray-950"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="billingAddress">Billing Address (Optional)</Label>
-                    <Input 
-                      id="billingAddress" 
-                      placeholder="Enter billing address" 
-                      className="bg-white dark:bg-gray-950"
+                      className="bg-white dark:bg-gray-950" 
                     />
                   </div>
                 </div>
@@ -193,7 +198,8 @@ const AddPaymentMethod = () => {
                   <div className="space-y-2">
                     <Label htmlFor="accountHolderName">Account Holder Name</Label>
                     <Input 
-                      id="accountHolderName" 
+                      id="accountHolderName"
+                      type="text"
                       placeholder="Full name on the account" 
                       required 
                       className="bg-white dark:bg-gray-950"
@@ -220,18 +226,11 @@ const AddPaymentMethod = () => {
                   <div className="space-y-2">
                     <Label htmlFor="accountNumber">Account Number</Label>
                     <Input 
-                      id="accountNumber" 
+                      id="accountNumber"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder="Enter account number" 
-                      required 
-                      className="bg-white dark:bg-gray-950"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="confirmAccountNumber">Confirm Account Number</Label>
-                    <Input 
-                      id="confirmAccountNumber" 
-                      placeholder="Re-enter account number" 
                       required 
                       className="bg-white dark:bg-gray-950"
                     />
@@ -240,25 +239,12 @@ const AddPaymentMethod = () => {
                   <div className="space-y-2">
                     <Label htmlFor="ifscCode">IFSC Code</Label>
                     <Input 
-                      id="ifscCode" 
+                      id="ifscCode"
+                      type="text"
                       placeholder="XXXX0000000" 
                       required 
                       className="bg-white dark:bg-gray-950"
                     />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="transactionType">Transaction Type</Label>
-                    <Select defaultValue="neft">
-                      <SelectTrigger id="transactionType" className="bg-white dark:bg-gray-950">
-                        <SelectValue placeholder="Select transaction type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="neft">NEFT</SelectItem>
-                        <SelectItem value="rtgs">RTGS</SelectItem>
-                        <SelectItem value="imps">IMPS</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
                 
