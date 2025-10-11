@@ -16,12 +16,11 @@ export const EmptyWallet = () => {
         </div>
         
         <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">
-          Payment Sources Configuration
+          Add Payment Sources
         </h2>
         
-        <p className="text-base text-slate-600 max-w-2xl mx-auto">
-          Configure your corporate payment methods to enable vendor payments, 
-          payroll processing, and bill settlements.
+        <p className="text-base text-slate-600 max-w-xl mx-auto">
+          Set up your payment methods to handle vendor payments, payroll, and bills.
         </p>
       </div>
 
@@ -29,49 +28,42 @@ export const EmptyWallet = () => {
       <Card className="border border-slate-200 bg-white shadow-sm">
         <CardContent className="pt-6">
           
-          <div className="flex items-start gap-4 mb-4">
+          <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-lg border border-slate-300 bg-slate-50 flex items-center justify-center flex-shrink-0">
               <Shield className="h-5 w-5 text-slate-700" strokeWidth={1.5} />
             </div>
             
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-slate-900 mb-1 uppercase tracking-wide">
-                Security & Compliance
-              </h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                All payment data is encrypted and processed in compliance with 
-                Reserve Bank of India guidelines and PCI DSS Level 1 standards.
-              </p>
-            </div>
-          </div>
-          
-          <div className="space-y-2.5 mt-4 pl-14">
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                Card details tokenized via certified payment gateway
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                Only last 4 digits retained for transaction identification
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                End-to-end encryption maintained by card networks
-              </p>
-            </div>
-            
-            <div className="flex items-start gap-2">
-              <CheckCircle2 className="h-4 w-4 text-slate-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-slate-600">
-                No CVV or PIN values stored on any server
-              </p>
+            <div className="flex-1 space-y-3">
+              <div>
+                <h3 className="text-sm font-medium text-slate-900 mb-1 uppercase tracking-wide">
+                  Bank-Grade Security
+                </h3>
+                <p className="text-sm text-slate-600">
+                  RBI compliant • PCI DSS Level 1 certified • End-to-end encrypted
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-600">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  <span>Tokenized card storage</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  <span>No CVV stored</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  <span>Last 4 digits only</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                  <span>Network encrypted</span>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -101,15 +93,15 @@ export const EmptyWallet = () => {
               <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>Instant transaction processing</span>
+                  <span>Instant processing</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>Support for Visa, Mastercard, Amex</span>
+                  <span>Visa, Mastercard, Amex</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>Scheduled & recurring payments</span>
+                  <span>Recurring payments</span>
                 </li>
               </ul>
             </div>
@@ -129,7 +121,7 @@ export const EmptyWallet = () => {
                     Bank Accounts
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Direct Transfers
+                    Direct Transfer
                   </p>
                 </div>
               </div>
@@ -137,15 +129,15 @@ export const EmptyWallet = () => {
               <ul className="space-y-2 text-sm text-slate-600">
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>NEFT, RTGS, IMPS support</span>
+                  <span>NEFT, RTGS, IMPS</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>Higher transaction limits</span>
+                  <span>Higher limits</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-slate-400">•</span>
-                  <span>Direct vendor account transfers</span>
+                  <span>Direct to vendors</span>
                 </li>
               </ul>
             </div>
@@ -158,13 +150,13 @@ export const EmptyWallet = () => {
         <Button 
           size="lg"
           onClick={() => navigate("/wallet/add")}
-          className="h-11"
+          className="h-11 px-8"
         >
-          Configure Payment Sources
+          Add Payment Source
         </Button>
         
         <p className="text-sm text-slate-500">
-          Add multiple payment sources and designate a primary method for automated transactions
+          Add multiple sources and set a primary method
         </p>
       </div>
     </div>
