@@ -7,8 +7,9 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
+import { ChevronDown, ChevronRight, LucideIcon, Lock } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
 
 interface SubmenuItem {
   title: string;
@@ -25,6 +26,9 @@ interface SidebarMenuItemProps {
   highlightColor?: "amber" | "green";
   state?: any;
   submenu?: SubmenuItem[];
+  isLocked?: boolean;
+  lockedMessage?: string;
+  unlockHint?: string;
 }
 
 export const SidebarMenuItemComponent = ({ 
@@ -34,10 +38,14 @@ export const SidebarMenuItemComponent = ({
   highlight, 
   highlightColor = "amber",
   state,
-  submenu 
+  submenu,
+  isLocked = false,
+  lockedMessage = "This feature is locked",
+  unlockHint = "Complete the required steps to unlock this feature."
 }: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
+  const { toast } = useToast();
   
   // Check if this item is active based on URL or state
   const isActive = location.pathname === url || 
@@ -54,6 +62,18 @@ export const SidebarMenuItemComponent = ({
       return isTextColor ? "text-green-500" : "bg-green-500";
     }
     return isTextColor ? "text-amber-500" : "bg-amber-500";
+  };
+
+  // Handle click on locked items
+  const handleLockedClick = (e: React.MouseEvent) => {
+    if (isLocked) {
+      e.preventDefault();
+      toast({
+        title: lockedMessage,
+        description: unlockHint,
+        variant: "default",
+      });
+    }
   };
 
   // If this is a menu with submenu items
@@ -152,30 +172,40 @@ export const SidebarMenuItemComponent = ({
         asChild
         className={cn(
           highlight ? "relative" : "",
-          "w-full"
+          "w-full",
+          isLocked && "opacity-60"
         )}
       >
         <Link 
-          to={url} 
+          to={isLocked ? "#" : url}
           state={state}
+          onClick={handleLockedClick}
           className={cn(
-            "flex items-center gap-3 w-full",
-            !open && "justify-center" // Center align when sidebar is collapsed
+            "flex items-center gap-3 w-full relative",
+            !open && "justify-center",
+            isLocked && "cursor-not-allowed"
           )}
         >
-          {highlight && !isActive && (
+          {highlight && !isActive && !isLocked && (
             <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full", getHighlightColorClasses())}></span>
           )}
-          <Icon className={cn(
-            "h-5 w-5",
-            isActive ? 
-              "text-primary" : 
-              highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
-          )} />
+          <div className="relative">
+            <Icon className={cn(
+              "h-5 w-5",
+              isActive ? 
+                "text-primary" : 
+                isLocked ?
+                  "text-muted-foreground/50" :
+                  highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
+            )} />
+            {isLocked && open && (
+              <Lock className="h-3 w-3 absolute -top-1 -right-1 text-muted-foreground/70" />
+            )}
+          </div>
           {open && (
             <span className={cn(
               "truncate",
-              highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
+              isLocked ? "text-muted-foreground/70" : highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
             )}>
               {title}
             </span>

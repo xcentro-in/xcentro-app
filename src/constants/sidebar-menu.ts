@@ -30,6 +30,7 @@ export interface SidebarMenuItem {
   highlight?: boolean;
   highlightColor?: "amber" | "green";
   state?: any;
+  requiresAccess?: boolean; // New field for access control
   submenu?: Array<{
     id: string;
     title: string;
@@ -47,36 +48,41 @@ export const mainMenuItems: SidebarMenuItem[] = [
     icon: Home,
   },
   {
-    id: "quickpay",
+    id: "newpayment",
     title: "New Payment",
     url: "/new-payment",
     icon: PlusCircle,
     highlight: true,
     highlightColor: "green" as const,
+    requiresAccess: true,
   },
   {
-    id: "futurePayment",
+    id: "upcomingpayments",
     title: "Upcoming Payments",
     url: "/payment-calendar",
     icon: CalendarDays,
+    requiresAccess: true,
   },
   {
-    id: "paymentHistory",
+    id: "paymenthistory",
     title: "Payment History",
     url: "/payments",
     icon: History,
+    requiresAccess: true,
   },
   {
-    id: "payeeManagement",
+    id: "managepayees",
     title: "Manage Payees",
     url: "/payees",
     icon: Users,
+    requiresAccess: true,
   },
   {
     id: "bills",
     title: "Bills",
     url: "/bills",
     icon: FileText,
+    requiresAccess: true,
   },
   {
     id: "wallet",
@@ -110,6 +116,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     url: "/approvals",
     icon: CheckCircle2,
     highlight: true,
+    requiresAccess: true,
   },
   {
     id: "rewardmanagement",
