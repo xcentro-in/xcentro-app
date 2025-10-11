@@ -6,14 +6,14 @@ import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 import ContactDetailsForm from "@/components/onboarding/ContactDetailsForm";
-import ProfileDetailsForm from "@/components/onboarding/ProfileDetailsForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 
 type OnboardingFormData = {
   kyc: {
+    name: string;
     aadharNumber: string;
-    aadharFrontUrl: string;
-    aadharBackUrl: string;
+    panNumber: string;
+    dateOfBirth: string;
   };
   contact: {
     address: string;
@@ -24,17 +24,14 @@ type OnboardingFormData = {
     email: string;
     phone: string;
   };
-  profile: {
-    name: string;
-    kycStatus: "pending" | "verified" | "rejected";
-  };
 };
 
 const initialFormData: OnboardingFormData = {
   kyc: {
+    name: "",
     aadharNumber: "",
-    aadharFrontUrl: "",
-    aadharBackUrl: "",
+    panNumber: "",
+    dateOfBirth: "",
   },
   contact: {
     address: "",
@@ -45,13 +42,9 @@ const initialFormData: OnboardingFormData = {
     email: "",
     phone: "",
   },
-  profile: {
-    name: "",
-    kycStatus: "pending",
-  },
 };
 
-const steps = ["KYC Details", "Contact Information", "Profile Details", "Review"];
+const steps = ["KYC Details", "Contact Information", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
@@ -179,13 +172,6 @@ const UserOnboarding = () => {
               )}
 
               {currentStep === 3 && (
-                <ProfileDetailsForm
-                  formData={formData.profile}
-                  updateFormData={(data) => updateFormData("profile", data)}
-                />
-              )}
-
-              {currentStep === 4 && (
                 <ReviewDetailsForm formData={formData} />
               )}
 

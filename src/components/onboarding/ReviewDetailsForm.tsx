@@ -6,9 +6,10 @@ import { Separator } from "@/components/ui/separator";
 interface ReviewDetailsFormProps {
   formData: {
     kyc: {
+      name: string;
       aadharNumber: string;
-      aadharFrontUrl: string;
-      aadharBackUrl: string;
+      panNumber: string;
+      dateOfBirth: string;
     };
     contact: {
       address: string;
@@ -19,20 +20,16 @@ interface ReviewDetailsFormProps {
       email: string;
       phone: string;
     };
-    profile: {
-      name: string;
-      kycStatus: "pending" | "verified" | "rejected";
-    };
   };
 }
 
 const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
-  const isComplete = formData.kyc.aadharNumber && 
-                    formData.kyc.aadharFrontUrl &&
-                    formData.kyc.aadharBackUrl &&
+  const isComplete = formData.kyc.name &&
+                    formData.kyc.aadharNumber && 
+                    formData.kyc.panNumber &&
+                    formData.kyc.dateOfBirth &&
                     formData.contact.email &&
-                    formData.contact.phone &&
-                    formData.profile.name;
+                    formData.contact.phone;
 
   return (
     <div className="space-y-6">
@@ -66,7 +63,7 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-medium">{formData.profile.name || "Name not provided"}</h3>
+              <h3 className="text-lg font-medium">{formData.kyc.name || "Name not provided"}</h3>
               <p className="text-sm text-muted-foreground">{formData.contact.email || "Email not provided"}</p>
             </div>
           </div>
@@ -98,7 +95,7 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">KYC Documents</h4>
+            <h4 className="text-sm font-medium mb-3">KYC Information</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
@@ -122,14 +119,29 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
                   <FileText className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Aadhar Documents</p>
+                  <p className="text-sm font-medium">PAN Number</p>
                   <p className="text-xs text-muted-foreground">
-                    {(formData.kyc.aadharFrontUrl && formData.kyc.aadharBackUrl) 
-                      ? "Both documents uploaded" 
-                      : "Documents missing"}
+                    {formData.kyc.panNumber || "Not provided"}
                   </p>
                 </div>
-                {(formData.kyc.aadharFrontUrl && formData.kyc.aadharBackUrl) ? (
+                {formData.kyc.panNumber ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Date of Birth</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.kyc.dateOfBirth || "Not provided"}
+                  </p>
+                </div>
+                {formData.kyc.dateOfBirth ? (
                   <Check className="h-4 w-4 text-green-600" />
                 ) : (
                   <AlertCircle className="h-4 w-4 text-amber-600" />
@@ -143,8 +155,9 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
       <div className="rounded-lg border p-4 bg-muted/30">
         <h3 className="text-sm font-medium mb-2">What happens next?</h3>
         <p className="text-sm text-muted-foreground">
-          After submission, we'll verify your information and KYC documents. 
-          This typically takes 1-2 business days. You'll receive an email once your verification is complete.
+          After submission, your Aadhaar will be e-verified through UIDAI APIs 
+          and your PAN will be validated. This typically completes within minutes. 
+          You'll receive a confirmation once verification is complete.
         </p>
       </div>
     </div>
