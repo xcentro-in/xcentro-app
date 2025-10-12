@@ -1,18 +1,25 @@
 // TODO: Replace with actual backend API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8888/v1';
 
 class ApiService {
   private baseUrl: string;
+  private authToken?: string;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
+  }
+
+  // Add method to update auth token
+  setAuthToken(token: string | null) {
+    this.authToken = token;
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const token = localStorage.getItem('auth-token');
+    // Use instance token if available, fallback to localStorage
+    const token = this.authToken || localStorage.getItem('auth-token');
 
     const config: RequestInit = {
       headers: {

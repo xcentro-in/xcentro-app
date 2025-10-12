@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { AuthState, AuthUser, LoginResponse } from '@/types/auth';
+import { apiService } from '@/services/api';
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -105,6 +106,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('auth-token', mockResponse.token);
       localStorage.setItem('user-data', JSON.stringify(mockResponse.user));
 
+      // Sync token with API service
+      apiService.setAuthToken(mockResponse.token);
+
       dispatch({ type: 'LOGIN_SUCCESS', payload: mockResponse });
     } catch (error) {
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -118,6 +122,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     localStorage.removeItem('auth-token');
     localStorage.removeItem('user-data');
+    
+    // Clear token from API service
+    apiService.setAuthToken(null);
+    
     dispatch({ type: 'LOGOUT' });
   };
 
@@ -165,6 +173,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
           // For now, directly restore from localStorage (synchronous)
           const user: AuthUser = JSON.parse(userData);
+          
+          // Sync token with API service
+          apiService.setAuthToken(token);
+          
           dispatch({ type: 'SET_USER', payload: user });
         } catch (error) {
           console.error('Token validation failed:', error);
