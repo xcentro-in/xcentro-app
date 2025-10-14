@@ -10,20 +10,16 @@ import { useEffect } from "react";
 interface BusinessBasicInfoFormProps {
   formData: {
     name: string;
-    pan: string;
-    gstin?: string;
+    gstin: string;
   };
   updateFormData: (field: string, value: any) => void;
 }
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Business name must be at least 2 characters." }),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { 
-    message: "PAN must be in the format ABCDE1234F." 
-  }),
   gstin: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/, {
     message: "GSTIN must be in the format 29ABCDE1234F1Z2."
-  }).optional().or(z.literal('')),
+  }),
 });
 
 const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFormProps) => {
@@ -31,7 +27,6 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: formData.name || "",
-      pan: formData.pan || "",
       gstin: formData.gstin || "",
     },
   });
@@ -44,7 +39,6 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
   useEffect(() => {
     const subscription = form.watch((value) => {
       if (value.name !== undefined) updateFormData("name", value.name);
-      if (value.pan !== undefined) updateFormData("pan", value.pan);
       if (value.gstin !== undefined) updateFormData("gstin", value.gstin);
     });
     return () => subscription.unsubscribe();
@@ -66,32 +60,11 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Business Name (as per PAN)</FormLabel>
+                <FormLabel>Business Name (as per PAN/GSTIN)</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Enter business name" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="pan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business PAN</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="ABCDE1234F" 
-                    {...field} 
-                    onChange={(e) => {
-                      const value = e.target.value.toUpperCase();
-                      field.onChange(value);
-                    }}
+                  <Input
+                    placeholder="Enter business name"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -104,11 +77,11 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
             name="gstin"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>GSTIN (optional)</FormLabel>
+                <FormLabel>GSTIN</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="29ABCDE1234F1Z2" 
-                    {...field} 
+                  <Input
+                    placeholder="29ABCDE1234F1Z2"
+                    {...field}
                     onChange={(e) => {
                       const value = e.target.value.toUpperCase();
                       field.onChange(value);

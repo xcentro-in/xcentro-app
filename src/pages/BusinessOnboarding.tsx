@@ -8,11 +8,13 @@ import BusinessBasicInfoForm from "@/components/business/BusinessBasicInfoForm";
 import BusinessTypeForm from "@/components/business/BusinessTypeForm";
 import BusinessDocumentsForm from "@/components/business/BusinessDocumentsForm";
 import BusinessReviewForm from "@/components/business/BusinessReviewForm";
+import { businessAPI } from "@/services/api";
+import { businessTypesRequiringCIN, businessTypeToEnum } from "@/data/mockBusinesses";
 
 type BusinessFormData = {
   name: string;
+  gstin: string;
   pan: string;
-  gstin?: string;
   type: string;
   model: string;
   turnover: string;
@@ -24,8 +26,8 @@ type BusinessFormData = {
 
 const initialFormData: BusinessFormData = {
   name: "",
-  pan: "",
   gstin: "",
+  pan: "",
   type: "",
   model: "",
   turnover: "",
@@ -37,14 +39,7 @@ const initialFormData: BusinessFormData = {
 
 // Helper function to determine if a business type requires CIN
 const requiresCIN = (businessType: string): boolean => {
-  const corporateEntities = [
-    "Private Limited Company",
-    "Public Limited Company",
-    "One Person Company (OPC)",
-    "Section 8 Company (Non-profit)",
-    "Limited Liability Partnership (LLP)",
-  ];
-  return corporateEntities.includes(businessType);
+  return businessTypesRequiringCIN.includes(businessType);
 };
 
 const steps = ["Basic Info", "Business Details", "Documents", "Review"];
@@ -53,6 +48,8 @@ const BusinessOnboarding = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
+  const [businessId, setBusinessId] = useState<string>("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -67,6 +64,7 @@ const BusinessOnboarding = () => {
   };
 
   const handleNext = () => {
+    // Step 3: Check documents validation
     if (currentStep === 3 && !canProceedFromStep3()) {
       toast.error("Please complete all required fields");
       return;
@@ -85,10 +83,54 @@ const BusinessOnboarding = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // In a real app, you would send the data to your backend here
-    toast.success("Business submitted for verification!");
-    navigate("/settings?tab=businesses");
+  const handleSubmit = async () => {
+    setIsLoading(true);
+
+    try {
+      // Step 1: Initialize business onboarding
+      const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
+      const bid = initResponse.data.bid;
+
+      // Store bid in state and sessionStorage
+      setBusinessId(bid);
+      sessionStorage.setItem('business-id', bid);
+
+      // Step 2: Handle document upload if deed is required (non-CIN types)
+      if (!requiresCIN(formData.type) && formData.documents.deed) {
+        // Get presigned URL
+        const uploadUrlResponse = await businessAPI.getUploadUrl(bid);
+        const uploadUrl = uploadUrlResponse.data.url;
+
+        // Upload file to S3
+        await businessAPI.uploadToS3(uploadUrl, formData.documents.deed);
+
+        // Confirm upload
+        await businessAPI.confirmUpload(bid);
+      }
+
+      // Step 3: Complete business onboarding
+      const businessTypeEnum = businessTypeToEnum[formData.type];
+      const completeResponse = await businessAPI.completeOnboarding(
+        bid,
+        businessTypeEnum,
+        formData.pan,
+        requiresCIN(formData.type) ? formData.documents.cin : undefined
+      );
+
+      // Store the kyb status
+      sessionStorage.setItem('kyb-status', completeResponse.data.kybStatus);
+
+      toast.success("Business onboarding completed successfully!");
+
+      // Navigate to user onboarding
+      navigate("/onboarding");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to complete business onboarding. Please try again.";
+      toast.error(errorMessage);
+      console.error("Business onboarding error:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateFormData = (field: string, value: any) => {
@@ -199,14 +241,23 @@ const BusinessOnboarding = () => {
           {currentStep === 4 && <BusinessReviewForm formData={formData} />}
 
           <div className="flex justify-between mt-8 pt-4 border-t">
-            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1}>
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isLoading}>
               Previous
             </Button>
 
             {currentStep < steps.length ? (
               <Button onClick={handleNext}>Continue</Button>
             ) : (
-              <Button onClick={handleSubmit}>Submit for Verification</Button>
+              <Button onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit for Verification"
+                )}
+              </Button>
             )}
           </div>
         </div>

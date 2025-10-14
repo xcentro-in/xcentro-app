@@ -23,7 +23,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, fetchUserProfile } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // TODO: Need to carefully take down these parts after testing 
@@ -47,14 +47,25 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      await login(values.email, values.password);
+      const response = await login(values.email, values.password);
       toast.success("Login successful! Welcome to PaySphere.");
 
-      // Navigate to intended page or dashboard
-      const from = location.state?.from?.pathname || "/";
-      navigate(from, { replace: true });
-    } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
+      // Determine navigation based on kyc/kyb flags
+      const kybNeeded = response.kybNeeded;
+      const kycNeeded = response.kycNeeded;
+
+      // If both onboarding are completed, fetch user profile and go to dashboard
+      if (!kybNeeded && !kycNeeded) {
+        await fetchUserProfile();
+        navigate("/", { replace: true });
+      }
+      // If any onboarding is needed, show the onboarding choice page
+      else {
+        navigate("/onboarding-choice", { replace: true });
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Login failed. Please check your credentials.";
+      toast.error(errorMessage);
       console.error("Login error:", error);
     } finally {
       setIsSubmitting(false);

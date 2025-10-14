@@ -27,6 +27,8 @@ export interface LoginResponse {
   user: AuthUser;
   token: string;
   refreshToken?: string;
+  kybNeeded?: boolean;
+  kycNeeded?: boolean;
 }
 
 export interface ApiError {

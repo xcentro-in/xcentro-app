@@ -33,6 +33,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import UserOnboarding from "./pages/UserOnboarding";
+import OnboardingChoice from "./pages/OnboardingChoice";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -67,6 +68,11 @@ function App() {
               <Route path="/signup" element={<Signup />} />
 
               {/* Protected routes outside sidebar */}
+              <Route path="/onboarding-choice" element={
+                <ProtectedRoute>
+                  <OnboardingChoice />
+                </ProtectedRoute>
+              } />
               <Route path="/onboarding" element={
                 <ProtectedRoute>
                   <UserOnboarding />

@@ -7,10 +7,11 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Mail, Lock, UserPlus, Phone, ArrowLeft, Shield } from "lucide-react";
+import { Mail, Lock, UserPlus, Phone, ArrowLeft, Shield, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { authAPI } from "@/services/api";
 
 const step1Schema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -25,14 +26,16 @@ type Step1FormValues = z.infer<typeof step1Schema>;
 
 const Signup = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [step1Data, setStep1Data] = useState<{ email: string; password: string } | null>(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState("");
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [verificationMessage, setVerificationMessage] = useState("");
 
   const form = useForm<Step1FormValues>({
     resolver: zodResolver(step1Schema),
@@ -51,10 +54,26 @@ const Signup = () => {
     }
   }, [countdown]);
 
-  const handleStep1Submit = (values: Step1FormValues) => {
-    setStep1Data({ email: values.email, password: values.password });
-    setCurrentStep(2);
-    toast.success("Step 1 completed!");
+  const handleStep1Submit = async (values: Step1FormValues) => {
+    setIsSubmitting(true);
+
+    try {
+      const response = await authAPI.signup(values.email, values.password);
+
+      setStep1Data({ email: values.email, password: values.password });
+      setVerificationMessage(response.message);
+
+      // Skip phone verification (Step 2) and go directly to success message (Step 3)
+      setCurrentStep(3);
+
+      toast.success("Account created successfully!");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to create account. Please try again.";
+      toast.error(errorMessage);
+      console.error("Signup error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSendOtp = async () => {
@@ -123,24 +142,33 @@ const Signup = () => {
       <Card className="w-full max-w-md shadow-lg transition-all duration-500 px-4 sm:px-6 bg-white/80 backdrop-blur-sm border-white/20">
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
-            <img 
-              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max" 
-              alt="PaySphere Logo" 
-              className="h-24 w-auto object-contain" 
+            <img
+              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max"
+              alt="PaySphere Logo"
+              className="h-24 w-auto object-contain"
             />
           </div>
-          <div className="text-sm text-muted-foreground mb-2">
-            Step {currentStep} of 2
-          </div>
+          {currentStep !== 3 && (
+            <div className="text-sm text-muted-foreground mb-2">
+              Step {currentStep} of 2
+            </div>
+          )}
           <h1 className="text-2xl font-bold">
-            {currentStep === 1 ? "Create an Account" : "Verify Phone Number"}
+            {currentStep === 1
+              ? "Create an Account"
+              : currentStep === 2
+                ? "Verify Phone Number"
+                : "Check Your Email"
+            }
           </h1>
           <p className="text-sm text-muted-foreground">
-            {currentStep === 1 
+            {currentStep === 1
               ? "Enter your details to create your PaySphere account"
-              : isOtpSent 
-                ? `Enter the OTP sent to +91 ${phoneNumber}`
-                : "Enter your phone number to receive OTP"
+              : currentStep === 2
+                ? (isOtpSent
+                    ? `Enter the OTP sent to +91 ${phoneNumber}`
+                    : "Enter your phone number to receive OTP")
+                : "We've sent you a verification link"
             }
           </p>
         </CardHeader>
@@ -216,12 +244,19 @@ const Signup = () => {
                     Terms and Conditions
                   </Link>
                 </div>
-                <Button type="submit" className="w-full">
-                  Continue
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating account...
+                    </>
+                  ) : (
+                    "Continue"
+                  )}
                 </Button>
               </form>
             </Form>
-          ) : (
+          ) : currentStep === 2 ? (
             <div className="space-y-4">
               <div>
                 <label htmlFor="phone" className="text-sm font-medium">
@@ -308,6 +343,64 @@ const Signup = () => {
               >
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Email
               </Button>
+            </div>
+          ) : (
+            // Step 3: Email Verification Success
+            <div className="space-y-6 text-center py-4">
+              <div className="flex justify-center">
+                <div className="rounded-full bg-green-100 p-3">
+                  <CheckCircle2 className="h-12 w-12 text-green-600" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Account Created Successfully!
+                </h3>
+                <p className="text-sm text-muted-foreground px-4">
+                  {verificationMessage}
+                </p>
+                <p className="text-sm text-muted-foreground px-4">
+                  Please check your email inbox and click the verification link to activate your account.
+                </p>
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                <h4 className="text-sm font-semibold text-blue-900 mb-2">
+                  What's next?
+                </h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li className="flex items-start">
+                    <span className="mr-2">1.</span>
+                    <span>Check your email inbox (and spam folder)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">2.</span>
+                    <span>Click the verification link in the email</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="mr-2">3.</span>
+                    <span>Return to login page to access your account</span>
+                  </li>
+                </ul>
+              </div>
+
+              <Button
+                onClick={() => navigate("/login")}
+                className="w-full"
+              >
+                Go to Login Page
+              </Button>
+
+              <div className="text-xs text-muted-foreground">
+                Didn't receive the email?{" "}
+                <button
+                  onClick={() => toast.info("Please check your spam folder or contact support")}
+                  className="text-primary underline"
+                >
+                  Get help
+                </button>
+              </div>
             </div>
           )}
         </CardContent>

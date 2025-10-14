@@ -60,10 +60,50 @@ export const businessTypes = [
   "Partnership",
   "Limited Liability Partnership (LLP)",
   "Private Limited Company",
-  "Public Limited Company",
   "One Person Company (OPC)",
   "Section 8 Company (Non-profit)",
-  "Foreign Company"
+  "Trust",
+  "NGO",
+  "Society",
+  "Cooperative Society",
+  "Other"
+];
+
+// Backend enum mapping
+export type BusinessTypeEnum =
+  | "sole_proprietorship"
+  | "partnership"
+  | "limited_liability_partnership"
+  | "private_limited_company"
+  | "one_person_company"
+  | "section_8_non_profit"
+  | "trust"
+  | "ngo"
+  | "society"
+  | "cooperative_society"
+  | "other";
+
+// Map UI display names to backend enum values
+export const businessTypeToEnum: Record<string, BusinessTypeEnum> = {
+  "Sole Proprietorship": "sole_proprietorship",
+  "Partnership": "partnership",
+  "Limited Liability Partnership (LLP)": "limited_liability_partnership",
+  "Private Limited Company": "private_limited_company",
+  "One Person Company (OPC)": "one_person_company",
+  "Section 8 Company (Non-profit)": "section_8_non_profit",
+  "Trust": "trust",
+  "NGO": "ngo",
+  "Society": "society",
+  "Cooperative Society": "cooperative_society",
+  "Other": "other"
+};
+
+// Business types that require CIN (not deed upload)
+export const businessTypesRequiringCIN = [
+  "Private Limited Company",
+  "One Person Company (OPC)",
+  "Section 8 Company (Non-profit)",
+  "Limited Liability Partnership (LLP)"
 ];
 
 export const businessModels = [
@@ -86,4 +126,14 @@ export const turnoverRanges = [
   "₹10 crores - ₹50 crores",
   "₹50 crores - ₹100 crores",
   "> ₹100 crores"
+];
+
+// User role enum mapping (backend: xcentro.user_role_enum)
+export type UserRoleEnum = "owner" | "admin" | "finance" | "support";
+
+export const userRoles: { value: UserRoleEnum; label: string; description: string }[] = [
+  { value: "owner", label: "Owner", description: "Full access to all business operations and settings" },
+  { value: "admin", label: "Administrator", description: "Manage users, approve transactions, and configure settings" },
+  { value: "finance", label: "Finance Manager", description: "Handle payments, invoices, and financial reporting" },
+  { value: "support", label: "Support Staff", description: "View-only access with limited operational capabilities" }
 ];

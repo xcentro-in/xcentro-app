@@ -1,5 +1,5 @@
-// TODO: Replace with actual backend API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8888/v1';
+// Vite uses import.meta.env instead of process.env
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888/v1';
 
 class ApiService {
   private baseUrl: string;
@@ -27,6 +27,7 @@ class ApiService {
         ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
+      credentials: 'include', // Important: Include cookies in requests
       ...options,
     };
 
@@ -34,45 +35,52 @@ class ApiService {
       const response = await fetch(`${this.baseUrl}${endpoint}`, config);
 
       if (!response.ok) {
-        // TODO: Implement proper error handling
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `HTTP ${response.status}`);
+        // Create error object with both message and error code
+        const error: any = new Error(errorData.message || `HTTP ${response.status}`);
+        error.code = errorData.error; // Preserve error code (e.g., "MISSING_TOKEN")
+        error.status = response.status;
+        throw error;
       }
 
       return response.json();
     } catch (error) {
-      console.error('API Request failed:', error);
+      // Only log non-auth errors
+      if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
+        console.error('API Request failed:', error);
+      }
       throw error;
     }
   }
 
   // Auth endpoints - TODO: Implement when backend is ready
   auth = {
-    login: async (email: string, password: string) => {
-      // TODO: Implement actual login API call
-      // return this.request('/auth/login', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ email, password }),
-      // });
-
-      // Mock implementation for development
-      console.log('TODO: Implement auth.login API call', { email, password });
-      throw new Error('API not implemented yet');
+    login: async (email: string, password: string): Promise<{
+      data: {
+        accessToken: string;
+        refreshToken: string;
+        kybNeeded: boolean;
+        kycNeeded: boolean;
+      };
+      message: string;
+    }> => {
+      return this.request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
     },
 
-    logout: async () => {
-      // TODO: Implement actual logout API call
-      // return this.request('/auth/logout', { method: 'POST' });
-
-      console.log('TODO: Implement auth.logout API call');
+    signup: async (email: string, password: string): Promise<{ data: { userId: string }, message: string }> => {
+      return this.request('/auth/signup', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
+      });
     },
 
-    validateToken: async () => {
-      // TODO: Implement token validation
-      // return this.request('/auth/validate');
-
-      console.log('TODO: Implement auth.validateToken API call');
-      throw new Error('API not implemented yet');
+    logout: async (): Promise<{ message: string }> => {
+      return this.request('/auth/logout', {
+        method: 'POST',
+      });
     },
 
     refreshToken: async (refreshToken: string) => {
@@ -87,14 +95,97 @@ class ApiService {
     }
   };
 
-  // User endpoints - TODO: Implement when backend is ready
+  // User endpoints
   user = {
-    getProfile: async () => {
-      // TODO: Get current user profile
-      // return this.request('/user/profile');
+    // Initialize user onboarding (KYC)
+    initOnboarding: async (
+      name: string,
+      dob: string,
+      taxId: string,
+      nationalId: string,
+      businessId?: string
+    ): Promise<{
+      data: {
+        status: string;
+        aadhaarLink: string;
+        txnId: string;
+      };
+      message: string;
+    }> => {
+      const headers: Record<string, string> = {};
 
-      console.log('TODO: Implement user.getProfile API call');
-      throw new Error('API not implemented yet');
+      // Only add X-Business-Id header if businessId is provided (new business flow)
+      if (businessId) {
+        headers['X-Business-Id'] = businessId;
+      }
+
+      return this.request('/user/onboard/init', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ name, dob, taxId, nationalId }),
+      });
+    },
+
+    // Complete user onboarding with role claim
+    // For new business flow: pass businessId in header
+    // For join existing business flow: pass gstin in body
+    completeOnboarding: async (
+      claimedRole: string,
+      businessId?: string,
+      gstin?: string
+    ): Promise<{
+      data: {
+        status: string;
+      };
+      message: string;
+    }> => {
+      const headers: Record<string, string> = {};
+      const body: any = { claimedRole };
+
+      if (businessId) {
+        // New business flow: use X-Business-Id header
+        headers['X-Business-Id'] = businessId;
+      } else if (gstin) {
+        // Join existing business flow: pass gstin in body
+        body.gstin = gstin;
+      }
+
+      return this.request('/user/onboard/complete', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+    },
+
+    // Get user roles across all businesses
+    getRoles: async (): Promise<{
+      data: Array<{
+        userId: string;
+        businessId: string;
+        role: string;
+      }>;
+      message: string;
+    }> => {
+      return this.request('/user/roles', {
+        method: 'GET',
+      });
+    },
+
+    getProfile: async (): Promise<{
+      data: {
+        userId: string;
+        email: string;
+        name: string;
+        dob: string;
+        mobile: string;
+        taxId: string;
+        maskedNationalId: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/user/profile', {
+        method: 'GET',
+      });
     },
 
     updateProfile: async (data: any) => {
@@ -115,6 +206,104 @@ class ApiService {
       console.log('TODO: Implement user.getBusinesses API call');
       throw new Error('API not implemented yet');
     }
+  };
+
+  // Business endpoints
+  business = {
+    // Initialize business onboarding
+    initOnboarding: async (name: string, gstin: string): Promise<{
+      data: {
+        bid: string;
+        name: string;
+        gstin: string;
+        kybStatus: string;
+        message: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/business/onboard/init', {
+        method: 'POST',
+        body: JSON.stringify({ name, gstin }),
+      });
+    },
+
+    // Get presigned URL for deed upload
+    getUploadUrl: async (bid: string): Promise<{
+      data: {
+        url: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/business/onboard/upload', {
+        method: 'GET',
+        headers: {
+          'X-Business-Id': bid,
+        },
+      });
+    },
+
+    // Upload file to S3 using presigned URL
+    uploadToS3: async (url: string, file: File): Promise<void> => {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+    },
+
+    // Confirm upload completion
+    confirmUpload: async (bid: string): Promise<{
+      data: {
+        url: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/business/onboard/confirm-upload', {
+        method: 'POST',
+        headers: {
+          'X-Business-Id': bid,
+        },
+      });
+    },
+
+    // Complete business onboarding
+    completeOnboarding: async (
+      bid: string,
+      businessType: string,
+      pan: string,
+      cin?: string
+    ): Promise<{
+      data: {
+        bid: string;
+        kybStatus: string;
+        requiresDeedUpload: boolean;
+        message: string;
+      };
+      message: string;
+    }> => {
+      const body: any = {
+        businessType,
+        itid: pan,
+      };
+
+      if (cin) {
+        body.cid = cin;
+      }
+
+      return this.request('/business/onboard/complete', {
+        method: 'POST',
+        headers: {
+          'X-Business-Id': bid,
+        },
+        body: JSON.stringify(body),
+      });
+    },
   };
 
   // Payment endpoints - TODO: Implement when backend is ready
@@ -550,6 +739,7 @@ export const apiService = new ApiService();
 export const {
   auth: authAPI,
   user: userAPI,
+  business: businessAPI,
   payments: paymentsAPI,
   payees: payeesAPI,
   banks: banksAPI,

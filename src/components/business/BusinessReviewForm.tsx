@@ -2,10 +2,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Building, FileText, AlertCircle, Building2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { businessTypesRequiringCIN } from "@/data/mockBusinesses";
 
 interface BusinessReviewFormProps {
   formData: {
     name: string;
+    gstin: string;
     pan: string;
     type: string;
     model: string;
@@ -18,18 +20,7 @@ interface BusinessReviewFormProps {
 }
 
 const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
-  const requiresCIN = (businessType: string): boolean => {
-    const corporateEntities = [
-      "Private Limited Company",
-      "Public Limited Company",
-      "One Person Company (OPC)",
-      "Section 8 Company (Non-profit)",
-      "Limited Liability Partnership (LLP)"
-    ];
-    return corporateEntities.includes(businessType);
-  };
-
-  const needsCIN = requiresCIN(formData.type);
+  const needsCIN = businessTypesRequiringCIN.includes(formData.type);
 
   const isComplete = formData.name && 
                      formData.pan && 
@@ -71,7 +62,9 @@ const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
             </div>
             <div>
               <h3 className="text-lg font-medium">{formData.name || "Business Name"}</h3>
-              <p className="text-sm text-muted-foreground">{formData.pan || "PAN"}</p>
+              <p className="text-sm text-muted-foreground">
+                PAN: {formData.pan || "Not specified"} | GSTIN: {formData.gstin || "Not specified"}
+              </p>
             </div>
           </div>
 

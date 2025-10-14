@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FileText, Upload, X, Building2 } from "lucide-react";
 import { useState } from "react";
+import { businessTypesRequiringCIN } from "@/data/mockBusinesses";
+import { toast } from "sonner";
 
 interface BusinessDocumentsFormProps {
   formData: {
@@ -22,23 +24,26 @@ const BusinessDocumentsForm = ({ formData, updateNestedFormData }: BusinessDocum
     formData.documents.deed ? formData.documents.deed.name : null
   );
 
-  // Helper function to determine if CIN is required
-  const requiresCIN = (businessType: string): boolean => {
-    const corporateEntities = [
-      "Private Limited Company",
-      "Public Limited Company",
-      "One Person Company (OPC)",
-      "Section 8 Company (Non-profit)",
-      "Limited Liability Partnership (LLP)"
-    ];
-    return corporateEntities.includes(businessType);
-  };
-
-  const needsCIN = requiresCIN(formData.type);
+  const needsCIN = businessTypesRequiringCIN.includes(formData.type);
 
   const handleDeedUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Validate file type (only PDF)
+      if (file.type !== 'application/pdf') {
+        toast.error("Please upload a PDF file only");
+        e.target.value = '';
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size must be less than 5MB");
+        e.target.value = '';
+        return;
+      }
+
       updateNestedFormData("documents", "deed", file);
       setDeedFileName(file.name);
     }
@@ -135,13 +140,13 @@ const BusinessDocumentsForm = ({ formData, updateNestedFormData }: BusinessDocum
                     </div>
                     <p className="text-sm font-medium mb-1">Upload Business Deed</p>
                     <p className="text-xs text-muted-foreground text-center mb-3">
-                      Supported formats: PDF, JPG, PNG (Max 5MB)
+                      Supported format: PDF only (Max 5MB)
                     </p>
                     <div className="relative">
                       <Input
                         type="file"
                         className="absolute inset-0 opacity-0 cursor-pointer"
-                        accept=".pdf,.jpg,.jpeg,.png"
+                        accept=".pdf"
                         onChange={handleDeedUpload}
                       />
                       <Button variant="outline" size="sm">
