@@ -7,7 +7,7 @@ import { InvoiceDetails } from "@/types/invoice";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { PaymentMethod } from "@/types/payment-method";
 import { formatCurrency } from "@/utils/formatters";
-import { RewardPackage } from "../payments/new-payment/shared/common/RewardTopUpStep";
+import { RewardPackage } from "../payments/common/RewardTopUpStep";
 
 interface PaymentConfirmationStepProps {
   invoiceDetails: InvoiceDetails;
@@ -113,7 +113,7 @@ const PaymentConfirmationStep = ({
                   <div className="font-medium">{getPaymentMethodDisplay(paymentMethod)}</div>
                   <div className="text-xs text-muted-foreground">
                     {paymentMethod.type === 'card' && `Exp: ${paymentMethod.expiryDate}`}
-                    {paymentMethod.type === 'bank' && `Bank Transfer`}
+                    {paymentMethod.type === 'bank' && `${paymentMethod.transactionType.toUpperCase()}`}
                   </div>
                 </div>
               </div>

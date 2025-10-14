@@ -145,4 +145,3 @@ const PaymentScheduleSelector = ({
 };
 
 export default PaymentScheduleSelector;
-export type { PaymentType as PaymentScheduleType };

@@ -32,7 +32,7 @@ export const PaymentMethodSection = ({
                   {paymentMethod.bankName} Account ending in {paymentMethod.lastFourDigits}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {paymentMethod.accountHolderName} - Bank Transfer
+                  {paymentMethod.accountHolderName} - {paymentMethod.transactionType.toUpperCase()}
                 </p>
               </>
             )}

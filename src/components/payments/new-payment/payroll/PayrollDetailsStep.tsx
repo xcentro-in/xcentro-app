@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import ManualPayrollForm from "@/components/payees/forms/components/ManualPayrollForm";
-import BulkUploadPayrollForm from "@/components/payees/forms/components/BulkUploadPayrollForm";
+import ManualPayrollForm from "../../payees/forms/components/ManualPayrollForm";
+import BulkUploadPayrollForm from "../../payees/forms/components/BulkUploadPayrollForm";
 import ExistingEmployeesPayment from "./ExistingEmployeesPayment";
 
 interface PayrollDetailsStepProps {

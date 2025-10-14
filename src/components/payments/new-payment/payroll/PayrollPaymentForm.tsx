@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
+import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEmployeeSelectionStep from "./PayrollEmployeeSelectionStep";
 import PayrollPaymentMethodAndReviewStep from "./PayrollPaymentMethodAndReviewStep";
 import { Employee } from "./types";

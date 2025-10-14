@@ -82,7 +82,6 @@ const PayrollReviewStep = ({
         accountNumber: "Multiple Accounts",
         ifscCode: "",
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
         isDefault: false,
         salaryAmount: totalSalary,
         salaryType: "fixed",

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { PaymentMethod } from "@/types/payment-method";
 import { useState } from "react";
-import CreditCardDisplay from "@/components/payments/new-payment/shared/payment-methods/CreditCardDisplay";
+import CreditCardDisplay from "@/components/payments/CreditCardDisplay";
 
 interface PaymentMethodCardProps {
   paymentMethod: PaymentMethod;

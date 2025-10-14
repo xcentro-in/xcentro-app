@@ -1,9 +1,9 @@
 
-import { TransactionSummary } from "./TransactionSummary";
+import { TransactionSummary } from "./common/TransactionSummary";
 import { PaymentType } from "@/types/payments";
 import { Payee } from "@/types/payee";
 import { PaymentMethod } from "@/types/payment-method";
-import { Employee } from "../../payroll/types";
+import { Employee } from "./payroll/types";
 
 interface PaymentSummaryProps {
   paymentType: PaymentType;

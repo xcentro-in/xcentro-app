@@ -1,6 +1,6 @@
 import { Calendar, Clock, CreditCard, ChevronUp, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRangePicker } from "./DateRangePicker";
+import { DateRangePicker } from "@/components/payments/filters/DateRangePicker";
 import { DateRange } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { dateFilterOptions, statusFilterOptions, methodFilterOptions, categoryFilterOptions } from "@/constants/filterOptions";
