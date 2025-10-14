@@ -92,7 +92,7 @@ const PaymentMethodSelector = ({
       case "bank":
         return {
           title: `${method.bankName} •••• ${method.lastFourDigits}`,
-          subtitle: `${method.accountHolderName} | ${method.transactionType.toUpperCase()}`,
+          subtitle: `${method.accountHolderName} | Bank Transfer`,
           bgColor: "bg-purple-500/10",
           textColor: "text-purple-500"
         };

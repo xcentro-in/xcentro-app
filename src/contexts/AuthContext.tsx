@@ -171,13 +171,25 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // const isValid = await authAPI.validateToken(token);
           // if (!isValid) throw new Error('Invalid token');
 
-          // For now, directly restore from localStorage (synchronous)
-          const user: AuthUser = JSON.parse(userData);
+          // For development: Merge stored user data with current MOCK_USER_DATA
+          // This allows real-time updates when you change MOCK_USER_DATA flags
+          const storedUser: AuthUser = JSON.parse(userData);
+          const mergedUser: AuthUser = {
+            ...storedUser,
+            // Override onboarding flags with current MOCK_USER_DATA values during development
+            hasCompletedOnboarding: MOCK_USER_DATA.hasCompletedOnboarding,
+            hasAddedPaymentMethod: MOCK_USER_DATA.hasAddedPaymentMethod,
+            hasAddedVendor: MOCK_USER_DATA.hasAddedVendor,
+            hasCreatedFirstPayment: MOCK_USER_DATA.hasCreatedFirstPayment,
+          };
+          
+          // Update localStorage with merged data
+          localStorage.setItem('user-data', JSON.stringify(mergedUser));
           
           // Sync token with API service
           apiService.setAuthToken(token);
           
-          dispatch({ type: 'SET_USER', payload: user });
+          dispatch({ type: 'SET_USER', payload: mergedUser });
         } catch (error) {
           console.error('Token validation failed:', error);
           localStorage.removeItem('auth-token');

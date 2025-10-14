@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 import { mockPayees } from "@/data/mockPayees";
-import { PaymentType } from "../../quick-payment/CombinedDetailsStep";
+import { PaymentType } from "@/types/payments";
 import { BankPayee, BillerPayee, PayrollPayee } from "@/types/payee";
 
 interface ReviewStepProps {

@@ -2,9 +2,9 @@
 import { useState } from "react";
 import { CardHeader } from "@/components/ui/card";
 import { DateRange } from "react-day-picker";
-import { ActiveFilter } from "@/components/payments/filters/AppliedFilters";
-import FilterBar from "@/components/payments/filters/FilterBar";
-import AppliedFilters from "@/components/payments/filters/AppliedFilters";
+import { ActiveFilter } from "./AppliedFilters";
+import FilterBar from "./FilterBar";
+import AppliedFilters from "./AppliedFilters";
 
 interface FiltersContainerProps {
   dateFilter: string;
