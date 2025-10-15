@@ -1,5 +1,5 @@
-// TODO: Replace with actual backend API configuration
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8888/v1';
+// TODO: Replace with actual backend API configuration from .env file
+const API_BASE_URL = 'http://localhost:8888/v1';
 
 class ApiService {
   private baseUrl: string;
