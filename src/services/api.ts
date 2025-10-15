@@ -21,14 +21,22 @@ class ApiService {
     // Use instance token if available, fallback to localStorage
     const token = this.authToken || localStorage.getItem('auth-token');
 
+    // Build headers: start with defaults, then merge caller's headers
+    // This ensures custom headers from the caller are preserved
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+
+    // Merge caller's headers AFTER defaults (caller's headers take precedence)
+    if (options.headers) {
+      Object.assign(headers, options.headers);
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
-        ...options.headers,
-      },
+      ...options, // Spread all caller's options first (method, body, etc.)
+      headers,    // Then set the merged headers (this preserves custom headers)
       credentials: 'include', // Important: Include cookies in requests
-      ...options,
     };
 
     try {
@@ -205,7 +213,28 @@ class ApiService {
 
       console.log('TODO: Implement user.getBusinesses API call');
       throw new Error('API not implemented yet');
-    }
+    },
+
+    // Get user onboarding status
+    getOnboardingStatus: async (): Promise<{
+      data: {
+        userId: string;
+        email: string;
+        name: string;
+        dob: string;
+        mobile: string;
+        taxId: string;
+        nationalId: string;
+        kycStatus: string;
+        emailVerified: boolean;
+        mobileVerified: boolean;
+      };
+      message: string;
+    }> => {
+      return this.request('/user/onboard/status', {
+        method: 'GET',
+      });
+    },
   };
 
   // Business endpoints
@@ -302,6 +331,25 @@ class ApiService {
           'X-Business-Id': bid,
         },
         body: JSON.stringify(body),
+      });
+    },
+
+    // Get business onboarding status
+    getOnboardingStatus: async (): Promise<{
+      data: {
+        bid: string;
+        name: string;
+        gstin: string;
+        kybStatus: string;
+        kybInitiated: boolean;
+        requiresDeedUpload: boolean;
+        hasDeedUploaded: boolean;
+        businessType?: string; // Optional, backend will add this
+      };
+      message: string;
+    }> => {
+      return this.request('/business/onboard/status', {
+        method: 'GET',
       });
     },
   };

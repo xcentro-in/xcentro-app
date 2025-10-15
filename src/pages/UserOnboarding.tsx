@@ -73,13 +73,45 @@ const UserOnboarding = () => {
   const [showPopupAlert, setShowPopupAlert] = useState(false);
   const [aadhaarLink, setAadhaarLink] = useState("");
   const [txnId, setTxnId] = useState("");
-  const [isJoinFlow, setIsJoinFlow] = useState(false);
+  // Determine flow type immediately (not in useEffect)
+  const businessId = sessionStorage.getItem("business-id");
+  const [isJoinFlow] = useState(!businessId); // Join flow if no business-id exists
+  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
+  const [kycInProgress, setKycInProgress] = useState(false);
 
-  // Check if this is join existing business flow or new business flow
+  // Fetch user onboarding status on mount
   useEffect(() => {
-    const businessId = sessionStorage.getItem("business-id");
-    setIsJoinFlow(!businessId); // Join flow if no business-id exists
-  }, []);
+    const fetchOnboardingStatus = async () => {
+      try {
+        const statusResponse = await userAPI.getOnboardingStatus();
+        const { name, dob, taxId, mobile, kycStatus, nationalId } = statusResponse.data;
+
+        // If KYC is not in "not_started" state, pre-fill available data
+        if (kycStatus !== "kyc_not_started") {
+          setKycInProgress(true);
+
+          // Auto-fill available fields (don't fill Aadhaar for security)
+          form.reset({
+            claimedRole: form.getValues("claimedRole") || "",
+            name: name || "",
+            dob: dob || "",
+            pan: taxId || "",
+            aadhaar: "", // Always let user fill Aadhaar again
+            ...(isJoinFlow && { gstin: form.getValues("gstin" as keyof FormValues) as string || "" }),
+          });
+
+          console.log("Pre-filled user data from status:", { name, dob, taxId, kycStatus });
+        }
+      } catch (error: any) {
+        // If status endpoint returns 404 or error, start fresh (no pre-fill)
+        console.log("No existing user onboarding found, starting fresh");
+      } finally {
+        setIsFetchingStatus(false);
+      }
+    };
+
+    fetchOnboardingStatus();
+  }, [isJoinFlow]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(createFormSchema(isJoinFlow)),
@@ -130,6 +162,13 @@ const UserOnboarding = () => {
     try {
       const claimedRole = form.getValues("claimedRole") as UserRoleEnum;
 
+      console.log("Completing user onboarding:", {
+        claimedRole,
+        businessId,
+        gstin,
+        isJoinFlow
+      });
+
       // Call complete onboarding API
       // For new business flow: pass businessId
       // For join existing business flow: pass gstin
@@ -139,11 +178,21 @@ const UserOnboarding = () => {
         gstin || undefined
       );
 
+      console.log("Complete onboarding response:", completeResponse);
+
       if (completeResponse.data.status === "kyc_completed") {
         toast.success("User onboarding completed successfully!");
 
+        // Clean up onboarding-related sessionStorage items
+        sessionStorage.removeItem("kyb-needed");
+        sessionStorage.removeItem("kyc-needed");
+        sessionStorage.removeItem("kyb-status");
+        // Keep business-id for new business flow, not needed for join flow
+
         // Fetch user profile and roles
+        console.log("Fetching user profile and roles...");
         await fetchUserProfile();
+        console.log("User profile and roles fetched successfully");
 
         // Navigate to dashboard
         navigate("/", { replace: true });
@@ -154,6 +203,7 @@ const UserOnboarding = () => {
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete user onboarding.";
       toast.error(errorMessage);
+      console.error("Complete onboarding error:", error);
       setIsSubmitting(false);
     }
   };
@@ -164,7 +214,14 @@ const UserOnboarding = () => {
     const businessId = sessionStorage.getItem("business-id");
 
     try {
-      // Step 1: Initialize user onboarding
+      // If KYC is already in progress, skip init and go straight to complete
+      if (kycInProgress) {
+        console.log("KYC already in progress, skipping init call");
+        await handleCompleteOnboarding();
+        return;
+      }
+
+      // Step 1: Initialize user onboarding (only if not in progress)
       // Pass businessId only if it exists (new business flow)
       const initResponse = await userAPI.initOnboarding(
         values.name,
@@ -193,6 +250,20 @@ const UserOnboarding = () => {
       form.handleSubmit(onSubmit)();
     }
   };
+
+  // Show loading state while fetching status
+  if (isFetchingStatus) {
+    return (
+      <div className="max-w-2xl mx-auto py-8 px-4 md:px-0">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading user information...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 md:px-0">

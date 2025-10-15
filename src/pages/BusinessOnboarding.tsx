@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Building, Check, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,8 +50,43 @@ const BusinessOnboarding = () => {
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
   const [businessId, setBusinessId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
 
   const progress = (currentStep / steps.length) * 100;
+
+  // Fetch business onboarding status on mount
+  useEffect(() => {
+    const fetchOnboardingStatus = async () => {
+      try {
+        const statusResponse = await businessAPI.getOnboardingStatus();
+        const { bid, name, gstin, kybStatus, kybInitiated, businessType } = statusResponse.data;
+
+        // If KYB is not in "not_started" state, pre-fill the form
+        if (kybStatus !== "kyc_not_started" && kybInitiated) {
+          setBusinessId(bid);
+          sessionStorage.setItem('business-id', bid);
+
+          // Auto-fill Step 1: Basic Info
+          setFormData((prev) => ({
+            ...prev,
+            name: name || "",
+            gstin: gstin || "",
+            // Auto-fill Step 2: Business Type (if backend sends it)
+            type: businessType || prev.type,
+          }));
+
+          console.log("Pre-filled business data from status:", { bid, name, gstin, kybStatus });
+        }
+      } catch (error: any) {
+        // If status endpoint returns 404 or error, start fresh (no pre-fill)
+        console.log("No existing business onboarding found, starting fresh");
+      } finally {
+        setIsFetchingStatus(false);
+      }
+    };
+
+    fetchOnboardingStatus();
+  }, []);
 
   const canProceedFromStep3 = (): boolean => {
     if (requiresCIN(formData.type)) {
@@ -87,13 +122,19 @@ const BusinessOnboarding = () => {
     setIsLoading(true);
 
     try {
-      // Step 1: Initialize business onboarding
-      const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
-      const bid = initResponse.data.bid;
+      let bid = businessId;
 
-      // Store bid in state and sessionStorage
-      setBusinessId(bid);
-      sessionStorage.setItem('business-id', bid);
+      // Step 1: Initialize business onboarding (only if not already initiated)
+      if (!bid) {
+        const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
+        bid = initResponse.data.bid;
+
+        // Store bid in state and sessionStorage
+        setBusinessId(bid);
+        sessionStorage.setItem('business-id', bid);
+      } else {
+        console.log("Using existing business ID:", bid);
+      }
 
       // Step 2: Handle document upload if deed is required (non-CIN types)
       if (!requiresCIN(formData.type) && formData.documents.deed) {
@@ -157,6 +198,20 @@ const BusinessOnboarding = () => {
       return prev;
     });
   };
+
+  // Show loading state while fetching status
+  if (isFetchingStatus) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading business information...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
