@@ -2,13 +2,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Check, Building, FileText, AlertCircle, Building2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { businessTypesRequiringCIN } from "@/data/mockBusinesses";
+import { toBackendBusinessType, requiresCIN as checkRequiresCIN } from "@/lib/businessTypeMapping";
 
 interface BusinessReviewFormProps {
   formData: {
     name: string;
     gstin: string;
-    pan: string;
     type: string;
     model: string;
     turnover: string;
@@ -20,13 +19,15 @@ interface BusinessReviewFormProps {
 }
 
 const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
-  const needsCIN = businessTypesRequiringCIN.includes(formData.type);
+  // Convert frontend type to backend format and check if CIN is needed
+  const backendType = toBackendBusinessType(formData.type);
+  const needsCIN = checkRequiresCIN(backendType);
 
-  const isComplete = formData.name && 
-                     formData.pan && 
-                     formData.type && 
-                     formData.model && 
-                     formData.turnover && 
+  const isComplete = formData.name &&
+                     formData.gstin &&
+                     formData.type &&
+                     formData.model &&
+                     formData.turnover &&
                      (needsCIN ? formData.documents.cin?.length === 21 : formData.documents.deed);
 
   return (
@@ -63,7 +64,7 @@ const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
             <div>
               <h3 className="text-lg font-medium">{formData.name || "Business Name"}</h3>
               <p className="text-sm text-muted-foreground">
-                PAN: {formData.pan || "Not specified"} | GSTIN: {formData.gstin || "Not specified"}
+                GSTIN: {formData.gstin || "Not specified"}
               </p>
             </div>
           </div>

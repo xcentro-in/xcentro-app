@@ -74,9 +74,8 @@ const Settings = () => {
           {tabItems.map((item) => {
             const featureFlag = categoryFeatureFlags[item.id] || 'ALLOWED_FIELDS';
             return(
-              <FeatureEnabled featureFlag={featureFlag}>
+              <FeatureEnabled key={item.id} featureFlag={featureFlag}>
               <button
-                key={item.id}
                 onClick={() => setActiveTab(item.id)}
                 className={cn(
                   "w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-md transition-colors",

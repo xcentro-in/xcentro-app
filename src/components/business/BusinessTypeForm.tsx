@@ -11,12 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { businessTypes, businessModels, turnoverRanges } from "@/data/mockBusinesses";
 
 interface BusinessTypeFormProps {
   formData: {
-    pan: string;
     type: string;
     model: string;
     turnover: string;
@@ -25,9 +23,6 @@ interface BusinessTypeFormProps {
 }
 
 const formSchema = z.object({
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
-    message: "PAN must be in the format ABCDE1234F."
-  }),
   type: z.string().min(1, { message: "Please select a business type." }),
   model: z.string().min(1, { message: "Please select a business model." }),
   turnover: z.string().min(1, { message: "Please select a turnover range." }),
@@ -37,7 +32,6 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      pan: formData.pan || "",
       type: formData.type || "",
       model: formData.model || "",
       turnover: formData.turnover || "",
@@ -51,7 +45,6 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
   // Update parent form data when this form changes
   useEffect(() => {
     const subscription = form.watch((value) => {
-      if (value.pan !== undefined) updateFormData("pan", value.pan);
       if (value.type !== undefined) updateFormData("type", value.type);
       if (value.model !== undefined) updateFormData("model", value.model);
       if (value.turnover !== undefined) updateFormData("turnover", value.turnover);
@@ -70,27 +63,6 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="pan"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business PAN</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="ABCDE1234F"
-                    {...field}
-                    onChange={(e) => {
-                      const value = e.target.value.toUpperCase();
-                      field.onChange(value);
-                    }}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="type"

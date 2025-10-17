@@ -2,6 +2,9 @@ export interface AuthUser {
   id: string;
   name: string;
   email: string;
+  mobile?: string;
+  taxId?: string;
+  maskedNationalId?: string;
   role: string;
   department?: string;
   businessId: string;

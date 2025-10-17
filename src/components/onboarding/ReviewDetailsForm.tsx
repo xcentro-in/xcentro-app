@@ -38,11 +38,11 @@ const getRoleDescription = (role: string): string => {
 };
 
 const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
+  // Role is no longer required in the check since it's hardcoded to "owner"
   const isComplete = formData.kyc.name &&
-                    formData.kyc.aadharNumber && 
+                    formData.kyc.aadharNumber &&
                     formData.kyc.panNumber &&
-                    formData.kyc.dateOfBirth &&
-                    formData.role.role;
+                    formData.kyc.dateOfBirth;
 
   return (
     <div className="space-y-6">
@@ -82,7 +82,8 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
 
           <Separator />
 
-          <div>
+          {/* Role Selection Display - COMMENTED OUT (role is now hardcoded to "owner") */}
+          {/* <div>
             <h4 className="text-sm font-medium mb-3">Selected Role</h4>
             <div className="flex items-center gap-3">
               <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
@@ -102,7 +103,7 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
             </div>
           </div>
 
-          <Separator />
+          <Separator /> */}
 
           <div>
             <h4 className="text-sm font-medium mb-3">KYC Information</h4>

@@ -2,7 +2,6 @@ import { Bell, LogOut, ChevronDown, Settings, Users, Star, Building, AlertCircle
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { mockBusinesses } from "@/data/mockBusinesses";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +20,7 @@ import NotificationPopup from "./notifications/NotificationPopup";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { FeatureEnabled } from "./FeatureEnabled";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
@@ -29,6 +29,9 @@ const TopNav = () => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { title } = usePageTitle();
   const { user, logout: authLogout } = useAuth();
+  const { selectedBusiness, availableBusinesses, switchBusiness } = useBusiness();
+  
+  const hasMultipleBusinesses = availableBusinesses.length > 1;
   
   const {
     notifications,
@@ -62,39 +65,54 @@ const TopNav = () => {
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         )}
         <div className={cn("peer-data-[state=collapsed]/sidebar:block", title ? "hidden" : "block")}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
-                  <Building className="h-3.5 w-3.5 text-indigo-600" />
-                </div>
-                <span className="font-medium">{user?.businessName || "ABC Company"}</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60">
-              {mockBusinesses.map(business => (
-                <DropdownMenuItem key={business.id} className="flex items-center gap-2 py-2">
-                  <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
-                    <Building className="h-4 w-4 text-indigo-600" />
+          {hasMultipleBusinesses ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
+                    <Building className="h-3.5 w-3.5 text-indigo-600" />
                   </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium">{business.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {business.status === "verified" ? 
+                  <span className="font-medium">
+                    {selectedBusiness ? selectedBusiness.name : "Loading..."}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-60">
+                {availableBusinesses.map(business => (
+                  <DropdownMenuItem 
+                    key={business.bid} 
+                    className="flex items-center gap-2 py-2 cursor-pointer"
+                    onClick={() => switchBusiness(business.bid)}
+                  >
+                    <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
+                      <Building className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium">{business.name}</span>
+                      <span className="text-xs text-muted-foreground">
                         <span className="flex items-center gap-1 text-green-600">
                           <Check className="h-3 w-3" /> Verified
-                        </span> : 
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <AlertCircle className="h-3 w-3" /> Pending
                         </span>
-                      }
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                      </span>
+                    </div>
+                    {selectedBusiness?.bid === business.bid && (
+                      <Check className="h-4 w-4 text-primary ml-auto" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
+                <Building className="h-3.5 w-3.5 text-indigo-600" />
+              </div>
+              <span className="font-medium">
+                {selectedBusiness ? selectedBusiness.name : "Loading..."}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       
@@ -141,7 +159,7 @@ const TopNav = () => {
                       {user?.name || "Arvind Mehta"}
                     </span>
                     <span className="text-xs text-muted-foreground leading-tight">
-                      {user?.businessName || "ABC Company"}
+                      {selectedBusiness ? selectedBusiness.name : "Loading..."}
                     </span>
                   </div>
                 )}

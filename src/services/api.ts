@@ -16,7 +16,8 @@ class ApiService {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
+    isRetry: boolean = false
   ): Promise<T> {
     // Use instance token if available, fallback to localStorage
     const token = this.authToken || localStorage.getItem('auth-token');
@@ -44,6 +45,42 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        
+        // Check if it's a token expired error and we haven't already retried
+        if (!isRetry && (response.status === 401 && (errorData.error === 'TOKEN_EXPIRED' || errorData.message?.includes('token') || errorData.message?.includes('expired')))) {
+          try {
+            // Call refresh token endpoint
+            const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
+              method: 'POST',
+              credentials: 'include', // Include cookies for refresh
+            });
+
+            if (refreshResponse.ok) {
+              const refreshData = await refreshResponse.json();
+              console.log('Token refreshed successfully:', refreshData.message);
+              
+              // Retry the original request with the new token (cookies are automatically updated)
+              return this.request<T>(endpoint, options, true);
+            } else {
+              // If refresh fails, logout the user
+              console.log('Token refresh failed, logging out user');
+              // Clear any stored tokens
+              localStorage.removeItem('auth-token');
+              this.authToken = null;
+              // Redirect to login or trigger logout flow
+              window.location.href = '/login';
+              return Promise.reject(new Error('Session expired. Please login again.'));
+            }
+          } catch (refreshError) {
+            console.error('Token refresh failed:', refreshError);
+            // Clear any stored tokens and logout
+            localStorage.removeItem('auth-token');
+            this.authToken = null;
+            window.location.href = '/login';
+            return Promise.reject(new Error('Session expired. Please login again.'));
+          }
+        }
+        
         // Create error object with both message and error code
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
         error.code = errorData.error; // Preserve error code (e.g., "MISSING_TOKEN")
@@ -67,8 +104,6 @@ class ApiService {
       data: {
         accessToken: string;
         refreshToken: string;
-        kybNeeded: boolean;
-        kycNeeded: boolean;
       };
       message: string;
     }> => {
@@ -122,9 +157,9 @@ class ApiService {
     }> => {
       const headers: Record<string, string> = {};
 
-      // Only add X-Business-Id header if businessId is provided (new business flow)
+      // Only add X-Business-ID header if businessId is provided (new business flow)
       if (businessId) {
-        headers['X-Business-Id'] = businessId;
+        headers['X-Business-ID'] = businessId;
       }
 
       return this.request('/user/onboard/init', {
@@ -135,10 +170,11 @@ class ApiService {
     },
 
     // Complete user onboarding with role claim
-    // For new business flow: pass businessId in header
-    // For join existing business flow: pass gstin in body
+    // For new business flow: pass businessId in header + claimedRole in body
+    // For join existing business flow: pass gstin in body + claimedRole in body
+    // For invited user flow: pass empty body (user already has roles, just needs KYC)
     completeOnboarding: async (
-      claimedRole: string,
+      claimedRole?: string,
       businessId?: string,
       gstin?: string
     ): Promise<{
@@ -148,11 +184,16 @@ class ApiService {
       message: string;
     }> => {
       const headers: Record<string, string> = {};
-      const body: any = { claimedRole };
+      const body: any = {};
+
+      // Only add claimedRole if provided (invited users don't need it)
+      if (claimedRole) {
+        body.claimedRole = claimedRole;
+      }
 
       if (businessId) {
-        // New business flow: use X-Business-Id header
-        headers['X-Business-Id'] = businessId;
+        // New business flow: use X-Business-ID header
+        headers['X-Business-ID'] = businessId;
       } else if (gstin) {
         // Join existing business flow: pass gstin in body
         body.gstin = gstin;
@@ -171,6 +212,7 @@ class ApiService {
         userId: string;
         businessId: string;
         role: string;
+        kycNeeded: boolean;
       }>;
       message: string;
     }> => {
@@ -216,18 +258,19 @@ class ApiService {
     },
 
     // Get user onboarding status
+    // Returns full details when kyc_in_progress, only kycStatus when completed/verified
     getOnboardingStatus: async (): Promise<{
       data: {
-        userId: string;
-        email: string;
-        name: string;
-        dob: string;
-        mobile: string;
-        taxId: string;
-        nationalId: string;
         kycStatus: string;
-        emailVerified: boolean;
-        mobileVerified: boolean;
+        userId?: string;
+        email?: string;
+        name?: string;
+        dob?: string;
+        mobile?: string;
+        taxId?: string;
+        nationalId?: string;
+        emailVerified?: boolean;
+        mobileVerified?: boolean;
       };
       message: string;
     }> => {
@@ -266,7 +309,7 @@ class ApiService {
       return this.request('/business/onboard/upload', {
         method: 'GET',
         headers: {
-          'X-Business-Id': bid,
+          'X-Business-ID': bid,
         },
       });
     },
@@ -296,16 +339,17 @@ class ApiService {
       return this.request('/business/onboard/confirm-upload', {
         method: 'POST',
         headers: {
-          'X-Business-Id': bid,
+          'X-Business-ID': bid,
         },
       });
     },
 
     // Complete business onboarding
+    // PAN (itid) is optional - backend derives it from GSTIN
     completeOnboarding: async (
       bid: string,
       businessType: string,
-      pan: string,
+      pan?: string,
       cin?: string
     ): Promise<{
       data: {
@@ -318,8 +362,12 @@ class ApiService {
     }> => {
       const body: any = {
         businessType,
-        itid: pan,
       };
+
+      // Only add PAN if provided (backend can derive from GSTIN)
+      if (pan) {
+        body.itid = pan;
+      }
 
       if (cin) {
         body.cid = cin;
@@ -328,28 +376,39 @@ class ApiService {
       return this.request('/business/onboard/complete', {
         method: 'POST',
         headers: {
-          'X-Business-Id': bid,
+          'X-Business-ID': bid,
         },
         body: JSON.stringify(body),
       });
     },
 
     // Get business onboarding status
+    // Returns full details when kyb_in_progress, minimal when completed/verified
     getOnboardingStatus: async (): Promise<{
+      data: { kybStatus: string };
+      message: string;
+    }> => {
+      return this.request('/business/onboarding-status', {
+        method: 'GET',
+      });
+    },
+
+    getBusiness: async (bid: string): Promise<{
       data: {
         bid: string;
         name: string;
         gstin: string;
-        kybStatus: string;
-        kybInitiated: boolean;
-        requiresDeedUpload: boolean;
-        hasDeedUploaded: boolean;
-        businessType?: string; // Optional, backend will add this
+        pan: string;
+        businessType: string;
+        userRole: string;
       };
       message: string;
     }> => {
-      return this.request('/business/onboard/status', {
+      return this.request('/business', {
         method: 'GET',
+        headers: {
+          'X-Business-ID': bid,
+        },
       });
     },
   };

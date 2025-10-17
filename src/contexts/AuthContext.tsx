@@ -6,6 +6,7 @@ export interface UserRole {
   userId: string;
   businessId: string;
   role: string;
+  kycNeeded: boolean;
 }
 
 interface AuthContextType extends AuthState {
@@ -105,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const apiResponse = await authAPI.login(email, password);
 
       // Note: Tokens are already stored in cookies by the backend
-      // We only store the kyc/kyb flags in sessionStorage for routing decisions
+      // After login, we immediately fetch roles to determine routing
       const loginResponse: LoginResponse = {
         user: {
           id: '', // Will be populated from user profile API later
@@ -117,13 +118,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         },
         token: apiResponse.data.accessToken, // Not stored, just returned for context
         refreshToken: apiResponse.data.refreshToken, // Not stored, just returned for context
-        kybNeeded: apiResponse.data.kybNeeded,
-        kycNeeded: apiResponse.data.kycNeeded,
       };
-
-      // Store only kyc/kyb flags in sessionStorage (not localStorage)
-      sessionStorage.setItem('kyb-needed', String(apiResponse.data.kybNeeded));
-      sessionStorage.setItem('kyc-needed', String(apiResponse.data.kycNeeded));
 
       dispatch({ type: 'LOGIN_SUCCESS', payload: loginResponse });
 
@@ -143,11 +138,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Continue with local cleanup even if API fails
     }
 
-    // Clear only sessionStorage items (tokens are in cookies, cleared by backend)
-    sessionStorage.removeItem('kyb-needed');
-    sessionStorage.removeItem('kyc-needed');
+    // Clear sessionStorage items (tokens are in cookies, cleared by backend)
     sessionStorage.removeItem('business-id');
-    sessionStorage.removeItem('kyb-status');
 
     // Clear any localStorage items that might still exist
     localStorage.removeItem('user-data');
@@ -197,6 +189,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         id: profile.userId,
         name: profile.name,
         email: profile.email,
+        mobile: profile.mobile,
+        taxId: profile.taxId,
+        maskedNationalId: profile.maskedNationalId,
         role: role,
         businessId: businessId,
         businessName: businessName,

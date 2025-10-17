@@ -5,9 +5,17 @@ import {
   useSidebar
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useBusiness } from "@/contexts/BusinessContext";
 
 export const SidebarFooter = () => {
   const { open } = useSidebar();
+  const { selectedBusiness } = useBusiness();
+
+  const formatRole = (role: string) => {
+    return role.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
 
   return (
     <Footer className="mt-auto p-4">
@@ -15,12 +23,13 @@ export const SidebarFooter = () => {
         "flex items-center gap-3",
         open ? "opacity-100" : "opacity-0"
       )}>
-        {/* <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-          <UserCog className="h-5 w-5 text-primary" />
-        </div> */}
         <div className="flex flex-col">
-          <span className="text-sm font-medium">Business Account</span>
-          <span className="text-xs text-muted-foreground">Admin Access</span>
+          <span className="text-sm font-medium">
+            {selectedBusiness ? selectedBusiness.name : "Business Account"}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {selectedBusiness ? formatRole(selectedBusiness.userRole) : "Loading..."}
+          </span>
         </div>
       </div>
     </Footer>

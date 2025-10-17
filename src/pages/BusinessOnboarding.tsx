@@ -8,13 +8,16 @@ import BusinessBasicInfoForm from "@/components/business/BusinessBasicInfoForm";
 import BusinessTypeForm from "@/components/business/BusinessTypeForm";
 import BusinessDocumentsForm from "@/components/business/BusinessDocumentsForm";
 import BusinessReviewForm from "@/components/business/BusinessReviewForm";
-import { businessAPI } from "@/services/api";
-import { businessTypesRequiringCIN, businessTypeToEnum } from "@/data/mockBusinesses";
+import { businessAPI, userAPI } from "@/services/api";
+import {
+  toBackendBusinessType,
+  toFrontendBusinessType,
+  requiresCIN as checkRequiresCIN
+} from "@/lib/businessTypeMapping";
 
 type BusinessFormData = {
   name: string;
   gstin: string;
-  pan: string;
   type: string;
   model: string;
   turnover: string;
@@ -27,7 +30,6 @@ type BusinessFormData = {
 const initialFormData: BusinessFormData = {
   name: "",
   gstin: "",
-  pan: "",
   type: "",
   model: "",
   turnover: "",
@@ -39,7 +41,9 @@ const initialFormData: BusinessFormData = {
 
 // Helper function to determine if a business type requires CIN
 const requiresCIN = (businessType: string): boolean => {
-  return businessTypesRequiringCIN.includes(businessType);
+  // Convert frontend type to backend format and check
+  const backendType = toBackendBusinessType(businessType);
+  return checkRequiresCIN(backendType);
 };
 
 const steps = ["Basic Info", "Business Details", "Documents", "Review"];
@@ -54,28 +58,35 @@ const BusinessOnboarding = () => {
 
   const progress = (currentStep / steps.length) * 100;
 
-  // Fetch business onboarding status on mount
+  // Fetch business onboarding status on mount - ProtectedRoute handles access control
   useEffect(() => {
     const fetchOnboardingStatus = async () => {
       try {
         const statusResponse = await businessAPI.getOnboardingStatus();
-        const { bid, name, gstin, kybStatus, kybInitiated, businessType } = statusResponse.data;
+        const { bid, name, gstin, kybStatus, kybInitiated, businessType, cid } = statusResponse.data;
 
         // If KYB is not in "not_started" state, pre-fill the form
         if (kybStatus !== "kyc_not_started" && kybInitiated) {
-          setBusinessId(bid);
-          sessionStorage.setItem('business-id', bid);
+          setBusinessId(bid || "");
+          if (bid) {
+            sessionStorage.setItem('business-id', bid);
+          }
 
           // Auto-fill Step 1: Basic Info
           setFormData((prev) => ({
             ...prev,
             name: name || "",
             gstin: gstin || "",
-            // Auto-fill Step 2: Business Type (if backend sends it)
-            type: businessType || prev.type,
+            // Auto-fill Step 2: Business Type (if backend sends it - convert to frontend format)
+            type: businessType ? toFrontendBusinessType(businessType) : prev.type,
+            // Auto-fill CIN if available
+            documents: {
+              ...prev.documents,
+              cin: cid || prev.documents.cin,
+            },
           }));
 
-          console.log("Pre-filled business data from status:", { bid, name, gstin, kybStatus });
+          console.log("Pre-filled business data from status:", { bid, name, gstin, kybStatus, businessType, cid });
         }
       } catch (error: any) {
         // If status endpoint returns 404 or error, start fresh (no pre-fill)
@@ -126,12 +137,58 @@ const BusinessOnboarding = () => {
 
       // Step 1: Initialize business onboarding (only if not already initiated)
       if (!bid) {
-        const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
-        bid = initResponse.data.bid;
+        try {
+          const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
+          bid = initResponse.data.bid;
 
-        // Store bid in state and sessionStorage
-        setBusinessId(bid);
-        sessionStorage.setItem('business-id', bid);
+          // Store bid in state and sessionStorage
+          setBusinessId(bid);
+          sessionStorage.setItem('business-id', bid);
+        } catch (initError: any) {
+          // Handle 409 Conflict: Business already exists
+          if (initError.status === 409) {
+            console.log("Business already exists, fetching existing business status...");
+            toast.info("Resuming existing business onboarding...");
+
+            try {
+              // Fetch the existing business status
+              const statusResponse = await businessAPI.getOnboardingStatus();
+              const existingBusiness = statusResponse.data;
+
+              // Extract bid and pre-fill form data
+              bid = existingBusiness.bid || "";
+
+              if (bid) {
+                setBusinessId(bid);
+                sessionStorage.setItem('business-id', bid);
+
+                // Pre-fill form with existing data
+                setFormData((prev) => ({
+                  ...prev,
+                  name: existingBusiness.name || prev.name,
+                  gstin: existingBusiness.gstin || prev.gstin,
+                  type: existingBusiness.businessType
+                    ? toFrontendBusinessType(existingBusiness.businessType)
+                    : prev.type,
+                  documents: {
+                    ...prev.documents,
+                    cin: existingBusiness.cid || prev.documents.cin,
+                  },
+                }));
+
+                console.log("Resumed existing business:", { bid, status: existingBusiness.kybStatus });
+              } else {
+                throw new Error("Could not retrieve business ID from existing business");
+              }
+            } catch (statusError) {
+              console.error("Failed to fetch existing business status:", statusError);
+              throw new Error("Business already exists but could not retrieve details. Please contact support.");
+            }
+          } else {
+            // Other init errors - rethrow
+            throw initError;
+          }
+        }
       } else {
         console.log("Using existing business ID:", bid);
       }
@@ -149,22 +206,70 @@ const BusinessOnboarding = () => {
         await businessAPI.confirmUpload(bid);
       }
 
+      // If deed is required, verify it has been uploaded before proceeding
+      if (!requiresCIN(formData.type)) {
+        const status = await businessAPI.getOnboardingStatus();
+        if (status.data.requiresDeedUpload && !status.data.hasDeedUploaded) {
+          toast.error("A business deed is required. Please upload the document before submitting.");
+          setIsLoading(false);
+          return; // Stop execution
+        }
+      }
+
       // Step 3: Complete business onboarding
-      const businessTypeEnum = businessTypeToEnum[formData.type];
+      // Convert frontend business type to backend format
+      const backendBusinessType = toBackendBusinessType(formData.type);
       const completeResponse = await businessAPI.completeOnboarding(
         bid,
-        businessTypeEnum,
-        formData.pan,
+        backendBusinessType,
+        undefined, // PAN removed - backend derives from GSTIN
         requiresCIN(formData.type) ? formData.documents.cin : undefined
       );
 
-      // Store the kyb status
-      sessionStorage.setItem('kyb-status', completeResponse.data.kybStatus);
-
+      console.log("Business onboarding complete response:", completeResponse);
       toast.success("Business onboarding completed successfully!");
 
-      // Navigate to user onboarding
-      navigate("/onboarding");
+      // Step 4: Check business onboarding status
+      console.log("Checking business onboarding status...");
+      const businessStatus = await businessAPI.getOnboardingStatus();
+      const kybStatus = businessStatus.data.kybStatus;
+      console.log("Business onboarding status:", kybStatus);
+
+      // Step 5: If KYB completed/verified, refresh roles
+      if (kybStatus === "kyc_completed" || kybStatus === "kyc_verified") {
+        console.log("KYB completed, refreshing user roles...");
+
+        try {
+          const rolesResponse = await userAPI.getRoles();
+          const roles = rolesResponse.data;
+          console.log("User roles after KYB complete:", roles);
+
+          // If user now has roles, navigate based on kycNeeded
+          if (roles.length > 0) {
+            const primaryRole = roles[0];
+
+            if (primaryRole.kycNeeded) {
+              console.log("KYC needed, navigating to user onboarding");
+              navigate("/onboarding", { replace: true });
+            } else {
+              // This shouldn't normally happen (KYC should be needed after KYB)
+              console.log("KYC not needed, this is unusual but proceeding to onboarding");
+              navigate("/onboarding", { replace: true });
+            }
+          } else {
+            // No roles yet, proceed to user onboarding
+            console.log("No roles assigned yet, navigating to user onboarding");
+            navigate("/onboarding", { replace: true });
+          }
+        } catch (error) {
+          // If roles fetch fails, still proceed to user onboarding
+          console.error("Failed to fetch roles after KYB, proceeding to user onboarding:", error);
+          navigate("/onboarding", { replace: true });
+        }
+      } else {
+        // KYB not completed yet, navigate to user onboarding anyway
+        navigate("/onboarding", { replace: true });
+      }
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete business onboarding. Please try again.";
       toast.error(errorMessage);

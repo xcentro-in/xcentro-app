@@ -1,30 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, ChevronLeft, AlertCircle, Building2 } from "lucide-react";
+import { User, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  Form,
-  FormDescription,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { userRoles, UserRoleEnum } from "@/data/mockBusinesses";
+import { cn } from "@/lib/utils";
+import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
+// import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
+import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -35,51 +18,46 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-// Create conditional schema based on whether GSTIN is required
-const createFormSchema = (isJoinFlow: boolean) => {
-  const baseSchema = {
-    claimedRole: z.string().min(1, { message: "Please select your role." }),
-    name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-    dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, {
-      message: "Date of birth must be in YYYY-MM-DD format.",
-    }),
-    pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
-      message: "PAN must be in the format ABCDE1234F.",
-    }),
-    aadhaar: z.string().regex(/^\d{12}$/, {
-      message: "Aadhaar must be exactly 12 digits.",
-    }),
-  };
-
-  if (isJoinFlow) {
-    return z.object({
-      ...baseSchema,
-      gstin: z.string().regex(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}[Z]{1}[0-9A-Z]{1}$/, {
-        message: "GSTIN must be in the format 29ABCDE1234F1Z2."
-      }),
-    });
-  }
-
-  return z.object(baseSchema);
+type UserFormData = {
+  name: string;
+  aadharNumber: string;
+  panNumber: string;
+  dateOfBirth: string;
+  // Role is hardcoded to "owner" now, not user-selectable
+  // role: string;
 };
 
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+const initialFormData: UserFormData = {
+  name: "",
+  aadharNumber: "",
+  panNumber: "",
+  dateOfBirth: "",
+  // role: "owner", // Hardcoded to owner
+};
+
+// Steps array - removed "Select Role" step
+const steps = ["KYC Details", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
   const { setUserRoles, fetchUserProfile } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState<UserFormData>(initialFormData);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
+  const [kycInProgress, setKycInProgress] = useState(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
   const [showPopupAlert, setShowPopupAlert] = useState(false);
   const [aadhaarLink, setAadhaarLink] = useState("");
   const [txnId, setTxnId] = useState("");
-  // Determine flow type immediately (not in useEffect)
-  const businessId = sessionStorage.getItem("business-id");
-  const [isJoinFlow] = useState(!businessId); // Join flow if no business-id exists
-  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
-  const [kycInProgress, setKycInProgress] = useState(false);
 
-  // Fetch user onboarding status on mount
+  // Determine flow type
+  const businessId = sessionStorage.getItem("business-id");
+  const isJoinFlow = !businessId;
+
+  const progress = (currentStep / steps.length) * 100;
+
+  // Fetch user onboarding status on mount - ProtectedRoute handles access control
   useEffect(() => {
     const fetchOnboardingStatus = async () => {
       try {
@@ -91,14 +69,13 @@ const UserOnboarding = () => {
           setKycInProgress(true);
 
           // Auto-fill available fields (don't fill Aadhaar for security)
-          form.reset({
-            claimedRole: form.getValues("claimedRole") || "",
+          setFormData((prev) => ({
+            ...prev,
             name: name || "",
-            dob: dob || "",
-            pan: taxId || "",
-            aadhaar: "", // Always let user fill Aadhaar again
-            ...(isJoinFlow && { gstin: form.getValues("gstin" as keyof FormValues) as string || "" }),
-          });
+            dateOfBirth: dob || "",
+            panNumber: taxId || "",
+            aadharNumber: "", // Always let user fill Aadhaar again
+          }));
 
           console.log("Pre-filled user data from status:", { name, dob, taxId, kycStatus });
         }
@@ -111,19 +88,42 @@ const UserOnboarding = () => {
     };
 
     fetchOnboardingStatus();
-  }, [isJoinFlow]);
+  }, []);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(createFormSchema(isJoinFlow)),
-    defaultValues: {
-      claimedRole: "",
-      name: "",
-      dob: "",
-      pan: "",
-      aadhaar: "",
-      ...(isJoinFlow && { gstin: "" }),
-    },
-  });
+  const handleNext = () => {
+    // Step 1: Validate KYC details
+    if (currentStep === 1) {
+      if (!formData.name || !formData.aadharNumber || !formData.panNumber || !formData.dateOfBirth) {
+        toast.error("Please complete all required fields");
+        return;
+      }
+
+      // Validate Aadhaar (12 digits without dashes)
+      const aadhaarDigits = formData.aadharNumber.replace(/-/g, '');
+      if (aadhaarDigits.length !== 12 || !/^\d{12}$/.test(aadhaarDigits)) {
+        toast.error("Please enter a valid 12-digit Aadhaar number");
+        return;
+      }
+
+      // Validate PAN (10 characters)
+      if (formData.panNumber.length !== 10 || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
+        toast.error("Please enter a valid PAN number (e.g., ABCDE1234F)");
+        return;
+      }
+    }
+
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+      window.scrollTo(0, 0);
+    }
+  };
 
   // Check if popup was blocked
   const openAadhaarPopup = (url: string) => {
@@ -136,7 +136,7 @@ const UserOnboarding = () => {
 
       if (!popup || popup.closed || typeof popup.closed === "undefined") {
         toast.error("Popup was blocked. Please enable popups for this site and try again.");
-        setIsSubmitting(false);
+        setIsLoading(false);
         return;
       }
 
@@ -156,62 +156,94 @@ const UserOnboarding = () => {
   };
 
   const handleCompleteOnboarding = async () => {
-    const businessId = sessionStorage.getItem("business-id");
-    const gstin = form.getValues("gstin" as keyof FormValues) as string | undefined;
-
     try {
-      const claimedRole = form.getValues("claimedRole") as UserRoleEnum;
+      // Determine flow type
+      // 1. Check if user has roles (invited user flow)
+      let isInvitedUser = false;
+      try {
+        const rolesResponse = await userAPI.getRoles();
+        if (rolesResponse.data.length > 0) {
+          isInvitedUser = true;
+        }
+      } catch (error) {
+        // No roles, continue with normal flow
+      }
+
+      // Hardcoded role claim to "owner" (only used for new business flow)
+      const claimedRole = "owner";
 
       console.log("Completing user onboarding:", {
         claimedRole,
         businessId,
-        gstin,
-        isJoinFlow
+        isJoinFlow,
+        isInvitedUser
       });
 
       // Call complete onboarding API
+      // For invited user flow: pass nothing (user already has roles, just needs KYC)
       // For new business flow: pass businessId
-      // For join existing business flow: pass gstin
+      // For join existing business flow: would need gstin (not in current form)
       const completeResponse = await userAPI.completeOnboarding(
-        claimedRole,
-        businessId || undefined,
-        gstin || undefined
+        isInvitedUser ? undefined : claimedRole,
+        isInvitedUser ? undefined : (businessId || undefined),
+        undefined // gstin removed from form
       );
 
       console.log("Complete onboarding response:", completeResponse);
 
-      if (completeResponse.data.status === "kyc_completed") {
+      if (completeResponse.data.status === "kyc_completed" || completeResponse.data.status === "kyc_verified") {
         toast.success("User onboarding completed successfully!");
 
-        // Clean up onboarding-related sessionStorage items
-        sessionStorage.removeItem("kyb-needed");
-        sessionStorage.removeItem("kyc-needed");
-        sessionStorage.removeItem("kyb-status");
-        // Keep business-id for new business flow, not needed for join flow
+        // Step 1: Check user onboarding status
+        console.log("Checking user onboarding status...");
+        const userStatus = await userAPI.getOnboardingStatus();
+        const kycStatus = userStatus.data.kycStatus;
+        console.log("User onboarding status:", kycStatus);
 
-        // Fetch user profile and roles
-        console.log("Fetching user profile and roles...");
-        await fetchUserProfile();
-        console.log("User profile and roles fetched successfully");
+        // Step 2: Refresh roles to check assignment
+        console.log("Refreshing user roles...");
+        const rolesResponse = await userAPI.getRoles();
+        const roles = rolesResponse.data;
+        console.log("User roles after KYC complete:", roles);
 
-        // Navigate to dashboard
-        navigate("/", { replace: true });
+        // Step 3: Determine routing based on role
+        if (roles.length === 0) {
+          // No roles assigned yet - shouldn't happen but handle gracefully
+          toast.error("No roles assigned. Please contact support.");
+          setIsLoading(false);
+          return;
+        }
+
+        const primaryRole = roles[0];
+
+        if (primaryRole.role === "none" && !primaryRole.kycNeeded) {
+          // Role is "none" - pending approval
+          console.log("Role is 'none', navigating to pending approval");
+          navigate("/pending-approval", { replace: true });
+        } else if (primaryRole.kycNeeded) {
+          // KYC still needed - shouldn't happen but handle gracefully
+          toast.error("KYC verification incomplete. Please try again.");
+          setIsLoading(false);
+        } else {
+          // KYC complete with valid role - load profile and go to dashboard
+          console.log("KYC complete with valid role, loading profile and navigating to dashboard");
+          await fetchUserProfile();
+          navigate("/", { replace: true });
+        }
       } else {
         toast.error("KYC verification incomplete. Please try again.");
-        setIsSubmitting(false);
+        setIsLoading(false);
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete user onboarding.";
       toast.error(errorMessage);
       console.error("Complete onboarding error:", error);
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const onSubmit = async (values: FormValues) => {
-    setIsSubmitting(true);
-
-    const businessId = sessionStorage.getItem("business-id");
+  const handleSubmit = async () => {
+    setIsLoading(true);
 
     try {
       // If KYC is already in progress, skip init and go straight to complete
@@ -222,12 +254,18 @@ const UserOnboarding = () => {
       }
 
       // Step 1: Initialize user onboarding (only if not in progress)
-      // Pass businessId only if it exists (new business flow)
+      // Convert date format from dd-MM-yyyy to yyyy-MM-dd for API
+      const [day, month, year] = formData.dateOfBirth.split('-');
+      const apiDateFormat = `${year}-${month}-${day}`;
+
+      // Remove dashes from Aadhaar for API
+      const aadhaarForApi = formData.aadharNumber.replace(/-/g, '');
+
       const initResponse = await userAPI.initOnboarding(
-        values.name,
-        values.dob,
-        values.pan,
-        values.aadhaar,
+        formData.name,
+        apiDateFormat,
+        formData.panNumber,
+        aadhaarForApi,
         businessId || undefined
       );
 
@@ -239,22 +277,30 @@ const UserOnboarding = () => {
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to initialize user onboarding.";
       toast.error(errorMessage);
-      setIsSubmitting(false);
+      console.error("Init onboarding error:", error);
+      setIsLoading(false);
     }
+  };
+
+  const updateFormData = (field: string, value: any) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleRetry = () => {
     if (aadhaarLink) {
       openAadhaarPopup(aadhaarLink);
     } else {
-      form.handleSubmit(onSubmit)();
+      handleSubmit();
     }
   };
 
   // Show loading state while fetching status
   if (isFetchingStatus) {
     return (
-      <div className="max-w-2xl mx-auto py-8 px-4 md:px-0">
+      <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -266,257 +312,155 @@ const UserOnboarding = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4 md:px-0">
+    <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
       <div className="flex items-center mb-8">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <User className="h-6 w-6" />
-            User Onboarding
+            Complete Your Profile
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Complete your profile to access the platform
-          </p>
+          <p className="text-muted-foreground mt-1">Complete the following steps to set up your account</p>
         </div>
       </div>
 
-      {/* Flow indicator */}
-      {isJoinFlow && (
-        <Card className="mb-6 bg-blue-50 border-blue-200">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-5 w-5 text-blue-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-blue-800">Join Existing Business</h3>
-                <p className="text-sm text-blue-700 mt-1">
-                  You're joining an existing business. Please provide the business GSTIN and your details below.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-[250px_1fr] gap-8">
+        <div className="hidden md:block space-y-1 sticky top-20 self-start">
+          <Progress value={progress} className="h-2 mb-4" />
 
-      {!isJoinFlow && (
-        <Card className="mb-6 bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-5 w-5 text-green-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-green-800">New Business Onboarding</h3>
-                <p className="text-sm text-green-700 mt-1">
-                  You're completing user onboarding for your new business.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <div className="space-y-6">
+            {steps.map((step, index) => {
+              const stepNumber = index + 1;
+              const isCompleted = currentStep > stepNumber;
+              const isCurrent = currentStep === stepNumber;
 
-      <Card>
-        <CardContent className="p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* GSTIN field - only show for join existing business flow */}
-              {isJoinFlow && (
-                <FormField
-                  control={form.control}
-                  name="gstin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business GSTIN</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="29ABCDE1234F1Z2"
-                          {...field}
-                          onChange={(e) => {
-                            const value = e.target.value.toUpperCase();
-                            field.onChange(value);
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Enter the GSTIN of the business you want to join
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
-              <FormField
-                control={form.control}
-                name="claimedRole"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Your Role</FormLabel>
-                    <FormControl>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role in the business" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {userRoles.map((role) => (
-                            <SelectItem key={role.value} value={role.value}>
-                              <div>
-                                <p className="font-medium">{role.label}</p>
-                                <p className="text-xs text-muted-foreground">
-                                  {role.description}
-                                </p>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormDescription>
-                      Select the role that best describes your position
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your full name" {...field} />
-                    </FormControl>
-                    <FormDescription>As per government-issued ID</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="dob"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
-                    <FormControl>
-                      <Input type="date" placeholder="YYYY-MM-DD" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="pan"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>PAN Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="ABCDE1234F"
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value.toUpperCase();
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormDescription>Permanent Account Number</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="aadhaar"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Aadhaar Number</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="123456789012"
-                        maxLength={12}
-                        {...field}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, "");
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormDescription>12-digit Aadhaar number for verification</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="rounded-lg border p-4 bg-amber-50 border-amber-200">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                  <div>
-                    <h3 className="text-sm font-medium text-amber-800">
-                      Aadhaar Verification Required
-                    </h3>
-                    <p className="text-sm text-amber-700 mt-1">
-                      After submitting this form, you'll be redirected to verify your Aadhaar.
-                      This is a secure process and typically takes 2-3 minutes.
-                    </p>
+              return (
+                <div key={step} className="flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "flex items-center justify-center h-6 w-6 rounded-full text-xs font-medium shrink-0",
+                      isCompleted
+                        ? "bg-primary text-white"
+                        : isCurrent
+                          ? "bg-primary text-white"
+                          : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : stepNumber}
+                  </div>
+                  <div className="flex flex-col">
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        isCompleted ? "text-primary" : isCurrent ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      {step}
+                    </span>
+                    {isCurrent && <span className="text-xs text-muted-foreground mt-0.5">Current step</span>}
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="bg-card border rounded-lg p-6 shadow-sm">
+          <div className="md:hidden flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center h-6 w-6 rounded-full bg-primary text-white text-xs font-medium">
+                {currentStep}
               </div>
+              <span className="text-sm font-medium">{steps[currentStep - 1]}</span>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Step {currentStep} of {steps.length}
+            </div>
+          </div>
 
-              <div className="flex justify-between pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(-1)}
-                  disabled={isSubmitting}
-                >
-                  <ChevronLeft className="h-4 w-4 mr-1" />
-                  Back
-                </Button>
+          {currentStep === 1 && (
+            <KYCDetailsForm
+              formData={{
+                name: formData.name,
+                aadharNumber: formData.aadharNumber,
+                panNumber: formData.panNumber,
+                dateOfBirth: formData.dateOfBirth,
+              }}
+              updateFormData={(data) => {
+                setFormData((prev) => ({ ...prev, ...data }));
+              }}
+            />
+          )}
 
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    "Continue to Aadhaar Verification"
-                  )}
-                </Button>
-              </div>
+          {/* Role Selection Step - COMMENTED OUT */}
+          {/* {currentStep === 2 && (
+            <RoleSelectionForm
+              formData={{ role: "owner" }}
+              updateFormData={(data) => updateFormData("role", data.role)}
+            />
+          )} */}
 
-              {isSubmitting && aadhaarPopup && (
-                <div className="rounded-lg border p-4 bg-blue-50 border-blue-200">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-blue-800">
-                        Verification in Progress
-                      </h3>
-                      <p className="text-sm text-blue-700 mt-1">
-                        Complete the Aadhaar verification in the popup window. This page will
-                        automatically continue once you're done.
-                      </p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={handleRetry}
-                        className="mt-3"
-                      >
-                        Retry Verification
-                      </Button>
-                    </div>
-                  </div>
+          {currentStep === 2 && (
+            <ReviewDetailsForm
+              formData={{
+                kyc: {
+                  name: formData.name,
+                  aadharNumber: formData.aadharNumber,
+                  panNumber: formData.panNumber,
+                  dateOfBirth: formData.dateOfBirth,
+                },
+                role: {
+                  role: "owner", // Hardcoded to owner
+                },
+              }}
+            />
+          )}
+
+          <div className="flex justify-between mt-8 pt-4 border-t">
+            <Button variant="outline" onClick={handlePrevious} disabled={currentStep === 1 || isLoading}>
+              Previous
+            </Button>
+
+            {currentStep < steps.length ? (
+              <Button onClick={handleNext}>Continue</Button>
+            ) : (
+              <Button onClick={handleSubmit} disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit for Verification"
+                )}
+              </Button>
+            )}
+          </div>
+
+          {isLoading && aadhaarPopup && (
+            <div className="rounded-lg border p-4 bg-blue-50 border-blue-200 mt-4">
+              <div className="flex items-start gap-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-blue-800">Verification in Progress</h3>
+                  <p className="text-sm text-blue-700 mt-1">
+                    Complete the Aadhaar verification in the popup window. This page will automatically continue
+                    once you're done.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetry}
+                    className="mt-3"
+                  >
+                    Retry Verification
+                  </Button>
                 </div>
-              )}
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Popup Alert Dialog */}
       <AlertDialog open={showPopupAlert} onOpenChange={setShowPopupAlert}>
@@ -524,8 +468,8 @@ const UserOnboarding = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Enable Popups</AlertDialogTitle>
             <AlertDialogDescription>
-              A popup window will open for Aadhaar verification. Please ensure popups are enabled
-              for this site. The verification window will open in 2 seconds...
+              A popup window will open for Aadhaar verification. Please ensure popups are enabled for this site.
+              The verification window will open in 2 seconds...
             </AlertDialogDescription>
           </AlertDialogHeader>
         </AlertDialogContent>

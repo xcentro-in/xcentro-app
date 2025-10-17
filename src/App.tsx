@@ -34,6 +34,7 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import UserOnboarding from "./pages/UserOnboarding";
 import OnboardingChoice from "./pages/OnboardingChoice";
+import PendingApproval from "./pages/PendingApproval";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -44,6 +45,7 @@ import SettingsLayout from "./components/settings/SettingsLayout";
 import { canViewFeature } from "@/lib/featureFlags";
 import { getUser } from "./lib/getUser";
 import { AuthProvider } from "./contexts/AuthContext";
+import { BusinessProvider } from "./contexts/BusinessContext";
 import { PageTitleProvider } from "./contexts/PageTitleContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -83,13 +85,20 @@ function App() {
                   <BusinessOnboarding />
                 </ProtectedRoute>
               } />
+              <Route path="/pending-approval" element={
+                <ProtectedRoute>
+                  <PendingApproval />
+                </ProtectedRoute>
+              } />
 
               {/* Main app routes with sidebar */}
               <Route path="/" element={
                 <ProtectedRoute>
-                  <SidebarProvider>
-                    <Layout />
-                  </SidebarProvider>
+                  <BusinessProvider>
+                    <SidebarProvider>
+                      <Layout />
+                    </SidebarProvider>
+                  </BusinessProvider>
                 </ProtectedRoute>
               }>
                 <Route index element={<Dashboard />} />
@@ -137,9 +146,11 @@ function App() {
 
               <Route path="/settings" element={
                 <ProtectedRoute>
-                  <SidebarProvider>
-                    <SettingsLayout />
-                  </SidebarProvider>
+                  <BusinessProvider>
+                    <SidebarProvider>
+                      <SettingsLayout />
+                    </SidebarProvider>
+                  </BusinessProvider>
                 </ProtectedRoute>
               }>
                 <Route index element={<Settings />} />
