@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { walletAPI } from '@/services/api';
 import { GetWalletResponse, WalletData } from '@/types/wallet';
 import { useAuth } from '@/contexts/AuthContext';
-import { log } from 'console';
 
 export const useWallet = () => {
   const [data, setData] = useState<WalletData | null>(null);
