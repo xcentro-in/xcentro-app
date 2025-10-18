@@ -806,6 +806,16 @@ class ApiService {
     }
   };
 
+  // Wallet endpoints
+  wallet = {
+    fetch: async (businessId: string) => {
+      return this.request('/wallet/fetch', {
+        method: 'POST',
+        body: JSON.stringify({ business_id: businessId }),
+      });
+    }
+  };
+
   // Bills endpoints - TODO: Implement when backend is ready
   bills = {
     getAll: async (businessId: string, params: {
@@ -971,5 +981,6 @@ export const {
   dashboard: dashboardAPI,
   paymentInsights: paymentInsightsAPI,
   notifications: notificationsAPI,
-  processPayment: processPaymentAPI
+  processPayment: processPaymentAPI,
+  wallet: walletAPI
 } = apiService;

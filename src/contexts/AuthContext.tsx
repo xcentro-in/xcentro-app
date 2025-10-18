@@ -77,7 +77,7 @@ const MOCK_USER_DATA: AuthUser = {
   email: "arvind@abccompany.com",
   role: "owner",
   department: "Executive",
-  businessId: "b1",
+  businessId: "01936d7a-7c8e-7890-b123-456789abcdef",
   businessName: "ABC Company",
   rewardPoints: 24530,
   
