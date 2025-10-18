@@ -61,7 +61,7 @@ const PaymentMethodAndReviewStep = ({
   useEffect(() => {
     if (user?.businessId && totalAmount > 0) {
       fetchPaymentSources({
-        business_id: "01936d7a-7c8e-7890-b123-456789abcdef",
+        business_id: user.businessId,
         payment_context: paymentContext,
         base_amount: totalAmount
       });
