@@ -56,14 +56,46 @@ const WalletManagement = () => {
     }
   };
 
-  // Show loading state
+  // Show loading state with skeleton
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading payment methods...</p>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="animate-pulse">
+            <div className="h-6 w-64 bg-gray-200 rounded mb-2"></div>
+          </div>
+          <div className="h-10 w-56 bg-gray-200 rounded animate-pulse"></div>
         </div>
+
+        {/* Card Skeleton */}
+        <Card className="overflow-hidden">
+          <CardHeader className="pb-4">
+            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="animate-pulse space-y-0">
+              {/* Tabs Skeleton */}
+              <div className="px-6 pb-4">
+                <div className="h-10 bg-gray-200 rounded"></div>
+              </div>
+              {/* Payment Method Items Skeleton */}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center p-5 border-b border-slate-100 last:border-b-0">
+                  <div className="w-12 h-8 bg-gray-200 rounded-lg mr-5"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-40 bg-gray-200 rounded"></div>
+                    <div className="h-4 w-64 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-32 bg-gray-200 rounded"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Security Notice Skeleton */}
+        <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
       </div>
     );
   }
