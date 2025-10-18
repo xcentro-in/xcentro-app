@@ -33,7 +33,7 @@ import {
   X
 } from "lucide-react";
 import { User, userRoleLabels } from "@/types/user";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 interface UserListProps {
   users: User[];
@@ -46,13 +46,14 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.department?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      // TODO: Add department search when department feature is implemented
+      // || user.department?.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesRole = roleFilter === "all roles" || roleFilter === null || user.role === roleFilter;
-    
+
     return matchesSearch && matchesRole;
   });
 
@@ -124,9 +125,10 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead className="hidden md:table-cell">Department</TableHead>
+              {/* TODO: Implement department feature later */}
+              {/* <TableHead className="hidden md:table-cell">Department</TableHead> */}
               <TableHead>Status</TableHead>
-              <TableHead className="hidden md:table-cell">Last Active</TableHead>
+              <TableHead className="hidden md:table-cell">Added At</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -143,15 +145,16 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
                   <TableCell>
                     {userRoleLabels[user.role]}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  {/* TODO: Implement department feature later */}
+                  {/* <TableCell className="hidden md:table-cell">
                     {user.department || "—"}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     {getUserStatusBadge(user.status)}
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {user.lastActive 
-                      ? formatDistanceToNow(new Date(user.lastActive), { addSuffix: true }) 
+                    {user.addedAt
+                      ? format(new Date(user.addedAt), "MMMM dd, yyyy, h:mm a")
                       : "—"}
                   </TableCell>
                   <TableCell className="text-right">
@@ -181,7 +184,7 @@ const UserList = ({ users, onEditUser, onRevokeAccess }: UserListProps) => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-6">
+                <TableCell colSpan={5} className="text-center py-6">
                   No users found matching your search criteria
                 </TableCell>
               </TableRow>

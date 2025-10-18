@@ -45,9 +45,10 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        
-        // Check if it's a token expired error and we haven't already retried
-        if (!isRetry && (response.status === 401 && (errorData.error === 'TOKEN_EXPIRED' || errorData.message?.includes('token') || errorData.message?.includes('expired')))) {
+
+        // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
+        // This prevents infinite loops when user is not authenticated
+        if (!isRetry && response.status === 401 && errorData.error === 'TOKEN_EXPIRED') {
           try {
             // Call refresh token endpoint
             const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
@@ -58,32 +59,31 @@ class ApiService {
             if (refreshResponse.ok) {
               const refreshData = await refreshResponse.json();
               console.log('Token refreshed successfully:', refreshData.message);
-              
+
               // Retry the original request with the new token (cookies are automatically updated)
               return this.request<T>(endpoint, options, true);
             } else {
-              // If refresh fails, logout the user
-              console.log('Token refresh failed, logging out user');
-              // Clear any stored tokens
+              // If refresh fails, clear tokens and redirect to login
+              console.log('Token refresh failed, redirecting to login');
               localStorage.removeItem('auth-token');
               this.authToken = null;
-              // Redirect to login or trigger logout flow
               window.location.href = '/login';
               return Promise.reject(new Error('Session expired. Please login again.'));
             }
           } catch (refreshError) {
             console.error('Token refresh failed:', refreshError);
-            // Clear any stored tokens and logout
+            // Clear tokens and redirect to login
             localStorage.removeItem('auth-token');
             this.authToken = null;
             window.location.href = '/login';
             return Promise.reject(new Error('Session expired. Please login again.'));
           }
         }
-        
-        // Create error object with both message and error code
+
+        // For MISSING_TOKEN or INVALID_TOKEN, just throw the error
+        // This allows AuthContext to handle logout properly without triggering refresh
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
-        error.code = errorData.error; // Preserve error code (e.g., "MISSING_TOKEN")
+        error.code = errorData.error; // Preserve error code (e.g., "MISSING_TOKEN", "INVALID_TOKEN")
         error.status = response.status;
         throw error;
       }
@@ -278,10 +278,88 @@ class ApiService {
         method: 'GET',
       });
     },
+
+    // Invite user to business
+    inviteUser: async (
+      businessId: string,
+      email: string,
+      name: string,
+      role: string
+    ): Promise<{
+      data: {
+        email: string;
+        name: string;
+        userId: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/business/invite-user', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ email, name, role }),
+      });
+    },
+
+    // Update user role in business
+    updateUserRole: async (
+      businessId: string,
+      userId: string,
+      newRole: string
+    ): Promise<{
+      message: string;
+    }> => {
+      return this.request('/business/users/update', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ userId, newRole }),
+      });
+    },
+
+    // Remove user from business
+    removeUser: async (
+      businessId: string,
+      userId: string
+    ): Promise<{
+      message: string;
+    }> => {
+      return this.request('/business/users', {
+        method: 'DELETE',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ userId }),
+      });
+    },
   };
 
   // Business endpoints
   business = {
+    // Get all users for a business
+    getUsers: async (businessId: string): Promise<{
+      data: Array<{
+        userId: string;
+        email: string;
+        name: string;
+        role: string;
+        roleClaim: string;
+        kycNeeded: boolean;
+        addedAt: string;
+        updatedAt: string;
+      }>;
+      message: string;
+    }> => {
+      return this.request('/business/users', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     // Initialize business onboarding
     initOnboarding: async (name: string, gstin: string): Promise<{
       data: {
@@ -388,7 +466,7 @@ class ApiService {
       data: { kybStatus: string };
       message: string;
     }> => {
-      return this.request('/business/onboarding-status', {
+      return this.request('/business/onboard/status', {
         method: 'GET',
       });
     },

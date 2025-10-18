@@ -239,14 +239,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Try to fetch user profile - will succeed if user has valid auth cookies
         await fetchUserProfile();
       } catch (error: any) {
-        // Check if error is MISSING_TOKEN (no auth cookies)
-        if (error?.code === 'MISSING_TOKEN') {
-          // User is not authenticated, show login page
-          logout();
+        // Check if error is MISSING_TOKEN or INVALID_TOKEN (no valid auth cookies)
+        if (error?.code === 'MISSING_TOKEN' || error?.code === 'INVALID_TOKEN') {
+          // User is not authenticated - just set loading to false, don't call logout
+          // Calling logout() here causes infinite loop because logout calls the API
+          dispatch({ type: 'LOGOUT' });
         } else {
-          // Some other error occurred - log it and show login
+          // Some other error occurred - log it and clear auth state
           console.error('Unexpected auth error:', error);
-          logout();
+          dispatch({ type: 'LOGOUT' });
         }
       }
     };

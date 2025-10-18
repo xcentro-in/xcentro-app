@@ -12,7 +12,8 @@ import { businessAPI, userAPI } from "@/services/api";
 import {
   toBackendBusinessType,
   toFrontendBusinessType,
-  requiresCIN as checkRequiresCIN
+  requiresCIN as checkRequiresCIN,
+  requiresDeedUpload as checkRequiresDeedUpload
 } from "@/lib/businessTypeMapping";
 
 type BusinessFormData = {
@@ -44,6 +45,13 @@ const requiresCIN = (businessType: string): boolean => {
   // Convert frontend type to backend format and check
   const backendType = toBackendBusinessType(businessType);
   return checkRequiresCIN(backendType);
+};
+
+// Helper function to determine if a business type requires deed upload
+const requiresDeedUpload = (businessType: string): boolean => {
+  // Convert frontend type to backend format and check
+  const backendType = toBackendBusinessType(businessType);
+  return checkRequiresDeedUpload(backendType);
 };
 
 const steps = ["Basic Info", "Business Details", "Documents", "Review"];
@@ -103,10 +111,12 @@ const BusinessOnboarding = () => {
     if (requiresCIN(formData.type)) {
       // For corporate entities, CIN is required (21 characters)
       return formData.documents.cin !== undefined && formData.documents.cin.length === 21;
-    } else {
-      // For other entities, Business Deed is required
+    } else if (requiresDeedUpload(formData.type)) {
+      // For partnerships, trusts, etc., Business Deed is required
       return formData.documents.deed !== null;
     }
+    // For other business types (like Sole Proprietorship), no document required
+    return true;
   };
 
   const handleNext = () => {
@@ -193,21 +203,26 @@ const BusinessOnboarding = () => {
         console.log("Using existing business ID:", bid);
       }
 
-      // Step 2: Handle document upload if deed is required (non-CIN types)
-      if (!requiresCIN(formData.type) && formData.documents.deed) {
+      // Step 2: Handle document upload if deed is required
+      if (requiresDeedUpload(formData.type) && formData.documents.deed) {
+        console.log("Uploading business deed for", formData.type);
+
         // Get presigned URL
         const uploadUrlResponse = await businessAPI.getUploadUrl(bid);
         const uploadUrl = uploadUrlResponse.data.url;
+        console.log("Got presigned URL:", uploadUrl);
 
         // Upload file to S3
         await businessAPI.uploadToS3(uploadUrl, formData.documents.deed);
+        console.log("File uploaded to S3 successfully");
 
         // Confirm upload
         await businessAPI.confirmUpload(bid);
+        console.log("Upload confirmed");
       }
 
       // If deed is required, verify it has been uploaded before proceeding
-      if (!requiresCIN(formData.type)) {
+      if (requiresDeedUpload(formData.type)) {
         const status = await businessAPI.getOnboardingStatus();
         if (status.data.requiresDeedUpload && !status.data.hasDeedUploaded) {
           toast.error("A business deed is required. Please upload the document before submitting.");

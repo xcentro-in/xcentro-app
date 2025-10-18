@@ -28,7 +28,7 @@ const inviteFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   role: z.string().min(1, { message: "Please select a role" }),
-  department: z.string().optional(),
+  // department: z.string().optional(), // TODO: Implement department feature later
 });
 
 type InviteFormValues = z.infer<typeof inviteFormSchema>;
@@ -36,33 +36,45 @@ type InviteFormValues = z.infer<typeof inviteFormSchema>;
 interface InviteUserFormProps {
   onInviteSubmit: (values: InviteFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
+  editMode?: boolean;
+  editUser?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
-const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  
+const InviteUserForm = ({ onInviteSubmit, onCancel, isSubmitting = false, editMode = false, editUser }: InviteUserFormProps) => {
+  const [selectedRole, setSelectedRole] = useState<string | null>(editUser?.role || null);
+
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
-      email: "",
-      name: "",
-      role: "",
-      department: "",
+      email: editUser?.email || "",
+      name: editUser?.name || "",
+      role: editUser?.role || "",
+      // department: "", // TODO: Implement department feature later
     },
   });
-  
+
   const onSubmit = (values: InviteFormValues) => {
     onInviteSubmit(values);
-    toast.success("Invitation sent successfully");
-    form.reset();
+    // Note: Don't show success toast here - parent component handles it after API call
+    if (!editMode) {
+      form.reset();
+    }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-medium">Invite New User</h3>
+        <h3 className="text-lg font-medium">{editMode ? "Edit User" : "Invite New User"}</h3>
         <p className="text-sm text-muted-foreground">
-          Send an invitation to a new team member to join your organization
+          {editMode
+            ? "Update the user's role and permissions"
+            : "Send an invitation to a new team member to join your organization"}
         </p>
       </div>
       
@@ -76,13 +88,13 @@ const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} disabled={editMode} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="email"
@@ -90,7 +102,7 @@ const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="john@example.com" {...field} />
+                    <Input placeholder="john@example.com" {...field} disabled={editMode} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -127,8 +139,9 @@ const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
                 </FormItem>
               )}
             />
-            
-            <FormField
+
+            {/* TODO: Implement department feature later */}
+            {/* <FormField
               control={form.control}
               name="department"
               render={({ field }) => (
@@ -140,7 +153,7 @@ const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
                   <FormMessage />
                 </FormItem>
               )}
-            />
+            /> */}
           </div>
           
           {selectedRole && (
@@ -155,12 +168,14 @@ const InviteUserForm = ({ onInviteSubmit, onCancel }: InviteUserFormProps) => {
           )}
           
           <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={isSubmitting}>
               <UserPlus className="h-4 w-4 mr-2" />
-              Send Invitation
+              {isSubmitting
+                ? (editMode ? "Saving..." : "Sending...")
+                : (editMode ? "Save Changes" : "Send Invitation")}
             </Button>
           </div>
         </form>
