@@ -209,6 +209,13 @@ const Login = () => {
                         />
                       </div>
                     </FormControl>
+                    <div className="flex items-center justify-end">
+                      <Link to="/forgot-password"
+                        className="text-sm font-medium text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import UserOnboarding from "./pages/UserOnboarding";
 import OnboardingChoice from "./pages/OnboardingChoice";
 import PendingApproval from "./pages/PendingApproval";
+import ForgotPassword from "./pages/ForgotPassword";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -68,6 +69,8 @@ function App() {
               {/* Public routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ForgotPassword />} />
 
               {/* Protected routes outside sidebar */}
               <Route path="/onboarding-choice" element={

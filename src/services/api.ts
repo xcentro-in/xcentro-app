@@ -135,6 +135,29 @@ class ApiService {
 
       console.log('TODO: Implement auth.refreshToken API call', { refreshToken });
       throw new Error('API not implemented yet');
+    },
+
+    forgotPassword: async (email: string): Promise<{ message: string }> => {
+      return this.request(`/auth/forgot-password?email=${email}`, {
+        method: 'GET',
+      });
+    },
+
+    resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+      return this.request('/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ token, newPassword }),
+      });
+    },
+
+    changePassword: async (oldPassword: string, newPassword: string): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword }),
+      });
     }
   };
 
