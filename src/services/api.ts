@@ -395,6 +395,20 @@ class ApiService {
     }
   };
 
+  // Process Payment endpoints
+  processPayment = {
+    getPaymentSourcesWithFees: async (params: {
+      business_id: string;
+      payment_context: string;
+      base_amount: number;
+    }) => {
+      return this.request('/process_payment/get_payment_sources_with_fees', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+    }
+  };
+
   // Bills endpoints - TODO: Implement when backend is ready
   bills = {
     getAll: async (businessId: string, params: {
@@ -558,5 +572,6 @@ export const {
   upcomingPayments: upcomingPaymentsAPI,
   dashboard: dashboardAPI,
   paymentInsights: paymentInsightsAPI,
-  notifications: notificationsAPI
+  notifications: notificationsAPI,
+  processPayment: processPaymentAPI
 } = apiService;

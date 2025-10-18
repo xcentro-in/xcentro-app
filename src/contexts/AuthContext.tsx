@@ -72,8 +72,8 @@ const MOCK_USER_DATA: AuthUser = {
   
   // Onboarding tracking - set to false to see empty state
   hasCompletedOnboarding: false,
-  hasAddedPaymentMethod: false,
-  hasAddedVendor: false,
+  hasAddedPaymentMethod: true,
+  hasAddedVendor: true,
   hasCreatedFirstPayment: false,
 };
 

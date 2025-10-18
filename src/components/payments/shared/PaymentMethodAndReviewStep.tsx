@@ -1,14 +1,16 @@
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
-import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import { PaymentMethod } from "@/types/payment-method";
-import { CreditCard, Building2, Smartphone, Info } from "lucide-react";
+import { CreditCard, Building2, Info, AlertCircle } from "lucide-react";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePaymentSources } from "@/hooks/usePaymentSources";
+import { PaymentSource } from "@/types/payment-source";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface PaymentItem {
   id: string;
@@ -29,6 +31,7 @@ interface PaymentMethodAndReviewStepProps {
   onBack: () => void;
   onSubmit: () => void;
   additionalSummaryData?: Record<string, any>;
+  paymentContext?: string; // e.g., "vendor_payment", "payroll", etc.
 }
 
 const PaymentMethodAndReviewStep = ({
@@ -40,75 +43,108 @@ const PaymentMethodAndReviewStep = ({
   onPaymentMethodChange,
   onBack,
   onSubmit,
-  additionalSummaryData
+  additionalSummaryData,
+  paymentContext = "vendor_payment"
 }: PaymentMethodAndReviewStepProps) => {
-  const paymentMethodDetails = selectedPaymentMethod
-    ? mockPaymentMethods.find(method => method.id === selectedPaymentMethod)
+  const { user } = useAuth();
+  const {
+    sources,
+    cardSources,
+    bankSources,
+    isLoading,
+    error,
+    fetchPaymentSources,
+    getSourceById
+  } = usePaymentSources();
+
+  // Fetch payment sources when component mounts
+  useEffect(() => {
+    if (user?.businessId && totalAmount > 0) {
+      fetchPaymentSources({
+        business_id: "01936d7a-7c8e-7890-b123-456789abcdef",
+        payment_context: paymentContext,
+        base_amount: totalAmount
+      });
+    }
+  }, [user?.businessId, totalAmount, paymentContext, fetchPaymentSources]);
+
+  // Get selected payment source details
+  const selectedSource = selectedPaymentMethod
+    ? getSourceById(selectedPaymentMethod)
     : undefined;
 
-  const getProcessingFee = (method: PaymentMethod | undefined) => {
-    if (!method) return 0;
+  // Calculate fees from selected source
+  const processingFee = selectedSource?.fee_breakdown?.convenience_fee || 0;
+  const gst = selectedSource?.fee_breakdown?.convenience_fee_gst || 0;
+  const finalAmount = selectedSource?.fee_breakdown?.total_amount || totalAmount;
 
-    switch (method.type) {
-      case 'card':
-        if (method.cardType === 'amex') return totalAmount * 0.024;
-        return totalAmount * 0.028;
-      case 'bank':
-        return totalAmount * 0.01;
-      case 'upi':
-        return totalAmount * 0.005;
-      case 'bnpl':
-        return totalAmount * 0.02;
-      default:
-        return 0;
-    }
-  };
+  const renderPaymentSource = (source: PaymentSource) => {
+    const isDisabled = !source.is_allowed;
+    const isSelected = selectedPaymentMethod === source.source_id;
 
-  const processingFee = getProcessingFee(paymentMethodDetails);
-  const gst = processingFee * 0.18;
-  const finalAmount = totalAmount + processingFee + gst;
-
-  const bankMethods = mockPaymentMethods.filter(method => method.type === 'bank' || method.type === 'upi');
-  const cardMethods = mockPaymentMethods.filter(method => method.type === 'card');
-
-  const renderPaymentMethod = (method: PaymentMethod) => (
-    <div
-      key={method.id}
-      className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-        selectedPaymentMethod === method.id
-          ? 'border-primary bg-primary/5'
-          : 'border-border hover:border-primary/50'
-      }`}
-      onClick={() => onPaymentMethodChange(method.id)}
-    >
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-full ${
-          method.type === 'card' ? 'bg-blue-500/10' :
-          method.type === 'bank' ? 'bg-purple-500/10' :
-          'bg-green-500/10'
-        }`}>
-          {method.type === 'card' ? <CreditCard className="h-5 w-5" /> :
-           method.type === 'bank' ? <Building2 className="h-5 w-5" /> :
-           <Smartphone className="h-5 w-5" />}
-        </div>
-        <div className="flex-1">
-          <div className="font-medium">
-            {method.type === 'card' ? `${method.cardType} **** ${method.lastFourDigits}` :
-             method.type === 'bank' ? `${method.bankName} **** ${method.lastFourDigits}` :
-             method.type === 'upi' ? method.upiId :
-             method.provider}
+    const cardContent = (
+      <div
+        className={`p-4 border rounded-lg transition-colors ${
+          isDisabled
+            ? 'opacity-50 bg-muted/30'
+            : 'cursor-pointer'
+        } ${
+          isSelected && !isDisabled
+            ? 'border-primary bg-primary/5'
+            : isDisabled
+            ? 'border-border'
+            : 'border-border hover:border-primary/50'
+        }`}
+        onClick={() => !isDisabled && onPaymentMethodChange(source.source_id)}
+      >
+        <div className="flex items-center gap-3">
+          <div className={`p-2 rounded-full ${
+            source.source_type === 'card' ? 'bg-blue-500/10' : 'bg-purple-500/10'
+          }`}>
+            {source.source_type === 'card' ? (
+              <CreditCard className="h-5 w-5" />
+            ) : (
+              <Building2 className="h-5 w-5" />
+            )}
           </div>
-          <div className="text-sm text-muted-foreground">
-            Processing fee: {formatCurrency(getProcessingFee(method) + getProcessingFee(method) * 0.18)} incl. GST
-            ({method.type === 'card' && method.cardType === 'amex' ? '2.4%' :
-              method.type === 'card' ? '2.8%' :
-              method.type === 'bank' ? '1%' :
-              method.type === 'upi' ? '0.5%' : '2%'} + 18% GST)
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <div className="font-medium">{source.display_name}</div>
+              {isDisabled && (
+                <AlertCircle className="h-4 w-4 text-destructive" />
+              )}
+            </div>
+            {source.fee_breakdown && (
+              <div className="text-sm text-muted-foreground">
+                Processing fee: {formatCurrency(source.fee_breakdown.total_fee)} incl. GST
+                {source.fee_breakdown.convenience_fee_percent > 0 && (
+                  <> ({source.fee_breakdown.convenience_fee_percent}% + {source.fee_breakdown.gst_percent}% GST)</>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+
+    // Wrap with tooltip if disabled
+    if (isDisabled && source.restriction_reason) {
+      return (
+        <Tooltip key={source.source_id}>
+          <TooltipTrigger asChild>
+            <div className="cursor-not-allowed">
+              {cardContent}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p>{source.restriction_reason}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return <div key={source.source_id}>{cardContent}</div>;
+  };
 
   const renderSimpleSummary = () => (
     <div className="space-y-3">
@@ -185,7 +221,23 @@ const PaymentMethodAndReviewStep = ({
                 <div className="text-sm text-muted-foreground mb-3">
                   Bank transfers and UPI payments
                 </div>
-                {bankMethods.map(renderPaymentMethod)}
+                {isLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading payment methods...
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-8 text-destructive">
+                    {error}
+                  </div>
+                ) : bankSources.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No bank payment methods available
+                  </div>
+                ) : (
+                  <TooltipProvider>
+                    {bankSources.map(renderPaymentSource)}
+                  </TooltipProvider>
+                )}
               </TabsContent>
 
               <TabsContent value="card" className="space-y-4">
@@ -195,7 +247,23 @@ const PaymentMethodAndReviewStep = ({
                     <Badge variant="secondary" className="text-xs">Higher rewards</Badge>
                   </div>
                   <div className="space-y-3">
-                    {cardMethods.map(renderPaymentMethod)}
+                    {isLoading ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        Loading payment methods...
+                      </div>
+                    ) : error ? (
+                      <div className="text-center py-8 text-destructive">
+                        {error}
+                      </div>
+                    ) : cardSources.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No card payment methods available
+                      </div>
+                    ) : (
+                      <TooltipProvider>
+                        {cardSources.map(renderPaymentSource)}
+                      </TooltipProvider>
+                    )}
                   </div>
                 </div>
               </TabsContent>
@@ -257,14 +325,11 @@ const PaymentMethodAndReviewStep = ({
               </FeatureEnabled>
             </div>
 
-            {selectedPaymentMethod && paymentMethodDetails && (
+            {selectedPaymentMethod && selectedSource && (
               <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                 <div className="text-sm font-medium mb-1">Selected Payment Method</div>
                 <div className="text-sm text-muted-foreground">
-                  {paymentMethodDetails.type === 'card' ? `${paymentMethodDetails.cardType} **** ${paymentMethodDetails.lastFourDigits}` :
-                   paymentMethodDetails.type === 'bank' ? `${paymentMethodDetails.bankName} **** ${paymentMethodDetails.lastFourDigits}` :
-                   paymentMethodDetails.type === 'upi' ? paymentMethodDetails.upiId :
-                   paymentMethodDetails.provider}
+                  {selectedSource.display_name}
                 </div>
               </div>
             )}
