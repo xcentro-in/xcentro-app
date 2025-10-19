@@ -824,6 +824,7 @@ class ApiService {
       relation_id: string;
       invoice_number?: string;
       gross_amount: number;
+      net_amount: number;
       description?: string;
       voucher_date?: string;
       payment_type?: string;
@@ -848,6 +849,15 @@ class ApiService {
       return this.request(`/vouchers/${voucherId}`, {
         method: 'PUT',
         body: JSON.stringify(params),
+      });
+    }
+  };
+
+  // Vendors endpoints
+  vendors = {
+    getAll: async (businessId: string) => {
+      return this.request(`/vendors?bid=${businessId}`, {
+        method: 'GET',
       });
     }
   };
@@ -1019,5 +1029,6 @@ export const {
   notifications: notificationsAPI,
   processPayment: processPaymentAPI,
   wallet: walletAPI,
-  voucher: voucherAPI
+  voucher: voucherAPI,
+  vendors: vendorsAPI
 } = apiService;

@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Check, ChevronDown, Plus, User } from "lucide-react";
+import { Check, ChevronDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { mockPayees } from "@/data/mockPayees";
-import { Payee } from "@/types/payee";
-import { getPayeeIcon } from "@/utils/payeeUtils";
+import { useVendors } from "@/hooks/useVendors";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PayeeAutocompleteInputProps {
   selectedPayee?: string;
@@ -20,27 +19,31 @@ const PayeeAutocompleteInput = ({
   className,
   error
 }: PayeeAutocompleteInputProps) => {
+  const { user } = useAuth();
+  const { vendors, isLoading, error: vendorsError } = useVendors(user?.businessId);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedPayeeDetails = selectedPayee ? mockPayees.find(p => p.id === selectedPayee) : null;
+  const selectedPayeeDetails = selectedPayee
+    ? vendors.find(v => v.relation_id === selectedPayee)
+    : null;
 
-  const filteredPayees = mockPayees.filter(payee =>
-    payee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    payee.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredPayees = vendors.filter(vendor =>
+    vendor.display_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vendor.contact_email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Sort by favorites first, then by name
   const sortedPayees = filteredPayees.sort((a, b) => {
-    const aIsFavorite = favoritePayees.includes(a.id);
-    const bIsFavorite = favoritePayees.includes(b.id);
-    
+    const aIsFavorite = favoritePayees.includes(a.relation_id);
+    const bIsFavorite = favoritePayees.includes(b.relation_id);
+
     if (aIsFavorite && !bIsFavorite) return -1;
     if (!aIsFavorite && bIsFavorite) return 1;
-    return a.name.localeCompare(b.name);
+    return a.display_name.localeCompare(b.display_name);
   });
 
   useEffect(() => {
@@ -92,15 +95,15 @@ const PayeeAutocompleteInput = ({
     }
   };
 
-  const handlePayeeSelect = (payee: Payee) => {
-    onPayeeSelect(payee.id);
+  const handlePayeeSelect = (vendor: { relation_id: string; display_name: string; contact_email: string }) => {
+    onPayeeSelect(vendor.relation_id);
     setIsOpen(false);
     setSearchTerm("");
     setFocusedIndex(-1);
   };
 
-  const displayValue = selectedPayeeDetails 
-    ? selectedPayeeDetails.name 
+  const displayValue = selectedPayeeDetails
+    ? selectedPayeeDetails.display_name
     : searchTerm;
 
   return (
@@ -127,7 +130,7 @@ const PayeeAutocompleteInput = ({
           )}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-          {selectedPayeeDetails && getPayeeIcon(selectedPayeeDetails.type)}
+          {isLoading && <Loader2 className="h-4 w-4 text-muted-foreground animate-spin" />}
           <ChevronDown className={cn(
             "h-4 w-4 text-muted-foreground transition-transform duration-200",
             isOpen && "rotate-180"
@@ -144,39 +147,45 @@ const PayeeAutocompleteInput = ({
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-md shadow-lg max-h-60 overflow-y-auto"
         >
-          {sortedPayees.length === 0 ? (
+          {isLoading ? (
             <div className="p-3 text-sm text-muted-foreground text-center">
-              No payees found
+              <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
+              Loading vendors...
+            </div>
+          ) : vendorsError ? (
+            <div className="p-3 text-sm text-destructive text-center">
+              {vendorsError}
+            </div>
+          ) : sortedPayees.length === 0 ? (
+            <div className="p-3 text-sm text-muted-foreground text-center">
+              No vendors found
             </div>
           ) : (
-            sortedPayees.map((payee, index) => (
+            sortedPayees.map((vendor, index) => (
               <div
-                key={payee.id}
-                onClick={() => handlePayeeSelect(payee)}
+                key={vendor.relation_id}
+                onClick={() => handlePayeeSelect(vendor)}
                 className={cn(
                   "flex items-center gap-3 p-3 cursor-pointer transition-colors",
                   "hover:bg-accent hover:text-accent-foreground",
                   focusedIndex === index && "bg-accent text-accent-foreground",
-                  selectedPayee === payee.id && "bg-primary/10 text-primary"
+                  selectedPayee === vendor.relation_id && "bg-primary/10 text-primary"
                 )}
               >
-                <div className="flex-shrink-0">
-                  {getPayeeIcon(payee.type)}
-                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="font-medium truncate">{payee.name}</div>
-                    {favoritePayees.includes(payee.id) && (
+                    <div className="font-medium truncate">{vendor.display_name}</div>
+                    {favoritePayees.includes(vendor.relation_id) && (
                       <div className="text-xs px-1.5 py-0.5 bg-primary/20 text-primary rounded">
                         Favorite
                       </div>
                     )}
                   </div>
                   <div className="text-sm text-muted-foreground truncate">
-                    {payee.email}
+                    {vendor.contact_email}
                   </div>
                 </div>
-                {selectedPayee === payee.id && (
+                {selectedPayee === vendor.relation_id && (
                   <Check className="h-4 w-4 text-primary flex-shrink-0" />
                 )}
               </div>
@@ -192,7 +201,7 @@ const PayeeAutocompleteInput = ({
               }}
             >
               <Plus className="h-4 w-4" />
-              <span className="font-medium">Add New Payee</span>
+              <span className="font-medium">Add New Vendor</span>
             </div>
           </div>
         </div>

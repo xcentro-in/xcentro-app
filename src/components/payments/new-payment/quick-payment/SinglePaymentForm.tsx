@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import CombinedDetailsStep from "./CombinedDetailsStep";
 import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
-import { mockPayees } from "@/data/mockPayees";
 import { toast } from "@/hooks/use-toast";
 import { PaymentType } from "@/types/payments";
 import { voucherAPI } from "@/services/api";
 import { GetVoucherDraftResponse, UpdateVoucherRequest } from "@/types/voucher";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVendors } from "@/hooks/useVendors";
+import { Payee } from "@/types/payee";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;
@@ -24,6 +25,7 @@ interface FormState {
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const { user } = useAuth();
+  const { vendors } = useVendors(user?.businessId);
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
@@ -111,6 +113,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
             relation_id: selectedPayee,
             invoice_number: invoiceReference || undefined,
             gross_amount: parseFloat(amount) * 100,
+            net_amount: parseFloat(amount) * 100,
             description: description || undefined,
             payment_type: paymentType,
             scheduled_date: scheduledDate?.toISOString(),
@@ -217,7 +220,30 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     });
   };
 
-  const payeeDetails = selectedPayee ? mockPayees.find(payee => payee.id === selectedPayee) : undefined;
+  // Map vendor to Payee type for compatibility with PaymentMethodAndReviewStep
+  const payeeDetails: Payee | undefined = selectedPayee
+    ? (() => {
+        const vendor = vendors.find(v => v.relation_id === selectedPayee);
+        if (!vendor) return undefined;
+
+        // Create a minimal BankPayee object with vendor data
+        return {
+          id: vendor.relation_id,
+          name: vendor.display_name,
+          type: "bank" as const,
+          email: vendor.contact_email,
+          contactNumber: vendor.contact_phone,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isDefault: false,
+          accountNumber: "", // Not available from vendor API
+          bankName: "", // Not available from vendor API
+          ifscCode: "", // Not available from vendor API
+          defaultPaymentMode: "bank" as const,
+          tags: [],
+        } as Payee;
+      })()
+    : undefined;
 
   return (
     <div className="space-y-6">
