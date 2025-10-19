@@ -32,6 +32,7 @@ interface PaymentMethodAndReviewStepProps {
   onSubmit: () => void;
   additionalSummaryData?: Record<string, any>;
   paymentContext?: string; // e.g., "vendor_payment", "payroll", etc.
+  voucherId?: string; // Voucher ID from draft creation, used for payment processing
 }
 
 const PaymentMethodAndReviewStep = ({
@@ -44,7 +45,8 @@ const PaymentMethodAndReviewStep = ({
   onBack,
   onSubmit,
   additionalSummaryData,
-  paymentContext = "vendor_payment"
+  paymentContext = "vendor_payment",
+  voucherId
 }: PaymentMethodAndReviewStepProps) => {
   const { user } = useAuth();
   const {

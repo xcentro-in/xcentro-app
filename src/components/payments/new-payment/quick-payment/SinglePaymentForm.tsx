@@ -1,15 +1,29 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import CombinedDetailsStep from "./CombinedDetailsStep";
 import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
 import { mockPayees } from "@/data/mockPayees";
 import { toast } from "@/hooks/use-toast";
 import { PaymentType } from "@/types/payments";
+import { voucherAPI } from "@/services/api";
+import { GetVoucherDraftResponse, UpdateVoucherRequest } from "@/types/voucher";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SinglePaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
+interface FormState {
+  amount: string;
+  description: string;
+  invoiceReference: string;
+  selectedPayee?: string;
+  paymentType: PaymentType;
+  scheduledDate?: Date;
+  frequency: string;
+}
+
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date>();
@@ -20,11 +34,161 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const [selectedPayee, setSelectedPayee] = useState<string>();
   const [favoritePayees, setFavoritePayees] = useState<string[]>(["1", "3"]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
-  
-  const handleNext = () => {
-    const nextStep = step + 1;
-    setStep(nextStep);
-    onStepChange(nextStep);
+  const [voucherId, setVoucherId] = useState<string>();
+  const [isCreatingVoucher, setIsCreatingVoucher] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Store initial form state when voucher is created
+  const initialFormState = useRef<FormState | null>(null);
+
+  // Reset voucher session when component unmounts
+  useEffect(() => {
+    return () => {
+      // Cleanup: reset voucher state when leaving the quick payment flow
+      setVoucherId(undefined);
+      initialFormState.current = null;
+    };
+  }, []);
+
+  // Helper to get current form state
+  const getCurrentFormState = (): FormState => ({
+    amount,
+    description,
+    invoiceReference,
+    selectedPayee,
+    paymentType,
+    scheduledDate,
+    frequency
+  });
+
+  // Helper to detect changes and return only changed fields
+  const getChangedFields = (): UpdateVoucherRequest | null => {
+    if (!initialFormState.current) return null;
+
+    const initial = initialFormState.current;
+    const current = getCurrentFormState();
+    const changes: UpdateVoucherRequest = {};
+
+    // Check each field for changes
+    if (current.selectedPayee !== initial.selectedPayee) {
+      changes.relation_id = current.selectedPayee;
+    }
+    if (current.invoiceReference !== initial.invoiceReference) {
+      changes.invoice_number = current.invoiceReference || undefined;
+    }
+    if (current.amount !== initial.amount) {
+      changes.gross_amount = parseFloat(current.amount) * 100;
+    }
+    if (current.description !== initial.description) {
+      changes.description = current.description || undefined;
+    }
+    if (current.paymentType !== initial.paymentType) {
+      changes.payment_type = current.paymentType;
+    }
+    if (current.scheduledDate?.toISOString() !== initial.scheduledDate?.toISOString()) {
+      changes.scheduled_date = current.scheduledDate?.toISOString();
+    }
+    if (current.frequency !== initial.frequency && current.paymentType === "recurring") {
+      changes.frequency = current.frequency;
+    }
+
+    // Return null if no changes
+    return Object.keys(changes).length > 0 ? changes : null;
+  };
+
+  const handleNext = async () => {
+    // If moving from step 1 to step 2, handle voucher creation/update
+    if (step === 1 && selectedPayee && amount) {
+      // Decision tree: Create, Update, or Skip API call
+      if (!voucherId) {
+        // No voucher exists - CREATE new draft
+        setIsCreatingVoucher(true);
+
+        try {
+          const response: GetVoucherDraftResponse = await voucherAPI.createDraft({
+            business_id: user?.businessId || "01936d7a-7c8e-7890-b123-456789abcdef",
+            user_id: user?.id || "placeholder-user-id",
+            relation_id: selectedPayee,
+            invoice_number: invoiceReference || undefined,
+            gross_amount: parseFloat(amount) * 100,
+            description: description || undefined,
+            payment_type: paymentType,
+            scheduled_date: scheduledDate?.toISOString(),
+            frequency: paymentType === "recurring" ? frequency : undefined,
+          });
+
+          // Store voucher_id and initial form state
+          setVoucherId(response.data.voucher_id);
+          initialFormState.current = getCurrentFormState();
+
+          // Move to next step
+          const nextStep = step + 1;
+          setStep(nextStep);
+          onStepChange(nextStep);
+
+          toast({
+            title: "Voucher Created",
+            description: `Voucher ${response.data.voucher_number} created successfully.`,
+          });
+        } catch (error) {
+          console.error("Failed to create voucher draft:", error);
+          toast({
+            title: "Error",
+            description: "Failed to create payment voucher. Please try again.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsCreatingVoucher(false);
+        }
+      } else {
+        // Voucher exists - check for changes
+        const changedFields = getChangedFields();
+
+        if (changedFields) {
+          // Changes detected - UPDATE voucher
+          setIsUpdating(true);
+
+          try {
+            const response: GetVoucherDraftResponse = await voucherAPI.update(
+              voucherId,
+              changedFields
+            );
+
+            // Update initial form state to current state
+            initialFormState.current = getCurrentFormState();
+
+            // Move to next step
+            const nextStep = step + 1;
+            setStep(nextStep);
+            onStepChange(nextStep);
+
+            toast({
+              title: "Voucher Updated",
+              description: `Voucher ${response.data.voucher_number} updated successfully.`,
+            });
+          } catch (error) {
+            console.error("Failed to update voucher:", error);
+            toast({
+              title: "Error",
+              description: "Failed to update payment voucher. Please try again.",
+              variant: "destructive",
+            });
+          } finally {
+            setIsUpdating(false);
+          }
+        } else {
+          // No changes - SKIP API call and just navigate
+          const nextStep = step + 1;
+          setStep(nextStep);
+          onStepChange(nextStep);
+        }
+      }
+    } else {
+      // For other step transitions, just move forward
+      const nextStep = step + 1;
+      setStep(nextStep);
+      onStepChange(nextStep);
+    }
   };
 
   const handleBack = () => {
@@ -75,6 +239,8 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           onFrequencyChange={setFrequency}
           onPayeeSelect={setSelectedPayee}
           onNext={handleNext}
+          isCreatingVoucher={isCreatingVoucher}
+          isUpdating={isUpdating}
         />
       )}
 
@@ -87,6 +253,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           invoiceReference={invoiceReference}
           frequency={frequency}
           payee={payeeDetails}
+          voucherId={voucherId}
           onBack={handleBack}
           onSubmit={handleSubmit}
         />

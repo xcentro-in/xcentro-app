@@ -197,9 +197,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessName: businessName,
         // Optional fields - add defaults or fetch from profile if needed
         rewardPoints: 0,
-        hasCompletedOnboarding: true,
-        hasAddedPaymentMethod: false,
-        hasAddedVendor: false,
+        hasCompletedOnboarding: false,
+        hasAddedPaymentMethod: true,
+        hasAddedVendor: true,
         hasCreatedFirstPayment: false,
       };
 

@@ -15,6 +15,8 @@ interface CombinedDetailsStepProps {
   frequency: string;
   selectedPayee?: string;
   favoritePayees: string[];
+  isCreatingVoucher?: boolean;
+  isUpdating?: boolean;
   onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onAmountChange: (value: string) => void;
@@ -34,6 +36,8 @@ const CombinedDetailsStep = ({
   frequency,
   selectedPayee,
   favoritePayees,
+  isCreatingVoucher = false,
+  isUpdating = false,
   onPaymentTypeChange,
   onScheduledDateChange,
   onAmountChange,
@@ -124,12 +128,16 @@ const CombinedDetailsStep = ({
       </Card>
 
       <div className="flex justify-end pt-6">
-        <Button 
-          onClick={onNext} 
-          disabled={!isFormValid}
+        <Button
+          onClick={onNext}
+          disabled={!isFormValid || isCreatingVoucher || isUpdating}
           className="w-auto"
         >
-          Select Payment Method
+          {isCreatingVoucher
+            ? "Creating Voucher..."
+            : isUpdating
+            ? "Updating Voucher..."
+            : "Select Payment Method"}
         </Button>
       </div>
     </div>

@@ -12,6 +12,7 @@ interface QuickPaymentMethodAndReviewStepProps {
   invoiceReference: string;
   frequency: string;
   payee: Payee;
+  voucherId?: string;
   onBack: () => void;
   onSubmit: () => void;
 }
@@ -24,6 +25,7 @@ const QuickPaymentMethodAndReviewStep = ({
   invoiceReference,
   frequency,
   payee,
+  voucherId,
   onBack,
   onSubmit
 }: QuickPaymentMethodAndReviewStepProps) => {
@@ -62,6 +64,7 @@ const QuickPaymentMethodAndReviewStep = ({
       onBack={onBack}
       onSubmit={onSubmit}
       additionalSummaryData={{ invoiceReference }}
+      voucherId={voucherId}
     />
   );
 };

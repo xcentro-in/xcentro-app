@@ -816,6 +816,42 @@ class ApiService {
     }
   };
 
+  // Voucher endpoints
+  voucher = {
+    createDraft: async (params: {
+      business_id: string;
+      user_id: string;
+      relation_id: string;
+      invoice_number?: string;
+      gross_amount: number;
+      description?: string;
+      voucher_date?: string;
+      payment_type?: string;
+      scheduled_date?: string;
+      frequency?: string;
+    }) => {
+      return this.request('/vouchers/draft', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+    },
+
+    update: async (voucherId: string, params: {
+      relation_id?: string;
+      invoice_number?: string;
+      gross_amount?: number;
+      description?: string;
+      payment_type?: string;
+      scheduled_date?: string;
+      frequency?: string;
+    }) => {
+      return this.request(`/vouchers/${voucherId}`, {
+        method: 'PUT',
+        body: JSON.stringify(params),
+      });
+    }
+  };
+
   // Bills endpoints - TODO: Implement when backend is ready
   bills = {
     getAll: async (businessId: string, params: {
@@ -982,5 +1018,6 @@ export const {
   paymentInsights: paymentInsightsAPI,
   notifications: notificationsAPI,
   processPayment: processPaymentAPI,
-  wallet: walletAPI
+  wallet: walletAPI,
+  voucher: voucherAPI
 } = apiService;
