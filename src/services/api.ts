@@ -564,14 +564,15 @@ class ApiService {
     }
   };
 
-  // Payees endpoints - TODO: Implement when backend is ready
+  // Payees endpoints
   payees = {
     getAll: async (businessId: string) => {
-      // TODO: Get all payees for business
-      // return this.request(`/payees?businessId=${businessId}`);
-
-      console.log('TODO: Implement payees.getAll API call', { businessId });
-      throw new Error('API not implemented yet');
+      return this.request('/payees', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     },
 
     create: async (payeeData: any) => {

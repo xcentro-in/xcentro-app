@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Payee } from '@/types/payee';
+import { payeesAPI } from '@/services/api';
+import { GetPayeesResponse, PayeeAPIResponse } from '@/types/payees-api';
 
 export interface PayeesResponse {
   payees: Payee[];
@@ -10,6 +12,63 @@ export interface PayeesResponse {
     businessId: string;
   };
 }
+
+// Helper function to map API response to Payee type
+const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
+  // Determine payee type based on tags or default to 'bank'
+  let type: 'bank' | 'biller' | 'payroll' = 'bank';
+  if (apiPayee.tags.some(tag => tag.toLowerCase().includes('payroll') || tag.toLowerCase().includes('employee'))) {
+    type = 'payroll';
+  } else if (apiPayee.tags.some(tag => tag.toLowerCase().includes('bill') || tag.toLowerCase().includes('utility'))) {
+    type = 'biller';
+  }
+
+  // Base payee properties
+  const basePayee = {
+    id: apiPayee.relation_id,
+    name: apiPayee.display_name,
+    type,
+    email: apiPayee.contact_email,
+    contactNumber: apiPayee.contact_phone,
+    createdAt: apiPayee.added_at,
+    updatedAt: apiPayee.updated_at === '0001-01-01T00:00:00Z' ? apiPayee.added_at : apiPayee.updated_at,
+    isDefault: apiPayee.is_favorite, // Map is_favorite to isDefault
+  };
+
+  // Return type-specific payee object
+  if (type === 'bank') {
+    return {
+      ...basePayee,
+      type: 'bank',
+      accountNumber: '', // Not available in API
+      bankName: '', // Not available in API
+      ifscCode: '', // Not available in API
+      gstin: '', // Not available in API
+      defaultPaymentMode: 'bank' as const,
+      tags: apiPayee.tags,
+    };
+  } else if (type === 'biller') {
+    return {
+      ...basePayee,
+      type: 'biller',
+      billerName: apiPayee.display_name,
+      customerId: apiPayee.payee_id,
+      billingCycle: 'monthly' as const, // Default
+      autoPayment: false,
+    };
+  } else {
+    return {
+      ...basePayee,
+      type: 'payroll',
+      accountNumber: '', // Not available in API
+      bankName: '', // Not available in API
+      ifscCode: '', // Not available in API
+      salaryAmount: 0, // Not available in API
+      salaryType: 'fixed' as const,
+      payrollCycle: 'monthly' as const,
+    };
+  }
+};
 
 export const usePayees = () => {
   const [data, setData] = useState<PayeesResponse | null>(null);
@@ -25,30 +84,34 @@ export const usePayees = () => {
       setError(null);
 
       try {
-        // TODO: Replace with actual API call
-        // const response = await fetch(`/api/payees?businessId=${user.businessId}`, {
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
-        //   },
-        // });
+        // Call real API
+        const response: GetPayeesResponse = await payeesAPI.getAll(user.businessId);
 
-        // Mock API simulation
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Handle empty data (null)
+        if (!response.data || response.data.length === 0) {
+          setData({
+            payees: [],
+            metadata: {
+              total: 0,
+              lastUpdated: new Date().toISOString(),
+              businessId: user.businessId
+            }
+          });
+        } else {
+          // Map API response to Payee type
+          const mappedPayees = response.data.map(mapAPIResponseToPayee);
 
-        // Import mock data
-        const { mockPayees } = await import('@/data/mockPayees');
+          const payeesResponse: PayeesResponse = {
+            payees: mappedPayees,
+            metadata: {
+              total: response.total_count,
+              lastUpdated: new Date().toISOString(),
+              businessId: user.businessId
+            }
+          };
 
-        // Simulate server response with metadata
-        const response: PayeesResponse = {
-          payees: mockPayees,
-          metadata: {
-            total: mockPayees.length,
-            lastUpdated: new Date().toISOString(),
-            businessId: user.businessId
-          }
-        };
-
-        setData(response);
+          setData(payeesResponse);
+        }
       } catch (err) {
         setError('Failed to fetch payees');
         console.error('Payees fetch error:', err);
