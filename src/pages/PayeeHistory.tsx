@@ -14,8 +14,8 @@ import { usePayeeTransactions } from "@/hooks/usePayeeTransactions";
 
 // Import refactored components
 import { DownloadActions } from "@/components/payee-history/DownloadActions";
-// Use main reusable TransactionsTable with inline column filters
-import TransactionsTable from "@/components/payments/payment-history/tables/TransactionsTable";
+// Use payee-specific TransactionsTable (no vendor column, no category, includes description)
+import TransactionsTable from "@/components/payee-history/TransactionsTable";
 const PayeeHistory = () => {
   const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();

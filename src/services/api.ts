@@ -566,7 +566,7 @@ class ApiService {
 
   // Payees endpoints
   payees = {
-    getAll: async (businessId: string) => {
+    getAll: async (businessId: string): Promise<any> => {
       return this.request('/payees', {
         method: 'GET',
         headers: {
@@ -605,13 +605,14 @@ class ApiService {
       throw new Error('API not implemented yet');
     },
 
-    // Get detailed payee information with overview analytics
-    getDetails: async (businessId: string, payeeId: string) => {
-      // TODO: Get payee details with overview analytics
-      // return this.request(`/payees/${payeeId}/details?businessId=${businessId}`);
-
-      console.log('TODO: Implement payees.getDetails API call', { businessId, payeeId });
-      throw new Error('API not implemented yet');
+    // Get detailed payee information
+    getDetails: async (businessId: string, payeeId: string): Promise<any> => {
+      return this.request(`/payees/details/${payeeId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     },
 
     // Get transactions for a specific payee

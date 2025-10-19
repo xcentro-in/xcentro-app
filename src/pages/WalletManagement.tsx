@@ -56,65 +56,151 @@ const WalletManagement = () => {
     }
   };
 
-  // Show loading state with skeleton
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {/* Header Skeleton */}
-        <div className="flex items-center justify-between">
-          <div className="animate-pulse">
-            <div className="h-6 w-64 bg-gray-200 rounded mb-2"></div>
-          </div>
-          <div className="h-10 w-56 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-
-        {/* Card Skeleton */}
-        <Card className="overflow-hidden">
-          <CardHeader className="pb-4">
-            <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="animate-pulse space-y-0">
-              {/* Tabs Skeleton */}
-              <div className="px-6 pb-4">
-                <div className="h-10 bg-gray-200 rounded"></div>
-              </div>
-              {/* Payment Method Items Skeleton */}
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center p-5 border-b border-slate-100 last:border-b-0">
-                  <div className="w-12 h-8 bg-gray-200 rounded-lg mr-5"></div>
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-40 bg-gray-200 rounded"></div>
-                    <div className="h-4 w-64 bg-gray-200 rounded"></div>
-                    <div className="h-3 w-32 bg-gray-200 rounded"></div>
-                  </div>
+  // Determine what content to show
+  const renderContent = () => {
+    // Show loading state with skeleton
+    if (isLoading) {
+      return (
+        <>
+          {/* Card Skeleton */}
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-4">
+              <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="animate-pulse space-y-0">
+                {/* Tabs Skeleton */}
+                <div className="px-6 pb-4">
+                  <div className="h-10 bg-gray-200 rounded"></div>
                 </div>
-              ))}
+                {/* Payment Method Items Skeleton */}
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center p-5 border-b border-slate-100 last:border-b-0">
+                    <div className="w-12 h-8 bg-gray-200 rounded-lg mr-5"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-5 w-40 bg-gray-200 rounded"></div>
+                      <div className="h-4 w-64 bg-gray-200 rounded"></div>
+                      <div className="h-3 w-32 bg-gray-200 rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Security Notice Skeleton */}
+          <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
+        </>
+      );
+    }
+
+    // Show error state
+    if (error) {
+      return (
+        <Card className="animate-scale-in">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center min-h-[300px] text-center">
+              <Alert variant="destructive" className="max-w-md">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+              <p className="mt-4 text-muted-foreground text-sm">
+                Unable to load payment sources. Please try adding a new source or contact support.
+              </p>
             </div>
           </CardContent>
         </Card>
+      );
+    }
 
-        {/* Security Notice Skeleton */}
-        <div className="h-16 bg-gray-200 rounded animate-pulse"></div>
-      </div>
-    );
-  }
+    // Show empty state if no payment methods
+    if (showEmptyState) {
+      return <EmptyWallet />;
+    }
 
-  // Show error state
-  if (error) {
+    // Show payment methods
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+      <>
+        {/* Payment Methods Tabs */}
+        <Card className="animate-scale-in overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Methods
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <Tabs defaultValue="cards" className="w-full">
+              <div className="px-6 pb-4">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="cards" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Cards ({cards.length})
+                  </TabsTrigger>
+                  <TabsTrigger value="banks" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Banks ({bankAccounts.length})
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-  // Show empty state if no payment methods
-  if (showEmptyState) {
-    return <EmptyWallet />;
-  }
+              <TabsContent value="cards" className="mt-0">
+                {cards.length > 0 ? (
+                  <div className="space-y-0">
+                    {cards.map((card) => renderCard(card))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 px-6">
+                    <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No cards added</h3>
+                    <p className="text-muted-foreground mb-4">Add your first credit or debit card to get started</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/wallet/add")}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Card
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="banks" className="mt-0">
+                {bankAccounts.length > 0 ? (
+                  <div className="space-y-0">
+                    {bankAccounts.map((account) => renderBankAccount(account))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 px-6">
+                    <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No bank accounts added</h3>
+                    <p className="text-muted-foreground mb-4">Add your bank account for direct transfers</p>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/wallet/add")}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Bank Account
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Security Notice */}
+        <Alert className="bg-primary/5 border-primary/20 shadow-sm animate-fade-in">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <AlertDescription className="flex items-center text-sm font-medium text-primary/90">
+            <span>
+              For security, card numbers are masked and CVV values are never stored.
+              All payment data is encrypted and stored in compliance with PCI DSS standards.
+            </span>
+          </AlertDescription>
+        </Alert>
+      </>
+    );
+  };
 
   const renderCard = (card: StoredCard) => {
     return (
@@ -281,14 +367,14 @@ const WalletManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - Always visible */}
       <div className="flex items-center justify-between">
         <div>
           <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
         </div>
-        
-        <Button 
-          className="gap-2" 
+
+        <Button
+          className="gap-2"
           onClick={() => navigate("/wallet/add")}
         >
           <Plus className="h-4 w-4" />
@@ -296,84 +382,8 @@ const WalletManagement = () => {
         </Button>
       </div>
 
-      {/* Payment Methods Tabs */}
-      <Card className="animate-scale-in overflow-hidden">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payment Methods
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Tabs defaultValue="cards" className="w-full">
-            <div className="px-6 pb-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="cards" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Cards ({cards.length})
-                </TabsTrigger>
-                <TabsTrigger value="banks" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Banks ({bankAccounts.length})
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="cards" className="mt-0">
-              {cards.length > 0 ? (
-                <div className="space-y-0">
-                  {cards.map((card) => renderCard(card))}
-                </div>
-              ) : (
-                <div className="text-center py-12 px-6">
-                  <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No cards added</h3>
-                  <p className="text-muted-foreground mb-4">Add your first credit or debit card to get started</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/wallet/add")}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Card
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="banks" className="mt-0">
-              {bankAccounts.length > 0 ? (
-                <div className="space-y-0">
-                  {bankAccounts.map((account) => renderBankAccount(account))}
-                </div>
-              ) : (
-                <div className="text-center py-12 px-6">
-                  <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No bank accounts added</h3>
-                  <p className="text-muted-foreground mb-4">Add your bank account for direct transfers</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate("/wallet/add")}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Bank Account
-                  </Button>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-      
-      {/* Security Notice */}
-      <Alert className="bg-primary/5 border-primary/20 shadow-sm animate-fade-in">
-        <ShieldCheck className="h-5 w-5 text-primary" />
-        <AlertDescription className="flex items-center text-sm font-medium text-primary/90">
-          <span>
-            For security, card numbers are masked and CVV values are never stored. 
-            All payment data is encrypted and stored in compliance with PCI DSS standards.
-          </span>
-        </AlertDescription>
-      </Alert>
+      {/* Content - Conditional based on state */}
+      {renderContent()}
     </div>
   );
 };

@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Payee, BankPayee, BillerPayee, PayrollPayee } from '@/types/payee';
+import { payeesAPI } from '@/services/api';
+import {
+  GetPayeeDetailsResponse,
+  PayeeDetailsDataAPI,
+  VendorPayeeDetailsAPI,
+  BillerPayeeDetailsAPI,
+  EmployeePayeeDetailsAPI
+} from '@/types/payee-details-api';
 
 // Server-side payee overview data structure
 export interface PayeeOverview {
@@ -28,6 +36,66 @@ export interface PayeeDetailsResponse {
   message?: string;
 }
 
+// Helper function to map API response to frontend Payee type
+const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
+  // Common fields
+  const basePayee = {
+    id: apiPayee.relation_id,
+    name: apiPayee.display_name,
+    email: apiPayee.contact_email,
+    contactNumber: apiPayee.contact_phone,
+    createdAt: new Date().toISOString(), // Not available in API
+    updatedAt: new Date().toISOString(), // Not available in API
+    isDefault: apiPayee.is_favorite,
+  };
+
+  // Map based on payee_type
+  switch (apiPayee.payee_type) {
+    case 'vendor': {
+      const vendor = apiPayee as VendorPayeeDetailsAPI;
+      return {
+        ...basePayee,
+        type: 'bank' as const,
+        accountNumber: vendor.bank_details?.account_number || '',
+        bankName: vendor.bank_details?.bank_name || '',
+        ifscCode: vendor.bank_details?.ifsc_code || '',
+        gstin: vendor.gstin || '',
+        defaultPaymentMode: 'bank' as const,
+        tags: vendor.tags || [],
+      } as BankPayee;
+    }
+
+    case 'biller': {
+      const biller = apiPayee as BillerPayeeDetailsAPI;
+      return {
+        ...basePayee,
+        type: 'biller' as const,
+        billerName: biller.biller_name,
+        customerId: biller.mobile_number, // Using mobile_number as customerId
+        billingCycle: 'monthly' as const,
+        autoPayment: false,
+      } as BillerPayee;
+    }
+
+    case 'employee': {
+      const employee = apiPayee as EmployeePayeeDetailsAPI;
+      return {
+        ...basePayee,
+        type: 'payroll' as const,
+        accountNumber: employee.bank_details?.account_number || '',
+        bankName: employee.bank_details?.bank_name || '',
+        ifscCode: employee.bank_details?.ifsc_code || '',
+        salaryAmount: 0, // Not available in API
+        salaryType: 'fixed' as const,
+        payrollCycle: 'monthly' as const,
+      } as PayrollPayee;
+    }
+
+    default:
+      throw new Error(`Unknown payee type: ${(apiPayee as any).payee_type}`);
+  }
+};
+
 // Hook for fetching payee details and overview data
 export const usePayeeDetails = (payeeId: string) => {
   const [overview, setOverview] = useState<PayeeOverview | null>(null);
@@ -46,21 +114,19 @@ export const usePayeeDetails = (payeeId: string) => {
       setIsLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API call
-      // const response = await api.payees.getDetails(user.businessId, payeeId);
+      // Call real API
+      const response: GetPayeeDetailsResponse = await payeesAPI.getDetails(user.businessId, payeeId);
 
-      // Mock API simulation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Import mock data for simulation
-      const { mockPayees } = await import('@/data/mockPayees');
-      const { getPayeeTransactions, getPayeeTotalPayments, getPayeeLastTransactionDate } = await import('@/data/mockPayeeTransactions');
-
-      const payee = mockPayees.find(p => p.id === payeeId);
-
-      if (!payee) {
-        throw new Error('Payee not found');
+      if (response.status !== 'success' || !response.data) {
+        throw new Error(response.message || 'Failed to fetch payee details');
       }
+
+      // Map API response to frontend Payee type
+      const payee = mapAPIResponseToPayee(response.data);
+
+      // TODO: Analytics data (totalPaid, totalTransactions, etc.) should come from backend
+      // For now, we'll use mock data for analytics calculation
+      const { getPayeeTransactions, getPayeeTotalPayments, getPayeeLastTransactionDate } = await import('@/data/mockPayeeTransactions');
 
       const transactions = getPayeeTransactions(payeeId);
       const totalPaid = getPayeeTotalPayments(payeeId);
@@ -108,7 +174,7 @@ export const usePayeeDetails = (payeeId: string) => {
         return acc;
       }, [] as { method: string; count: number; totalAmount: number; }[]);
 
-      const mockOverview: PayeeOverview = {
+      const overview: PayeeOverview = {
         payee,
         totalPaid,
         totalTransactions,
@@ -122,7 +188,7 @@ export const usePayeeDetails = (payeeId: string) => {
         paymentMethodDistribution: methodDistribution
       };
 
-      setOverview(mockOverview);
+      setOverview(overview);
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch payee details';

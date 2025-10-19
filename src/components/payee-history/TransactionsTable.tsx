@@ -1,41 +1,59 @@
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  Table, 
-  TableBody, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableRow
 } from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
-import { Transaction, TransactionStatus, PaymentMethod } from "@/types/transaction";
-import { DateRange } from "react-day-picker";
+import { Transaction } from "@/types/transaction";
 
-// Import new components
+// Import components
 import { TableSearchBar } from "./TableSearchBar";
 import { TransactionTableHeader } from "./TransactionTableHeader";
 import { TransactionTableRow } from "./TransactionTableRow";
 import { EmptyTransactionsState } from "./EmptyTransactionsState";
+import TablePagination from "./TablePagination";
 
 interface TransactionsTableProps {
   transactions: Transaction[];
-  appliedFilters: {
-    status: TransactionStatus | "all";
-    method: PaymentMethod | "all";
-    dateRange: DateRange | undefined;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
   };
-  onResetFilters: () => void;
+  appliedFilters?: {
+    status: string;
+    paymentMethod: string;
+    totalResults: number;
+  };
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  itemsPerPage?: number;
+  onItemsPerPageChange?: (value: number) => void;
+  onPageChange?: (page: number) => void;
+  onSortChange?: (column: 'date' | 'amount' | 'vendor' | 'status') => void;
+  onDateRangeChange?: (range: 'last7days' | 'last30days' | 'last3months' | 'custom') => void;
+  onStatusFilterChange?: (statuses: string[]) => void;
+  onPaymentMethodFilterChange?: (methods: string[]) => void;
 }
 
-export const TransactionsTable = ({ 
-  transactions, 
+const TransactionsTable = ({
+  transactions,
+  pagination,
   appliedFilters,
-  onResetFilters
+  searchValue = "",
+  onSearchChange,
+  itemsPerPage = 20,
+  onItemsPerPageChange,
+  onPageChange,
+  onSortChange,
 }: TransactionsTableProps) => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState<string>("date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  
+
   // Handle sorting
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -44,117 +62,88 @@ export const TransactionsTable = ({
       setSortColumn(column);
       setSortDirection("desc");
     }
+
+    // Trigger server-side sort if callback provided
+    if (onSortChange && column !== 'invoice') {
+      onSortChange(column as 'date' | 'amount' | 'vendor' | 'status');
+    }
   };
 
   // Handle row click to navigate to transaction details
   const handleRowClick = (transactionId: string) => {
-    // Navigate to the transaction details page
     navigate(`/payments/${transactionId}`);
   };
-  
-  // Filter and sort transactions
-  const filteredTransactions = useMemo(() => {
-    let filtered = [...transactions];
-    
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(
-        t => t.description?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-             t.invoice?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-             t.transactionId.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Apply status filter from applied filters
-    if (appliedFilters.status !== "all") {
-      filtered = filtered.filter(t => t.status === appliedFilters.status);
-    }
-    
-    // Apply payment method filter from applied filters
-    if (appliedFilters.method !== "all") {
-      filtered = filtered.filter(t => t.method === appliedFilters.method);
-    }
-    
-    // Apply date range filter from applied filters
-    if (appliedFilters.dateRange?.from) {
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.date);
-        if (appliedFilters.dateRange?.from && transactionDate < appliedFilters.dateRange.from) return false;
-        if (appliedFilters.dateRange?.to && transactionDate > appliedFilters.dateRange.to) return false;
-        return true;
-      });
-    }
-    
-    // Sort filtered results
-    filtered.sort((a, b) => {
-      let valueA, valueB;
-      
-      if (sortColumn === "date") {
-        valueA = new Date(a.date).getTime();
-        valueB = new Date(b.date).getTime();
-      } else if (sortColumn === "amount") {
-        valueA = a.amount;
-        valueB = b.amount;
-      } else if (sortColumn === "invoice") {
-        valueA = a.invoice || "";
-        valueB = b.invoice || "";
-      } else {
-        valueA = a[sortColumn as keyof Transaction] || "";
-        valueB = b[sortColumn as keyof Transaction] || "";
-      }
-      
-      if (sortDirection === "asc") {
-        return valueA > valueB ? 1 : -1;
-      } else {
-        return valueA < valueB ? 1 : -1;
-      }
-    });
-    
-    return filtered;
-  }, [transactions, searchTerm, appliedFilters, sortColumn, sortDirection]);
-
-  // Check if there are any active filters
-  const hasActiveFilters = appliedFilters.status !== "all" || 
-                           appliedFilters.method !== "all" || 
-                           !!appliedFilters.dateRange?.from;
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <TableSearchBar 
-          searchTerm={searchTerm} 
-          onSearchChange={setSearchTerm} 
+    <div className="space-y-4">
+      {/* Search Bar */}
+      <div className="flex items-center justify-between gap-4">
+        <TableSearchBar
+          searchTerm={searchValue}
+          onSearchChange={onSearchChange || (() => {})}
         />
-        
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TransactionTableHeader 
-              sortColumn={sortColumn}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-            />
-            <TableBody>
-              {filteredTransactions.length > 0 ? (
-                filteredTransactions.map((transaction) => (
-                  <TransactionTableRow 
-                    key={transaction.id}
-                    transaction={transaction} 
-                    onRowClick={handleRowClick}
-                  />
-                ))
-              ) : (
-                <TableRow>
-                  <EmptyTransactionsState 
-                    searchTerm={searchTerm}
-                    hasActiveFilters={hasActiveFilters}
-                    onResetFilters={onResetFilters}
-                  />
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+
+        {/* Items per page selector */}
+        {onItemsPerPageChange && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span className="text-sm text-muted-foreground">rows</span>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="rounded-md border overflow-hidden">
+        <Table>
+          <TransactionTableHeader
+            sortColumn={sortColumn}
+            sortDirection={sortDirection}
+            onSort={handleSort}
+          />
+          <TableBody>
+            {transactions.length > 0 ? (
+              transactions.map((transaction) => (
+                <TransactionTableRow
+                  key={transaction.id}
+                  transaction={transaction}
+                  onRowClick={handleRowClick}
+                />
+              ))
+            ) : (
+              <TableRow>
+                <EmptyTransactionsState
+                  searchTerm={searchValue}
+                  hasActiveFilters={false}
+                  onResetFilters={() => {}}
+                />
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Pagination */}
+      {pagination && pagination.total > 0 && onPageChange && (
+        <TablePagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          itemsPerPage={pagination.limit}
+          onPageChange={onPageChange}
+        />
+      )}
+    </div>
   );
 };
+
+export default TransactionsTable;
