@@ -615,7 +615,7 @@ class ApiService {
       });
     },
 
-    // Get transactions for a specific payee
+    // Get vouchers/transactions for a specific payee
     getTransactions: async (businessId: string, payeeId: string, params: {
       status?: string;
       paymentMethod?: string;
@@ -625,16 +625,25 @@ class ApiService {
       limit?: number;
       sortBy?: string;
       sortOrder?: string;
-    }) => {
-      // TODO: Get payee transactions with server-side filtering
-      // const queryParams = new URLSearchParams({
-      //   businessId,
-      //   ...Object.fromEntries(Object.entries(params).filter(([_, v]) => v != null))
-      // });
-      // return this.request(`/payees/${payeeId}/transactions?${queryParams}`);
+    }): Promise<any> => {
+      // Build query parameters - only include page and page_size for now
+      const queryParams = new URLSearchParams();
+      if (params.page) {
+        queryParams.append('page', params.page.toString());
+      }
+      if (params.limit) {
+        queryParams.append('page_size', params.limit.toString());
+      }
 
-      console.log('TODO: Implement payees.getTransactions API call', { businessId, payeeId, params });
-      throw new Error('API not implemented yet');
+      const queryString = queryParams.toString();
+      const url = `/vouchers/payee/${payeeId}${queryString ? `?${queryString}` : ''}`;
+
+      return this.request(url, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     },
 
     // Update payee details (for edit functionality)

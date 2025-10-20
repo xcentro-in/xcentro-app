@@ -9,7 +9,7 @@ export type TransactionStatus =
   | 'rejected'
   | 'cancelled';
 
-export type PaymentMethod = 'credit' | 'bank';
+export type PaymentMethod = 'credit' | 'bank' | 'upi' | 'bnpl';
 export type TransactionType = 'single' | 'batch' | 'recurring';
 export type TransactionCategory = 'vendor' | 'supplier' | 'biller' | 'payroll';
 

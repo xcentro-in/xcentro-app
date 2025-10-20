@@ -36,7 +36,7 @@ const PayeeHistory = () => {
     paymentMethod: 'all' as PaymentMethod | 'all',
     dateRange: undefined as DateRange | undefined,
     page: 1,
-    limit: 20,
+    limit: 10,
     sortBy: 'date' as 'date' | 'amount' | 'status' | 'method',
     sortOrder: 'desc' as 'asc' | 'desc'
   });

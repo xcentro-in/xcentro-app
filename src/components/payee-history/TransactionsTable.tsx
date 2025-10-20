@@ -45,7 +45,7 @@ const TransactionsTable = ({
   appliedFilters,
   searchValue = "",
   onSearchChange,
-  itemsPerPage = 20,
+  itemsPerPage = 10,
   onItemsPerPageChange,
   onPageChange,
   onSortChange,

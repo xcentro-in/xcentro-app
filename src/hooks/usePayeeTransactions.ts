@@ -2,6 +2,79 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Transaction, TransactionStatus, PaymentMethod } from '@/types/transaction';
 import { DateRange } from 'react-day-picker';
+import { payeesAPI } from '@/services/api';
+import { GetPayeeVouchersResponse, VoucherAPI } from '@/types/payee-vouchers-api';
+
+// Helper function to parse payment method from API response
+const parsePaymentMethod = (paymentMethodStr: string): PaymentMethod => {
+  const lowerStr = paymentMethodStr.toLowerCase();
+
+  if (lowerStr === 'n/a' || lowerStr === 'not available') {
+    return 'bank'; // Default for draft vouchers
+  } else if (lowerStr.includes('card')) {
+    return 'credit';
+  } else if (lowerStr.includes('bank') || lowerStr.includes('neft') || lowerStr.includes('rtgs')) {
+    return 'bank';
+  } else if (lowerStr.includes('upi')) {
+    return 'upi';
+  } else if (lowerStr.includes('bnpl') || lowerStr.includes('later')) {
+    return 'bnpl';
+  }
+
+  return 'bank'; // Default fallback
+};
+
+// Helper function to map voucher status to transaction status
+const mapVoucherStatus = (voucherStatus: string): TransactionStatus => {
+  const lowerStatus = voucherStatus.toLowerCase();
+
+  if (lowerStatus === 'draft') {
+    return 'pending';
+  } else if (lowerStatus === 'success' || lowerStatus === 'completed') {
+    return 'completed';
+  } else if (lowerStatus === 'failed') {
+    return 'failed';
+  } else if (lowerStatus === 'cancelled') {
+    return 'cancelled';
+  } else if (lowerStatus === 'upcoming' || lowerStatus === 'scheduled') {
+    return 'upcoming';
+  }
+
+  return 'pending'; // Default fallback
+};
+
+// Helper function to map API voucher to frontend Transaction type
+const mapVoucherToTransaction = (voucher: VoucherAPI): Transaction => {
+  return {
+    id: voucher.voucher_id.hashCode(), // Convert string to number for id
+    transactionId: voucher.voucher_id,
+    vendor: '', // Not available in voucher API (payee is already known)
+    amount: voucher.net_amount / 100, // Convert paise to rupees
+    status: mapVoucherStatus(voucher.status),
+    date: voucher.created_at,
+    method: parsePaymentMethod(voucher.payment_method),
+    type: 'single', // Default type
+    description: voucher.description || '',
+    invoice: voucher.invoice_number,
+  };
+};
+
+// Add hashCode method to String prototype for generating numeric IDs
+declare global {
+  interface String {
+    hashCode(): number;
+  }
+}
+
+String.prototype.hashCode = function() {
+  let hash = 0;
+  for (let i = 0; i < this.length; i++) {
+    const char = this.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash);
+};
 
 // Server-side filter parameters for payee transactions
 export interface PayeeTransactionFilters {
@@ -47,7 +120,7 @@ export const usePayeeTransactions = (
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pagination, setPagination] = useState<PayeeTransactionPagination>({
     page: 1,
-    limit: 20,
+    limit: 10,
     total: 0,
     totalPages: 0
   });
@@ -67,7 +140,7 @@ export const usePayeeTransactions = (
     paymentMethod = 'all',
     dateRange,
     page = 1,
-    limit = 20,
+    limit = 10,
     sortBy = 'date',
     sortOrder = 'desc'
   } = filters;
@@ -83,121 +156,63 @@ export const usePayeeTransactions = (
       setIsLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API call
-      /*
-      const response = await api.payees.getTransactions(user.businessId, payeeId, {
-        status: status !== 'all' ? status : undefined,
-        paymentMethod: paymentMethod !== 'all' ? paymentMethod : undefined,
-        dateFrom: dateRange?.from?.toISOString(),
-        dateTo: dateRange?.to?.toISOString(),
-        page,
-        limit,
-        sortBy,
-        sortOrder
-      });
-      */
-
-      // Mock API simulation
-      console.log('TODO: Fetching payee transactions with filters:', {
+      // Call real API
+      const response: GetPayeeVouchersResponse = await payeesAPI.getTransactions(
+        user.businessId,
         payeeId,
-        status,
-        paymentMethod,
-        dateRange,
-        page,
-        limit,
-        sortBy,
-        sortOrder
-      });
+        {
+          status: status !== 'all' ? status : undefined,
+          paymentMethod: paymentMethod !== 'all' ? paymentMethod : undefined,
+          dateFrom: dateRange?.from?.toISOString(),
+          dateTo: dateRange?.to?.toISOString(),
+          page,
+          limit,
+          sortBy,
+          sortOrder
+        }
+      );
 
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Import and filter mock data
-      const { getPayeeTransactions } = await import('@/data/mockPayeeTransactions');
-      let allTransactions = getPayeeTransactions(payeeId);
-
-      // Apply server-side filters
-      let filteredTransactions = allTransactions;
-
-      // Status filter
-      if (status !== 'all') {
-        filteredTransactions = filteredTransactions.filter(t => t.status === status);
+      if (response.status !== 'success') {
+        throw new Error('Failed to fetch vouchers');
       }
 
-      // Payment method filter
-      if (paymentMethod !== 'all') {
-        filteredTransactions = filteredTransactions.filter(t => t.method === paymentMethod);
-      }
-
-      // Date range filter
-      if (dateRange?.from || dateRange?.to) {
-        filteredTransactions = filteredTransactions.filter(t => {
-          const tDate = new Date(t.date);
-          const from = dateRange.from;
-          const to = dateRange.to;
-
-          if (from && to) {
-            return tDate >= from && tDate <= to;
-          } else if (from) {
-            return tDate >= from;
-          } else if (to) {
-            return tDate <= to;
-          }
-          return true;
+      // Handle empty vouchers (null or empty array)
+      if (!response.vouchers || response.vouchers.length === 0) {
+        setTransactions([]);
+        setPagination({
+          page: response.pagination.page,
+          limit: response.pagination.limit,
+          total: response.pagination.total,
+          totalPages: response.pagination.total_pages
         });
+        setAppliedFilters({
+          status,
+          paymentMethod,
+          dateRange,
+          totalResults: 0
+        });
+        return;
       }
 
-      // Sorting
-      filteredTransactions.sort((a, b) => {
-        let aValue: any, bValue: any;
+      // Map vouchers to transactions
+      const mappedTransactions = response.vouchers.map(mapVoucherToTransaction);
 
-        switch (sortBy) {
-          case 'date':
-            aValue = new Date(a.date);
-            bValue = new Date(b.date);
-            break;
-          case 'amount':
-            aValue = a.amount;
-            bValue = b.amount;
-            break;
-          case 'status':
-            aValue = a.status;
-            bValue = b.status;
-            break;
-          case 'method':
-            aValue = a.method;
-            bValue = b.method;
-            break;
-          default:
-            aValue = new Date(a.date);
-            bValue = new Date(b.date);
-        }
-
-        if (sortOrder === 'asc') {
-          return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
-
-      // Pagination
-      const total = filteredTransactions.length;
-      const totalPages = Math.ceil(total / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + limit);
+      // TODO: Apply client-side filters if needed (status, payment method, date range)
+      // For now, backend handles all filtering via query params
 
       // Update state
-      setTransactions(paginatedTransactions);
+      setTransactions(mappedTransactions);
       setPagination({
-        page,
-        limit,
-        total,
-        totalPages
+        page: response.pagination.page,
+        limit: response.pagination.limit,
+        total: response.pagination.total,
+        totalPages: response.pagination.total_pages
       });
       setAppliedFilters({
         status,
         paymentMethod,
         dateRange,
-        totalResults: total
+        totalResults: response.pagination.total
       });
 
     } catch (err) {
