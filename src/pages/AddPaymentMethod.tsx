@@ -1,10 +1,10 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { 
-  CreditCard, 
-  BanknoteIcon, 
-  IndianRupee, 
+import {
+  CreditCard,
+  BanknoteIcon,
+  IndianRupee,
   PhoneIcon,
   ArrowRight,
   Check,
@@ -17,24 +17,111 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
 import { PaymentMethodType } from "@/types/payment-method";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { processPaymentAPI } from "@/services/api";
+
+const FloatingLabelInput = ({ label, id, ...props }: { label: string; id: string } & React.ComponentProps<typeof Input>) => {
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        placeholder=" "
+        className="peer h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors"
+        {...props}
+      />
+      <Label
+        htmlFor={id}
+        className="absolute text-muted-foreground left-3 top-3.5 transition-all duration-200 ease-in-out peer-focus:-top-2 peer-focus:left-2 peer-focus:text-primary peer-focus:text-xs peer-focus:bg-white dark:peer-focus:bg-gray-950 px-1 peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:left-2 peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-gray-900"
+      >
+        {label}
+      </Label>
+    </div>
+  );
+};
 
 const AddPaymentMethod = () => {
   const [currentTab, setCurrentTab] = useState<PaymentMethodType>("card");
   const navigate = useNavigate();
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const { user } = useAuth();
+
+  // Card form state
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [cardType, setCardType] = useState("visa");
+  const [cardCategory, setCardCategory] = useState("credit");
+  const [cardholderName, setCardholderName] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(`New payment method added successfully!`);
-    navigate("/wallet");
+
+    // Only handle card tokenization for card tab
+    if (currentTab === "card") {
+      if (!user?.businessId) {
+        toast.error("Business ID not found. Please log in again.");
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      try {
+        // Validate expiry month and year
+        if (!expiryMonth || !expiryYear) {
+          toast.error("Please enter both expiry month and year");
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (expiryMonth.length !== 2 || expiryYear.length !== 2) {
+          toast.error("Please enter valid expiry date (MM and YY)");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Remove spaces from card number
+        const cleanCardNumber = cardNumber.replace(/\s/g, "");
+
+        // Call tokenize API
+        const response = await processPaymentAPI.tokenize(user.businessId, {
+          card_number: cleanCardNumber,
+          expiry_month: expiryMonth,
+          expiry_year: expiryYear,
+          cvv: cvv,
+          holder_name: cardholderName,
+          card_type: cardType,
+          card_category: cardCategory,
+        });
+
+        // TODO: Handle redirection URL from response
+        // For now, just show success message
+        if (response.status === "success") {
+          toast.success("Card tokenized successfully!");
+          navigate("/wallet");
+        } else {
+          toast.error(response.message || "Failed to tokenize card");
+        }
+      } catch (error: any) {
+        console.error("Card tokenization error:", error);
+        toast.error(error.message || "Failed to tokenize card. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      // For other tabs, use the default behavior
+      toast.success(`New payment method added successfully!`);
+      navigate("/wallet");
+    }
   };
 
   return (
@@ -95,52 +182,90 @@ const AddPaymentMethod = () => {
             <TabsContent value="card">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="cardNumber">Card Number</Label>
-                    <Input 
+                  <div className="md:col-span-2">
+                    <FloatingLabelInput
                       id="cardNumber"
+                      label="Card Number"
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      placeholder="XXXX XXXX XXXX XXXX" 
                       maxLength={19}
-                      required 
-                      className="bg-white dark:bg-gray-950"
+                      required
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value)}
                     />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
-                    <Input 
-                      id="expiryDate"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9/]*"
-                      placeholder="MM/YY" 
-                      maxLength={5} 
-                      required 
-                      className="bg-white dark:bg-gray-950"
-                    />
+
+                  <div className="flex items-center gap-2">
+                    <div className="relative w-20">
+                      <Input
+                        id="expiryMonth"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        placeholder=" "
+                        maxLength={2}
+                        required
+                        value={expiryMonth}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, "");
+                          if (value === "" || (parseInt(value) >= 1 && parseInt(value) <= 12)) {
+                            setExpiryMonth(value);
+                          }
+                        }}
+                        className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors w-20 text-center peer"
+                      />
+                      <Label
+                        htmlFor="expiryMonth"
+                        className="absolute text-muted-foreground left-1/2 -translate-x-1/2 top-3.5 transition-all duration-200 ease-in-out peer-focus:-top-2 peer-focus:text-primary peer-focus:text-xs peer-focus:bg-white dark:peer-focus:bg-gray-900 px-1 peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-gray-900"
+                      >
+                        MM
+                      </Label>
+                    </div>
+                    <span className="text-muted-foreground font-medium">/</span>
+                    <div className="relative w-20">
+                      <Input
+                        id="expiryYear"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        placeholder=" "
+                        maxLength={2}
+                        required
+                        value={expiryYear}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, "");
+                          setExpiryYear(value);
+                        }}
+                        className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors w-20 text-center peer"
+                      />
+                      <Label
+                        htmlFor="expiryYear"
+                        className="absolute text-muted-foreground left-1/2 -translate-x-1/2 top-3.5 transition-all duration-200 ease-in-out peer-focus:-top-2 peer-focus:text-primary peer-focus:text-xs peer-focus:bg-white dark:peer-focus:bg-gray-900 px-1 peer-[:not(:placeholder-shown)]:-top-2 peer-[:not(:placeholder-shown)]:text-primary peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:bg-white dark:peer-[:not(:placeholder-shown)]:bg-gray-900"
+                      >
+                        YY
+                      </Label>
+                    </div>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input 
-                      id="cvv" 
+
+                  <div>
+                    <FloatingLabelInput
+                      id="cvv"
+                      label="CVV"
                       type="password"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      placeholder="XXX" 
-                      maxLength={4} 
-                      required 
-                      className="bg-white dark:bg-gray-950"
+                      maxLength={4}
+                      required
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value)}
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="cardType">Card Type</Label>
-                    <Select defaultValue="visa">
-                      <SelectTrigger id="cardType" className="bg-white dark:bg-gray-950">
+                    <Label htmlFor="cardType" className="text-sm font-medium">Card Type</Label>
+                    <Select value={cardType} onValueChange={setCardType}>
+                      <SelectTrigger id="cardType" className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus:border-primary focus:ring-0 focus:ring-offset-0 hover:border-gray-400 transition-colors">
                         <SelectValue placeholder="Select card type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -152,39 +277,53 @@ const AddPaymentMethod = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-2">
-                    <Label htmlFor="cardholderName">Cardholder Name</Label>
-                    <Input 
+                    <Label htmlFor="cardCategory" className="text-sm font-medium">Card Category</Label>
+                    <Select value={cardCategory} onValueChange={setCardCategory}>
+                      <SelectTrigger id="cardCategory" className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus:border-primary focus:ring-0 focus:ring-offset-0 hover:border-gray-400 transition-colors">
+                        <SelectValue placeholder="Select card category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="credit">Credit Card</SelectItem>
+                        <SelectItem value="debit">Debit Card</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <FloatingLabelInput
                       id="cardholderName"
+                      label="Cardholder Name"
                       type="text"
-                      placeholder="As it appears on the card" 
-                      required 
-                      className="bg-white dark:bg-gray-950" 
+                      required
+                      value={cardholderName}
+                      onChange={(e) => setCardholderName(e.target.value)}
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4 border-t">
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <Switch id="defaultCard" />
                       <Label htmlFor="defaultCard" className="font-medium">Set as default payment method</Label>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       <Switch id="enableRecurring" defaultChecked />
                       <Label htmlFor="enableRecurring" className="font-medium">Enable for recurring payments</Label>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end">
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       size="lg"
+                      disabled={isSubmitting}
                       className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                     >
-                      Add Card 
+                      {isSubmitting ? "Processing..." : "Add Card"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>

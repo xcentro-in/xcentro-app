@@ -822,6 +822,23 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify(params),
       });
+    },
+    tokenize: async (businessId: string, cardDetails: {
+      card_number: string;
+      expiry_month: string;
+      expiry_year: string;
+      cvv: string;
+      holder_name: string;
+      card_type: string;
+      card_category: string;
+    }) => {
+      return this.request('/process_payment/tokenize', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ card_details: cardDetails }),
+      });
     }
   };
 
@@ -830,6 +847,9 @@ class ApiService {
     fetch: async (businessId: string) => {
       return this.request('/wallet/fetch', {
         method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
         body: JSON.stringify({ business_id: businessId }),
       });
     }
