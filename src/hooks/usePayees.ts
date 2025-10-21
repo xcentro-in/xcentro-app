@@ -16,13 +16,7 @@ export interface PayeesResponse {
 // Helper function to map API response to Payee type
 const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   // Determine payee type based on tags or default to 'bank'
-  let type: 'bank' | 'biller' | 'payroll' = 'bank';
-  if (apiPayee.tags.some(tag => tag.toLowerCase().includes('payroll') || tag.toLowerCase().includes('employee'))) {
-    type = 'payroll';
-  } else if (apiPayee.tags.some(tag => tag.toLowerCase().includes('bill') || tag.toLowerCase().includes('utility'))) {
-    type = 'biller';
-  }
-
+  let type = apiPayee.payee_type;
   // Base payee properties
   const basePayee = {
     id: apiPayee.relation_id,
@@ -36,7 +30,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   };
 
   // Return type-specific payee object
-  if (type === 'bank') {
+  if (type === 'vendor') {
     return {
       ...basePayee,
       type: 'bank',

@@ -13,6 +13,7 @@ export interface PayeeAPIResponse {
   added_at: string;
   added_by: string;
   updated_at: string;
+  payee_type: string;
 }
 
 export interface GetPayeesResponse {

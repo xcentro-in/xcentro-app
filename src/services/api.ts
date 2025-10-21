@@ -575,15 +575,14 @@ class ApiService {
       });
     },
 
-    create: async (payeeData: any) => {
-      // TODO: Create new payee
-      // return this.request('/payees', {
-      //   method: 'POST',
-      //   body: JSON.stringify(payeeData),
-      // });
-
-      console.log('TODO: Implement payees.create API call', payeeData);
-      throw new Error('API not implemented yet');
+    create: async (businessId: string, payeeData: any): Promise<any> => {
+      return this.request('/payees', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(payeeData),
+      });
     },
 
     update: async (id: string, updates: any) => {
