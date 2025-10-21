@@ -24,7 +24,7 @@ interface FormState {
 }
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
-  const { user } = useAuth();
+  const { user, refreshOnboardingStatus } = useAuth();
   const { vendors } = useVendors(user?.businessId);
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
@@ -213,11 +213,14 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     handleNext();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     toast({
       title: "Payment Initiated",
       description: "Your payment has been successfully processed.",
     });
+
+    // Refresh onboarding status to update hasCreatedFirstPayment flag
+    await refreshOnboardingStatus();
   };
 
   // Map vendor to Payee type for compatibility with PaymentMethodAndReviewStep

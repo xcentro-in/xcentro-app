@@ -6,17 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  CreditCard, 
-  BanknoteIcon, 
-  IndianRupee, 
+import {
+  CreditCard,
+  BanknoteIcon,
+  IndianRupee,
   PhoneIcon,
   ArrowRight,
   Check,
@@ -24,17 +24,23 @@ import {
 } from "lucide-react";
 import { PaymentMethodType } from "@/types/payment-method";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AddPaymentMethodFormProps {
   onPaymentMethodAdded: () => void;
 }
 
 const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProps) => {
+  const { refreshOnboardingStatus } = useAuth();
   const [currentTab, setCurrentTab] = useState<PaymentMethodType>("card");
-  
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     toast.success(`New payment method added successfully!`);
+
+    // Refresh onboarding status to update hasAddedPaymentMethod flag
+    await refreshOnboardingStatus();
+
     onPaymentMethodAdded();
   };
 

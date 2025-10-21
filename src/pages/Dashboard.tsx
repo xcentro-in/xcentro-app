@@ -30,21 +30,21 @@ const Dashboard = () => {
   const { user } = useAuth();
 
   // Check if we should show empty state
-  const showEmptyState = 
-    user?.hasCompletedOnboarding === false || 
+  const showEmptyState =
+    user?.hasCompletedOnboarding === false ||
     (!user?.hasAddedPaymentMethod && !user?.hasAddedVendor && !user?.hasCreatedFirstPayment);
 
   useEffect(() => {
     // TODO: This will be populated from backend after login
     const userName = user?.name?.split(' ')[0] || 'User';
-    
+
     if (showEmptyState) {
       setTitle(`Let's get started, ${userName}`);
     } else {
       setTitle(`Welcome back, ${userName}`);
     }
   }, [setTitle, user, showEmptyState]);
-  
+
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(
     t => t.status === "pending" || t.status === "urgent" || t.status === "flagged"

@@ -150,6 +150,15 @@ class ApiService {
       });
     },
 
+    getOnboardingStatus: async (businessId: string): Promise<any> => {
+      return this.request('/auth/onboarding-status', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     changePassword: async (oldPassword: string, newPassword: string): Promise<{
       data: null;
       message: string;

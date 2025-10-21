@@ -17,6 +17,7 @@ interface AuthContextType extends AuthState {
   setUserRoles: (roles: UserRole[]) => void;
   userRoles: UserRole[];
   fetchUserProfile: () => Promise<void>;
+  refreshOnboardingStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -168,7 +169,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const profileResponse = await userAPI.getProfile();
       const rolesResponse = await userAPI.getRoles();
 
-
       const profile = profileResponse.data;
       const roles = rolesResponse.data;
 
@@ -184,6 +184,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // For now, we'll leave it empty or get it from a business list API later
       const businessName = ''; // Will be populated when we have business details API
 
+      // Fetch onboarding status
+      let onboardingStatus = {
+        hasCompletedOnboarding: false,
+        hasAddedPaymentMethod: false,
+        hasAddedVendor: false,
+        hasCreatedFirstPayment: false,
+      };
+
+      try {
+        if (businessId) {
+          const onboardingResponse = await authAPI.getOnboardingStatus(businessId);
+          if (onboardingResponse.data) {
+            onboardingStatus = {
+              hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
+              hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
+              hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
+              hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
+            };
+          }
+        }
+      } catch (onboardingError) {
+        console.error('Failed to fetch onboarding status, using defaults:', onboardingError);
+        // Use default values (all false) if API call fails
+      }
+
       // Create user object
       const user: AuthUser = {
         id: profile.userId,
@@ -197,10 +222,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessName: businessName,
         // Optional fields - add defaults or fetch from profile if needed
         rewardPoints: 0,
-        hasCompletedOnboarding: false,
-        hasAddedPaymentMethod: true,
-        hasAddedVendor: true,
-        hasCreatedFirstPayment: false,
+        // Onboarding flags from API
+        ...onboardingStatus,
       };
 
       // Update auth state
@@ -229,6 +252,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Auth refresh failed:', error);
       logout();
+    }
+  };
+
+  const refreshOnboardingStatus = async (): Promise<void> => {
+    // Don't call if no user or no businessId
+    if (!state.user?.businessId) {
+      console.warn('Cannot refresh onboarding status: no user or businessId');
+      return;
+    }
+
+    try {
+      const onboardingResponse = await authAPI.getOnboardingStatus(state.user.businessId);
+
+      if (onboardingResponse.data) {
+        // Update only the onboarding flags
+        updateUser({
+          hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
+          hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
+          hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
+          hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to refresh onboarding status:', error);
+      // Don't throw - this is a non-critical update
     }
   };
 
@@ -264,6 +312,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUserRoles,
     userRoles,
     fetchUserProfile,
+    refreshOnboardingStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
