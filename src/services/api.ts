@@ -46,44 +46,65 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
-        // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
-        // This prevents infinite loops when user is not authenticated
-        if (!isRetry && response.status === 401 && errorData.error === 'TOKEN_EXPIRED') {
-          try {
-            // Call refresh token endpoint
-            const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
-              method: 'POST',
-              credentials: 'include', // Include cookies for refresh
-            });
+        // Handle 401 errors - authentication failures
+        if (response.status === 401) {
+          // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
+          // This prevents infinite loops when user is not authenticated
+          if (!isRetry && errorData.error === 'TOKEN_EXPIRED') {
+            try {
+              // Call refresh token endpoint
+              const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
+                method: 'POST',
+                credentials: 'include', // Include cookies for refresh
+              });
 
-            if (refreshResponse.ok) {
-              const refreshData = await refreshResponse.json();
-              console.log('Token refreshed successfully:', refreshData.message);
+              if (refreshResponse.ok) {
+                const refreshData = await refreshResponse.json();
+                console.log('Token refreshed successfully:', refreshData.message);
 
-              // Retry the original request with the new token (cookies are automatically updated)
-              return this.request<T>(endpoint, options, true);
-            } else {
-              // If refresh fails, clear tokens and redirect to login
-              console.log('Token refresh failed, redirecting to login');
+                // Retry the original request with the new token (cookies are automatically updated)
+                return this.request<T>(endpoint, options, true);
+              } else {
+                // If refresh fails, clear tokens and redirect to login
+                console.log('Token refresh failed, redirecting to login');
+                localStorage.removeItem('auth-token');
+                sessionStorage.removeItem('business-id');
+                localStorage.removeItem('user-data');
+                this.authToken = null;
+                window.location.href = '/login';
+                return Promise.reject(new Error('Session expired. Please login again.'));
+              }
+            } catch (refreshError) {
+              console.error('Token refresh failed:', refreshError);
+              // Clear tokens and redirect to login
               localStorage.removeItem('auth-token');
+              sessionStorage.removeItem('business-id');
+              localStorage.removeItem('user-data');
               this.authToken = null;
               window.location.href = '/login';
               return Promise.reject(new Error('Session expired. Please login again.'));
             }
-          } catch (refreshError) {
-            console.error('Token refresh failed:', refreshError);
-            // Clear tokens and redirect to login
-            localStorage.removeItem('auth-token');
-            this.authToken = null;
-            window.location.href = '/login';
-            return Promise.reject(new Error('Session expired. Please login again.'));
+          } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
+            // For MISSING_TOKEN or INVALID_TOKEN, emit event and throw error
+            // The AuthContext will listen for this event and handle logout
+            // This prevents infinite loops during page load
+            console.log(`[API] Authentication error (${errorData.error}), emitting unauthorized event`);
+
+            // Emit custom event for AuthContext to handle
+            window.dispatchEvent(new CustomEvent('api:unauthorized', {
+              detail: { code: errorData.error, message: errorData.message }
+            }));
+
+            const error: any = new Error(errorData.message || 'Authentication required');
+            error.code = errorData.error;
+            error.status = response.status;
+            throw error;
           }
         }
 
-        // For MISSING_TOKEN or INVALID_TOKEN, just throw the error
-        // This allows AuthContext to handle logout properly without triggering refresh
+        // For all other errors, just throw the error
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
-        error.code = errorData.error; // Preserve error code (e.g., "MISSING_TOKEN", "INVALID_TOKEN")
+        error.code = errorData.error; // Preserve error code
         error.status = response.status;
         throw error;
       }

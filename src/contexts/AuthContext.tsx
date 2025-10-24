@@ -303,6 +303,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initAuth();
   }, []);
 
+  // Global error handler for API 401 errors that occur during normal app usage (after auth is established)
+  useEffect(() => {
+    const handleUnauthorized = (event: CustomEvent) => {
+      // Only handle if user was previously authenticated
+      if (state.isAuthenticated) {
+        console.log('[AuthContext] Session expired during app usage, logging out');
+        // Clear local state immediately
+        sessionStorage.removeItem('business-id');
+        localStorage.removeItem('user-data');
+        setUserRolesState([]);
+        dispatch({ type: 'LOGOUT' });
+        // Redirect to login
+        window.location.href = '/login';
+      }
+    };
+
+    // Listen for custom unauthorized events from API service
+    window.addEventListener('api:unauthorized', handleUnauthorized as EventListener);
+
+    return () => {
+      window.removeEventListener('api:unauthorized', handleUnauthorized as EventListener);
+    };
+  }, [state.isAuthenticated]);
+
   const value: AuthContextType = {
     ...state,
     login,
