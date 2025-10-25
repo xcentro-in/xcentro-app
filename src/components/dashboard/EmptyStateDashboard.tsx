@@ -45,7 +45,7 @@ const EmptyStateDashboard = () => {
       id: 'first-payment',
       stepNumber: 3,
       title: 'Process your first payment',
-      description: 'Create and schedule your first payment. Track everything in real-time and manage your business finances effortlessly.',
+      description: 'Payout your first expense. Track everything in real-time and manage your business finances effortlessly.',
       icon: Send,
       ctaText: 'Make Payment',
       ctaLink: '/new-payment',
