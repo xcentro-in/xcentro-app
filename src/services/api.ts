@@ -860,6 +860,18 @@ class ApiService {
         },
         body: JSON.stringify({ card_details: cardDetails }),
       });
+    },
+    list: async (businessId: string, params: { limit: number; offset: number }) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', params.limit.toString());
+      queryParams.append('offset', params.offset.toString());
+
+      return this.request(`/process_payment/list?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 

@@ -1,56 +1,30 @@
 
 import { useState } from "react";
 import { CardContent } from "@/components/ui/card";
-import TransactionsTable from "./TransactionsTable";
-import { usePaymentHistory } from "@/hooks/usePaymentHistory";
+import PayoutsTable from "./PayoutsTable";
+import { usePaymentList } from "@/hooks/usePaymentList";
 
-interface PaymentsTableContainerProps {
-  // No props needed - component is now self-contained
-}
-
-const PaymentsTableContainer = ({}: PaymentsTableContainerProps) => {
-  // Self-managed state for server-side filtering and pagination
-  const [dateRange, setDateRange] = useState<'last7days' | 'last30days' | 'last3months' | 'custom'>('last7days');
+const PaymentsTableContainer = () => {
+  // The state for filters and pagination
+  const [dateRange, setDateRange] = useState<'last7days' | 'last30days' | 'last3months' | 'custom'>('last30days');
   const [customDateFrom, setCustomDateFrom] = useState<string>();
   const [customDateTo, setCustomDateTo] = useState<string>();
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<string[]>([]);
   const [page, setPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'vendor' | 'status'>('date');
+  const [itemsPerPage, setItemsPerPage] = useState(10); // Default to 10 items per page
+  const [sortBy, setSortBy] = useState<string>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
-  // Client-side search state (no API calls)
   const [searchValue, setSearchValue] = useState("");
 
-  // Fetch data using the hook with server-side parameters
-  const { transactions, pagination, appliedFilters, isLoading, error, refetch } = usePaymentHistory({
-    dateRange,
-    customDateFrom,
-    customDateTo,
-    status: statusFilter,
-    paymentMethod: paymentMethodFilter,
-    page,
+  // Calculate offset for API call
+  const offset = (page - 1) * itemsPerPage;
+
+  // Fetch payments from API
+  const { payouts, totalCount, isLoading, error, refetch } = usePaymentList({
     limit: itemsPerPage,
-    sortBy,
-    sortOrder
+    offset: offset,
   });
-
-  // Handle server-side filter changes (triggers API calls)
-  const handleDateRangeChange = (newDateRange: typeof dateRange) => {
-    setDateRange(newDateRange);
-    setPage(1); // Reset to first page
-  };
-
-  const handleStatusFilterChange = (statuses: string[]) => {
-    setStatusFilter(statuses);
-    setPage(1);
-  };
-
-  const handlePaymentMethodFilterChange = (methods: string[]) => {
-    setPaymentMethodFilter(methods);
-    setPage(1);
-  };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -58,25 +32,9 @@ const PaymentsTableContainer = ({}: PaymentsTableContainerProps) => {
 
   const handleItemsPerPageChange = (newLimit: number) => {
     setItemsPerPage(newLimit);
-    setPage(1);
+    setPage(1); // Reset to first page when items per page changes
   };
 
-  const handleSortChange = (column: typeof sortBy) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-    setPage(1);
-  };
-
-  // Handle client-side search (no API calls)
-  const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-  };
-
-  // Show loading state
   if (isLoading) {
     return (
       <CardContent className="p-6">
@@ -91,7 +49,6 @@ const PaymentsTableContainer = ({}: PaymentsTableContainerProps) => {
     );
   }
 
-  // Show error state
   if (error) {
     return (
       <CardContent className="p-6">
@@ -110,19 +67,17 @@ const PaymentsTableContainer = ({}: PaymentsTableContainerProps) => {
 
   return (
     <CardContent className="p-6">
-      <TransactionsTable
-        transactions={transactions}
-        pagination={pagination}
-        appliedFilters={appliedFilters}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
+      {/*
+        TODO: The filter controls would be rendered here, similar to the old table.
+        They would be wired to the state variables above.
+      */}
+      <PayoutsTable
+        payouts={payouts}
+        page={page}
         itemsPerPage={itemsPerPage}
-        onItemsPerPageChange={handleItemsPerPageChange}
+        totalItems={totalCount}
         onPageChange={handlePageChange}
-        onSortChange={handleSortChange}
-        onDateRangeChange={handleDateRangeChange}
-        onStatusFilterChange={handleStatusFilterChange}
-        onPaymentMethodFilterChange={handlePaymentMethodFilterChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
       />
     </CardContent>
   );
