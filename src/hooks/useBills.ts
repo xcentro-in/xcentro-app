@@ -2,6 +2,29 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Invoice } from '@/data/mockInvoices';
 import { DateRange } from 'react-day-picker';
+import { voucherAPI } from '@/services/api';
+import { VoucherListResponseAPI, VoucherListItemAPI } from '@/types/vouchers-list-api';
+
+// Helper function to map API voucher to Invoice
+const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
+  return {
+    id: voucher.voucherId,
+    invoiceNumber: voucher.invoiceNumber,
+    vendorName: voucher.payeeName,
+    vendorAddress: '', // Not provided by API
+    amount: voucher.totalAmount / 100, // Convert paise to rupees
+    dueDate: voucher.invoiceDueDate || '', // Use empty string if null
+    billDate: voucher.paymentDate || voucher.invoiceDueDate || '', // Use payment date or due date
+    status: voucher.status,
+    overdueDays: voucher.status === 'overdue' ? undefined : undefined, // Calculate if needed
+    gstin: '', // Not provided by API
+    items: [], // Not provided by list API
+    cgst: 0, // Not provided by list API
+    sgst: 0, // Not provided by list API
+    igst: 0, // Not provided by list API
+    terms: '', // Not provided by list API
+  };
+};
 
 // Server-side filter parameters for bills
 export interface BillsFilters {
@@ -30,15 +53,9 @@ export interface BillsPagination {
   totalPages: number;
 }
 
+// Simplified - no longer need to track counts
 export interface BillsAppliedFilters {
   status: 'all' | 'paid' | 'open' | 'overdue';
-  dateRange?: DateRange;
-  dueDateRange?: DateRange;
-  vendor: string[];
-  totalResults: number;
-  overdueCount: number;
-  openCount: number;
-  paidCount: number;
 }
 
 export interface BillsResponse {
@@ -59,14 +76,7 @@ export const useBills = (filters: BillsFilters = {}) => {
     totalPages: 0
   });
   const [appliedFilters, setAppliedFilters] = useState<BillsAppliedFilters>({
-    status: 'all',
-    dateRange: undefined,
-    dueDateRange: undefined,
-    vendor: [],
-    totalResults: 0,
-    overdueCount: 0,
-    openCount: 0,
-    paidCount: 0
+    status: 'all'
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -75,16 +85,8 @@ export const useBills = (filters: BillsFilters = {}) => {
   // Server-side parameters that trigger API calls
   const {
     status = 'all',
-    dateRange,
-    dueDateRange,
-    vendor = [],
-    amountMin,
-    amountMax,
-    dueWithin,
     page = 1,
     limit = 20,
-    sortBy = 'dueDate',
-    sortOrder = 'asc'
   } = filters;
 
   const fetchBills = async () => {
@@ -98,183 +100,46 @@ export const useBills = (filters: BillsFilters = {}) => {
       setIsLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API call
-      /*
-      const response = await api.bills.getAll(user.businessId, {
+      // Calculate offset for API call
+      const offset = (page - 1) * limit;
+
+      // Call real API
+      const response = await voucherAPI.list(user.businessId, {
         status: status !== 'all' ? status : undefined,
-        billDateFrom: dateRange?.from?.toISOString(),
-        billDateTo: dateRange?.to?.toISOString(),
-        dueDateFrom: dueDateRange?.from?.toISOString(),
-        dueDateTo: dueDateRange?.to?.toISOString(),
-        vendors: vendor.length > 0 ? vendor : undefined,
-        amountMin,
-        amountMax,
-        dueWithin,
-        page,
         limit,
-        sortBy,
-        sortOrder
-      });
-      */
-
-      // Mock API simulation
-      console.log('TODO: Fetching bills with filters:', {
-        status,
-        dateRange,
-        dueDateRange,
-        vendor,
-        amountMin,
-        amountMax,
-        dueWithin,
-        page,
-        limit,
-        sortBy,
-        sortOrder
+        offset,
       });
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Validate response structure
+      if (
+        response &&
+        typeof response === 'object' &&
+        'vouchers' in response &&
+        Array.isArray(response.vouchers)
+      ) {
+        const data = response as VoucherListResponseAPI;
 
-      // Import and filter mock data
-      const { mockInvoices } = await import('@/data/mockInvoices');
-      let filteredBills = [...mockInvoices];
+        // Map API vouchers to Invoice type
+        const mappedBills = data.vouchers.map(mapVoucherToInvoice);
 
-      // Apply server-side filters
+        const total = data.total_count;
+        const totalPages = Math.ceil(total / limit);
 
-      // Status filter
-      if (status !== 'all') {
-        filteredBills = filteredBills.filter(bill => bill.status === status);
-      }
-
-      // Vendor filter
-      if (vendor.length > 0) {
-        filteredBills = filteredBills.filter(bill =>
-          vendor.some(v => bill.vendorName.toLowerCase().includes(v.toLowerCase()))
-        );
-      }
-
-      // Bill date range filter
-      if (dateRange?.from || dateRange?.to) {
-        filteredBills = filteredBills.filter(bill => {
-          const billDate = new Date(bill.billDate);
-          const from = dateRange.from;
-          const to = dateRange.to;
-
-          if (from && to) {
-            return billDate >= from && billDate <= to;
-          } else if (from) {
-            return billDate >= from;
-          } else if (to) {
-            return billDate <= to;
-          }
-          return true;
+        // Update state
+        setBills(mappedBills);
+        setPagination({
+          page,
+          limit,
+          total,
+          totalPages
         });
-      }
-
-      // Due date range filter
-      if (dueDateRange?.from || dueDateRange?.to) {
-        filteredBills = filteredBills.filter(bill => {
-          const dueDate = new Date(bill.dueDate);
-          const from = dueDateRange.from;
-          const to = dueDateRange.to;
-
-          if (from && to) {
-            return dueDate >= from && dueDate <= to;
-          } else if (from) {
-            return dueDate >= from;
-          } else if (to) {
-            return dueDate <= to;
-          }
-          return true;
+        setAppliedFilters({
+          status
         });
+      } else {
+        console.error('Unexpected response structure:', response);
+        throw new Error('Invalid vouchers list response structure');
       }
-
-      // Amount range filter
-      if (amountMin !== undefined) {
-        filteredBills = filteredBills.filter(bill => bill.amount >= amountMin);
-      }
-      if (amountMax !== undefined) {
-        filteredBills = filteredBills.filter(bill => bill.amount <= amountMax);
-      }
-
-      // Due within X days filter
-      if (dueWithin !== undefined) {
-        const today = new Date();
-        const targetDate = new Date();
-        targetDate.setDate(today.getDate() + dueWithin);
-
-        filteredBills = filteredBills.filter(bill => {
-          const dueDate = new Date(bill.dueDate);
-          return dueDate >= today && dueDate <= targetDate;
-        });
-      }
-
-      // Calculate filter counts
-      const allBills = mockInvoices;
-      const overdueCount = allBills.filter(bill => bill.status === 'overdue').length;
-      const openCount = allBills.filter(bill => bill.status === 'open').length;
-      const paidCount = allBills.filter(bill => bill.status === 'paid').length;
-
-      // Sorting
-      filteredBills.sort((a, b) => {
-        let aValue: any, bValue: any;
-
-        switch (sortBy) {
-          case 'dueDate':
-            aValue = new Date(a.dueDate);
-            bValue = new Date(b.dueDate);
-            break;
-          case 'billDate':
-            aValue = new Date(a.billDate);
-            bValue = new Date(b.billDate);
-            break;
-          case 'amount':
-            aValue = a.amount;
-            bValue = b.amount;
-            break;
-          case 'vendor':
-            aValue = a.vendorName;
-            bValue = b.vendorName;
-            break;
-          case 'status':
-            aValue = a.status;
-            bValue = b.status;
-            break;
-          default:
-            aValue = new Date(a.dueDate);
-            bValue = new Date(b.dueDate);
-        }
-
-        if (sortOrder === 'asc') {
-          return aValue > bValue ? 1 : -1;
-        } else {
-          return aValue < bValue ? 1 : -1;
-        }
-      });
-
-      // Pagination
-      const total = filteredBills.length;
-      const totalPages = Math.ceil(total / limit);
-      const startIndex = (page - 1) * limit;
-      const paginatedBills = filteredBills.slice(startIndex, startIndex + limit);
-
-      // Update state
-      setBills(paginatedBills);
-      setPagination({
-        page,
-        limit,
-        total,
-        totalPages
-      });
-      setAppliedFilters({
-        status,
-        dateRange,
-        dueDateRange,
-        vendor,
-        totalResults: total,
-        overdueCount,
-        openCount,
-        paidCount
-      });
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bills';
@@ -336,18 +201,8 @@ export const useBills = (filters: BillsFilters = {}) => {
   }, [
     user?.businessId,
     status,
-    dateRange?.from,
-    dateRange?.to,
-    dueDateRange?.from,
-    dueDateRange?.to,
-    vendor?.join(','),
-    amountMin,
-    amountMax,
-    dueWithin,
     page,
     limit,
-    sortBy,
-    sortOrder
   ]);
 
   return {

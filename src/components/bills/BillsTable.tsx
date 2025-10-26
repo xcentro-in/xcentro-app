@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Invoice } from "@/data/mockInvoices";
-import { BillsPagination, BillsAppliedFilters } from "@/hooks/useBills";
+import { BillsPagination } from "@/hooks/useBills";
 
 // Import UI components
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ import { formatPaymentDate } from "@/utils/dateFormatting";
 interface BillsTableProps {
   bills: Invoice[];
   pagination: BillsPagination;
-  appliedFilters: BillsAppliedFilters;
+  currentStatus: 'all' | 'paid' | 'open' | 'overdue';
   searchValue: string;
   onSearchChange: (value: string) => void;
   itemsPerPage: number;
@@ -55,7 +55,7 @@ interface BillsTableProps {
 const BillsTable = ({
   bills,
   pagination,
-  appliedFilters,
+  currentStatus,
   searchValue,
   onSearchChange,
   itemsPerPage,
@@ -128,32 +128,32 @@ const BillsTable = ({
           {/* Status Filter Badges */}
           <div className="flex items-center space-x-2">
             <Button
-              variant={appliedFilters.status === 'all' ? 'default' : 'outline'}
+              variant={currentStatus === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('all')}
             >
-              All ({appliedFilters.totalResults})
+              All
             </Button>
             <Button
-              variant={appliedFilters.status === 'overdue' ? 'destructive' : 'outline'}
+              variant={currentStatus === 'overdue' ? 'destructive' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('overdue')}
             >
-              Overdue ({appliedFilters.overdueCount})
+              Overdue
             </Button>
             <Button
-              variant={appliedFilters.status === 'open' ? 'default' : 'outline'}
+              variant={currentStatus === 'open' ? 'default' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('open')}
             >
-              Open ({appliedFilters.openCount})
+              Open
             </Button>
             <Button
-              variant={appliedFilters.status === 'paid' ? 'outline' : 'outline'}
+              variant={currentStatus === 'paid' ? 'default' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('paid')}
             >
-              Paid ({appliedFilters.paidCount})
+              Paid
             </Button>
           </div>
         </div>
@@ -161,16 +161,16 @@ const BillsTable = ({
         {/* Items per page */}
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
-          <Select 
-            value={String(itemsPerPage)} 
+          <Select
+            value={String(itemsPerPage)}
             onValueChange={(value) => onItemsPerPageChange(Number(value))}
           >
             <SelectTrigger className="w-[80px] h-9">
-              <SelectValue />
+              <SelectValue placeholder={String(itemsPerPage)} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="10">10</SelectItem>
-              <SelectItem value="10">20</SelectItem>
+              <SelectItem value="20">20</SelectItem>
               <SelectItem value="25">25</SelectItem>
               <SelectItem value="50">50</SelectItem>
             </SelectContent>

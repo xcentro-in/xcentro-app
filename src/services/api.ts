@@ -890,6 +890,26 @@ class ApiService {
 
   // Voucher endpoints
   voucher = {
+    list: async (businessId: string, params: {
+      status?: string;
+      limit: number;
+      offset: number
+    }) => {
+      const queryParams = new URLSearchParams();
+      queryParams.append('limit', params.limit.toString());
+      queryParams.append('offset', params.offset.toString());
+      if (params.status && params.status !== 'all') {
+        queryParams.append('status', params.status);
+      }
+
+      return this.request(`/vouchers/list?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     createDraft: async (params: {
       business_id: string;
       user_id: string;

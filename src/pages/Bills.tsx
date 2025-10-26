@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, MoreHorizontal } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Invoice } from "@/data/mockInvoices";
 import InvoiceDetails from "@/components/invoices/InvoiceDetails";
 import BillsTable from "@/components/bills/BillsTable";
@@ -32,7 +31,6 @@ const Bills = () => {
   const {
     bills,
     pagination,
-    appliedFilters,
     isLoading,
     error,
     payBill
@@ -109,14 +107,6 @@ const Bills = () => {
               <div className="flex items-center gap-2">
                 <span className="text-lg font-semibold">Bills</span>
               </div>
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700">
-                {appliedFilters.totalResults}
-              </Badge>
-              {appliedFilters.overdueCount > 0 && (
-                <Badge variant="destructive">
-                  {appliedFilters.overdueCount} Overdue
-                </Badge>
-              )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -177,7 +167,7 @@ const Bills = () => {
             <BillsTable
               bills={bills}
               pagination={pagination}
-              appliedFilters={appliedFilters}
+              currentStatus={billsFilters.status}
               searchValue={searchValue}
               onSearchChange={handleSearchChange}
               itemsPerPage={billsFilters.limit}
