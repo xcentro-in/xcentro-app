@@ -196,18 +196,37 @@ export const useBills = (filters: BillsFilters = {}) => {
   };
 
   // Request approval for a bill
-  const requestApproval = async (billId: string) => {
+  const requestApproval = async (billId: string, approverUserId: string) => {
     if (!user?.businessId) {
       throw new Error('Missing business ID');
     }
 
     try {
-      const response = await voucherAPI.requestApproval(user.businessId, billId);
+      const response = await voucherAPI.requestApproval(
+        user.businessId,
+        billId,
+        approverUserId,
+        '' // Empty remarks for now
+      );
 
-      // Refresh bills data after requesting approval
-      await fetchBills();
+      // Type the response
+      const data = response as {
+        success: boolean;
+        message: string;
+        approval_id: string;
+        voucher_id: string;
+        action: string;
+        action_taken_at: string | null;
+      };
 
-      return { success: true, message: 'Approval request sent successfully' };
+      // Note: We don't refresh bills here - let the component handle optimistic update
+      // await fetchBills();
+
+      return {
+        success: data.success,
+        message: data.message,
+        approvalId: data.approval_id,
+      };
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to request approval';
       throw new Error(errorMessage);

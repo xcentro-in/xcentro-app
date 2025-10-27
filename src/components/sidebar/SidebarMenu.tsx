@@ -1,5 +1,5 @@
 
-import { 
+import {
   SidebarGroup,
   SidebarMenu as Menu,
 } from "@/components/ui/sidebar";
@@ -9,11 +9,14 @@ import { FeatureFlagName } from "@/lib/featureFlags";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { SidebarMenuItem } from "@/constants/sidebar-menu";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 import { isMenuItemAccessible, getLockedMessage, getUnlockHint } from "@/config/navigationAccessControl";
 
 
 const SidebarMenu = () => {
   const { user } = useAuth();
+  const { selectedBusiness } = useBusiness();
+  const permissions = selectedBusiness?.permissions;
   
   const categoryFeatureFlags: Record<string, FeatureFlagName> = {
     gst: 'GST_PAYMENTS',
@@ -27,9 +30,9 @@ const SidebarMenu = () => {
       <Menu>
         {mainMenuItems.map((item: SidebarMenuItem) => {
           const featureFlag = categoryFeatureFlags[item.id] || 'ALLOWED_FIELDS';
-          
+
           // Check access control for items that require it
-          const isLocked = item.requiresAccess && !isMenuItemAccessible(item.id, user);
+          const isLocked = item.requiresAccess && !isMenuItemAccessible(item.id, user, permissions);
           const lockedMessage = isLocked ? getLockedMessage(item.id) : undefined;
           const unlockHint = isLocked ? getUnlockHint(item.id) : undefined;
           

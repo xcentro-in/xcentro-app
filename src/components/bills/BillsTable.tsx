@@ -1,6 +1,9 @@
+import React from "react";
 import { cn } from "@/lib/utils";
 import { Invoice } from "@/data/mockInvoices";
 import { BillsPagination } from "@/hooks/useBills";
+import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 
 // Import UI components
 import { Button } from "@/components/ui/button";
@@ -29,7 +32,9 @@ import {
   Search,
   Calendar,
   AlertCircle,
-  CheckCircle
+  CheckCircle,
+  Clock,
+  Loader2
 } from "lucide-react";
 
 // Utilities
@@ -49,6 +54,7 @@ interface BillsTableProps {
   onStatusFilterChange: (status: 'all' | 'paid' | 'open' | 'overdue') => void;
   onBillSelect: (bill: Invoice) => void;
   onPayBill?: (billId: string) => void;
+  onRequestApproval?: (billId: string) => Promise<{ success: boolean; message: string; approvalId: string }>;
   isLoading?: boolean;
 }
 
@@ -65,8 +71,12 @@ const BillsTable = ({
   onStatusFilterChange,
   onBillSelect,
   onPayBill,
+  onRequestApproval,
   isLoading = false
 }: BillsTableProps) => {
+  // Track loading states and optimistic updates per bill ID
+  const [requestingApproval, setRequestingApproval] = React.useState<Record<string, boolean>>({});
+  const [localApprovalStatuses, setLocalApprovalStatuses] = React.useState<Record<string, 'pending' | 'approved' | 'rejected' | null>>({});
 
   // Apply client-side search filter on current page data
   const searchFilteredBills = bills.filter(bill =>
@@ -101,12 +111,76 @@ const BillsTable = ({
     }
   };
 
+  const { permissions } = usePermissions();
+
   const isOverdue = (bill: Invoice) => {
     return bill.status === 'overdue';
   };
 
   const canPay = (bill: Invoice) => {
-    return bill.status === 'open' || bill.status === 'overdue';
+    // User can pay if:
+    // 1. Bill is open/overdue AND
+    // 2. User has canPayBills permission AND
+    // 3a. If user needs approval: Bill must be approved
+    // 3b. If user doesn't need approval (Owner): Can pay directly
+    const isPayable = bill.status === 'open' || bill.status === 'overdue';
+    const hasPayPermission = permissions?.canPayBills === true;
+
+    if (!isPayable || !hasPayPermission) return false;
+
+    // Owner doesn't need approval - can pay directly
+    if (permissions?.needsApproval === false) {
+      return true;
+    }
+
+    // Non-owner users need the bill to be approved first
+    return bill.approvalStatus === 'approved';
+  };
+
+  const needsApproval = (bill: Invoice) => {
+    // Show "Ask for Approval" button if:
+    // 1. Bill is open/overdue AND
+    // 2. Bill is NOT approved AND
+    // 3. User has canRequestApproval permission (non-owners with pay rights)
+    return (
+      (bill.status === 'open' || bill.status === 'overdue') &&
+      bill.approvalStatus !== 'approved' &&
+      permissions?.canRequestApproval === true
+    );
+  };
+
+  const handleRequestApproval = async (billId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onRequestApproval) {
+      // Set loading state for this specific bill
+      setRequestingApproval(prev => ({ ...prev, [billId]: true }));
+
+      try {
+        // Call the handler and await the result
+        const result = await Promise.resolve(onRequestApproval(billId));
+
+        // On success: Update local approval status to 'pending' (optimistic update)
+        setLocalApprovalStatuses(prev => ({ ...prev, [billId]: 'pending' }));
+
+        // Use API response message if available, otherwise fallback to default
+        const successMessage = result?.message || 'Approval request has been submitted successfully';
+        toast.success('Notification sent to Owner', {
+          description: successMessage
+        });
+      } catch (error) {
+        toast.error('Failed to request approval', {
+          description: error instanceof Error ? error.message : 'Please try again'
+        });
+      } finally {
+        // Remove loading state
+        setRequestingApproval(prev => ({ ...prev, [billId]: false }));
+      }
+    }
+  };
+
+  // Helper to get current approval status (local override or original)
+  const getApprovalStatus = (bill: Invoice) => {
+    return localApprovalStatuses[bill.id] ?? bill.approvalStatus;
   };
 
   return (
@@ -213,6 +287,7 @@ const BillsTable = ({
               >
                 Status
               </TableHead>
+              <TableHead className="text-center">Approval</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -269,6 +344,52 @@ const BillsTable = ({
 
                   <TableCell>
                     <div className="flex items-center justify-center">
+                      {(() => {
+                        const currentApprovalStatus = getApprovalStatus(bill);
+
+                        if (currentApprovalStatus === 'approved') {
+                          return (
+                            <Badge
+                              variant="outline"
+                              className="bg-green-100 text-green-800 border-green-200"
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Approved
+                            </Badge>
+                          );
+                        }
+
+                        if (currentApprovalStatus === 'pending') {
+                          return (
+                            <Badge
+                              variant="outline"
+                              className="bg-yellow-100 text-yellow-800 border-yellow-200"
+                            >
+                              <Clock className="h-3 w-3 mr-1" />
+                              Pending
+                            </Badge>
+                          );
+                        }
+
+                        if (currentApprovalStatus === 'rejected') {
+                          return (
+                            <Badge
+                              variant="outline"
+                              className="bg-red-100 text-red-800 border-red-200"
+                            >
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              Rejected
+                            </Badge>
+                          );
+                        }
+
+                        return <span className="text-xs text-muted-foreground">-</span>;
+                      })()}
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="flex items-center justify-center gap-2">
                       {canPay(bill) && onPayBill && (
                         <Button
                           size="sm"
@@ -282,13 +403,33 @@ const BillsTable = ({
                           Pay
                         </Button>
                       )}
+                      {needsApproval(bill) && onRequestApproval && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => handleRequestApproval(bill.id, e)}
+                          disabled={requestingApproval[bill.id] || getApprovalStatus(bill) === 'pending'}
+                          className="h-7 px-3 text-xs"
+                        >
+                          {requestingApproval[bill.id] ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Requesting...
+                            </>
+                          ) : getApprovalStatus(bill) === 'pending' ? (
+                            'Approval Requested'
+                          ) : (
+                            'Ask for Approval'
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <div className="text-muted-foreground">
                     {isLoading ? "Loading bills..." : "No bills found"}
                   </div>

@@ -14,6 +14,7 @@ export interface Invoice {
   sgst: number;
   igst?: number;
   terms: string;
+  approvalStatus?: 'approved' | 'pending' | 'rejected' | null;
 }
 
 export interface InvoiceItem {

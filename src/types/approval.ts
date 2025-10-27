@@ -1,27 +1,20 @@
 
-export type ApprovalStatus = 
-  | 'pending'    // Waiting for approval
-  | 'urgent'     // Needs immediate attention
-  | 'flagged'    // Marked for review
-  | 'approved'   // Transaction approved
-  | 'rejected'   // Transaction rejected
-  | 'changes_requested'; // Changes requested before approval
-
-export type DateCategory = 'today' | 'yesterday' | 'this_week' | 'older';
-export type PaymentMethod = 'bank' | 'credit';
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "changes_requested";
 
 export interface ApprovalTransaction {
   id: string;
-  initiatedBy: string;
-  initiatorRole: string;
   payee: string;
-  amount: number;
   description: string;
-  requestedDate: string;
+  amount: number;
+  date: string; // Assuming this is the transaction date
   status: ApprovalStatus;
-  dateCategory: DateCategory;
-  paymentMethod: PaymentMethod;
-  isRead: boolean;
-  isUrgent?: boolean;
+  requestedBy: {
+    name: string;
+    role: string;
+  };
+  invoiceNumber: string;
+  dueDate: string;
+  category: string;
   notes?: string;
+  // Add more details for the full view in the panel
 }

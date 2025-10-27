@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { businessAPI } from '@/services/api';
+import { businessAPI, userAPI } from '@/services/api';
 import { useAuth } from './AuthContext';
+import { UserPermissions, BusinessRole } from '@/types/permissions';
+import { getMockPermissions } from '@/data/mockPermissions';
 
 export interface BusinessDetails {
   bid: string;
@@ -8,7 +10,8 @@ export interface BusinessDetails {
   gstin: string;
   pan: string;
   businessType: string;
-  userRole: string;
+  userRole: BusinessRole;
+  permissions?: UserPermissions;
 }
 
 interface BusinessState {
@@ -86,9 +89,19 @@ export const BusinessProvider: React.FC<{ children: ReactNode }> = ({ children }
   // Fetch business details for a specific business ID
   const fetchBusinessDetails = async (businessId: string, userRole: string): Promise<BusinessDetails> => {
     const response = await businessAPI.getBusiness(businessId);
+
+    // Fetch user permissions for this business
+    // TODO: Replace with actual API call when backend is ready
+    // const permissionsResponse = await userAPI.getPermissions(businessId);
+    // const permissions = permissionsResponse.permissions;
+
+    // For now, use mock permissions based on role
+    const permissions = getMockPermissions(userRole);
+
     return {
       ...response.data,
-      userRole, // Add the user's role for this business
+      userRole: userRole as BusinessRole, // Add the user's role for this business
+      permissions, // Add the user's permissions for this business
     };
   };
 

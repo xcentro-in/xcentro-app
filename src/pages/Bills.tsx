@@ -10,10 +10,12 @@ import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useBills } from "@/hooks/useBills";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Bills = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
+  const { user } = useAuth();
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -83,11 +85,18 @@ const Bills = () => {
   };
 
   const handleRequestApproval = async (billId: string) => {
+    if (!user?.id) {
+      console.error('User ID not available');
+      throw new Error('User not authenticated');
+    }
+
     try {
-      await requestApproval(billId);
-      console.log('Approval request sent successfully');
+      const result = await requestApproval(billId, user.id);
+      console.log('Approval request sent successfully:', result.message);
+      return result; // Return the result so BillsTable can use the message
     } catch (error) {
       console.error('Failed to request approval:', error);
+      throw error; // Re-throw so BillsTable can handle the error
     }
   };
 

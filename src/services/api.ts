@@ -387,6 +387,16 @@ class ApiService {
         body: JSON.stringify({ userId }),
       });
     },
+
+    // Get user permissions for current business
+    getPermissions: async (businessId: string) => {
+      return this.request(`/users/permissions`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
   };
 
   // Business endpoints
@@ -941,6 +951,34 @@ class ApiService {
       return this.request(`/vouchers/${voucherId}`, {
         method: 'PUT',
         body: JSON.stringify(params),
+      });
+    },
+
+    getDetails: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    requestApproval: async (
+      businessId: string,
+      voucherId: string,
+      approverUserId: string,
+      remarks?: string
+    ) => {
+      return this.request(`/vouchers/${voucherId}/request-approval`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({
+          approver_user_id: approverUserId,
+          action: 'pending',
+          remarks: remarks || '',
+        }),
       });
     }
   };

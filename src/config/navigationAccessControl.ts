@@ -1,16 +1,19 @@
 import { AuthUser } from "@/types/auth";
+import { UserPermissions } from "@/types/permissions";
 
-export type AccessRequirement = 
+export type AccessRequirement =
   | 'none'
   | 'payment-method'
   | 'vendor'
   | 'first-payment'
-  | 'all-onboarding';
+  | 'all-onboarding'
+  | 'permission-based'; // New requirement type for role-based permissions
 
 export interface NavigationAccessRule {
   requirement: AccessRequirement;
   lockedMessage: string;
   unlockHint: string;
+  permissionKey?: keyof UserPermissions; // Optional permission key to check
 }
 
 export const navigationAccessRules: Record<string, NavigationAccessRule> = {
@@ -63,11 +66,12 @@ export const navigationAccessRules: Record<string, NavigationAccessRule> = {
     unlockHint: 'Create your first payment to start managing bills.',
   },
   
-  // Approvals - requires first payment
+  // Approvals - requires canViewApprovals permission (owner role)
   approvals: {
-    requirement: 'first-payment',
-    lockedMessage: 'No approvals pending',
-    unlockHint: 'Process your first payment to access the approvals section.',
+    requirement: 'permission-based',
+    lockedMessage: 'Access restricted',
+    unlockHint: 'Only users with approval rights can access this section.',
+    permissionKey: 'canViewApprovals',
   },
   
   // GST Payments - requires all onboarding
@@ -101,40 +105,51 @@ export const navigationAccessRules: Record<string, NavigationAccessRule> = {
 
 export function hasMetRequirement(
   requirement: AccessRequirement,
-  user: AuthUser | null
+  user: AuthUser | null,
+  permissions?: UserPermissions | null,
+  permissionKey?: keyof UserPermissions
 ): boolean {
   if (!user) return false;
-  
+
   switch (requirement) {
     case 'none':
       return true;
-      
+
     case 'payment-method':
       return user.hasAddedPaymentMethod === true;
-      
+
     case 'vendor':
       return user.hasAddedPaymentMethod === true && user.hasAddedVendor === true;
-      
+
     case 'first-payment':
       return user.hasCreatedFirstPayment === true;
-      
+
     case 'all-onboarding':
       return (
         user.hasAddedPaymentMethod === true &&
         user.hasAddedVendor === true &&
         user.hasCreatedFirstPayment === true
       );
-      
+
+    case 'permission-based':
+      // Check if user has the required permission
+      if (!permissions || !permissionKey) return false;
+      return permissions[permissionKey] === true;
+
     default:
       return false;
   }
 }
 
-export function isMenuItemAccessible(menuItemId: string, user: AuthUser | null): boolean {
+export function isMenuItemAccessible(
+  menuItemId: string,
+  user: AuthUser | null,
+  permissions?: UserPermissions | null
+): boolean {
   const rule = navigationAccessRules[menuItemId];
   if (!rule) return true; // Default to accessible if no rule defined
-  
-  return hasMetRequirement(rule.requirement, user);
+
+  return hasMetRequirement(rule.requirement, user, permissions, rule.permissionKey);
 }
 
 export function getLockedMessage(menuItemId: string): string {
