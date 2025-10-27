@@ -1,5 +1,5 @@
 
-export type ApprovalStatus = "pending" | "approved" | "rejected" | "changes_requested";
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "request_changes";
 
 export interface ApprovalTransaction {
   id: string;
@@ -16,5 +16,10 @@ export interface ApprovalTransaction {
   dueDate: string;
   category: string;
   notes?: string;
+  paymentMethod: "credit" | "bank" | "wallet";
+  initiatedBy: string;
+  initiatorRole: string;
+  requestedDate: string;
+  isRead?: boolean;
   // Add more details for the full view in the panel
 }
