@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Invoice } from "@/data/mockInvoices";
-import InvoiceDetails from "@/components/invoices/InvoiceDetails";
+import BillDetailsModal from "@/components/bills/BillDetailsModal";
 import BillsTable from "@/components/bills/BillsTable";
 import { Dialog, DialogPortal, DialogOverlay } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
@@ -33,7 +33,8 @@ const Bills = () => {
     pagination,
     isLoading,
     error,
-    payBill
+    payBill,
+    requestApproval
   } = useBills(billsFilters);
 
   useEffect(() => {
@@ -78,6 +79,15 @@ const Bills = () => {
       console.log('Bill paid successfully');
     } catch (error) {
       console.error('Failed to pay bill:', error);
+    }
+  };
+
+  const handleRequestApproval = async (billId: string) => {
+    try {
+      await requestApproval(billId);
+      console.log('Approval request sent successfully');
+    } catch (error) {
+      console.error('Failed to request approval:', error);
     }
   };
 
@@ -145,7 +155,7 @@ const Bills = () => {
                 <div className="rounded-md border overflow-hidden">
                   <div className="h-12 bg-gray-100 border-b"></div>
                   <div className="space-y-0">
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: 3 }).map((_, i) => (
                       <div key={i} className="h-16 border-b bg-white"></div>
                     ))}
                   </div>
@@ -163,7 +173,8 @@ const Bills = () => {
                 </div>
               </div>
             </div>
-          ) : (
+          ) : 
+          (
             <BillsTable
               bills={bills}
               pagination={pagination}
@@ -177,6 +188,7 @@ const Bills = () => {
               onStatusFilterChange={handleStatusFilterChange}
               onBillSelect={handleBillSelect}
               onPayBill={handlePayBill}
+              onRequestApproval={handleRequestApproval}
               isLoading={isLoading}
             />
           )}
@@ -193,7 +205,7 @@ const Bills = () => {
             )}
           >
             {selectedInvoice && (
-              <InvoiceDetails
+              <BillDetailsModal
                 invoice={selectedInvoice}
                 onClose={handleCloseModal}
                 onPayBill={handlePayBill}

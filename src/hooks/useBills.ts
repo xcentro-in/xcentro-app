@@ -23,6 +23,7 @@ const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
     sgst: 0, // Not provided by list API
     igst: 0, // Not provided by list API
     terms: '', // Not provided by list API
+    approvalStatus: voucher.approvalStatus, // Approval status from API
   };
 };
 
@@ -194,6 +195,25 @@ export const useBills = (filters: BillsFilters = {}) => {
     }
   };
 
+  // Request approval for a bill
+  const requestApproval = async (billId: string) => {
+    if (!user?.businessId) {
+      throw new Error('Missing business ID');
+    }
+
+    try {
+      const response = await voucherAPI.requestApproval(user.businessId, billId);
+
+      // Refresh bills data after requesting approval
+      await fetchBills();
+
+      return { success: true, message: 'Approval request sent successfully' };
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to request approval';
+      throw new Error(errorMessage);
+    }
+  };
+
   useEffect(() => {
     if (user?.businessId) {
       fetchBills();
@@ -213,6 +233,7 @@ export const useBills = (filters: BillsFilters = {}) => {
     error,
     refetch: fetchBills,
     payBill,
-    getBillDetails
+    getBillDetails,
+    requestApproval
   };
 };

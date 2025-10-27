@@ -137,7 +137,7 @@ const ApprovalTransactionList = ({
                 <TableHead className="w-[100px]">Payment Method</TableHead>
                 <TableHead>Payee</TableHead>
                 <TableHead>Initiated By</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>

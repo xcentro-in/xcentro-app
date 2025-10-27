@@ -29,6 +29,7 @@ import GSTPaymentHistory from "./pages/GSTPaymentHistory";
 import PayrollReport from "./pages/PayrollReport";
 import Bills from "./pages/Bills";
 import NewBill from "./pages/NewBill";
+import BillDetailPage from "./pages/BillDetailPage";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
@@ -111,6 +112,7 @@ function App() {
                 <Route path="payees/:payeeId" element={<PayeeHistory />} />
                 <Route path="bills" element={<Bills />} />
                 <Route path="bills/new" element={<NewBill />} />
+                <Route path="bills/:billId" element={<BillDetailPage />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
                 {AnalyticsEnabled && (
                   <>

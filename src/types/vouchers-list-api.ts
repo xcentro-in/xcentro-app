@@ -10,6 +10,7 @@ export interface VoucherListItemAPI {
   status: 'paid' | 'open' | 'overdue';
   voucherStatus: 'draft' | 'finalized' | 'pending' | 'processed';
   paymentDate: string | null; // ISO 8601 format or null
+  approvalStatus: 'approved' | 'pending' | 'rejected' | null; // Approval status
 }
 
 export interface VoucherListResponseAPI {
