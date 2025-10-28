@@ -1,7 +1,6 @@
 import { ApprovalTransaction } from "@/types/approval";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, X, PenLine, ExternalLink, Calendar, FileText, User, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
@@ -16,6 +15,7 @@ interface BillQuickPreviewProps {
   onApprove: (id: string) => void;
   onReject: (transaction: ApprovalTransaction) => void;
   onRequestChanges: (transaction: ApprovalTransaction) => void;
+  showActions?: boolean;
 }
 
 const BillQuickPreview = ({
@@ -24,7 +24,8 @@ const BillQuickPreview = ({
   onOpenChange,
   onApprove,
   onReject,
-  onRequestChanges
+  onRequestChanges,
+  showActions = true
 }: BillQuickPreviewProps) => {
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ const BillQuickPreview = ({
     onOpenChange(false);
   };
 
-  const canTakeAction = transaction.status === "pending" || transaction.status === "request_changes";
+  const canTakeAction = transaction.status === "pending";
 
   // Helper to get action icon and color
   const getActionDisplay = (action: string) => {
@@ -190,8 +191,8 @@ const BillQuickPreview = ({
         </ScrollArea>
 
         <SheetFooter className="flex-col space-y-3 sm:space-y-3 sm:flex-col">
-          {/* Action Buttons */}
-          {canTakeAction && (
+          {/* Action Buttons - Only show if showActions is true */}
+          {showActions && canTakeAction && (
             <div className="grid grid-cols-3 gap-2 w-full">
               <Button
                 size="sm"

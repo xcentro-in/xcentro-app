@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import ApprovalInboxTabs from "@/components/approvals/ApprovalInboxTabs";
 import ApprovalTransactionList from "@/components/approvals/ApprovalTransactionList";
-import { ApprovalStatus } from "@/types/approval";
+import { ApprovalStatus, ApprovalTransaction } from "@/types/approval";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, Search, Info, TrendingUp, AlertCircle } from "lucide-react";
@@ -12,11 +12,17 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { isWithinInterval, subDays } from "date-fns";
 import { useApprovalInbox } from "@/hooks/useApprovalInbox";
 import { useApprovalCounts } from "@/hooks/useApprovalCounts";
+import { useAuth } from "@/contexts/AuthContext";
+import { voucherAPI } from "@/services/api";
+import { toast } from "sonner";
+import { BatchApprovalResponse } from "@/types/batch-approval-api";
 
 const ApprovalInbox = () => {
   const [activeTab, setActiveTab] = useState<ApprovalStatus>("pending");
   const { setTitle } = usePageTitle();
   const [searchTerm, setSearchTerm] = useState("");
+  const { user } = useAuth();
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     setTitle("Approval Inbox");
@@ -70,6 +76,142 @@ const ApprovalInbox = () => {
   const handleTabChange = (tab: ApprovalStatus) => {
     setActiveTab(tab);
     refetchCounts();
+  };
+
+  // Handle approve action
+  const handleApprove = async (id: string) => {
+    if (!user?.businessId || !user?.id) {
+      toast.error("Missing user information");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await voucherAPI.approveVoucher(user.businessId, id, user.id, "Approved");
+      toast.success("Bill approved successfully");
+
+      // Refetch data
+      refetch();
+      refetchCounts();
+    } catch (err) {
+      console.error("Error approving bill:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to approve bill");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle reject action
+  const handleReject = async (transaction: ApprovalTransaction, reason: string) => {
+    if (!user?.businessId || !user?.id) {
+      toast.error("Missing user information");
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await voucherAPI.rejectVoucher(user.businessId, transaction.id, user.id, reason);
+      toast.success("Bill rejected");
+
+      // Refetch data
+      refetch();
+      refetchCounts();
+    } catch (err) {
+      console.error("Error rejecting bill:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to reject bill");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle request changes action
+  const handleRequestChanges = async (transaction: ApprovalTransaction, reason: string) => {
+    if (!user?.businessId || !user?.id) {
+      toast.error("Missing user information");
+      return;
+    }
+
+    if (!reason.trim()) {
+      toast.error("Please provide details about requested changes");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await voucherAPI.requestChanges(user.businessId, transaction.id, user.id, reason);
+      toast.success("Changes requested");
+
+      // Refetch data
+      refetch();
+      refetchCounts();
+    } catch (err) {
+      console.error("Error requesting changes:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to request changes");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  // Handle batch approve action
+  const handleBatchApprove = async (voucherIds: string[]) => {
+    if (!user?.businessId || !user?.id) {
+      toast.error("Missing user information");
+      return;
+    }
+
+    if (voucherIds.length === 0) {
+      toast.error("No vouchers selected");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const response = await voucherAPI.batchApprove(
+        user.businessId,
+        voucherIds,
+        user.id,
+        'Batch Approved'
+      ) as BatchApprovalResponse;
+
+      // Handle response based on success/partial/failure
+      if (response.total_approved === response.total_requested) {
+        // Full success
+        toast.success(`Successfully approved all ${response.total_approved} bills`);
+      } else if (response.total_approved > 0) {
+        // Partial success
+        toast.warning(
+          `Approved ${response.total_approved} out of ${response.total_requested} bills. ${response.total_failed} failed.`,
+          { duration: 5000 }
+        );
+        // Show details of failed items
+        const failedMessages = response.results
+          .filter(r => !r.success)
+          .map(r => `${r.voucher_number || r.voucher_id}: ${r.message}`)
+          .join('\n');
+        console.error('Failed vouchers:', failedMessages);
+      } else {
+        // Full failure
+        toast.error(`Failed to approve all ${response.total_requested} bills`);
+        const failedMessages = response.results
+          .map(r => `${r.voucher_number || r.voucher_id}: ${r.message}`)
+          .join('\n');
+        console.error('All vouchers failed:', failedMessages);
+      }
+
+      // Refetch data
+      refetch();
+      refetchCounts();
+    } catch (err) {
+      console.error("Error in batch approval:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to process batch approval");
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // Define tabs with proper structure
@@ -192,9 +334,11 @@ const ApprovalInbox = () => {
 
             <ApprovalTransactionList
               transactions={filteredTransactions}
-              onApprove={(id) => console.log("Approve:", id)}
-              onReject={(id) => console.log("Reject:", id)}
-              onRequestChanges={(id) => console.log("Request changes:", id)}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onRequestChanges={handleRequestChanges}
+              onBatchApprove={handleBatchApprove}
+              showActions={activeTab === "pending"}
             />
 
             {/* Loading overlay */}

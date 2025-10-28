@@ -16,6 +16,7 @@ interface ApprovalTransactionRowProps {
   onApprove: (id: string) => void;
   onReject: (transaction: ApprovalTransaction) => void;
   onRequestChanges: (transaction: ApprovalTransaction) => void;
+  showActions?: boolean;
 }
 
 const ApprovalTransactionRow = ({
@@ -25,7 +26,8 @@ const ApprovalTransactionRow = ({
   onRowClick,
   onApprove,
   onReject,
-  onRequestChanges
+  onRequestChanges,
+  showActions = true
 }: ApprovalTransactionRowProps) => {
   // Helper to get approval status badge
   const getApprovalStatusBadge = () => {
@@ -68,13 +70,15 @@ const ApprovalTransactionRow = ({
       className="hover:bg-muted/50 cursor-pointer transition-colors"
       onClick={() => onRowClick(transaction)}
     >
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={() => onSelectTransaction(transaction.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      </TableCell>
+      {showActions && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onSelectTransaction(transaction.id)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </TableCell>
+      )}
 
       {/* Vendor */}
       <TableCell className="font-medium">
@@ -106,14 +110,16 @@ const ApprovalTransactionRow = ({
       </TableCell>
 
       {/* Actions */}
-      <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-        <ApprovalTransactionActions
-          transaction={transaction}
-          onApprove={onApprove}
-          onReject={onReject}
-          onRequestChanges={onRequestChanges}
-        />
-      </TableCell>
+      {showActions && (
+        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+          <ApprovalTransactionActions
+            transaction={transaction}
+            onApprove={onApprove}
+            onReject={onReject}
+            onRequestChanges={onRequestChanges}
+          />
+        </TableCell>
+      )}
     </TableRow>
   );
 };

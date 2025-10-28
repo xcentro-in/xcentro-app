@@ -982,6 +982,86 @@ class ApiService {
       });
     },
 
+    // Approve a voucher
+    approveVoucher: async (
+      businessId: string,
+      voucherId: string,
+      approverUserId: string,
+      remarks?: string
+    ) => {
+      return this.request(`/vouchers/${voucherId}/request-approval`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({
+          approver_user_id: approverUserId,
+          action: 'approved',
+          remarks: remarks || '',
+        }),
+      });
+    },
+
+    // Reject a voucher
+    rejectVoucher: async (
+      businessId: string,
+      voucherId: string,
+      approverUserId: string,
+      remarks: string
+    ) => {
+      return this.request(`/vouchers/${voucherId}/request-approval`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({
+          approver_user_id: approverUserId,
+          action: 'rejected',
+          remarks: remarks,
+        }),
+      });
+    },
+
+    // Request changes for a voucher
+    requestChanges: async (
+      businessId: string,
+      voucherId: string,
+      approverUserId: string,
+      remarks: string
+    ) => {
+      return this.request(`/vouchers/${voucherId}/request-approval`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({
+          approver_user_id: approverUserId,
+          action: 'request_changes',
+          remarks: remarks,
+        }),
+      });
+    },
+
+    // Batch approve multiple vouchers
+    batchApprove: async (
+      businessId: string,
+      voucherIds: string[],
+      approvedById: string,
+      remarks?: string
+    ) => {
+      return this.request('/vouchers/batch-approve', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({
+          voucher_ids: voucherIds,
+          approved_by_id: approvedById,
+          remarks: remarks || 'Batch Approved',
+        }),
+      });
+    },
+
     // Get approval inbox
     getApprovalInbox: async (
       businessId: string,

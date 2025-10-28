@@ -37,7 +37,7 @@ const ApprovalTransactionActions = ({
     setShowApproveDialog(false);
   };
 
-  if (transaction.status !== "pending" && transaction.status !== "request_changes") {
+  if (transaction.status !== "pending") {
     return null;
   }
 

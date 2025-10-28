@@ -20,15 +20,19 @@ import BillQuickPreview from "./BillQuickPreview";
 interface ApprovalTransactionListProps {
   transactions: ApprovalTransaction[];
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onRequestChanges: (id: string) => void;
+  onReject: (transaction: ApprovalTransaction, reason: string) => void;
+  onRequestChanges: (transaction: ApprovalTransaction, reason: string) => void;
+  onBatchApprove: (voucherIds: string[]) => void;
+  showActions?: boolean; // Whether to show action buttons and column
 }
 
 const ApprovalTransactionList = ({
   transactions,
   onApprove,
   onReject,
-  onRequestChanges
+  onRequestChanges,
+  onBatchApprove,
+  showActions = true
 }: ApprovalTransactionListProps) => {
   const navigate = useNavigate();
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
@@ -56,8 +60,7 @@ const ApprovalTransactionList = ({
   };
 
   const handleBatchApprove = () => {
-    selectedTransactions.forEach(id => onApprove(id));
-    toast.success(`${selectedTransactions.length} transactions approved`);
+    onBatchApprove(selectedTransactions);
     setSelectedTransactions([]);
   };
 
@@ -80,17 +83,17 @@ const ApprovalTransactionList = ({
 
   const handleRejectConfirm = () => {
     if (dialogTransaction && rejectReason) {
-      onReject(dialogTransaction.id);
-      toast.success(`Bill ${dialogTransaction.invoiceNumber} rejected`);
+      onReject(dialogTransaction, rejectReason);
       setDialogTransaction(null);
+      setRejectReason("");
     }
   };
 
   const handleChangesConfirm = () => {
     if (dialogTransaction && changesRequested) {
-      onRequestChanges(dialogTransaction.id);
-      toast.success(`Changes requested for bill ${dialogTransaction.invoiceNumber}`);
+      onRequestChanges(dialogTransaction, changesRequested);
       setDialogTransaction(null);
+      setChangesRequested("");
     }
   };
 
@@ -110,7 +113,6 @@ const ApprovalTransactionList = ({
   // These wrapper functions ensure we're passing the correct parameter types
   const handleRowApprove = (id: string) => {
     onApprove(id);
-    toast.success("Bill approved successfully");
   };
   const handleRowReject = (transaction: ApprovalTransaction) => openRejectDialog(transaction);
   const handleRowRequestChanges = (transaction: ApprovalTransaction) => openChangesDialog(transaction);
@@ -119,26 +121,30 @@ const ApprovalTransactionList = ({
     <>
       {transactions.length > 0 ? (
         <div className="rounded-md border">
-          <ApprovalBatchActions 
-            selectedCount={selectedTransactions.length} 
-            onBatchApprove={handleBatchApprove} 
-          />
-          
+          {showActions && (
+            <ApprovalBatchActions
+              selectedCount={selectedTransactions.length}
+              onBatchApprove={handleBatchApprove}
+            />
+          )}
+
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="w-[40px]">
-                  <Checkbox
-                    checked={selectedTransactions.length === transactions.length && transactions.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
+                {showActions && (
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={selectedTransactions.length === transactions.length && transactions.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
+                )}
                 <TableHead>Vendor</TableHead>
                 <TableHead>Invoice #</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="text-center">Approval Status</TableHead>
-                <TableHead className="text-center">Actions</TableHead>
+                {showActions && <TableHead className="text-center">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -152,6 +158,7 @@ const ApprovalTransactionList = ({
                   onApprove={handleRowApprove}
                   onReject={handleRowReject}
                   onRequestChanges={handleRowRequestChanges}
+                  showActions={showActions}
                 />
               ))}
             </TableBody>
@@ -171,6 +178,7 @@ const ApprovalTransactionList = ({
         onApprove={handleRowApprove}
         onReject={handleRowReject}
         onRequestChanges={handleRowRequestChanges}
+        showActions={showActions}
       />
 
       {/* Reject/Request Changes Dialogs */}
