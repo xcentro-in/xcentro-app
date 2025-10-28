@@ -3,11 +3,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, X, PenLine, ExternalLink, Calendar, FileText, User } from "lucide-react";
-import { format } from "date-fns";
+import { CheckCircle2, X, PenLine, ExternalLink, Calendar, FileText, User, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
 import { formatCurrency } from "@/utils/formatters";
 import { useNavigate } from "react-router-dom";
-import ApprovalStatusBadge from "./ApprovalStatusBadge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface BillQuickPreviewProps {
   transaction: ApprovalTransaction | null;
@@ -38,9 +38,25 @@ const BillQuickPreview = ({
 
   const canTakeAction = transaction.status === "pending" || transaction.status === "request_changes";
 
+  // Helper to get action icon and color
+  const getActionDisplay = (action: string) => {
+    switch (action) {
+      case 'approved':
+        return { icon: CheckCircle, color: 'text-green-600', label: 'Approved' };
+      case 'rejected':
+        return { icon: X, color: 'text-red-600', label: 'Rejected' };
+      case 'request_changes':
+        return { icon: AlertCircle, color: 'text-blue-600', label: 'Requested Changes' };
+      case 'pending':
+        return { icon: Clock, color: 'text-yellow-600', label: 'Pending Approval' };
+      default:
+        return { icon: Clock, color: 'text-gray-600', label: action };
+    }
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[500px] sm:w-[540px] sm:max-w-[540px]">
+      <SheetContent className="w-[500px] sm:w-[540px] sm:max-w-[540px] flex flex-col">
         <SheetHeader>
           <SheetTitle>Bill Approval Request</SheetTitle>
           <SheetDescription>
@@ -48,7 +64,8 @@ const BillQuickPreview = ({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="py-6 space-y-6">
+        <ScrollArea className="flex-1 -mx-6 px-6">
+          <div className="py-6 space-y-6">
           {/* Invoice Snapshot */}
           <div className="space-y-4">
             {/* Amount - Large and prominent */}
@@ -57,12 +74,6 @@ const BillQuickPreview = ({
               <p className="text-4xl font-bold text-primary">
                 {formatCurrency(transaction.amount)}
               </p>
-            </div>
-
-            {/* Status Badge */}
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-muted-foreground">Status</span>
-              <ApprovalStatusBadge status={transaction.status} />
             </div>
 
             <Separator />
@@ -103,7 +114,7 @@ const BillQuickPreview = ({
             </div>
 
             {/* Requested By */}
-            <div className="bg-muted/50 rounded-lg p-4">
+            {/* <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-sm text-muted-foreground mb-2">Requested By</p>
               <div className="flex items-center justify-between">
                 <div>
@@ -120,9 +131,63 @@ const BillQuickPreview = ({
                   <p className="text-sm">{transaction.notes}</p>
                 </div>
               )}
-            </div>
+            </div> */}
+
+            {/* Approval History */}
+            {transaction.approvalHistory && transaction.approvalHistory.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground">Approval Timeline</p>
+                  <div className="space-y-3">
+                    {transaction.approvalHistory.map((history, index) => {
+                      const actionDisplay = getActionDisplay(history.action);
+                      const ActionIcon = actionDisplay.icon;
+
+                      return (
+                        <div key={history.approvalId} className="flex gap-3">
+                          {/* Timeline dot and line */}
+                          <div className="flex flex-col items-center">
+                            <div className={`rounded-full p-1.5 bg-background border-2 ${actionDisplay.color.replace('text-', 'border-')}`}>
+                              <ActionIcon className={`h-3 w-3 ${actionDisplay.color}`} />
+                            </div>
+                            {index < transaction.approvalHistory!.length - 1 && (
+                              <div className="w-0.5 flex-1 bg-border mt-1 min-h-[20px]" />
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1 pb-3">
+                            <div className="flex items-start justify-between mb-1">
+                              <div>
+                                <p className="text-sm font-medium">{actionDisplay.label}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  by {history.requesterName}
+                                  {history.approverName && history.approverName !== history.requesterName && (
+                                    <> → {history.approverName}</>
+                                  )}
+                                </p>
+                              </div>
+                              <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                                {formatDistanceToNow(new Date(history.createdAt), { addSuffix: true })}
+                              </p>
+                            </div>
+                            {history.remarks && (
+                              <p className="text-xs text-muted-foreground bg-muted/30 rounded p-2 mt-2">
+                                "{history.remarks}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+          </div>
+        </ScrollArea>
 
         <SheetFooter className="flex-col space-y-3 sm:space-y-3 sm:flex-col">
           {/* Action Buttons */}

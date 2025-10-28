@@ -980,6 +980,29 @@ class ApiService {
           remarks: remarks || '',
         }),
       });
+    },
+
+    // Get approval inbox
+    getApprovalInbox: async (
+      businessId: string,
+      status: 'pending' | 'approved' | 'rejected' | 'request_changes'
+    ) => {
+      return this.request(`/vouchers/approval-inbox?status=${status}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get approval inbox counts for all statuses
+    getApprovalCounts: async (businessId: string) => {
+      return this.request('/vouchers/approval-inbox/counts', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 
