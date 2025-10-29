@@ -920,6 +920,15 @@ class ApiService {
       });
     },
 
+    getVoucherCounts: async (businessId: string) => {
+      return this.request('/vouchers/counts', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     createDraft: async (params: {
       business_id: string;
       user_id: string;
@@ -1082,6 +1091,27 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
+      });
+    },
+
+    // Get unpaid vouchers for invoice payment
+    getUnpaidVouchers: async (businessId: string, limit: number = 50, offset: number = 0) => {
+      return this.request(`/vouchers/unpaid?limit=${limit}&offset=${offset}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Create new voucher (bill)
+    createVoucher: async (businessId: string, voucherData: any) => {
+      return this.request('/vouchers', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(voucherData),
       });
     }
   };

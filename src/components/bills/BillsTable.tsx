@@ -41,6 +41,13 @@ import {
 import { formatCurrency } from "@/utils/formatters";
 import { formatPaymentDate } from "@/utils/dateFormatting";
 
+interface VoucherCounts {
+  all: number;
+  paid: number;
+  open: number;
+  overdue: number;
+}
+
 interface BillsTableProps {
   bills: Invoice[];
   pagination: BillsPagination;
@@ -56,6 +63,7 @@ interface BillsTableProps {
   onPayBill?: (billId: string) => void;
   onRequestApproval?: (billId: string) => Promise<{ success: boolean; message: string; approvalId: string }>;
   isLoading?: boolean;
+  voucherCounts?: VoucherCounts;
 }
 
 const BillsTable = ({
@@ -72,7 +80,8 @@ const BillsTable = ({
   onBillSelect,
   onPayBill,
   onRequestApproval,
-  isLoading = false
+  isLoading = false,
+  voucherCounts
 }: BillsTableProps) => {
   // Track loading states and optimistic updates per bill ID
   const [requestingApproval, setRequestingApproval] = React.useState<Record<string, boolean>>({});
@@ -206,28 +215,28 @@ const BillsTable = ({
               size="sm"
               onClick={() => onStatusFilterChange('all')}
             >
-              All
+              All {voucherCounts && `(${voucherCounts.all})`}
             </Button>
             <Button
               variant={currentStatus === 'overdue' ? 'destructive' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('overdue')}
             >
-              Overdue
+              Overdue {voucherCounts && `(${voucherCounts.overdue})`}
             </Button>
             <Button
               variant={currentStatus === 'open' ? 'default' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('open')}
             >
-              Open
+              Open {voucherCounts && `(${voucherCounts.open})`}
             </Button>
             <Button
               variant={currentStatus === 'paid' ? 'default' : 'outline'}
               size="sm"
               onClick={() => onStatusFilterChange('paid')}
             >
-              Paid
+              Paid {voucherCounts && `(${voucherCounts.paid})`}
             </Button>
           </div>
         </div>

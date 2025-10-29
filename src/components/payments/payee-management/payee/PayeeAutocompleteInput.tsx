@@ -10,6 +10,7 @@ interface PayeeAutocompleteInputProps {
   favoritePayees?: string[];
   className?: string;
   error?: string;
+  onAddNewVendor?: () => void;
 }
 
 const PayeeAutocompleteInput = ({
@@ -17,7 +18,8 @@ const PayeeAutocompleteInput = ({
   onPayeeSelect,
   favoritePayees = [],
   className,
-  error
+  error,
+  onAddNewVendor
 }: PayeeAutocompleteInputProps) => {
   const { user } = useAuth();
   const { vendors, isLoading, error: vendorsError } = useVendors(user?.businessId);
@@ -196,8 +198,10 @@ const PayeeAutocompleteInput = ({
             <div
               className="flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-accent hover:text-accent-foreground text-primary"
               onClick={() => {
-                // TODO: Open add payee dialog
                 setIsOpen(false);
+                if (onAddNewVendor) {
+                  onAddNewVendor();
+                }
               }}
             >
               <Plus className="h-4 w-4" />

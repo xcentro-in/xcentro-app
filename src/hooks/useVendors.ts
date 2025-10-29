@@ -29,9 +29,28 @@ export const useVendors = (businessId?: string) => {
     fetchVendors();
   }, [businessId]);
 
+  const refetch = async () => {
+    if (!businessId) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response: GetVendorsResponse = await vendorsAPI.getAll(businessId);
+      setVendors(response.data.vendors);
+    } catch (err) {
+      console.error("Failed to fetch vendors:", err);
+      setError(err instanceof Error ? err.message : "Failed to load vendors");
+      setVendors([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     vendors,
     isLoading,
     error,
+    refetch,
   };
 };

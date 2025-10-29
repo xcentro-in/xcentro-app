@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useBills } from "@/hooks/useBills";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVoucherCounts } from "@/hooks/useVoucherCounts";
 
 const Bills = () => {
   const navigate = useNavigate();
@@ -38,6 +39,9 @@ const Bills = () => {
     payBill,
     requestApproval
   } = useBills(billsFilters);
+
+  // Fetch voucher counts
+  const { counts, refetch: refetchCounts } = useVoucherCounts();
 
   useEffect(() => {
     setTitle("Bills");
@@ -199,6 +203,7 @@ const Bills = () => {
               onPayBill={handlePayBill}
               onRequestApproval={handleRequestApproval}
               isLoading={isLoading}
+              voucherCounts={counts}
             />
           )}
         </div>
