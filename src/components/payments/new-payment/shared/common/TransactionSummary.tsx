@@ -5,18 +5,18 @@ import { PaymentMethodSection } from "../../../shared/summary/PaymentMethodSecti
 import { PayeeSection } from "../../../shared/summary/PayeeSection";
 import { PaymentDetailsSection } from "../../../shared/summary/PaymentDetailsSection";
 import { PaymentSummarySection } from "../../../shared/summary/PaymentSummarySection";
-import { PaymentScheduleType } from "./PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 import { PaymentMethod } from "@/types/payment-method";
 import { Payee } from "@/types/payee";
 import { RewardPackage } from "./RewardTopUpStep";
 import { Employee } from "../../payroll/types";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/formatters";
 
 export interface TransactionSummaryProps {
-  paymentType: PaymentScheduleType;
+  paymentType: PaymentType;
   scheduledDate?: Date;
   amount: number;
   description: string;
@@ -145,6 +145,9 @@ export const TransactionSummary = ({
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Employee Payment Details</DialogTitle>
+            <DialogDescription>
+              Review detailed information for all employees in this bulk payment, including their bank details and payment amounts.
+            </DialogDescription>
           </DialogHeader>
           <div className="max-h-[60vh] overflow-y-auto">
             <Table>

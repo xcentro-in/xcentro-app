@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Employee {
   name: string;
@@ -25,6 +25,9 @@ export const EmployeesDialog = ({
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-auto">
         <DialogHeader>
           <DialogTitle>Payment Details</DialogTitle>
+          <DialogDescription>
+            Review the payment details for all employees including their account information and salary amounts.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="border rounded-md overflow-x-auto mt-4">

@@ -5,6 +5,7 @@ import { ApprovalTransaction } from "@/types/approval";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -82,8 +83,10 @@ const ApprovalTransactionActions = ({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Approval</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to approve this transaction? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          <p>Are you sure you want to approve this transaction?</p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowApproveDialog(false)}>Cancel</Button>
             <Button onClick={handleApproveConfirm}>Confirm</Button>

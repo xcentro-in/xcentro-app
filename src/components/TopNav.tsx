@@ -37,6 +37,8 @@ const TopNav = () => {
     notifications,
     unreadCount,
     isOpen: notificationsOpen,
+    isLoading: notificationsLoading,
+    error: notificationsError,
     openNotifications,
     closeNotifications,
     markAsRead,
@@ -132,17 +134,21 @@ const TopNav = () => {
           </Button>
         </FeatureEnabled>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="relative"
           onClick={openNotifications}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-scale-in">
-              {unreadCount}
-            </span>
+            unreadCount > 9 ? (
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-primary animate-scale-in" />
+            ) : (
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-scale-in">
+                {unreadCount}
+              </span>
+            )
           )}
         </Button>
         
@@ -216,6 +222,8 @@ const TopNav = () => {
         onMarkAllAsRead={markAllAsRead}
         onMarkAsRead={markAsRead}
         onDismiss={dismissNotification}
+        isLoading={notificationsLoading}
+        error={notificationsError}
       />
     </header>
   );

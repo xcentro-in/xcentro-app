@@ -815,30 +815,60 @@ class ApiService {
     }
   };
 
-  // Notification endpoints - TODO: Implement when backend is ready
+  // Notification endpoints
   notifications = {
-    getAll: async () => {
-      // TODO: Get all notifications
-      // return this.request('/notifications');
+    // Get user notifications with pagination
+    getAll: async (params?: { limit?: number; offset?: number }) => {
+      const queryParams = new URLSearchParams();
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
+      if (params?.offset) queryParams.append('offset', params.offset.toString());
 
-      console.log('TODO: Implement notifications.getAll API call');
-      throw new Error('API not implemented yet');
+      const query = queryParams.toString();
+      return this.request(`/notifications${query ? `?${query}` : ''}`);
     },
 
-    markAsRead: async (id: string) => {
-      // TODO: Mark notification as read
-      // return this.request(`/notifications/${id}/read`, { method: 'POST' });
-
-      console.log('TODO: Implement notifications.markAsRead API call', id);
-      throw new Error('API not implemented yet');
+    // Get unread count only
+    getUnreadCount: async () => {
+      return this.request('/notifications/unread/count');
     },
 
-    markAllAsRead: async () => {
-      // TODO: Mark all notifications as read
-      // return this.request('/notifications/read-all', { method: 'POST' });
+    // Mark single notification as read
+    markAsRead: async (id: number) => {
+      return this.request(`/notifications/${id}/read`, {
+        method: 'POST'
+      });
+    },
 
-      console.log('TODO: Implement notifications.markAllAsRead API call');
-      throw new Error('API not implemented yet');
+    // Mark multiple notifications as read
+    markMultipleAsRead: async (notification_ids: number[]) => {
+      return this.request('/notifications/read', {
+        method: 'POST',
+        body: JSON.stringify({ notification_ids }),
+      });
+    },
+
+    // Get notification preferences
+    getPreferences: async () => {
+      return this.request('/notifications/preferences');
+    },
+
+    // Update notification preferences
+    updatePreferences: async (preferences: {
+      email_enabled?: boolean;
+      push_enabled?: boolean;
+      messages_enabled?: boolean;
+      category_preferences?: {
+        [key: string]: {
+          email?: boolean;
+          push?: boolean;
+          messages?: boolean;
+        };
+      };
+    }) => {
+      return this.request('/notifications/preferences', {
+        method: 'PUT',
+        body: JSON.stringify(preferences),
+      });
     }
   };
 
