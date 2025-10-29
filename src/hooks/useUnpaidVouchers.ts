@@ -49,7 +49,7 @@ export const useUnpaidVouchers = () => {
       invoiceNumber: voucher.invoice_number || 'N/A',
       vendorName: voucher.vendor_name || 'Unknown Vendor',
       vendorAddress: '', // Not provided by API
-      amount: voucher.total_amount || 0,
+      amount: (voucher.total_amount || 0) / 100, // Convert paise to rupees
       dueDate: formatDateSafely(voucher.due_date),
       billDate: formatDateSafely(voucher.due_date), // Using due date as fallback
       status: voucher.status || 'open',

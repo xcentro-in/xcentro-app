@@ -959,9 +959,7 @@ class ApiService {
       });
     },
 
-    createDraft: async (params: {
-      business_id: string;
-      user_id: string;
+    createDraft: async (businessId: string, params: {
       relation_id: string;
       invoice_number?: string;
       gross_amount: number;
@@ -974,6 +972,9 @@ class ApiService {
     }) => {
       return this.request('/vouchers/draft', {
         method: 'POST',
+        headers : {
+          'X-Business-ID': businessId,
+        },
         body: JSON.stringify(params),
       });
     },

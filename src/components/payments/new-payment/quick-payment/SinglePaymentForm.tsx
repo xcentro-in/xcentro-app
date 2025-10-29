@@ -107,9 +107,10 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         setIsCreatingVoucher(true);
 
         try {
-          const response: GetVoucherDraftResponse = await voucherAPI.createDraft({
-            business_id: user?.businessId || "01936d7a-7c8e-7890-b123-456789abcdef",
-            user_id: user?.id || "placeholder-user-id",
+          const response: GetVoucherDraftResponse = await voucherAPI.createDraft
+          (
+            user?.businessId,
+            {
             relation_id: selectedPayee,
             invoice_number: invoiceReference || undefined,
             gross_amount: parseFloat(amount) * 100,

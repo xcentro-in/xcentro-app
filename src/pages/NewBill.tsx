@@ -20,6 +20,7 @@ import { GST_RATES, GST_TYPES, GSTType } from "@/constants/gstRates";
 import PayeeAutocompleteInput from "@/components/payments/payee-management/payee/PayeeAutocompleteInput";
 import BankPayeeForm from "@/components/payees/forms/BankPayeeForm";
 import { useVendors } from "@/hooks/useVendors";
+import { GetVoucherDraftResponse } from "@/types/voucher";
 
 /*
  * FUTURE OCR IMPLEMENTATION PLAN
@@ -158,7 +159,7 @@ const NewBill = () => {
   }, [billData.items, billData.gstType, billData.discountType, billData.discountValue, billData.roundOff]);
 
   const calculateFinancials = () => {
-    // Calculate subtotal from items
+    // Calculate subtotal from items (before GST)
     const subtotal = billData.items.reduce((sum, item) => sum + item.amount, 0);
 
     // Calculate GST totals based on GST type
@@ -190,17 +191,16 @@ const NewBill = () => {
       discountAmount = billData.discountValue;
     }
 
-    // Calculate amount after discount
-    const amountAfterDiscount = grossAmount - discountAmount;
+    // Calculate net amount as per backend formula: gross - discount - tds
+    // Note: TDS is 0 for now (not in MVP), so net = gross - discount
+    const netAmount = grossAmount - discountAmount;
 
-    // Calculate round-off
+    // Calculate round-off separately (NOT included in net_amount)
+    // Round-off is stored in financial_details for reference
     let roundOffAmount = 0;
-    let netAmount = amountAfterDiscount;
-
     if (billData.roundOff) {
-      const rounded = Math.round(amountAfterDiscount);
-      roundOffAmount = rounded - amountAfterDiscount;
-      netAmount = rounded;
+      const rounded = Math.round(netAmount);
+      roundOffAmount = rounded - netAmount;
     }
 
     // Update state with all calculated values
@@ -214,7 +214,7 @@ const NewBill = () => {
       grossAmount,
       discountAmount,
       roundOffAmount,
-      netAmount,
+      netAmount, // This is gross - discount (NOT including round-off)
     }));
   };
 
@@ -353,26 +353,6 @@ const NewBill = () => {
     return true;
   };
 
-  const calculateFiscalYear = (date: string): string => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = d.getMonth() + 1; // 0-indexed
-
-    // Fiscal year in India: April to March
-    if (month >= 4) {
-      return `${year}-${year + 1}`;
-    } else {
-      return `${year - 1}-${year}`;
-    }
-  };
-
-  const calculateAccountingPeriod = (date: string): string => {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
-  };
-
   const handleSave = async () => {
     if (!validateForm()) {
       return;
@@ -386,38 +366,34 @@ const NewBill = () => {
     setIsSaving(true);
 
     try {
-      const voucherDate = billData.invoiceDate;
+      // Helper to round to 2 decimal places (accounting precision)
+      const round2 = (num: number) => Math.round(num * 100) / 100;
 
       // Prepare financial details JSONB
       const financialDetails = {
         line_items: billData.items.map(item => ({
           description: item.description,
           quantity: item.quantity,
-          rate: item.rate,
-          amount: item.amount,
-          gst_rate: item.gst_rate,
-          gst_amount: item.gst_amount,
+          rate: round2(item.rate),
+          amount: round2(item.amount),
+          gst_rate: item.gst_rate, // Percentage, keep as-is
+          gst_amount: round2(item.gst_amount),
         })),
         discount: {
           type: billData.discountType,
-          value: billData.discountValue,
-          amount: billData.discountAmount,
+          value: round2(billData.discountValue),
+          amount: round2(billData.discountAmount),
         },
         round_off: {
           applied: billData.roundOff,
-          amount: billData.roundOffAmount,
+          amount: round2(billData.roundOffAmount),
         },
         gst_type: billData.gstType,
       };
 
       // Prepare voucher payload
-      // Note: relation_id contains the business_payee_relation identifier
-      // Backend will resolve this to payee_id and account_id
+      // Note: Backend will handle voucher_date, fiscal_year, accounting_period, created_by_user_id, and status
       const voucherPayload = {
-        voucher_date: voucherDate,
-        fiscal_year: calculateFiscalYear(voucherDate),
-        accounting_period: calculateAccountingPeriod(voucherDate),
-        business_id: user.businessId,
         relation_id: billData.vendorRelationId, // Backend will resolve to payee_id and account_id
         invoice_number: billData.invoiceNumber,
         invoice_date: billData.invoiceDate,
@@ -434,15 +410,16 @@ const NewBill = () => {
         payment_terms: billData.paymentTerms,
         vendor_reference_number: billData.vendorReferenceNumber,
         financial_details: financialDetails,
-        created_by_user_id: user.id,
-        status: 'draft',
       };
 
       // Call API to create voucher
-      const response = await voucherAPI.createVoucher(user.businessId, voucherPayload);
+      const response: GetVoucherDraftResponse = await voucherAPI.createDraft(
+        user?.businessId,
+        { ...voucherPayload }
+        );
 
       toast.success("Bill created successfully", {
-        description: `Bill #${billData.invoiceNumber} has been saved as draft`
+        description: `Bill #${response.data.voucher_number} has been saved as draft`
       });
 
       // Navigate to bills list
@@ -894,9 +871,38 @@ const NewBill = () => {
                     <span className="w-24 text-right font-medium">₹ {billData.discountAmount.toFixed(2)}</span>
                   </div>
 
+                  <Separator />
+
+                  {/* Net Amount (without round-off) */}
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>Net Amount (Gross - Discount)</span>
+                    <span>₹ {billData.netAmount.toFixed(2)}</span>
+                  </div>
+
                   {/* Round Off */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
+                  {billData.roundOff && (
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="roundOff"
+                          checked={billData.roundOff}
+                          onChange={(e) => setBillData(prev => ({ ...prev, roundOff: e.target.checked }))}
+                          className="rounded"
+                        />
+                        <Label htmlFor="roundOff" className="font-normal cursor-pointer">
+                          Round off adjustment
+                        </Label>
+                      </div>
+                      <span className="font-medium">
+                        {(billData.roundOffAmount >= 0 ? '+' : '') + billData.roundOffAmount.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Show checkbox when not enabled */}
+                  {!billData.roundOff && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <input
                         type="checkbox"
                         id="roundOff"
@@ -905,22 +911,17 @@ const NewBill = () => {
                         className="rounded"
                       />
                       <Label htmlFor="roundOff" className="font-normal cursor-pointer">
-                        Round off
+                        Apply round off
                       </Label>
                     </div>
-                    <span className="font-medium">
-                      {billData.roundOff ?
-                        (billData.roundOffAmount >= 0 ? '+' : '') + billData.roundOffAmount.toFixed(2)
-                        : '₹ 0.00'
-                      }
-                    </span>
-                  </div>
+                  )}
 
                   <Separator />
 
+                  {/* Final Payable Amount */}
                   <div className="flex justify-between font-semibold text-lg">
-                    <span>Net Amount</span>
-                    <span>₹ {billData.netAmount.toFixed(2)}</span>
+                    <span>Final Payable Amount</span>
+                    <span>₹ {(billData.netAmount + billData.roundOffAmount).toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
