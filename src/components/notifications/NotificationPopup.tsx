@@ -43,12 +43,10 @@ const NotificationPopup = ({
 
   const [activeTab, setActiveTab] = React.useState<string>(initialCategory);
 
-  // Auto-switch to a category with notifications if current tab is empty
+  // Auto-switch to a category with notifications ONLY when popup opens
   React.useEffect(() => {
-    const currentTabHasNotifications = notifications.some(n => n.category === activeTab);
-
-    if (!currentTabHasNotifications && notifications.length > 0) {
-      // Find first category with notifications
+    if (isOpen) {
+      // Find first category with notifications when popup opens
       const categoryWithNotifications = categories.find(category =>
         notifications.some(n => n.category === category)
       );
@@ -57,7 +55,8 @@ const NotificationPopup = ({
         setActiveTab(categoryWithNotifications);
       }
     }
-  }, [notifications, activeTab, categories]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only run when popup opens/closes
 
   // Count unread by category
   const unreadCounts = categories.reduce((acc, category) => {
