@@ -49,7 +49,7 @@ const Login = () => {
     try {
       // Step 1: Login
       await login(values.email, values.password);
-      toast.success("Login successful! Welcome to PaySphere.");
+      toast.success("Login successful! Welcome to Xcentro.");
 
       // Step 2: Fetch user roles
       const rolesResponse = await userAPI.getRoles();
@@ -149,9 +149,10 @@ const Login = () => {
     }
   };
 
-  const handleSSOLogin = () => {
-    toast.info("SSO login coming soon");
-  };
+  // SSO Login handler - commented out for now
+  // const handleSSOLogin = () => {
+  //   toast.info("SSO login coming soon");
+  // };
 
   return (
     <AuroraBackground>
@@ -164,7 +165,7 @@ const Login = () => {
               className="h-24 w-auto object-contain" 
             />
           </div>
-          <h1 className="text-2xl font-bold">Welcome to PaySphere</h1>
+          <h1 className="text-2xl font-bold">Welcome to Xcentro</h1>
           <p className="text-sm text-muted-foreground">
             Enter your credentials to access your account
           </p>
@@ -238,7 +239,8 @@ const Login = () => {
               </Button>
             </form>
           </Form>
-          <div className="relative my-6">
+          {/* SSO Login - Coming Soon */}
+          {/* <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -254,12 +256,12 @@ const Login = () => {
             onClick={handleSSOLogin}
           >
             Single Sign-On (SSO)
-          </Button>
+          </Button> */}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
+          {/* <div className="text-sm text-center text-muted-foreground">
             Need help? <Link to="#" className="underline text-primary">Contact support</Link>
-          </div>
+          </div> */}
           <div className="text-center text-sm">
             Don't have an account?{" "}
             <Link to="/signup" className="text-primary font-medium">

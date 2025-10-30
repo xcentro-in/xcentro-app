@@ -67,7 +67,7 @@ const EmptyStateDashboard = () => {
       {/* Header Section */}
       <div className="text-center space-y-4 animate-fade-in">
         <h1 className="text-3xl font-bold tracking-tight">
-          Welcome to PaySphere, {firstName}! 🚀
+          Welcome to Xcentro, {firstName}! 🚀
         </h1>
         <p className="text-lg text-muted-foreground">
           Let's get your account set up in 3 simple steps

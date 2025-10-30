@@ -405,9 +405,9 @@ const Signup = () => {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="text-sm text-center text-muted-foreground">
+          {/* <div className="text-sm text-center text-muted-foreground">
             Need help? <Link to="#" className="underline text-primary">Contact support</Link>
-          </div>
+          </div> */}
           <div className="text-center text-sm">
             Already have an account?{" "}
             <Link to="/login" className="text-primary font-medium">

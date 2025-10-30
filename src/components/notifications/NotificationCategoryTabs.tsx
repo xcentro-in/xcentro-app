@@ -21,7 +21,7 @@ const NotificationCategoryTabs = ({
         <TabsTrigger
           key={category}
           value={category}
-          className="justify-start relative w-full"
+          className="justify-start relative w-full data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:shadow-sm"
         >
           {getCategoryDisplayName(category as NotificationCategory)}
           {unreadCounts[category] > 0 && (

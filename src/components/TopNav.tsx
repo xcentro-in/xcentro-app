@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -43,8 +43,22 @@ const TopNav = () => {
     closeNotifications,
     markAsRead,
     markAllAsRead,
-    dismissNotification
+    dismissNotification,
+    fetchUnreadCount
   } = useNotifications();
+
+  // Fetch unread count when TopNav mounts and periodically
+  useEffect(() => {
+    // Initial fetch
+    fetchUnreadCount(true);
+
+    // Refresh count every 60 seconds
+    const intervalId = setInterval(() => {
+      fetchUnreadCount();
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchUnreadCount]);
   
   const handleLogout = () => {
     // TODO: This will call the actual backend logout API
@@ -142,13 +156,10 @@ const TopNav = () => {
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            unreadCount > 9 ? (
-              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-primary animate-scale-in" />
-            ) : (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-scale-in">
-                {unreadCount}
-              </span>
-            )
+            <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-primary">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+            </span>
           )}
         </Button>
         

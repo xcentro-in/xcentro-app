@@ -1,11 +1,12 @@
 
 import { useState, useCallback, useRef } from 'react';
-import { NotificationItem, NotificationsResponse } from '@/types/notification';
+import { NotificationItem, NotificationsResponse, UnreadCountResponse } from '@/types/notification';
 import { notificationsAPI } from '@/services/api';
 import { transformApiNotifications } from '@/lib/notificationUtils';
 import { useToast } from '@/hooks/use-toast';
 
 const CACHE_DURATION = 10000; // 10 seconds
+const COUNT_CACHE_DURATION = 5000; // 5 seconds for count refresh
 
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -15,8 +16,12 @@ export const useNotifications = () => {
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
   const lastFetchTimeRef = useRef<number>(0);
+  const lastCountFetchTimeRef = useRef<number>(0);
+  const isFetchingRef = useRef<boolean>(false);
+  const isFetchingCountRef = useRef<boolean>(false);
 
   // Fetch notifications from API
+  // Backend already filters based on user preferences, so we just display what we receive
   const fetchNotifications = useCallback(async (force: boolean = false) => {
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTimeRef.current;
@@ -27,7 +32,14 @@ export const useNotifications = () => {
       return;
     }
 
+    // Prevent concurrent fetches
+    if (isFetchingRef.current) {
+      console.log('Fetch already in progress, skipping');
+      return;
+    }
+
     try {
+      isFetchingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -35,8 +47,11 @@ export const useNotifications = () => {
 
       // Handle case where response or response.data might be null/undefined
       const { transformedNotifications, transformedUnreadCount } = transformApiNotifications(response?.data || null);
+
+      // Backend already filters notifications based on preferences, just display them
       setNotifications(transformedNotifications);
       setUnreadCount(transformedUnreadCount);
+
       lastFetchTimeRef.current = now;
       setIsLoading(false);
     } catch (err) {
@@ -46,6 +61,8 @@ export const useNotifications = () => {
       setNotifications([]);
       setUnreadCount(0);
       setIsLoading(false);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
@@ -137,6 +154,39 @@ export const useNotifications = () => {
     });
   }, [markAsRead]);
 
+  // Fetch only the unread count (lightweight for header refresh)
+  const fetchUnreadCount = useCallback(async (force: boolean = false) => {
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastCountFetchTimeRef.current;
+
+    // If we fetched count within the last 5 seconds and it's not forced, skip
+    if (!force && timeSinceLastFetch < COUNT_CACHE_DURATION) {
+      return;
+    }
+
+    // Prevent concurrent count fetches
+    if (isFetchingCountRef.current) {
+      return;
+    }
+
+    // Don't fetch count if full notifications fetch is in progress (it will update count)
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    try {
+      isFetchingCountRef.current = true;
+      const response = await notificationsAPI.getUnreadCount() as UnreadCountResponse;
+      setUnreadCount(response.data.unread_count);
+      lastCountFetchTimeRef.current = now;
+    } catch (err) {
+      console.error('Failed to fetch unread count:', err);
+      // Don't show error toast for count refresh failures
+    } finally {
+      isFetchingCountRef.current = false;
+    }
+  }, []);
+
   return {
     notifications,
     unreadCount,
@@ -148,5 +198,6 @@ export const useNotifications = () => {
     markAsRead,
     markAllAsRead,
     dismissNotification,
+    fetchUnreadCount,
   };
 };

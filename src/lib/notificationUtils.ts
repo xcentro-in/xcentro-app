@@ -3,20 +3,24 @@ import { ApiNotification, NotificationItem, NotificationCategory, NotificationPr
 import { formatDistanceToNow } from 'date-fns';
 
 /**
- * Extract category from event_type (e.g., "payment.approval.required" -> "payment")
+ * Extract category from event_type (e.g., "payments.approval.required" -> "payments")
+ * All event types follow the format: category.action.details
+ *
+ * Valid categories: announcements, rewards, payments, payees, approvals, security, insights
  */
 export function extractCategoryFromEventType(eventType: string): NotificationCategory {
   const category = eventType.split('.')[0];
 
   // Map API categories to UI categories
+  // Backend categories match UI categories directly now
   const categoryMap: Record<string, NotificationCategory> = {
-    'payment': 'payment',
-    'settlement': 'payment',
-    'payee': 'payee',
-    'payout': 'payment',
-    'report': 'insights',
-    'system': 'announcements',
-    'user': 'security',
+    'payments': 'payment',
+    'payees': 'payee',
+    'approvals': 'approvals',
+    'security': 'security',
+    'insights': 'insights',
+    'announcements': 'announcements',
+    'rewards': 'rewards',
   };
 
   return categoryMap[category] || 'announcements';
@@ -24,23 +28,26 @@ export function extractCategoryFromEventType(eventType: string): NotificationCat
 
 /**
  * Determine notification priority based on event type
+ * Event types follow format: category.action.details
  */
 export function determinePriority(eventType: string): NotificationPriority {
   // High priority events
   const highPriorityEvents = [
-    'payment.failed',
-    'payment.rejected',
-    'settlement.failed',
-    'payee.verification.failed',
-    'payout.failed',
-    'system.alert',
+    'payments.failed',
+    'payments.rejected',
+    'payments.settlement.failed',
+    'payments.payout.failed',
+    'payees.verification.failed',
+    'announcements.alert',
+    'security.',  // All security events are important
   ];
 
   // Medium priority events
   const mediumPriorityEvents = [
-    'payment.approval.required',
-    'system.maintenance',
-    'user.role.changed',
+    'payments.approval.required',
+    'approvals.',  // Most approval events are medium priority
+    'announcements.maintenance',
+    'insights.report.ready',
   ];
 
   if (highPriorityEvents.some(event => eventType.includes(event))) {
@@ -92,7 +99,7 @@ export function transformApiNotifications(data: { notifications: ApiNotification
   if (!data || !data.notifications) {
     return { transformedNotifications: [], transformedUnreadCount: 0 };
   }
-  
+
   const transformedNotifications = data.notifications.map(transformApiNotification);
   const transformedUnreadCount = data.unread_count || 0;
   return { transformedNotifications, transformedUnreadCount };

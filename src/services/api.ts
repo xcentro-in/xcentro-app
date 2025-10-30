@@ -858,11 +858,13 @@ class ApiService {
       push_enabled?: boolean;
       messages_enabled?: boolean;
       category_preferences?: {
-        [key: string]: {
-          email?: boolean;
-          push?: boolean;
-          messages?: boolean;
-        };
+        announcements?: boolean;
+        approvals?: boolean;
+        insights?: boolean;
+        payees?: boolean;
+        payments?: boolean;
+        rewards?: boolean;
+        security?: boolean;
       };
     }) => {
       return this.request('/notifications/preferences', {

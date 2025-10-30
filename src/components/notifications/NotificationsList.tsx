@@ -20,8 +20,11 @@ const NotificationsList = ({
   return (
     <ScrollArea className="h-full pr-4">
       {notifications.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-          <p>No notifications</p>
+        <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center">
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">No notifications in this category</p>
+            <p className="text-xs text-muted-foreground">Check other categories or come back later</p>
+          </div>
         </div>
       ) : (
         <div className="space-y-3">

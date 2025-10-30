@@ -57,25 +57,22 @@ export interface UnreadCountResponse {
 }
 
 // Notification Preferences Types
-export interface CategoryPreferences {
-  email: boolean;
-  push: boolean;
-  messages: boolean;
-}
-
 export interface NotificationPreferences {
   user_id: string;
   email_enabled: boolean;
   push_enabled: boolean;
   messages_enabled: boolean;
   category_preferences: {
-    approvals?: CategoryPreferences;
-    payments?: CategoryPreferences;
-    vouchers?: CategoryPreferences;
-    [key: string]: CategoryPreferences | undefined;
+    announcements?: boolean;
+    approvals?: boolean;
+    insights?: boolean;
+    payees?: boolean;
+    payments?: boolean;
+    rewards?: boolean;
+    security?: boolean;
   };
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface PreferencesResponse {

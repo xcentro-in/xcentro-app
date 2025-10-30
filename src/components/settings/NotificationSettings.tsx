@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Smartphone, MessageSquare, Check, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { notificationsAPI } from "@/services/api";
-import { PreferencesResponse, CategoryPreferences } from "@/types/notification";
+import { PreferencesResponse } from "@/types/notification";
 
 const NotificationSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -20,11 +20,15 @@ const NotificationSettings = () => {
     messages: false,
   });
 
-  // Categories for notifications - based on API category_preferences
-  const [categoryPreferences, setCategoryPreferences] = useState<Record<string, CategoryPreferences>>({
-    approvals: { email: false, push: false, messages: false },
-    payments: { email: false, push: false, messages: false },
-    vouchers: { email: false, push: false, messages: false },
+  // Categories for notifications - based on backend API
+  const [categoryPreferences, setCategoryPreferences] = useState<Record<string, boolean>>({
+    announcements: true,
+    approvals: true,
+    insights: true,
+    payees: true,
+    payments: true,
+    rewards: true,
+    security: true,
   });
 
   // Store the initial states to compare for changes
@@ -33,6 +37,38 @@ const NotificationSettings = () => {
 
   // Track if any changes have been made
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Category display labels
+  const categoryLabels: Record<string, { title: string; description: string }> = {
+    announcements: {
+      title: "Announcements",
+      description: "System announcements and important updates"
+    },
+    approvals: {
+      title: "Approvals",
+      description: "Payment approval requests and status updates"
+    },
+    insights: {
+      title: "Insights",
+      description: "Business insights and analytics reports"
+    },
+    payees: {
+      title: "Payees",
+      description: "Payee management and updates"
+    },
+    payments: {
+      title: "Payments",
+      description: "Payment status and transaction notifications"
+    },
+    rewards: {
+      title: "Rewards",
+      description: "Rewards points and milestone achievements"
+    },
+    security: {
+      title: "Security",
+      description: "Security alerts and authentication updates"
+    },
+  };
 
   // Fetch preferences on mount
   useEffect(() => {
@@ -68,20 +104,10 @@ const NotificationSettings = () => {
 
   // Check for changes when state updates
   useEffect(() => {
-    const notificationChanged = Object.keys(notifications).some(
-      key => notifications[key as keyof typeof notifications] !==
-             initialNotifications[key as keyof typeof initialNotifications]
-    );
+    const notificationChanged = notifications.email !== initialNotifications.email;
 
     const categoryChanged = Object.keys(categoryPreferences).some(
-      category => {
-        const current = categoryPreferences[category];
-        const initial = initialCategoryPreferences[category];
-        if (!current || !initial) return false;
-        return current.email !== initial.email ||
-               current.push !== initial.push ||
-               current.messages !== initial.messages;
-      }
+      category => categoryPreferences[category] !== initialCategoryPreferences[category]
     );
 
     setHasChanges(notificationChanged || categoryChanged);
@@ -93,8 +119,8 @@ const NotificationSettings = () => {
 
       await notificationsAPI.updatePreferences({
         email_enabled: notifications.email,
-        push_enabled: notifications.push,
-        messages_enabled: notifications.messages,
+        push_enabled: false, // Always false - not operational
+        messages_enabled: false, // Always false - not operational
         category_preferences: categoryPreferences,
       });
 
@@ -112,13 +138,10 @@ const NotificationSettings = () => {
     }
   };
 
-  const updateCategoryPreference = (category: string, channel: keyof CategoryPreferences, value: boolean) => {
+  const updateCategoryPreference = (category: string, value: boolean) => {
     setCategoryPreferences(prev => ({
       ...prev,
-      [category]: {
-        ...prev[category],
-        [channel]: value,
-      },
+      [category]: value,
     }));
   };
 
@@ -190,7 +213,7 @@ const NotificationSettings = () => {
                 </div>
               </div>
               <Switch
-                checked={notifications.push}
+                checked={false}
                 onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
                 disabled
               />
@@ -200,12 +223,12 @@ const NotificationSettings = () => {
               <div className="flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-muted-foreground" />
                 <div>
-                  <p className="font-medium">In-App Messages</p>
-                  <p className="text-sm text-muted-foreground">Show notifications in the app</p>
+                  <p className="font-medium">SMS Messages</p>
+                  <p className="text-sm text-muted-foreground">Receive notifications via SMS</p>
                 </div>
               </div>
               <Switch
-                checked={notifications.messages}
+                checked={false}
                 onCheckedChange={(checked) => setNotifications({...notifications, messages: checked})}
                 disabled
               />
@@ -215,49 +238,35 @@ const NotificationSettings = () => {
           {/* Category-specific preferences */}
           <div className="border-t pt-6">
             <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
-              Category Preferences
+              Notification Categories
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Configure notification preferences for each category
+              Choose which categories you want to receive notifications for
             </p>
 
-            <div className="space-y-6">
-              {Object.keys(categoryPreferences).map(category => (
-                <div key={category} className="border rounded-lg p-4 space-y-3">
-                  <h4 className="font-medium capitalize">{category}</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {Object.keys(categoryPreferences).map(category => {
+                const label = categoryLabels[category];
+                if (!label) return null;
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={`${category}-email`} className="text-sm">Email</Label>
-                      <Switch
-                        id={`${category}-email`}
-                        checked={categoryPreferences[category]?.email || false}
-                        onCheckedChange={(checked) => updateCategoryPreference(category, 'email', checked)}
-                      />
+                return (
+                  <div key={category} className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 transition-colors">
+                    <div className="flex-1 mr-3">
+                      <Label htmlFor={category} className="font-medium cursor-pointer">
+                        {label.title}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {label.description}
+                      </p>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={`${category}-push`} className="text-sm">Push</Label>
-                      <Switch
-                        id={`${category}-push`}
-                        checked={categoryPreferences[category]?.push || false}
-                        onCheckedChange={(checked) => updateCategoryPreference(category, 'push', checked)}
-                        disabled
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor={`${category}-messages`} className="text-sm">In-App</Label>
-                      <Switch
-                        id={`${category}-messages`}
-                        checked={categoryPreferences[category]?.messages || false}
-                        onCheckedChange={(checked) => updateCategoryPreference(category, 'messages', checked)}
-                        disabled
-                      />
-                    </div>
+                    <Switch
+                      id={category}
+                      checked={categoryPreferences[category] || false}
+                      onCheckedChange={(checked) => updateCategoryPreference(category, checked)}
+                    />
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </CardContent>

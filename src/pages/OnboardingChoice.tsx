@@ -29,7 +29,7 @@ const OnboardingChoice = () => {
               className="h-24 w-auto object-contain"
             />
           </div>
-          <h1 className="text-2xl font-bold">Welcome to PaySphere!</h1>
+          <h1 className="text-2xl font-bold">Welcome to Xcentro!</h1>
           <p className="text-sm text-muted-foreground">
             Choose how you'd like to get started
           </p>
