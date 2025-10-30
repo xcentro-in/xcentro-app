@@ -994,8 +994,49 @@ class ApiService {
       });
     },
 
+    // Get voucher details (includes header + details tab data)
     getDetails: async (businessId: string, voucherId: string) => {
       return this.request(`/vouchers/${voucherId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get activity timeline (lazy-loaded)
+    getActivity: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}/activity`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get payment details (lazy-loaded)
+    getPayment: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}/payment`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get accounting details (lazy-loaded)
+    getAccounting: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}/accounting`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get attachments (lazy-loaded)
+    getAttachments: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}/attachments`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,

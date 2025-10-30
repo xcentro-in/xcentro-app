@@ -4,8 +4,10 @@ import { Invoice } from '@/data/mockInvoices';
 import { DateRange } from 'react-day-picker';
 import { voucherAPI } from '@/services/api';
 import { VoucherListResponseAPI, VoucherListItemAPI } from '@/types/vouchers-list-api';
+import { VoucherDetailResponseAPI } from '@/types/voucher-detail-api';
+import { format } from 'date-fns';
 
-// Helper function to map API voucher to Invoice
+// Helper function to map API voucher to Invoice (for list view)
 const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
   return {
     id: voucher.voucherId,
@@ -24,6 +26,71 @@ const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
     igst: 0, // Not provided by list API
     terms: '', // Not provided by list API
     approvalStatus: voucher.approvalStatus, // Approval status from API
+  };
+};
+
+// Helper function to map API voucher detail to Invoice (for detail view)
+const mapVoucherDetailToInvoice = (voucherDetail: VoucherDetailResponseAPI): Invoice => {
+  // Format dates to DD/MM/YYYY format (matching Invoice type expectations)
+  const formatDate = (isoDate: string | null): string => {
+    if (!isoDate) return '';
+    try {
+      return format(new Date(isoDate), 'dd/MM/yyyy');
+    } catch {
+      return '';
+    }
+  };
+
+  // Calculate overdue days if status is overdue
+  const calculateOverdueDays = (dueDate: string | null, status: string): number | undefined => {
+    if (status !== 'overdue' || !dueDate) return undefined;
+    try {
+      const due = new Date(dueDate);
+      const today = new Date();
+      const diffTime = today.getTime() - due.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays > 0 ? diffDays : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Map approval status
+  const mapApprovalStatus = (approvals: any[]): 'approved' | 'pending' | 'rejected' | null => {
+    if (!approvals || approvals.length === 0) return null;
+
+    // Check if any approval is rejected
+    if (approvals.some(a => a.approval_status === 'rejected')) return 'rejected';
+
+    // Check if all approvals are approved
+    if (approvals.every(a => a.approval_status === 'approved')) return 'approved';
+
+    // Otherwise, it's pending
+    return 'pending';
+  };
+
+  return {
+    id: voucherDetail.voucher_id,
+    invoiceNumber: voucherDetail.invoice_number,
+    vendorName: voucherDetail.payee.payee_name,
+    vendorAddress: voucherDetail.payee.address || '',
+    amount: voucherDetail.total_amount / 100, // Convert paise to rupees
+    dueDate: formatDate(voucherDetail.invoice_due_date),
+    billDate: formatDate(voucherDetail.bill_date),
+    status: voucherDetail.payment_status,
+    overdueDays: calculateOverdueDays(voucherDetail.invoice_due_date, voucherDetail.payment_status),
+    gstin: voucherDetail.payee.gstin || '',
+    items: voucherDetail.line_items.map(item => ({
+      description: item.description,
+      quantity: item.quantity,
+      rate: item.rate / 100, // Convert paise to rupees
+      amount: item.amount / 100, // Convert paise to rupees
+    })),
+    cgst: voucherDetail.cgst_amount / 100, // Convert paise to rupees
+    sgst: voucherDetail.sgst_amount / 100, // Convert paise to rupees
+    igst: voucherDetail.igst_amount / 100, // Convert paise to rupees
+    terms: voucherDetail.payment_terms || '',
+    approvalStatus: mapApprovalStatus(voucherDetail.approvals),
   };
 };
 
@@ -174,19 +241,19 @@ export const useBills = (filters: BillsFilters = {}) => {
 
   // Get bill details (for detailed view)
   const getBillDetails = async (billId: string) => {
+    if (!user?.businessId) {
+      throw new Error('Missing business ID');
+    }
+
     try {
-      // TODO: Replace with actual API call
-      // const response = await api.bills.getDetails(user.businessId, billId);
+      // Call actual API to get voucher details
+      const response = await voucherAPI.getDetails(user.businessId, billId);
 
-      console.log('TODO: Get bill details via API:', { billId });
+      // Type the response
+      const voucherDetail = response as VoucherDetailResponseAPI;
 
-      // Return mock data for now
-      const { mockInvoices } = await import('@/data/mockInvoices');
-      const bill = mockInvoices.find(b => b.id === billId);
-
-      if (!bill) {
-        throw new Error('Bill not found');
-      }
+      // Map to Invoice type
+      const bill = mapVoucherDetailToInvoice(voucherDetail);
 
       return bill;
     } catch (err) {
