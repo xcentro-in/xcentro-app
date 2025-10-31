@@ -63,6 +63,9 @@ export interface VoucherDetailsResponseAPI {
       };
     };
 
+    // Payment status
+    payment_status: 'paid' | 'unpaid';
+
     // Additional fields
     expense_category?: string;
     description?: string;
@@ -75,32 +78,63 @@ export interface VoucherDetailsResponseAPI {
 }
 
 // GET /v1/vouchers/:voucherId/activity
-// Returns chronological activity timeline (merged timeline + approvals)
+// Returns chronological activity timeline
 export interface VoucherActivityResponseAPI {
-  events: {
-    event_id: string;
-    event_type: 'created' | 'edited' | 'approved' | 'rejected' | 'request_changes' | 'pending' | 'paid' | 'status_changed';
-    event_date: string; // ISO 8601
-    user_name?: string;
-    description: string;
-    remarks?: string;
+  voucher_id: string;
+  voucher_number: string;
+  activities: {
+    activity_id: string;
+    activity_type: string; // 'voucher_created', 'voucher_updated', 'status_changed', etc.
+    user_id: string;
+    user_name: string;
+    action: string; // 'created', 'updated', 'approved', 'rejected', etc.
+    remarks: string;
+    timestamp: string; // ISO 8601
+    metadata: string;
   }[];
+  total_count: number;
 }
 
 // GET /v1/vouchers/:voucherId/payment
 // Returns payment information
 export interface VoucherPaymentResponseAPI {
-  has_payment: boolean;
-  payment_details: {
-    payment_id: string;
-    payment_method: string;
-    payment_status: 'pending' | 'processing' | 'completed' | 'failed';
-    payment_date: string; // ISO 8601
-    utr_number: string;
-    settlement_status: string;
-    transaction_reference: string;
-    amount_paid: number; // in paise
-  } | null;
+  payment_id: string;
+  voucher_id: string;
+  voucher_number: string;
+  payment_status: 'success' | 'pending' | 'failed' | 'processing';
+  payment_date: string; // ISO 8601
+  gateway_used: string;
+  gateway_payment_id: string;
+  payment_method: string; // 'card', 'upi', 'netbanking', etc.
+  payment_source_type: string; // 'card', 'bank_account', etc.
+
+  // Card-specific fields (when payment_source_type is 'card')
+  card_type?: string; // 'visa', 'mastercard', 'amex', 'rupay'
+  card_category?: string; // 'credit', 'debit'
+  last_four_digits?: string;
+  bank_name?: string;
+
+  // Amount breakdown (all in paise)
+  voucher_amount: number;
+  convenience_fee: number;
+  convenience_fee_rate: string; // e.g., "0.00%"
+  gst_on_fee: number;
+  gst_rate: string; // e.g., "18.00%"
+  total_fee_amount: number;
+  total_amount_paid: number;
+
+  // Settlement details
+  settlement_status: 'pending' | 'settled' | 'failed';
+  settled_at: string | null; // ISO 8601
+  settlement_amount: number; // in paise
+  mdr_amount: number; // Merchant Discount Rate amount in paise
+  mdr_rate: string; // e.g., "2.00%"
+  net_settlement_amount: number; // in paise
+  settlement_reference_id: string;
+  settlement_utr: string;
+
+  description: string;
+  metadata: Record<string, any>;
 }
 
 // GET /v1/vouchers/:voucherId/accounting

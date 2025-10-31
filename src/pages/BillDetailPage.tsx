@@ -64,13 +64,13 @@ interface BillSummary {
   igst: number;
 }
 
-// Helper function to get event display properties
-const getEventDisplay = (eventType: string) => {
-  switch (eventType) {
+// Helper function to get event display properties based on action
+const getEventDisplay = (action: string) => {
+  switch (action) {
     case 'created':
-      return { icon: FilePlus, color: 'text-blue-600', label: 'Bill Created' };
-    case 'edited':
-      return { icon: FileText, color: 'text-gray-600', label: 'Bill Edited' };
+      return { icon: FilePlus, color: 'text-blue-600', label: 'Voucher Created' };
+    case 'updated':
+      return { icon: FileText, color: 'text-gray-600', label: 'Voucher Updated' };
     case 'approved':
       return { icon: CheckCircle, color: 'text-green-600', label: 'Approved' };
     case 'rejected':
@@ -83,9 +83,36 @@ const getEventDisplay = (eventType: string) => {
       return { icon: CheckCircle, color: 'text-green-600', label: 'Payment Completed' };
     case 'status_changed':
       return { icon: AlertCircle, color: 'text-gray-600', label: 'Status Changed' };
+    case 'submitted':
+      return { icon: FileText, color: 'text-blue-600', label: 'Submitted for Approval' };
+    case 'finalized':
+      return { icon: CheckCircle, color: 'text-green-600', label: 'Finalized' };
     default:
-      return { icon: Clock, color: 'text-gray-600', label: eventType };
+      return { icon: Clock, color: 'text-gray-600', label: action.charAt(0).toUpperCase() + action.slice(1) };
   }
+};
+
+// Helper function to generate description from activity
+const getActivityDescription = (activity: any): string => {
+  // If remarks exist, use them
+  if (activity.remarks && activity.remarks.trim()) {
+    return activity.remarks;
+  }
+
+  // Otherwise generate description from activity_type and action
+  const activityTypeMap: { [key: string]: string } = {
+    'voucher_created': 'created the voucher',
+    'voucher_updated': 'updated the voucher',
+    'voucher_submitted': 'submitted the voucher for approval',
+    'voucher_approved': 'approved the voucher',
+    'voucher_rejected': 'rejected the voucher',
+    'voucher_finalized': 'finalized the voucher',
+    'status_changed': 'changed the status',
+    'payment_initiated': 'initiated payment',
+    'payment_completed': 'completed payment',
+  };
+
+  return activityTypeMap[activity.activity_type] || activity.activity_type.replace(/_/g, ' ');
 };
 
 // Helper function to map API response to BillSummary
@@ -128,14 +155,20 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     return diffDays > 0 ? diffDays : undefined;
   };
 
+  // Check if financial_details exists and has line_items
+  const hasFinancialDetails = voucher.financial_details &&
+                               voucher.financial_details.line_items &&
+                               Array.isArray(voucher.financial_details.line_items);
+
   // Calculate subtotal (sum of line items before GST)
-  const subtotal = voucher.financial_details.line_items.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
+  const subtotal = hasFinancialDetails
+    ? voucher.financial_details.line_items.reduce((sum, item) => sum + item.amount, 0)
+    : 0;
 
   // Calculate IGST (if gst_type is not cgst_sgst)
-  const igstAmount = voucher.financial_details.gst_type === 'cgst_sgst' ? 0 : voucher.gst_amount;
+  const igstAmount = hasFinancialDetails && voucher.financial_details.gst_type === 'cgst_sgst'
+    ? 0
+    : voucher.gst_amount;
 
   return {
     id: voucher.voucher_id,
@@ -149,12 +182,14 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     status: calculatePaymentStatus(),
     overdueDays: calculateOverdueDays(),
     terms: '', // Not provided in response
-    items: voucher.financial_details.line_items.map(item => ({
-      description: item.description,
-      quantity: item.quantity,
-      rate: item.rate / 100,
-      amount: item.amount / 100,
-    })),
+    items: hasFinancialDetails
+      ? voucher.financial_details.line_items.map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate / 100,
+          amount: item.amount / 100,
+        }))
+      : [],
     subtotal: subtotal / 100,
     cgst: voucher.cgst_amount / 100,
     sgst: voucher.sgst_amount / 100,
@@ -173,18 +208,22 @@ const BillDetailPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Payment status from main voucher response (determines Pay button and Payment tab visibility)
+  const [voucherPaymentStatus, setVoucherPaymentStatus] = useState<'paid' | 'unpaid'>('unpaid');
+
+  // Attachments from main voucher response
+  const [attachments, setAttachments] = useState<any[]>([]);
+
   // Tab-specific data (lazy-loaded)
   const [activityData, setActivityData] = useState<VoucherActivityResponseAPI | null>(null);
   const [paymentData, setPaymentData] = useState<VoucherPaymentResponseAPI | null>(null);
   const [accountingData, setAccountingData] = useState<VoucherAccountingResponseAPI | null>(null);
-  const [attachmentsData, setAttachmentsData] = useState<VoucherAttachmentsResponseAPI | null>(null);
 
   // Loading states for each tab
   const [loadingTabs, setLoadingTabs] = useState({
     activity: false,
     payment: false,
     accounting: false,
-    attachments: false,
   });
 
   // Track which tabs have been loaded (for caching)
@@ -192,7 +231,6 @@ const BillDetailPage = () => {
     activity: false,
     payment: false,
     accounting: false,
-    attachments: false,
   });
 
   useEffect(() => {
@@ -215,6 +253,16 @@ const BillDetailPage = () => {
         // Map to BillSummary
         const mappedBill = mapVoucherToBill(voucherResponse);
         setBill(mappedBill);
+
+        // Extract payment status from response
+        setVoucherPaymentStatus(voucherResponse.data.payment_status);
+
+        // Extract attachments from response (if available)
+        if (voucherResponse.data.attachments && Array.isArray(voucherResponse.data.attachments)) {
+          setAttachments(voucherResponse.data.attachments);
+        } else {
+          setAttachments([]);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bill details';
         setError(errorMessage);
@@ -275,21 +323,6 @@ const BillDetailPage = () => {
     }
   };
 
-  // Lazy-load attachments tab
-  const loadAttachmentsTab = async () => {
-    if (!billId || !user?.businessId || loadedTabs.attachments) return;
-
-    try {
-      setLoadingTabs(prev => ({ ...prev, attachments: true }));
-      const response = await voucherAPI.getAttachments(user.businessId, billId);
-      setAttachmentsData(response as VoucherAttachmentsResponseAPI);
-      setLoadedTabs(prev => ({ ...prev, attachments: true }));
-    } catch (err) {
-      console.error('Error loading attachments:', err);
-    } finally {
-      setLoadingTabs(prev => ({ ...prev, attachments: false }));
-    }
-  };
 
   // OCR helper functions
   const getOcrConfidence = (field: string): number => {
@@ -368,7 +401,8 @@ const BillDetailPage = () => {
     );
   }
 
-  const canPay = bill.status === 'open' || bill.status === 'overdue';
+  // Show Pay button only if payment_status is 'unpaid' and bill status allows payment
+  const canPay = voucherPaymentStatus === 'unpaid' && (bill.status === 'open' || bill.status === 'overdue');
   const isOverdue = bill.status === 'overdue';
 
   return (
@@ -499,10 +533,20 @@ const BillDetailPage = () => {
               if (value === 'activity') loadActivityTab();
               if (value === 'payment') loadPaymentTab();
               if (value === 'accounting') loadAccountingTab();
-              if (value === 'attachments') loadAttachmentsTab();
             }}
           >
-            <TabsList className={`grid w-full ${canViewFeature('ERP_INTEGRATION', user) ? 'grid-cols-5' : 'grid-cols-4'}`}>
+            <TabsList className={`grid w-full ${(() => {
+              const showERP = canViewFeature('ERP_INTEGRATION', user);
+              const showPayment = voucherPaymentStatus === 'paid'; // Only show Payment tab if paid
+              const showAttachments = attachments.length > 0;
+
+              let cols = 2; // Details, Activity (always visible)
+              if (showPayment) cols++; // Add Payment tab if paid
+              if (showERP) cols++;
+              if (showAttachments) cols++;
+
+              return `grid-cols-${cols}`;
+            })()}`}>
               <TabsTrigger value="details">
                 <FileText className="h-4 w-4 mr-2" />
                 Details
@@ -511,20 +555,24 @@ const BillDetailPage = () => {
                 <Activity className="h-4 w-4 mr-2" />
                 Activity
               </TabsTrigger>
-              <TabsTrigger value="payment">
-                <CreditCard className="h-4 w-4 mr-2" />
-                Payment
-              </TabsTrigger>
+              {voucherPaymentStatus === 'paid' && (
+                <TabsTrigger value="payment">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Payment
+                </TabsTrigger>
+              )}
               {canViewFeature('ERP_INTEGRATION', user) && (
                 <TabsTrigger value="accounting">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Accounting
                 </TabsTrigger>
               )}
-              <TabsTrigger value="attachments">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Attachments
-              </TabsTrigger>
+              {attachments.length > 0 && (
+                <TabsTrigger value="attachments">
+                  <Paperclip className="h-4 w-4 mr-2" />
+                  Attachments
+                </TabsTrigger>
+              )}
             </TabsList>
 
             {/* Details Tab */}
@@ -618,20 +666,21 @@ const BillDetailPage = () => {
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
-                  ) : activityData && activityData.events.length > 0 ? (
+                  ) : activityData && activityData.activities.length > 0 ? (
                     <div className="space-y-3">
-                      {activityData.events.map((event, index) => {
-                        const eventDisplay = getEventDisplay(event.event_type);
+                      {activityData.activities.map((activity, index) => {
+                        const eventDisplay = getEventDisplay(activity.action);
                         const EventIcon = eventDisplay.icon;
+                        const description = getActivityDescription(activity);
 
                         return (
-                          <div key={event.event_id} className="flex gap-3">
+                          <div key={activity.activity_id} className="flex gap-3">
                             {/* Timeline dot and line */}
                             <div className="flex flex-col items-center">
                               <div className={`rounded-full p-1.5 bg-background border-2 ${eventDisplay.color.replace('text-', 'border-')}`}>
                                 <EventIcon className={`h-3 w-3 ${eventDisplay.color}`} />
                               </div>
-                              {index < activityData.events.length - 1 && (
+                              {index < activityData.activities.length - 1 && (
                                 <div className="w-0.5 flex-1 bg-border mt-1 min-h-[20px]" />
                               )}
                             </div>
@@ -641,22 +690,15 @@ const BillDetailPage = () => {
                               <div className="flex items-start justify-between mb-1">
                                 <div>
                                   <p className="text-sm font-medium">{eventDisplay.label}</p>
-                                  {event.user_name && (
-                                    <p className="text-xs text-muted-foreground">
-                                      by {event.user_name}
-                                    </p>
-                                  )}
+                                  <p className="text-xs text-muted-foreground">
+                                    by {activity.user_name}
+                                  </p>
                                 </div>
                                 <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                                  {formatDistanceToNow(new Date(event.event_date), { addSuffix: true })}
+                                  {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                                 </p>
                               </div>
-                              <p className="text-sm text-muted-foreground">{event.description}</p>
-                              {event.remarks && (
-                                <p className="text-xs text-muted-foreground bg-muted/30 rounded p-2 mt-2">
-                                  "{event.remarks}"
-                                </p>
-                              )}
+                              <p className="text-sm text-muted-foreground">{description}</p>
                             </div>
                           </div>
                         );
@@ -677,7 +719,8 @@ const BillDetailPage = () => {
               </Card>
             </TabsContent>
 
-            {/* Payment Tab */}
+            {/* Payment Tab - Only visible if payment is made */}
+            {voucherPaymentStatus === 'paid' && (
             <TabsContent value="payment" className="space-y-6">
               <Card>
                 <CardHeader>
@@ -688,18 +731,52 @@ const BillDetailPage = () => {
                     <div className="flex items-center justify-center py-12">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
-                  ) : paymentData && paymentData.has_payment && paymentData.payment_details ? (
+                  ) : paymentData ? (
                     <div className="space-y-6">
                       {/* Payment Status Banner */}
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <div className={`border rounded-lg p-4 ${
+                        paymentData.payment_status === 'success'
+                          ? 'bg-green-50 border-green-200'
+                          : paymentData.payment_status === 'pending'
+                          ? 'bg-yellow-50 border-yellow-200'
+                          : paymentData.payment_status === 'failed'
+                          ? 'bg-red-50 border-red-200'
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
                         <div className="flex items-center gap-3">
                           <div className="flex-shrink-0">
-                            <CheckCircle className="h-6 w-6 text-green-600" />
+                            {paymentData.payment_status === 'success' ? (
+                              <CheckCircle className="h-6 w-6 text-green-600" />
+                            ) : paymentData.payment_status === 'pending' ? (
+                              <Clock className="h-6 w-6 text-yellow-600" />
+                            ) : paymentData.payment_status === 'failed' ? (
+                              <AlertCircle className="h-6 w-6 text-red-600" />
+                            ) : (
+                              <Clock className="h-6 w-6 text-blue-600" />
+                            )}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-green-900">Payment Completed</h3>
-                            <p className="text-sm text-green-700">
-                              This bill was paid on {format(new Date(paymentData.payment_details.payment_date), 'MMM d, yyyy')}
+                            <h3 className={`font-semibold ${
+                              paymentData.payment_status === 'success'
+                                ? 'text-green-900'
+                                : paymentData.payment_status === 'pending'
+                                ? 'text-yellow-900'
+                                : paymentData.payment_status === 'failed'
+                                ? 'text-red-900'
+                                : 'text-blue-900'
+                            }`}>
+                              Payment {paymentData.payment_status === 'success' ? 'Completed' : paymentData.payment_status.charAt(0).toUpperCase() + paymentData.payment_status.slice(1)}
+                            </h3>
+                            <p className={`text-sm ${
+                              paymentData.payment_status === 'success'
+                                ? 'text-green-700'
+                                : paymentData.payment_status === 'pending'
+                                ? 'text-yellow-700'
+                                : paymentData.payment_status === 'failed'
+                                ? 'text-red-700'
+                                : 'text-blue-700'
+                            }`}>
+                              This bill was paid on {format(new Date(paymentData.payment_date), 'MMM d, yyyy')}
                             </p>
                           </div>
                         </div>
@@ -709,60 +786,182 @@ const BillDetailPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment ID</p>
-                          <p className="font-mono font-medium">{paymentData.payment_details.payment_id}</p>
+                          <p className="font-mono font-medium text-sm">{paymentData.payment_id}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Voucher Number</p>
+                          <p className="font-mono font-medium">{paymentData.voucher_number}</p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <p className="text-sm text-muted-foreground">Payment Gateway</p>
+                          <p className="font-medium capitalize">{paymentData.gateway_used}</p>
                         </div>
 
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment Method</p>
-                          <p className="font-medium">{paymentData.payment_details.payment_method}</p>
+                          <p className="font-medium capitalize">{paymentData.payment_method}</p>
                         </div>
 
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment Date</p>
                           <p className="font-medium">
-                            {format(new Date(paymentData.payment_details.payment_date), 'MMM d, yyyy h:mm a')}
+                            {format(new Date(paymentData.payment_date), 'MMM d, yyyy h:mm a')}
                           </p>
                         </div>
 
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">UTR Number</p>
-                          <p className="font-mono font-medium">{paymentData.payment_details.utr_number}</p>
-                        </div>
+                        {paymentData.payment_source_type === 'card' && paymentData.last_four_digits && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Card Details</p>
+                            <p className="font-medium">
+                              {paymentData.card_type?.toUpperCase()} {paymentData.card_category} •••• {paymentData.last_four_digits}
+                            </p>
+                          </div>
+                        )}
 
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Transaction Reference</p>
-                          <p className="font-mono font-medium">{paymentData.payment_details.transaction_reference}</p>
-                        </div>
+                        {paymentData.gateway_payment_id && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Gateway Payment ID</p>
+                            <p className="font-mono font-medium text-sm">{paymentData.gateway_payment_id}</p>
+                          </div>
+                        )}
 
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Settlement Status</p>
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              {paymentData.payment_details.settlement_status.charAt(0).toUpperCase() +
-                               paymentData.payment_details.settlement_status.slice(1)}
+                            <Badge variant="outline" className={
+                              paymentData.settlement_status === 'settled'
+                                ? 'bg-green-100 text-green-800 border-green-200'
+                                : paymentData.settlement_status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                                : 'bg-red-100 text-red-800 border-red-200'
+                            }>
+                              {paymentData.settlement_status === 'settled' && <CheckCircle className="h-3 w-3 mr-1" />}
+                              {paymentData.settlement_status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
+                              {paymentData.settlement_status.charAt(0).toUpperCase() + paymentData.settlement_status.slice(1)}
                             </Badge>
                           </div>
                         </div>
+
+                        {paymentData.settlement_utr && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Settlement UTR</p>
+                            <p className="font-mono font-medium">{paymentData.settlement_utr}</p>
+                          </div>
+                        )}
+
+                        {paymentData.settled_at && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Settled At</p>
+                            <p className="font-medium">
+                              {format(new Date(paymentData.settled_at), 'MMM d, yyyy h:mm a')}
+                            </p>
+                          </div>
+                        )}
+
+                        {paymentData.settlement_reference_id && (
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">Settlement Reference</p>
+                            <p className="font-mono font-medium text-sm">{paymentData.settlement_reference_id}</p>
+                          </div>
+                        )}
                       </div>
 
                       <Separator />
 
-                      {/* Payment Amount Summary */}
-                      <div className="bg-muted/30 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground mb-1">Amount Paid</p>
-                            <p className="text-2xl font-bold text-primary">
-                              {formatCurrency(paymentData.payment_details.amount_paid / 100)}
-                            </p>
+                      {/* Amount Breakdown */}
+                      <div className="space-y-3">
+                        <h3 className="font-semibold text-sm">Amount Breakdown</h3>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Voucher Amount</span>
+                            <span className="font-medium">{formatCurrency(paymentData.voucher_amount / 100)}</span>
                           </div>
-                          <Button variant="outline" size="sm">
-                            <Download className="h-4 w-4 mr-2" />
-                            Payment Receipt
-                          </Button>
+
+                          {paymentData.convenience_fee > 0 && (
+                            <>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Convenience Fee ({paymentData.convenience_fee_rate})
+                                </span>
+                                <span className="font-medium">{formatCurrency(paymentData.convenience_fee / 100)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  GST on Fee ({paymentData.gst_rate})
+                                </span>
+                                <span className="font-medium">{formatCurrency(paymentData.gst_on_fee / 100)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Total Fee Amount</span>
+                                <span className="font-medium">{formatCurrency(paymentData.total_fee_amount / 100)}</span>
+                              </div>
+                              <Separator />
+                            </>
+                          )}
+
+                          <div className="flex justify-between text-base font-semibold">
+                            <span>Total Amount Paid</span>
+                            <span className="text-primary">{formatCurrency(paymentData.total_amount_paid / 100)}</span>
+                          </div>
                         </div>
                       </div>
+
+                      {/* Settlement Information */}
+                      {(paymentData.settlement_amount > 0 || paymentData.mdr_amount > 0) && (
+                        <>
+                          <Separator />
+                          <div className="space-y-3">
+                            <h3 className="font-semibold text-sm">Settlement Information</h3>
+                            <div className="space-y-2 text-sm">
+                              {paymentData.settlement_amount > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">Settlement Amount</span>
+                                  <span className="font-medium">{formatCurrency(paymentData.settlement_amount / 100)}</span>
+                                </div>
+                              )}
+
+                              {paymentData.mdr_amount > 0 && (
+                                <div className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    MDR Charges {paymentData.mdr_rate && `(${paymentData.mdr_rate})`}
+                                  </span>
+                                  <span className="font-medium text-red-600">- {formatCurrency(paymentData.mdr_amount / 100)}</span>
+                                </div>
+                              )}
+
+                              {paymentData.net_settlement_amount > 0 && (
+                                <>
+                                  <Separator />
+                                  <div className="flex justify-between text-base font-semibold">
+                                    <span>Net Settlement Amount</span>
+                                    <span className="text-primary">{formatCurrency(paymentData.net_settlement_amount / 100)}</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Payment Receipt Button */}
+                      <div className="flex justify-end pt-2">
+                        <Button variant="outline" size="sm">
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Receipt
+                        </Button>
+                      </div>
+
+                      {paymentData.description && (
+                        <>
+                          <Separator />
+                          <div className="space-y-2">
+                            <h3 className="font-semibold text-sm">Description</h3>
+                            <p className="text-sm text-muted-foreground">{paymentData.description}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12">
@@ -784,6 +983,7 @@ const BillDetailPage = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+            )}
 
             {/* Accounting Tab - Feature Flagged */}
             {canViewFeature('ERP_INTEGRATION', user) && (
@@ -933,111 +1133,75 @@ const BillDetailPage = () => {
               </TabsContent>
             )}
 
-            {/* Attachments Tab */}
-            <TabsContent value="attachments" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Attachments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {(() => {
-                    // Mock attachments - will be replaced with actual API data
-                    // const attachments = bill.attachments; // From API
-                    const mockAttachments = [
-                      {
-                        attachment_id: '1',
-                        file_name: `Invoice_${bill.invoiceNumber}.pdf`,
-                        file_url: '#',
-                        file_type: 'application/pdf',
-                        file_size: 245678,
-                        uploaded_date: bill.billDate
-                      },
-                      {
-                        attachment_id: '2',
-                        file_name: 'Supporting_Document.pdf',
-                        file_url: '#',
-                        file_type: 'application/pdf',
-                        file_size: 128456,
-                        uploaded_date: bill.billDate
-                      }
-                    ];
+            {/* Attachments Tab - Only shown if attachments exist */}
+            {attachments.length > 0 && (
+              <TabsContent value="attachments" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Attachments</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {/* Helper to format file size */}
+                    {(() => {
+                      const formatFileSize = (bytes: number) => {
+                        if (bytes < 1024) return bytes + ' B';
+                        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                      };
 
-                    const attachments = mockAttachments;
+                      const getFileIcon = (fileType: string) => {
+                        if (fileType.includes('pdf')) return FileText;
+                        if (fileType.includes('image')) return FileText;
+                        return FileText;
+                      };
 
-                    if (!attachments || attachments.length === 0) {
                       return (
-                        <div className="text-center py-12">
-                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
-                            <Paperclip className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <h3 className="text-lg font-semibold mb-2">No Attachments</h3>
-                          <p className="text-sm text-muted-foreground">
-                            No documents have been attached to this bill yet.
-                          </p>
+                        <div className="space-y-3">
+                          {attachments.map((attachment) => {
+                            const FileIcon = getFileIcon(attachment.file_type);
+
+                            return (
+                              <div
+                                key={attachment.attachment_id}
+                                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                              >
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                  <div className="flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                      <FileIcon className="h-5 w-5 text-primary" />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium truncate">{attachment.file_name}</p>
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                                      <span>{formatFileSize(attachment.file_size)}</span>
+                                      <span>•</span>
+                                      <span>Uploaded {formatPaymentDate(attachment.uploaded_date)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+                                  <Button variant="ghost" size="sm">
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View
+                                  </Button>
+                                  <Button variant="ghost" size="sm">
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Download
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       );
-                    }
-
-                    // Helper to format file size
-                    const formatFileSize = (bytes: number) => {
-                      if (bytes < 1024) return bytes + ' B';
-                      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-                      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-                    };
-
-                    // Helper to get file icon
-                    const getFileIcon = (fileType: string) => {
-                      if (fileType.includes('pdf')) return FileText;
-                      if (fileType.includes('image')) return FileText;
-                      return FileText;
-                    };
-
-                    return (
-                      <div className="space-y-3">
-                        {attachments.map((attachment) => {
-                          const FileIcon = getFileIcon(attachment.file_type);
-
-                          return (
-                            <div
-                              key={attachment.attachment_id}
-                              className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                            >
-                              <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className="flex-shrink-0">
-                                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <FileIcon className="h-5 w-5 text-primary" />
-                                  </div>
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{attachment.file_name}</p>
-                                  <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                                    <span>{formatFileSize(attachment.file_size)}</span>
-                                    <span>•</span>
-                                    <span>Uploaded {formatPaymentDate(attachment.uploaded_date)}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View
-                                </Button>
-                                <Button variant="ghost" size="sm">
-                                  <Download className="h-4 w-4 mr-2" />
-                                  Download
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    })()}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>
