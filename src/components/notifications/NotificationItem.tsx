@@ -3,13 +3,12 @@ import { cn } from "@/lib/utils";
 import { NotificationItem as NotificationItemType } from "@/types/notification";
 import { NotificationHeader } from "./components/NotificationHeader";
 import { NotificationActions } from "./components/NotificationActions";
-import { NotificationCategory } from "./components/NotificationCategory";
 import { notificationStyles } from "./styles";
 
 interface NotificationItemProps {
   notification: NotificationItemType;
   onMarkAsRead: (id: string) => void;
-  onDismiss: (id: string) => void;
+  onDismiss: (id:string) => void;
   handleNavigate: (notification: NotificationItemType) => void;
 }
 
@@ -21,6 +20,18 @@ const NotificationItem = ({
 }: NotificationItemProps) => {
   const { container } = notificationStyles;
 
+  const hasActions = notification.actions && notification.actions.length > 0;
+
+  const handleClick = () => {
+    if (hasActions) {
+      if (!notification.read) {
+        onMarkAsRead(notification.id);
+      }
+    } else {
+      handleNavigate(notification);
+    }
+  };
+
   return (
     <div
       key={notification.id}
@@ -29,7 +40,7 @@ const NotificationItem = ({
         notification.read ? container.read : container.unread,
         container.hover
       )}
-      onClick={() => handleNavigate(notification)}
+      onClick={handleClick}
     >
       <div className="flex-1">
         <NotificationHeader
@@ -43,10 +54,6 @@ const NotificationItem = ({
         </p>
 
         <NotificationActions notification={notification} />
-
-        <div className="mt-1.5">
-          <NotificationCategory category={notification.category} />
-        </div>
       </div>
     </div>
   );

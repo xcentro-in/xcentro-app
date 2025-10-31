@@ -36,28 +36,6 @@ const NotificationPopup = ({
   // Extract unique categories from notifications
   const categories = ["payment", "payee", "approvals", "insights", "security", "announcements", "rewards"];
 
-  // Set initial active tab to the first category that has notifications, otherwise first category
-  const initialCategory = categories.find(category =>
-    notifications.some(n => n.category === category)
-  ) || categories[0];
-
-  const [activeTab, setActiveTab] = React.useState<string>(initialCategory);
-
-  // Auto-switch to a category with notifications ONLY when popup opens
-  React.useEffect(() => {
-    if (isOpen) {
-      // Find first category with notifications when popup opens
-      const categoryWithNotifications = categories.find(category =>
-        notifications.some(n => n.category === category)
-      );
-
-      if (categoryWithNotifications) {
-        setActiveTab(categoryWithNotifications);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]); // Only run when popup opens/closes
-
   // Count unread by category
   const unreadCounts = categories.reduce((acc, category) => {
     acc[category] = notifications.filter(
@@ -65,6 +43,27 @@ const NotificationPopup = ({
     ).length;
     return acc;
   }, {} as Record<string, number>);
+
+  // Set initial active tab to the first category that has UNREAD notifications, otherwise first category
+  const initialCategory = categories.find(category => unreadCounts[category] > 0) || categories[0];
+
+  const [activeTab, setActiveTab] = React.useState<string>(initialCategory);
+
+  // Auto-switch to a category with UNREAD notifications ONLY when popup opens
+  React.useEffect(() => {
+    if (isOpen) {
+      // Find first category with UNREAD notifications when popup opens
+      const categoryWithUnreadNotifications = categories.find(category => unreadCounts[category] > 0);
+
+      if (categoryWithUnreadNotifications) {
+        setActiveTab(categoryWithUnreadNotifications);
+      } else {
+        // If no unread notifications, default to the first category
+        setActiveTab(categories[0]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, notifications]); // Re-run when popup opens/closes or notifications change
 
   const totalUnread = notifications.filter(notification => !notification.read).length;
 

@@ -9,7 +9,7 @@ interface NotificationActionsProps {
 }
 
 const getButtonClasses = (buttonType: ActionButton['type']): string => {
-  const baseClasses = "h-8 text-xs font-medium transition-colors whitespace-nowrap";
+  const baseClasses = "h-7 text-xs font-medium transition-colors whitespace-nowrap";
 
   switch (buttonType) {
     case 'button-positive':
@@ -55,7 +55,6 @@ export const NotificationActions = ({
       {actions.map((action, index) => (
         <Button
           key={index}
-          size="sm"
           className={getButtonClasses(action.type)}
           onClick={(e) => handleActionClick(action, e)}
         >

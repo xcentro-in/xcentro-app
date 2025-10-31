@@ -188,6 +188,16 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify({ oldPassword, newPassword }),
       });
+    },
+
+    verifyEmail: async (token: string): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/auth/verify-email', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
     }
   };
 
