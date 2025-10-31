@@ -42,14 +42,7 @@ const NotificationItem = ({
           {notification.message}
         </p>
 
-        <NotificationActions
-          notificationId={notification.id}
-          actionLabel={notification.actionLabel}
-          onMarkAsRead={onMarkAsRead}
-          onDismiss={onDismiss}
-          onAction={handleNavigate}
-          notification={notification}
-        />
+        <NotificationActions notification={notification} />
 
         <div className="mt-1.5">
           <NotificationCategory category={notification.category} />
