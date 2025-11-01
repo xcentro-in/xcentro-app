@@ -1,0 +1,47 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - mvp-docker
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mvp
+          build-args: |
+            VITE_API_URL=${{ secrets.STAGING_BACKEND_URL }}
+
+      - name: Image built successfully
+        run: |
+          echo "✅ Docker image built and pushed successfully!"
+          echo ""
+          echo "Image: ghcr.io/${{ github.repository }}:mvp"
+          echo "Backend URL: ${{ secrets.STAGING_BACKEND_URL }}"
+          echo ""
+          echo "Pull it on your server with:"
+          echo "docker pull ghcr.io/${{ github.repository }}:mvp"
