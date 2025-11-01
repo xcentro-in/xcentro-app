@@ -614,6 +614,24 @@ class ApiService {
     }
   };
 
+  // Batch Payments endpoints
+  batchPayments = {
+    downloadTemplate: async (businessId: string): Promise<Blob> => {
+      const response = await fetch(`${this.baseUrl}/batch-payments/template`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to download batch payment template');
+      }
+
+      return response.blob();
+    },
+  };
+
   // Payees endpoints
   payees = {
     getAll: async (businessId: string): Promise<any> => {
@@ -1377,5 +1395,6 @@ export const {
   processPayment: processPaymentAPI,
   wallet: walletAPI,
   voucher: voucherAPI,
-  vendors: vendorsAPI
+  vendors: vendorsAPI,
+  batchPayments: batchPaymentsAPI
 } = apiService;

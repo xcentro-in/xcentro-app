@@ -2,11 +2,10 @@
 import { useState } from "react";
 import { BatchPaymentFormProps, PaymentRow, BatchPaymentState } from "./types";
 import UploadStep from "./UploadStep";
-import ValidationStep from "./ValidationStep";
 import BatchPaymentMethodAndReviewStep from "./BatchPaymentMethodAndReviewStep";
 import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
 
-const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
+const BatchPaymentForm = () => {
   const [step, setStep] = useState(1);
   const [state, setState] = useState<BatchPaymentState>({
     selectedRows: [],
@@ -16,59 +15,11 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     frequency: "monthly"
   });
 
-  // Sample payment rows (in a real app, this would come from the uploaded file)
-  const paymentRows: PaymentRow[] = [
-    {
-      id: "1",
-      payee: "Office Supplies Co.",
-      amount: 2499.99,
-      description: "Monthly supplies",
-      bankAccount: "XXXX1234",
-      ifsc: "HDFC0001234",
-    },
-    {
-      id: "2",
-      payee: "Cloud Services",
-      amount: 899.00,
-      description: "Cloud hosting",
-      bankAccount: "XXXX5678",
-      ifsc: "ICIC0009876",
-    },
-  ];
+  const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
 
-  const handleNext = () => {
-    const nextStep = step + 1;
-    setStep(nextStep);
-    onStepChange(nextStep);
-  };
 
-  const handleBack = () => {
-    const prevStep = step - 1;
-    setStep(prevStep);
-    onStepChange(prevStep);
-  };
 
-  const handleSelectAll = () => {
-    if (state.selectedRows.length === paymentRows.length) {
-      setState({ ...state, selectedRows: [] });
-    } else {
-      setState({ ...state, selectedRows: paymentRows.map(row => row.id) });
-    }
-  };
 
-  const handleSelectRow = (id: string) => {
-    if (state.selectedRows.includes(id)) {
-      setState({ 
-        ...state, 
-        selectedRows: state.selectedRows.filter(rowId => rowId !== id) 
-      });
-    } else {
-      setState({ 
-        ...state, 
-        selectedRows: [...state.selectedRows, id] 
-      });
-    }
-  };
 
   const handleSelectPaymentMethod = (id: string) => {
     setState({ ...state, selectedPaymentMethod: id });
@@ -95,32 +46,16 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormProps) => {
     <div className="space-y-6">
       {step === 1 && (
         <UploadStep 
-          onNext={handleNext}
+          setStep={setStep}
+          setPaymentRows={setPaymentRows}
         />
       )}
 
       {step === 2 && (
-        <ValidationStep 
-          paymentRows={paymentRows}
-          selectedRows={state.selectedRows}
-          onSelectRow={handleSelectRow}
-          onSelectAll={handleSelectAll}
-          onBack={handleBack}
-          onNext={handleNext}
-          paymentType={state.paymentType}
-          scheduledDate={state.scheduledDate}
-          frequency={state.frequency}
-          onPaymentTypeChange={handlePaymentTypeChange}
-          onScheduledDateChange={handleScheduledDateChange}
-          onFrequencyChange={handleFrequencyChange}
-        />
-      )}
-
-      {step === 3 && (
         <BatchPaymentMethodAndReviewStep 
           selectedRows={state.selectedRows}
           paymentRows={paymentRows}
-          onBack={handleBack}
+          setStep={setStep}
           onSubmit={handleSubmit}
           paymentType={state.paymentType}
           scheduledDate={state.scheduledDate}

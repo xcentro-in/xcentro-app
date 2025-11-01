@@ -27,7 +27,7 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
     {
       id: "batch",
       title: "Batch Payment",
-      description: "Pay multiple vendors at once with a batch upload",
+      description: "Make multiple quick payments at once by uploading a file.",
       icon: <Files className="h-10 w-10 text-primary" />,
     },
     {
@@ -51,7 +51,7 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
     {
       id: "invoice",
       title: "Invoice Payment",
-      description: "Upload and pay vendor invoices",
+      description: "Pay all your invoices in one go",
       icon: <File className="h-10 w-10 text-primary" />,
     },
   ];

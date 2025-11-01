@@ -7,7 +7,7 @@ import { formatCompactDate } from "@/utils/dateFormatting";
 interface BatchPaymentMethodAndReviewStepProps {
   selectedRows: string[];
   paymentRows: PaymentRow[];
-  onBack: () => void;
+  setStep: (step: number) => void;
   onSubmit: () => void;
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
@@ -17,7 +17,7 @@ interface BatchPaymentMethodAndReviewStepProps {
 const BatchPaymentMethodAndReviewStep = ({
   selectedRows,
   paymentRows,
-  onBack,
+  setStep,
   onSubmit,
   paymentType,
   scheduledDate,
@@ -65,7 +65,7 @@ const BatchPaymentMethodAndReviewStep = ({
       scheduleText={formatScheduleText()}
       selectedPaymentMethod={selectedPaymentMethod}
       onPaymentMethodChange={setSelectedPaymentMethod}
-      onBack={onBack}
+      onBack={() => setStep(1)}
       onSubmit={onSubmit}
       additionalSummaryData={{
         itemLabel: "Number of Transactions",
