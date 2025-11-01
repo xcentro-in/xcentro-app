@@ -630,6 +630,38 @@ class ApiService {
 
       return response.blob();
     },
+
+    upload: async (businessId: string, file: File): Promise<any> => {
+      const formData = new FormData();
+      formData.append('csv_file', file);
+
+      // Get auth token from localStorage or instance
+      const token = this.authToken || localStorage.getItem('auth-token');
+
+      // For FormData, do NOT set Content-Type - browser will set it automatically with boundary
+      const headers: Record<string, string> = {
+        'X-Business-ID': businessId,
+      };
+
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/batch_payments/upload`, {
+        method: 'POST',
+        headers,
+        body: formData,
+        credentials: 'include', // Include cookies for authentication
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload batch payment file');
+      }
+
+      return response.json();
+    },
   };
 
   // Payees endpoints
@@ -1006,6 +1038,27 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(params),
+      });
+    },
+
+    createMultiple: async (businessId: string, vouchers: Array<{
+      relation_id: string;                    // REQUIRED
+      invoice_number: string;                 // REQUIRED
+      invoice_date?: string;                  // OPTIONAL (YYYY-MM-DD)
+      gross_amount: number;                   // REQUIRED (in paise)
+      net_amount: number;                     // REQUIRED (in paise)
+      gst_amount: number;                     // REQUIRED (in paise)
+      tds_amount: number;                     // REQUIRED (in paise)
+      expense_category?: string;              // OPTIONAL
+      description?: string;                   // OPTIONAL
+      financial_details?: Record<string, any>; // OPTIONAL
+    }>) => {
+      return this.request('/vouchers/multi', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ vouchers }),
       });
     },
 
