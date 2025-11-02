@@ -2,57 +2,44 @@ import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { batchPaymentsAPI } from "@/services/api";
 
-import { PaymentRow } from "./types";
+import { BatchUploadResponse } from "./types";
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 
 interface UploadStepProps {
   setStep: (step: number) => void;
-  setPaymentRows: (rows: PaymentRow[]) => void;
+  setUploadResponse: (response: BatchUploadResponse) => void;
 }
 
-const UploadStep = ({ setStep, setPaymentRows }: UploadStepProps) => {
+const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
-  
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedFile(e.target.files[0]);
     }
   };
-  
-  const handleProcessFile = () => {
-    if (!selectedFile) return;
-    
+
+  const handleProcessFile = async () => {
+    if (!selectedFile || !user?.businessId) return;
+
     setIsProcessing(true);
-    
-    // Simulate processing and parsing
-    setTimeout(() => {
-      const mockPaymentRows: PaymentRow[] = [
-        {
-          id: "1",
-          payee: "Office Supplies Co.",
-          amount: 2499.99,
-          description: "Monthly supplies",
-          bankAccount: "XXXX1234",
-          ifsc: "HDFC0001234",
-        },
-        {
-          id: "2",
-          payee: "Cloud Services",
-          amount: 899.00,
-          description: "Cloud hosting",
-          bankAccount: "XXXX5678",
-          ifsc: "ICIC0009876",
-        },
-      ];
-      setPaymentRows(mockPaymentRows);
+
+    try {
+      const response = await batchPaymentsAPI.upload(user.businessId, selectedFile);
+      setUploadResponse(response as BatchUploadResponse);
+      toast.success(`File processed: ${response.data.matched_count} matched, ${response.data.ambiguous_count} ambiguous, ${response.data.not_found_count} not found`);
+      setStep(2); // Move to validation step
+    } catch (error) {
+      console.error("Failed to upload file:", error);
+      toast.error("Failed to process file. Please check the format and try again.");
+    } finally {
       setIsProcessing(false);
-      setStep(2);
-    }, 1500);
+    }
   };
   
   const handleDownloadTemplate = async () => {

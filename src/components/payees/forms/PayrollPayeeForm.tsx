@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, ArrowLeft } from "lucide-react";
 import ManualPayrollForm from "./components/ManualPayrollForm";
 import BulkUploadPayrollForm from "./components/BulkUploadPayrollForm";
+import EmployeeDocumentUploadStep from "./components/EmployeeDocumentUploadStep";
 
 interface PayrollPayeeFormProps {
   onSubmit: () => void;
@@ -12,6 +13,13 @@ interface PayrollPayeeFormProps {
 
 const PayrollPayeeForm = ({ onSubmit }: PayrollPayeeFormProps) => {
   const [entryMethod, setEntryMethod] = useState<"manual" | "bulk" | null>(null);
+  const [step, setStep] = useState<"entry" | "document">("entry");
+  const [employeeData, setEmployeeData] = useState<{
+    relation_id: string;
+    payee_id: string;
+    account_id: string;
+    employee_name: string;
+  } | null>(null);
   
   if (entryMethod === null) {
     return (
@@ -67,12 +75,55 @@ const PayrollPayeeForm = ({ onSubmit }: PayrollPayeeFormProps) => {
           </Card>
         </div>
         
-        <div className="flex justify-end mt-6">
-          <Button variant="outline" onClick={() => onSubmit()}>
-            Cancel
+      </div>
+    );
+  }
+
+  const handleEmployeeCreated = (data: {
+    relation_id: string;
+    payee_id: string;
+    account_id: string;
+    employee_name: string;
+  }) => {
+    setEmployeeData(data);
+    setStep("document");
+  };
+
+  const handleDocumentUploadComplete = () => {
+    // Complete the entire flow
+    onSubmit();
+  };
+
+  const handleBack = () => {
+    if (step === "document") {
+      setStep("entry");
+      setEmployeeData(null);
+    } else {
+      setEntryMethod(null);
+    }
+  };
+
+  // Document upload step (only for manual entry)
+  if (step === "document" && entryMethod === "manual" && employeeData) {
+    return (
+      <>
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-medium">Employee Document Upload</h3>
+          <Button
+            variant="outline"
+            onClick={handleBack}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
           </Button>
         </div>
-      </div>
+
+        <EmployeeDocumentUploadStep
+          employeeData={employeeData}
+          onUploadComplete={handleDocumentUploadComplete}
+        />
+      </>
     );
   }
 
@@ -82,13 +133,18 @@ const PayrollPayeeForm = ({ onSubmit }: PayrollPayeeFormProps) => {
         <h3 className="text-lg font-medium">
           {entryMethod === "manual" ? "Manual Payroll Entry" : "Bulk Upload Payroll Data"}
         </h3>
-        <Button variant="outline" onClick={() => setEntryMethod(null)}>
+        <Button
+          variant="outline"
+          onClick={handleBack}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
           Change Entry Method
         </Button>
       </div>
-      
+
       {entryMethod === "manual" ? (
-        <ManualPayrollForm onSubmit={onSubmit} />
+        <ManualPayrollForm onEmployeeCreated={handleEmployeeCreated} />
       ) : (
         <BulkUploadPayrollForm onSubmit={onSubmit} />
       )}

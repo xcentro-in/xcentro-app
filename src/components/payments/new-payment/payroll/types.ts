@@ -2,13 +2,13 @@
 import { RewardPackage } from "../shared/common/RewardTopUpStep";
 
 export interface Employee {
-  id: string;
-  name: string;
+  relation_id: string; // API uses relation_id as unique identifier
+  full_name: string;
   email: string;
-  accountNumber: string;
-  bankName: string;
-  salaryAmount: number;
-  contactNumber: string;
+  phone: string;
+  account_number_last4: string;
+  ifsc_code: string;
+  salaryAmount?: number; // User-entered salary amount
 }
 
 export interface PayrollReviewStepProps {

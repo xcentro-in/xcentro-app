@@ -13,7 +13,7 @@ interface OnboardingStep {
   icon: typeof CreditCard;
   ctaText: string;
   ctaLink: string;
-  checkFlag: 'hasAddedPaymentMethod' | 'hasAddedVendor' | 'hasCreatedFirstPayment';
+  checkFlag:  'hasAddedVendor' | 'hasAddedPaymentMethod' | 'hasCreatedFirstPayment';
 }
 
 const EmptyStateDashboard = () => {
@@ -22,24 +22,24 @@ const EmptyStateDashboard = () => {
 
   const steps: OnboardingStep[] = [
     {
-      id: 'payment-method',
+      id: 'vendor',
       stepNumber: 1,
+      title: 'Set up your vendors',
+      description: 'Add vendors and service providers you work with.',
+      icon: Users,
+      ctaText: 'Add Vendors',
+      ctaLink: '/payees',
+      checkFlag: 'hasAddedVendor',
+    },
+    {
+      id: 'payment-method',
+      stepNumber: 2,
       title: 'Add your payment sources',
       description: 'Connect your business credit cards or bank accounts to start making payments seamlessly.',
       icon: CreditCard,
       ctaText: 'Add Payment Source',
       ctaLink: '/wallet',
       checkFlag: 'hasAddedPaymentMethod',
-    },
-    {
-      id: 'vendor',
-      stepNumber: 2,
-      title: 'Set up your vendors',
-      description: 'Add vendors and service providers you work with. Import in bulk or add them individually.',
-      icon: Users,
-      ctaText: 'Add Vendors',
-      ctaLink: '/payees',
-      checkFlag: 'hasAddedVendor',
     },
     {
       id: 'first-payment',

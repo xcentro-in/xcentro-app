@@ -44,16 +44,16 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
         <div className="space-y-6">
           <h3 className="text-lg font-medium">Step 1: Select Payee Type</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card 
               className={`cursor-pointer transition-all hover:border-primary hover:shadow-md ${payeeType === 'bank' ? 'border-primary' : ''}`}
               onClick={() => handleTypeSelect('bank')}
             >
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <BanknoteIcon className="h-8 w-8 text-blue-500 mb-4" />
-                <h3 className="text-lg font-medium mb-1">Bank Payee</h3>
+                <h3 className="text-lg font-medium mb-1">Vendor / Supplier</h3>
                 <p className="text-sm text-muted-foreground">
-                  For vendor/supplier payments via bank transfer
+                  To settle off your bills
                 </p>
               </CardContent>
             </Card>

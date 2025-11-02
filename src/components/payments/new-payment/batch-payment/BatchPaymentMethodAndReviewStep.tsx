@@ -1,46 +1,40 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import PaymentMethodAndReviewStep from "../../shared/PaymentMethodAndReviewStep";
 import { PaymentRow } from "./types";
 import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
-import { formatCompactDate } from "@/utils/dateFormatting";
 
 interface BatchPaymentMethodAndReviewStepProps {
-  selectedRows: string[];
-  paymentRows: PaymentRow[];
+  paymentRows: PaymentRow[]; // Already filtered list from created vouchers
   setStep: (step: number) => void;
   onSubmit: () => void;
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
+  selectedPaymentMethod?: string;
+  onPaymentMethodChange?: (methodId: string) => void;
 }
 
 const BatchPaymentMethodAndReviewStep = ({
-  selectedRows,
   paymentRows,
   setStep,
   onSubmit,
   paymentType,
   scheduledDate,
-  frequency
+  frequency,
+  selectedPaymentMethod: externalSelectedPaymentMethod,
+  onPaymentMethodChange: externalOnPaymentMethodChange
 }: BatchPaymentMethodAndReviewStepProps) => {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
+  const [internalSelectedPaymentMethod, setInternalSelectedPaymentMethod] = useState<string>("");
 
-  const selectedPaymentRows = useMemo(
-    () => paymentRows.filter(row => selectedRows.includes(row.id)),
-    [paymentRows, selectedRows]
-  );
+  // Use external state if provided, otherwise use internal
+  const selectedPaymentMethod = externalSelectedPaymentMethod ?? internalSelectedPaymentMethod;
+  const onPaymentMethodChange = externalOnPaymentMethodChange ?? setInternalSelectedPaymentMethod;
 
-  const totalAmount = useMemo(
-    () => selectedPaymentRows.reduce((sum, row) => sum + row.amount, 0),
-    [selectedPaymentRows]
-  );
+  // paymentRows is already filtered - contains only created vouchers
+  const totalAmount = paymentRows.reduce((sum, row) => sum + row.amount, 0);
 
   const formatScheduleText = () => {
-    if (paymentType === "now") {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return formatCompactDate(tomorrow.toISOString());
-    }
+    if (paymentType === "now") return "Immediate";
     if (paymentType === "later" && scheduledDate) {
       return `Scheduled for ${scheduledDate.toLocaleDateString()}`;
     }
@@ -50,7 +44,7 @@ const BatchPaymentMethodAndReviewStep = ({
     return "Not specified";
   };
 
-  const paymentItems = selectedPaymentRows.map(row => ({
+  const paymentItems = paymentRows.map(row => ({
     id: row.id,
     name: row.payee,
     amount: row.amount,
@@ -64,12 +58,12 @@ const BatchPaymentMethodAndReviewStep = ({
       summaryType="list"
       scheduleText={formatScheduleText()}
       selectedPaymentMethod={selectedPaymentMethod}
-      onPaymentMethodChange={setSelectedPaymentMethod}
-      onBack={() => setStep(1)}
+      onPaymentMethodChange={onPaymentMethodChange}
+      onBack={() => setStep(2)}
       onSubmit={onSubmit}
       additionalSummaryData={{
-        itemLabel: "Number of Transactions",
-        listTitle: `Payment Transactions (${selectedPaymentRows.length})`
+        itemLabel: "Number of Vouchers",
+        listTitle: `Payment Vouchers (${paymentRows.length})`
       }}
     />
   );

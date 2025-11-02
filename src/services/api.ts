@@ -630,6 +630,38 @@ class ApiService {
 
       return response.blob();
     },
+
+    upload: async (businessId: string, file: File): Promise<any> => {
+      const formData = new FormData();
+      formData.append('csv_file', file);
+
+      // Get auth token from localStorage or instance
+      const token = this.authToken || localStorage.getItem('auth-token');
+
+      // For FormData, do NOT set Content-Type - browser will set it automatically with boundary
+      const headers: Record<string, string> = {
+        'X-Business-ID': businessId,
+      };
+
+      // Add Authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/batch_payments/upload`, {
+        method: 'POST',
+        headers,
+        body: formData,
+        credentials: 'include', // Include cookies for authentication
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to upload batch payment file');
+      }
+
+      return response.json();
+    },
   };
 
   // Payees endpoints
@@ -723,6 +755,68 @@ class ApiService {
 
       console.log('TODO: Implement payees.updateDetails API call', { businessId, payeeId, updates });
       throw new Error('API not implemented yet');
+    },
+
+    // Get presigned S3 URL for employee remuneration document upload
+    getEmployeeDocPresignedUrl: async (
+      businessId: string,
+      payeeId: string,
+      accountId: string
+    ): Promise<{
+      data: {
+        url: string;
+      };
+      message: string;
+    }> => {
+      return this.request(`/payees/remuneration/upload-url`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ accountId, payeeId }),
+      });
+    },
+
+    // Upload file to S3 using presigned URL
+    uploadToS3: async (url: string, file: File): Promise<void> => {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+    },
+
+    // Confirm employee remuneration document upload
+    confirmEmployeeDocUpload: async (
+      businessId: string,
+      payeeId: string,
+      accountId: string
+    ): Promise<any> => {
+      return this.request(`/payees/remuneration/confirm-upload`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ payeeId, accountId }),
+      });
+    }
+  };
+
+  // Employees endpoints
+  employees = {
+    getAll: async (businessId: string): Promise<any> => {
+      return this.request('/employees', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 
@@ -1009,6 +1103,27 @@ class ApiService {
       });
     },
 
+    createMultiple: async (businessId: string, vouchers: Array<{
+      relation_id: string;                    // REQUIRED
+      invoice_number: string;                 // REQUIRED
+      invoice_date?: string;                  // OPTIONAL (YYYY-MM-DD)
+      gross_amount: number;                   // REQUIRED (in paise)
+      net_amount: number;                     // REQUIRED (in paise)
+      gst_amount: number;                     // REQUIRED (in paise)
+      tds_amount: number;                     // REQUIRED (in paise)
+      expense_category?: string;              // OPTIONAL
+      description?: string;                   // OPTIONAL
+      financial_details?: Record<string, any>; // OPTIONAL
+    }>) => {
+      return this.request('/vouchers/multi', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ vouchers }),
+      });
+    },
+
     update: async (voucherId: string, params: {
       relation_id?: string;
       invoice_number?: string;
@@ -1221,8 +1336,11 @@ class ApiService {
   // Vendors endpoints
   vendors = {
     getAll: async (businessId: string) => {
-      return this.request(`/vendors?bid=${businessId}`, {
+      return this.request(`/vendors`, {
         method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        }
       });
     }
   };
@@ -1385,6 +1503,7 @@ export const {
   business: businessAPI,
   payments: paymentsAPI,
   payees: payeesAPI,
+  employees: employeesAPI,
   banks: banksAPI,
   bills: billsAPI,
   paymentHistory: paymentHistoryAPI,

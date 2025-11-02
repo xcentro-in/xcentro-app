@@ -6,16 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface Employee {
-  id: string;
-  name: string;
-  email: string;
-  accountNumber: string;
-  bankName: string;
-  salaryAmount: number;
-  contactNumber: string;
-}
+import { Employee } from "./types";
 
 interface ExistingEmployeesPaymentProps {
   employees: Employee[];
@@ -27,12 +18,18 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectAll, setSelectAll] = useState(false);
+  const [salaryAmounts, setSalaryAmounts] = useState<Record<string, number>>({});
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredEmployees = employees.filter(emp =>
+    emp.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     emp.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    emp.bankName.toLowerCase().includes(searchQuery.toLowerCase())
+    emp.ifsc_code.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleSalaryChange = (relationId: string, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    setSalaryAmounts(prev => ({ ...prev, [relationId]: numValue }));
+  };
 
   const handleToggleSelectAll = () => {
     let newSelection: string[];
@@ -40,43 +37,49 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
       newSelection = [];
       setSelectAll(false);
     } else {
-      newSelection = filteredEmployees.map(emp => emp.id);
+      newSelection = filteredEmployees.map(emp => emp.relation_id);
       setSelectAll(true);
     }
     setSelectedEmployees(newSelection);
-    
+
     // Auto-trigger parent callback when selection changes
-    const employeesToPay = employees.filter(emp => newSelection.includes(emp.id));
+    const employeesToPay = employees
+      .filter(emp => newSelection.includes(emp.relation_id))
+      .map(emp => ({ ...emp, salaryAmount: salaryAmounts[emp.relation_id] || 0 }));
     onSelectionChange?.(employeesToPay);
   };
 
-  const handleToggleEmployee = (id: string) => {
+  const handleToggleEmployee = (relationId: string) => {
     let newSelection: string[];
-    if (selectedEmployees.includes(id)) {
-      newSelection = selectedEmployees.filter(empId => empId !== id);
+    if (selectedEmployees.includes(relationId)) {
+      newSelection = selectedEmployees.filter(empId => empId !== relationId);
       setSelectAll(false);
     } else {
-      newSelection = [...selectedEmployees, id];
+      newSelection = [...selectedEmployees, relationId];
       if (selectedEmployees.length + 1 === filteredEmployees.length) {
         setSelectAll(true);
       }
     }
     setSelectedEmployees(newSelection);
-    
+
     // Auto-trigger parent callback when selection changes
-    const employeesToPay = employees.filter(emp => newSelection.includes(emp.id));
+    const employeesToPay = employees
+      .filter(emp => newSelection.includes(emp.relation_id))
+      .map(emp => ({ ...emp, salaryAmount: salaryAmounts[emp.relation_id] || 0 }));
     onSelectionChange?.(employeesToPay);
   };
 
   const handleSubmit = () => {
-    const employeesToPay = employees.filter(emp => selectedEmployees.includes(emp.id));
+    const employeesToPay = employees
+      .filter(emp => selectedEmployees.includes(emp.relation_id))
+      .map(emp => ({ ...emp, salaryAmount: salaryAmounts[emp.relation_id] || 0 }));
     onSubmit(employeesToPay);
   };
 
   // Calculate total salary amount of selected employees
-  const totalSelectedSalary = employees
-    .filter(emp => selectedEmployees.includes(emp.id))
-    .reduce((total, emp) => total + emp.salaryAmount, 0);
+  const totalSelectedSalary = selectedEmployees.reduce((total, relationId) => {
+    return total + (salaryAmounts[relationId] || 0);
+  }, 0);
 
   return (
     <div className="space-y-4">
@@ -101,7 +104,7 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                <Checkbox 
+                <Checkbox
                   checked={selectAll && filteredEmployees.length > 0}
                   onCheckedChange={handleToggleSelectAll}
                   aria-label="Select all employees"
@@ -110,35 +113,46 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Contact Number</TableHead>
-              <TableHead>Bank Account</TableHead>
-              <TableHead>Bank Name</TableHead>
-              <TableHead className="text-right">Salary Amount</TableHead>
+              <TableHead className="text-left">Salary Amount</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredEmployees.length > 0 ? (
               filteredEmployees.map((employee) => (
-                <TableRow key={employee.id}>
+                <TableRow key={employee.relation_id}>
                   <TableCell>
-                    <Checkbox 
-                      checked={selectedEmployees.includes(employee.id)}
-                      onCheckedChange={() => handleToggleEmployee(employee.id)}
-                      aria-label={`Select ${employee.name}`}
+                    <Checkbox
+                      checked={selectedEmployees.includes(employee.relation_id)}
+                      onCheckedChange={() => handleToggleEmployee(employee.relation_id)}
+                      aria-label={`Select ${employee.full_name}`}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>{employee.contactNumber}</TableCell>
                   <TableCell>
-                    {employee.accountNumber.slice(0, -4).replace(/./g, '•') + employee.accountNumber.slice(-4)}
+                    <div>
+                      <div className="font-medium">{employee.full_name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {employee.account_number_last4 ? `••••${employee.account_number_last4}` : 'No account'} • {employee.ifsc_code}
+                      </div>
+                    </div>
                   </TableCell>
-                  <TableCell>{employee.bankName}</TableCell>
-                  <TableCell className="text-right">₹{employee.salaryAmount.toLocaleString()}</TableCell>
+                  <TableCell>{employee.email}</TableCell>
+                  <TableCell>{employee.phone}</TableCell>
+                  <TableCell className="text-left">
+                    <Input
+                      type="number"
+                      placeholder="Enter salary"
+                      value={salaryAmounts[employee.relation_id] || ''}
+                      onChange={(e) => handleSalaryChange(employee.relation_id, e.target.value)}
+                      className="w-32"
+                      min="0"
+                      step="1"
+                    />
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
                   No employees found matching your search criteria.
                 </TableCell>
               </TableRow>
