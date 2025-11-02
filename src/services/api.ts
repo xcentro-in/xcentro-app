@@ -755,6 +755,68 @@ class ApiService {
 
       console.log('TODO: Implement payees.updateDetails API call', { businessId, payeeId, updates });
       throw new Error('API not implemented yet');
+    },
+
+    // Get presigned S3 URL for employee remuneration document upload
+    getEmployeeDocPresignedUrl: async (
+      businessId: string,
+      payeeId: string,
+      accountId: string
+    ): Promise<{
+      data: {
+        url: string;
+      };
+      message: string;
+    }> => {
+      return this.request(`/payees/remuneration/upload-url`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ accountId, payeeId }),
+      });
+    },
+
+    // Upload file to S3 using presigned URL
+    uploadToS3: async (url: string, file: File): Promise<void> => {
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file to S3');
+      }
+    },
+
+    // Confirm employee remuneration document upload
+    confirmEmployeeDocUpload: async (
+      businessId: string,
+      payeeId: string,
+      accountId: string
+    ): Promise<any> => {
+      return this.request(`/payees/remuneration/confirm-upload`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ payeeId, accountId }),
+      });
+    }
+  };
+
+  // Employees endpoints
+  employees = {
+    getAll: async (businessId: string): Promise<any> => {
+      return this.request('/employees', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 
@@ -1274,8 +1336,11 @@ class ApiService {
   // Vendors endpoints
   vendors = {
     getAll: async (businessId: string) => {
-      return this.request(`/vendors?bid=${businessId}`, {
+      return this.request(`/vendors`, {
         method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        }
       });
     }
   };
@@ -1438,6 +1503,7 @@ export const {
   business: businessAPI,
   payments: paymentsAPI,
   payees: payeesAPI,
+  employees: employeesAPI,
   banks: banksAPI,
   bills: billsAPI,
   paymentHistory: paymentHistoryAPI,

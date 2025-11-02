@@ -116,10 +116,10 @@ export function hasMetRequirement(
       return true;
 
     case 'payment-method':
-      return user.hasAddedPaymentMethod === true;
+      return user.hasAddedVendor === true && user.hasAddedPaymentMethod === true;
 
     case 'vendor':
-      return user.hasAddedPaymentMethod === true && user.hasAddedVendor === true;
+      return user.hasAddedVendor === true;
 
     case 'first-payment':
       return user.hasCreatedFirstPayment === true;

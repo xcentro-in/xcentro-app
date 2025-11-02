@@ -1,65 +1,56 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEmployeeSelectionStep from "./PayrollEmployeeSelectionStep";
 import PayrollPaymentMethodAndReviewStep from "./PayrollPaymentMethodAndReviewStep";
 import { Employee } from "./types";
 import { toast } from "sonner";
+import { employeesAPI } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 interface PayrollPaymentFormProps {
   onStepChange: (step: number) => void;
 }
 
-// Mock data for example employees
-const mockEmployees: Employee[] = [
-  {
-    id: "emp-001",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    accountNumber: "1234567890",
-    bankName: "HDFC Bank",
-    salaryAmount: 75000,
-    contactNumber: "+91 9876543210"
-  },
-  {
-    id: "emp-002",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    accountNumber: "9876543210",
-    bankName: "ICICI Bank",
-    salaryAmount: 82000,
-    contactNumber: "+91 8765432109"
-  },
-  {
-    id: "emp-003",
-    name: "Raj Patel",
-    email: "raj.patel@example.com",
-    accountNumber: "5432167890",
-    bankName: "SBI Bank",
-    salaryAmount: 95000,
-    contactNumber: "+91 7654321098"
-  },
-  {
-    id: "emp-004",
-    name: "Priya Singh",
-    email: "priya.singh@example.com",
-    accountNumber: "6789054321",
-    bankName: "Axis Bank",
-    salaryAmount: 68000,
-    contactNumber: "+91 6543210987"
-  }
-];
-
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<'employees' | 'payment-review'>('employees');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
-  
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   // Payment schedule states
   const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [frequency, setFrequency] = useState<string>("monthly");
-  
+
+  // Fetch employees on component mount
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      if (!user?.businessId) return;
+
+      try {
+        setIsLoading(true);
+        const response = await employeesAPI.getAll(user.businessId);
+
+        if (response.status === 'success' && response.data?.employees) {
+          setEmployees(response.data.employees);
+        } else {
+          toast.error("Failed to load employees");
+        }
+      } catch (error) {
+        console.error('Error fetching employees:', error);
+        toast.error("Failed to load employees");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEmployees();
+  }, [user?.businessId]);
+
   const handleEmployeesSelect = (employees: Employee[]) => {
     setSelectedEmployees(employees);
   };
@@ -83,10 +74,20 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     console.log("Payroll payment submitted");
   };
 
+  // Show loading state while fetching employees
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading employees...</span>
+      </div>
+    );
+  }
+
   if (currentStep === 'employees') {
     return (
       <PayrollEmployeeSelectionStep
-        employees={mockEmployees}
+        employees={employees}
         selectedEmployees={selectedEmployees}
         paymentType={paymentType}
         scheduledDate={scheduledDate}
