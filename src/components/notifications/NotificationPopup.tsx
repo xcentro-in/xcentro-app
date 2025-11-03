@@ -34,7 +34,8 @@ const NotificationPopup = ({
   const navigate = useNavigate();
 
   // Extract unique categories from notifications
-  const categories = ["payment", "payee", "approvals", "insights", "security", "announcements", "rewards"];
+  // TODO: removing rewards, and insights for now. will introduce once feature is built
+  const categories = ["payment", "payee", "approvals", "security", "announcements"];
 
   // Count unread by category
   const unreadCounts = categories.reduce((acc, category) => {
