@@ -27,23 +27,23 @@ export const navigationAccessRules: Record<string, NavigationAccessRule> = {
     unlockHint: '',
   },
   
-  // Wallet - always accessible (to add payment methods)
+  // Wallet - requires vendor to be added
   wallet: {
+    requirement: 'vendor',
+    lockedMessage: 'Add a vendor first',
+    unlockHint: 'You need to add your first vendor to access wallet features.',
+  },
+  
+  // Manage Payees - always accessible
+  managepayees: {
     requirement: 'none',
     lockedMessage: '',
     unlockHint: '',
   },
   
-  // Manage Payees - requires payment method
-  managepayees: {
-    requirement: 'payment-method',
-    lockedMessage: 'Add a payment method first',
-    unlockHint: 'You need to add at least one payment method before managing payees.',
-  },
-  
   // New Payment - requires payment method AND vendor
   newpayment: {
-    requirement: 'vendor',
+    requirement: 'payment-method',
     lockedMessage: 'Complete setup to make payments',
     unlockHint: 'Add a payment method and at least one vendor to start making payments.',
   },
