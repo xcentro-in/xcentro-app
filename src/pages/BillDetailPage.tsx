@@ -5,8 +5,21 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +36,9 @@ import { canViewFeature } from "@/lib/featureFlags";
 import { formatDistanceToNow, format } from "date-fns";
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
+import { EXPENSE_CATEGORIES } from "@/constants/expenseCategories";
+import { PAYMENT_TERMS } from "@/constants/paymentTerms";
+import { GST_RATES, GST_TYPES, GSTType } from "@/constants/gstRates";
 import {
   VoucherDetailsResponseAPI,
   VoucherActivityResponseAPI,
@@ -48,7 +64,10 @@ import {
   X,
   FilePlus,
   User,
-  Trash2
+  Trash2,
+  MoreVertical,
+  Edit,
+  Plus
 } from "lucide-react";
 
 // Simplified bill summary type (from API)
@@ -85,6 +104,41 @@ interface BillSummary {
   cgst: number;
   sgst: number;
   igst: number;
+}
+
+// Line item interface for edit mode
+interface LineItem {
+  description: string;
+  quantity: number;
+  rate: number;
+  amount: number;
+  gst_rate: number;
+  gst_amount: number;
+}
+
+// Edit form data interface
+interface EditFormData {
+  invoiceNumber: string;
+  billDate: string;
+  dueDate: string;
+  vendorReferenceNumber: string;
+  expenseCategory: string;
+  description: string;
+  paymentTerms: string;
+  items: LineItem[];
+  gstType: GSTType;
+  discountType: 'amount' | 'percentage';
+  discountValue: number;
+  discountAmount: number;
+  roundOff: boolean;
+  roundOffAmount: number;
+  subtotal: number;
+  totalGst: number;
+  cgstAmount: number;
+  sgstAmount: number;
+  igstAmount: number;
+  grossAmount: number;
+  netAmount: number;
 }
 
 // Helper function to get event display properties based on action
@@ -273,9 +327,55 @@ const BillDetailPage = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState<EditFormData | null>(null);
+  const [originalEditData, setOriginalEditData] = useState<EditFormData | null>(null); // Store original for change detection
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    setTitle("Bill Details");
-  }, [setTitle]);
+    setTitle(isEditMode ? "Edit Bill" : "Bill Details");
+  }, [setTitle, isEditMode]);
+
+  // Initialize edit form data when entering edit mode
+  useEffect(() => {
+    if (isEditMode && bill) {
+      const initialData: EditFormData = {
+        invoiceNumber: bill.invoiceNumber,
+        billDate: bill.billDate,
+        dueDate: bill.dueDate,
+        vendorReferenceNumber: '',
+        expenseCategory: bill.expenseCategory || '',
+        description: bill.description || '',
+        paymentTerms: bill.terms || 'net_30',
+        items: bill.items.map(item => ({
+          description: item.description,
+          quantity: item.quantity,
+          rate: item.rate,
+          amount: item.amount,
+          gst_rate: 18, // Default, will need to calculate from item data
+          gst_amount: 0
+        })),
+        gstType: bill.igst > 0 ? GST_TYPES.IGST : GST_TYPES.CGST_SGST,
+        discountType: 'percentage',
+        discountValue: 0,
+        discountAmount: 0,
+        roundOff: false,
+        roundOffAmount: 0,
+        subtotal: bill.subtotal,
+        totalGst: bill.cgst + bill.sgst + bill.igst,
+        cgstAmount: bill.cgst,
+        sgstAmount: bill.sgst,
+        igstAmount: bill.igst,
+        grossAmount: bill.amount,
+        netAmount: bill.amount,
+      };
+
+      setEditFormData(initialData);
+      // Store original data for change detection
+      setOriginalEditData(JSON.parse(JSON.stringify(initialData))); // Deep clone
+    }
+  }, [isEditMode, bill]);
 
   // Fetch voucher details on page load (includes header + details tab)
   useEffect(() => {
@@ -451,6 +551,9 @@ const BillDetailPage = () => {
   // Show Delete button only if voucher status is 'draft' (not finalized/pending/processed)
   const canDelete = voucherStatus === 'draft';
 
+  // Show Edit button only if voucher status is 'draft'
+  const canEdit = voucherStatus === 'draft';
+
   // Handle delete bill
   const handleDeleteBill = async () => {
     if (!billId || !user?.businessId) return;
@@ -469,6 +572,246 @@ const BillDetailPage = () => {
       setIsDeleting(false);
       setShowDeleteDialog(false);
     }
+  };
+
+  // Save edited bill changes
+  const handleSaveBillChanges = async () => {
+    if (!editFormData || !originalEditData || !billId || !user?.businessId) return;
+
+    setIsSaving(true);
+
+    try {
+      // Helper to round to 2 decimal places
+      const round2 = (num: number) => Math.round(num * 100) / 100;
+
+      // Build payload with only changed fields
+      const payload: any = {};
+
+      // Check each field for changes
+      if (editFormData.invoiceNumber !== originalEditData.invoiceNumber) {
+        payload.invoice_number = editFormData.invoiceNumber;
+      }
+
+      if (editFormData.billDate !== originalEditData.billDate) {
+        payload.invoice_date = editFormData.billDate;
+      }
+
+      if (editFormData.dueDate !== originalEditData.dueDate) {
+        payload.invoice_due_date = editFormData.dueDate;
+      }
+
+      if (editFormData.vendorReferenceNumber !== originalEditData.vendorReferenceNumber) {
+        payload.vendor_reference_number = editFormData.vendorReferenceNumber;
+      }
+
+      if (editFormData.expenseCategory !== originalEditData.expenseCategory) {
+        payload.expense_category = editFormData.expenseCategory;
+      }
+
+      if (editFormData.description !== originalEditData.description) {
+        payload.description = editFormData.description;
+      }
+
+      if (editFormData.paymentTerms !== originalEditData.paymentTerms) {
+        payload.payment_terms = editFormData.paymentTerms;
+      }
+
+      // Check if line items changed
+      const itemsChanged = JSON.stringify(editFormData.items) !== JSON.stringify(originalEditData.items);
+
+      // Check if GST type changed
+      const gstTypeChanged = editFormData.gstType !== originalEditData.gstType;
+
+      // Check if discount changed
+      const discountChanged =
+        editFormData.discountType !== originalEditData.discountType ||
+        editFormData.discountValue !== originalEditData.discountValue;
+
+      // Check if round-off changed
+      const roundOffChanged = editFormData.roundOff !== originalEditData.roundOff;
+
+      // If any financial data changed, include all financial fields
+      if (itemsChanged || gstTypeChanged || discountChanged || roundOffChanged) {
+        // Financial details JSONB
+        payload.financial_details = {
+          line_items: editFormData.items.map(item => ({
+            description: item.description,
+            quantity: item.quantity,
+            rate: round2(item.rate),
+            amount: round2(item.amount),
+            gst_rate: item.gst_rate,
+            gst_amount: round2(item.gst_amount),
+          })),
+          discount: {
+            type: editFormData.discountType,
+            value: round2(editFormData.discountValue),
+            amount: round2(editFormData.discountAmount),
+          },
+          round_off: {
+            applied: editFormData.roundOff,
+            amount: round2(editFormData.roundOffAmount),
+          },
+          gst_type: editFormData.gstType,
+        };
+
+        // Include all amount fields (convert to paise)
+        payload.gross_amount = Math.round(editFormData.grossAmount * 100);
+        payload.net_amount = Math.round(editFormData.netAmount * 100);
+        payload.cgst_amount = Math.round(editFormData.cgstAmount * 100);
+        payload.sgst_amount = Math.round(editFormData.sgstAmount * 100);
+        payload.igst_amount = Math.round(editFormData.igstAmount * 100);
+        payload.gst_amount = Math.round(editFormData.totalGst * 100);
+        payload.discount_amount = Math.round(editFormData.discountAmount * 100);
+      }
+
+      // Check if anything changed
+      if (Object.keys(payload).length === 0) {
+        toast.info("No changes to save");
+        setIsEditMode(false);
+        return;
+      }
+
+      // Call API to update voucher
+      await voucherAPI.updateVoucher(user.businessId, billId, payload);
+
+      toast.success("Bill updated successfully");
+
+      // Reload bill data to show updated values
+      const response = await voucherAPI.getDetails(user.businessId, billId);
+      const voucherResponse = response as VoucherDetailsResponseAPI;
+      const mappedBill = mapVoucherToBill(voucherResponse);
+      setBill(mappedBill);
+
+      // Exit edit mode
+      setIsEditMode(false);
+    } catch (error) {
+      console.error("Error updating bill:", error);
+      toast.error("Failed to update bill", {
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Helper function to recalculate all financial values from form data
+
+  const recalculateFromFormData = (data: EditFormData): EditFormData => {
+    // Calculate subtotal from items
+    const subtotal = data.items.reduce((sum, item) => sum + item.amount, 0);
+
+    // Calculate GST totals
+    let totalGst = 0;
+    let cgstAmount = 0;
+    let sgstAmount = 0;
+    let igstAmount = 0;
+
+    data.items.forEach(item => {
+      const itemGst = item.gst_amount;
+      totalGst += itemGst;
+
+      if (data.gstType === GST_TYPES.CGST_SGST) {
+        cgstAmount += itemGst / 2;
+        sgstAmount += itemGst / 2;
+      } else {
+        igstAmount += itemGst;
+      }
+    });
+
+    const grossAmount = subtotal + totalGst;
+
+    let discountAmount = 0;
+    if (data.discountType === 'percentage') {
+      discountAmount = (grossAmount * data.discountValue) / 100;
+    } else {
+      discountAmount = data.discountValue;
+    }
+
+    const netAmount = grossAmount - discountAmount;
+
+    let roundOffAmount = 0;
+    if (data.roundOff) {
+      const rounded = Math.round(netAmount);
+      roundOffAmount = rounded - netAmount;
+    }
+
+    return {
+      ...data,
+      subtotal,
+      totalGst,
+      cgstAmount,
+      sgstAmount,
+      igstAmount,
+      grossAmount,
+      discountAmount,
+      roundOffAmount,
+      netAmount,
+    };
+  };
+
+  const addNewEditItem = () => {
+    if (!editFormData) return;
+    const newData = {
+      ...editFormData,
+      items: [...editFormData.items, {
+        description: '',
+        quantity: 1,
+        rate: 0,
+        amount: 0,
+        gst_rate: 18,
+        gst_amount: 0
+      }]
+    };
+    setEditFormData(recalculateFromFormData(newData));
+  };
+
+  const removeEditItem = (index: number) => {
+    if (!editFormData) return;
+    const newData = {
+      ...editFormData,
+      items: editFormData.items.filter((_, i) => i !== index)
+    };
+    setEditFormData(recalculateFromFormData(newData));
+  };
+
+  const updateEditItem = (index: number, field: keyof LineItem, value: any) => {
+    if (!editFormData) return;
+
+    const newItems = editFormData.items.map((item, i) => {
+      if (i === index) {
+        const updated = { ...item, [field]: value };
+
+        // Auto-calculate dependent fields
+        if (field === 'quantity' || field === 'rate') {
+          updated.amount = updated.quantity * updated.rate;
+        }
+        if (field === 'quantity' || field === 'rate' || field === 'gst_rate') {
+          updated.gst_amount = (updated.amount * updated.gst_rate) / 100;
+        }
+
+        return updated;
+      }
+      return item;
+    });
+
+    const newData = { ...editFormData, items: newItems };
+    setEditFormData(recalculateFromFormData(newData));
+  };
+
+  const getGstBreakdown = () => {
+    if (!editFormData) return {};
+    const breakdown: Record<number, { amount: number, gst: number }> = {};
+
+    editFormData.items.forEach(item => {
+      const rate = item.gst_rate;
+      if (!breakdown[rate]) {
+        breakdown[rate] = { amount: 0, gst: 0 };
+      }
+      breakdown[rate].amount += item.amount;
+      breakdown[rate].gst += item.gst_amount;
+    });
+
+    return breakdown;
   };
 
   return (
@@ -500,25 +843,50 @@ const BillDetailPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {canPay && (
-              <Button variant={isOverdue ? "destructive" : "default"}>
-                <CreditCard className="h-4 w-4 mr-2" />
-                {isOverdue ? "Pay Overdue Bill" : "Pay Now"}
-              </Button>
-            )}
-            {canDelete && (
-              <Button
-                variant="destructive"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Bill
-              </Button>
-            )}
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Download PDF
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  <MoreVertical className="h-4 w-4 mr-2" />
+                  Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Bill Actions</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {canPay && (
+                  <DropdownMenuItem onClick={() => {/* TODO: Handle pay now */}}>
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    {isOverdue ? "Pay Overdue Bill" : "Pay Now"}
+                  </DropdownMenuItem>
+                )}
+
+                {canEdit && (
+                  <DropdownMenuItem onClick={() => setIsEditMode(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Bill
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem onClick={() => {/* TODO: Handle download */}}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </DropdownMenuItem>
+
+                {canDelete && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Bill
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -550,6 +918,361 @@ const BillDetailPage = () => {
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
+
+          {/* Edit Mode UI */}
+          {isEditMode && editFormData ? (
+            <div className="space-y-6">
+              {/* Payee Information - Read Only */}
+              <Card>
+                <CardContent className="pt-6">
+                  <Label className="text-base font-medium">Payee (Cannot be changed)</Label>
+                  <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/30 mt-3">
+                    {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                      <User className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
+                    )}
+                    <div>
+                      <p className="font-medium">{bill.vendorName}</p>
+                      {bill.vendorGstin && (
+                        <p className="text-sm text-muted-foreground">GSTIN: {bill.vendorGstin}</p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Invoice Details */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-base font-medium mb-4">Invoice Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="invoiceNumber">Invoice Number *</Label>
+                      <Input
+                        id="invoiceNumber"
+                        value={editFormData.invoiceNumber}
+                        onChange={(e) => setEditFormData({...editFormData, invoiceNumber: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="vendorReferenceNumber">Vendor Reference / PO Number</Label>
+                      <Input
+                        id="vendorReferenceNumber"
+                        value={editFormData.vendorReferenceNumber}
+                        onChange={(e) => setEditFormData({...editFormData, vendorReferenceNumber: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="billDate">Invoice Date *</Label>
+                      <Input
+                        id="billDate"
+                        type="date"
+                        value={editFormData.billDate}
+                        onChange={(e) => setEditFormData({...editFormData, billDate: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="dueDate">Due Date *</Label>
+                      <Input
+                        id="dueDate"
+                        type="date"
+                        value={editFormData.dueDate}
+                        onChange={(e) => setEditFormData({...editFormData, dueDate: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="expenseCategory">Expense Category *</Label>
+                      <Select
+                        value={editFormData.expenseCategory}
+                        onValueChange={(value) => setEditFormData({...editFormData, expenseCategory: value})}
+                      >
+                        <SelectTrigger id="expenseCategory">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {EXPENSE_CATEGORIES.map(category => (
+                            <SelectItem key={category.value} value={category.value}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="paymentTerms">Payment Terms</Label>
+                      <Select
+                        value={editFormData.paymentTerms}
+                        onValueChange={(value) => setEditFormData({...editFormData, paymentTerms: value})}
+                      >
+                        <SelectTrigger id="paymentTerms">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PAYMENT_TERMS.map(term => (
+                            <SelectItem key={term.value} value={term.value}>
+                              {term.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Label htmlFor="description">Description / Notes</Label>
+                    <Textarea
+                      id="description"
+                      value={editFormData.description}
+                      onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* GST Configuration */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-base font-medium mb-4">GST Configuration</h3>
+                  <RadioGroup
+                    value={editFormData.gstType}
+                    onValueChange={(value: GSTType) => setEditFormData(recalculateFromFormData({...editFormData, gstType: value}))}
+                    className="flex gap-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value={GST_TYPES.CGST_SGST} id="cgst_sgst" />
+                      <Label htmlFor="cgst_sgst" className="font-normal cursor-pointer">
+                        CGST + SGST (Intra-state)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value={GST_TYPES.IGST} id="igst" />
+                      <Label htmlFor="igst" className="font-normal cursor-pointer">
+                        IGST (Inter-state)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+
+              {/* Line Items */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-base font-medium mb-4">Line Items *</h3>
+                  <div className="space-y-4">
+                    {editFormData.items.map((item, index) => (
+                      <Card key={index} className="bg-muted/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium">Item {index + 1}</h4>
+                            <Button variant="ghost" size="icon" onClick={() => removeEditItem(index)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="space-y-3">
+                            <div>
+                              <Label>Description *</Label>
+                              <Input
+                                value={item.description}
+                                onChange={(e) => updateEditItem(index, 'description', e.target.value)}
+                              />
+                            </div>
+                            <div className="grid grid-cols-5 gap-3">
+                              <div>
+                                <Label>Quantity *</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={item.quantity}
+                                  onChange={(e) => updateEditItem(index, 'quantity', Number(e.target.value))}
+                                />
+                              </div>
+                              <div>
+                                <Label>Rate *</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={item.rate}
+                                  onChange={(e) => updateEditItem(index, 'rate', Number(e.target.value))}
+                                />
+                              </div>
+                              <div>
+                                <Label>Amount</Label>
+                                <Input
+                                  type="number"
+                                  value={item.amount.toFixed(2)}
+                                  readOnly
+                                  className="bg-muted"
+                                />
+                              </div>
+                              <div>
+                                <Label>GST Rate *</Label>
+                                <Select
+                                  value={String(item.gst_rate)}
+                                  onValueChange={(value) => updateEditItem(index, 'gst_rate', Number(value))}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {GST_RATES.map(rate => (
+                                      <SelectItem key={rate.value} value={String(rate.value)}>
+                                        {rate.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <Label>GST Amount</Label>
+                                <Input
+                                  type="number"
+                                  value={item.gst_amount.toFixed(2)}
+                                  readOnly
+                                  className="bg-muted"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  <Button variant="outline" onClick={addNewEditItem} className="w-full mt-4">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Line Item
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Summary */}
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-base font-medium mb-4">Bill Summary</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span className="font-medium">₹ {editFormData.subtotal.toFixed(2)}</span>
+                    </div>
+
+                    {editFormData.gstType === GST_TYPES.CGST_SGST ? (
+                      <>
+                        {Object.entries(getGstBreakdown()).map(([rate, data]) => (
+                          <div key={rate} className="text-sm space-y-1">
+                            <div className="flex justify-between text-muted-foreground">
+                              <span>CGST @ {Number(rate) / 2}%</span>
+                              <span>₹ {(data.gst / 2).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between text-muted-foreground">
+                              <span>SGST @ {Number(rate) / 2}%</span>
+                              <span>₹ {(data.gst / 2).toFixed(2)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        {Object.entries(getGstBreakdown()).map(([rate, data]) => (
+                          <div key={rate} className="flex justify-between text-sm text-muted-foreground">
+                            <span>IGST @ {rate}%</span>
+                            <span>₹ {data.gst.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </>
+                    )}
+
+                    <Separator />
+
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>Gross Amount</span>
+                      <span>₹ {editFormData.grossAmount.toFixed(2)}</span>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="flex-1">Discount</span>
+                      <Select
+                        value={editFormData.discountType}
+                        onValueChange={(value: 'amount' | 'percentage') =>
+                          setEditFormData(recalculateFromFormData({...editFormData, discountType: value}))
+                        }
+                      >
+                        <SelectTrigger className="w-28">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="percentage">%</SelectItem>
+                          <SelectItem value="amount">₹</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        className="w-24 text-right"
+                        type="number"
+                        min="0"
+                        value={editFormData.discountValue}
+                        onChange={(e) => setEditFormData(recalculateFromFormData({...editFormData, discountValue: Number(e.target.value)}))}
+                      />
+                      <span className="w-24 text-right font-medium">₹ {editFormData.discountAmount.toFixed(2)}</span>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-between text-sm font-medium">
+                      <span>Net Amount</span>
+                      <span>₹ {editFormData.netAmount.toFixed(2)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        id="roundOff"
+                        checked={editFormData.roundOff}
+                        onChange={(e) => setEditFormData(recalculateFromFormData({...editFormData, roundOff: e.target.checked}))}
+                        className="rounded"
+                      />
+                      <Label htmlFor="roundOff" className="font-normal cursor-pointer flex-1">
+                        Apply round off
+                      </Label>
+                      {editFormData.roundOff && (
+                        <span className="font-medium">
+                          {(editFormData.roundOffAmount >= 0 ? '+' : '') + editFormData.roundOffAmount.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span>Final Payable Amount</span>
+                      <span>₹ {(editFormData.netAmount + editFormData.roundOffAmount).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditMode(false)}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveBillChanges}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <>
+
           {/* Hero Section */}
           <Card>
             <CardContent className="pt-6">
@@ -1402,6 +2125,8 @@ const BillDetailPage = () => {
               </TabsContent>
             )}
           </Tabs>
+          </>
+          )}
         </div>
       </div>
     </div>
