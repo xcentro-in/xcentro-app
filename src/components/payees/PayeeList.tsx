@@ -1,21 +1,21 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BanknoteIcon, 
-  LightbulbIcon, 
-  UsersIcon, 
-  SearchIcon, 
-  Star, 
+import {
+  BanknoteIcon,
+  LightbulbIcon,
+  UsersIcon,
+  SearchIcon,
+  Star,
   StarIcon,
   Eye,
   SquareArrowOutUpRight
@@ -37,15 +37,28 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PayeeDetailsDrawer } from "./PayeeDetailsDrawer";
 import { usePayees } from "@/hooks/usePayees";
+import { EmptyPayees } from "./EmptyPayees";
+import { useAuth } from "@/contexts/AuthContext";
 
-const PayeeList = () => {
+interface PayeeListProps {
+  onAddPayee?: () => void;
+}
+
+const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
-  // Fetch payees using the hook
+  // Show empty state if vendor has not been added (use AuthContext flag as ground truth)
+  // Don't fetch payees if no vendor has been added yet
+  if (!user?.hasAddedVendor) {
+    return <EmptyPayees onAddPayee={onAddPayee} />;
+  }
+
+  // Fetch payees using the hook - only called if hasAddedVendor is true
   const { payees, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees();
 
   const handleSetDefault = async (id: string) => {

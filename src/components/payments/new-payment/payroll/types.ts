@@ -9,6 +9,7 @@ export interface Employee {
   account_number_last4: string;
   ifsc_code: string;
   salaryAmount?: number; // User-entered salary amount
+  doc_verified: boolean; // Whether remuneration document is uploaded
 }
 
 export interface PayrollReviewStepProps {

@@ -1189,6 +1189,27 @@ class ApiService {
       });
     },
 
+    // Delete voucher (only for unpaid bills)
+    deleteVoucher: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Update voucher (only changed fields)
+    updateVoucher: async (businessId: string, voucherId: string, payload: any) => {
+      return this.request(`/vouchers/${voucherId}`, {
+        method: 'PUT',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(payload),
+      });
+    },
+
     requestApproval: async (
       businessId: string,
       voucherId: string,
