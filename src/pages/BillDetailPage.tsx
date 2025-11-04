@@ -7,11 +7,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/utils/formatters";
 import { formatPaymentDate } from "@/utils/dateFormatting";
 import { canViewFeature } from "@/lib/featureFlags";
 import { formatDistanceToNow, format } from "date-fns";
 import { voucherAPI } from "@/services/api";
+import { toast } from "sonner";
 import {
   VoucherDetailsResponseAPI,
   VoucherActivityResponseAPI,
@@ -35,7 +46,9 @@ import {
   BarChart3,
   Download,
   X,
-  FilePlus
+  FilePlus,
+  User,
+  Trash2
 } from "lucide-react";
 
 // Simplified bill summary type (from API)
@@ -51,6 +64,16 @@ interface BillSummary {
   status: 'paid' | 'open' | 'overdue';
   overdueDays?: number;
   terms: string;
+  // Payee details
+  payeeType: string; // 'vendor', 'biller', 'employee', 'salary'
+  payeeBankAccountMasked?: string;
+  payeeIfscCode?: string;
+  payeeBankName?: string;
+  payeeAccountType?: string;
+  // Additional fields for employee type
+  description?: string;
+  expenseCategory?: string;
+  tdsAmount?: number;
   // Details tab data (included in summary)
   items: {
     description: string;
@@ -182,6 +205,16 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     status: calculatePaymentStatus(),
     overdueDays: calculateOverdueDays(),
     terms: '', // Not provided in response
+    // Payee details
+    payeeType: voucher.payee.type,
+    payeeBankAccountMasked: voucher.payee.bank_account_masked,
+    payeeIfscCode: voucher.payee.ifsc_code,
+    payeeBankName: voucher.payee.bank_name,
+    payeeAccountType: voucher.payee.account_type,
+    // Additional fields for employee type
+    description: voucher.description,
+    expenseCategory: voucher.expense_category,
+    tdsAmount: voucher.tds_amount / 100,
     items: hasFinancialDetails
       ? voucher.financial_details.line_items.map(item => ({
           description: item.description,
@@ -211,6 +244,9 @@ const BillDetailPage = () => {
   // Payment status from main voucher response (determines Pay button and Payment tab visibility)
   const [voucherPaymentStatus, setVoucherPaymentStatus] = useState<'paid' | 'unpaid'>('unpaid');
 
+  // Voucher status from main response (determines Delete button visibility)
+  const [voucherStatus, setVoucherStatus] = useState<'draft' | 'finalized' | 'pending' | 'processed'>('draft');
+
   // Attachments from main voucher response
   const [attachments, setAttachments] = useState<any[]>([]);
 
@@ -232,6 +268,10 @@ const BillDetailPage = () => {
     payment: false,
     accounting: false,
   });
+
+  // Delete confirmation modal state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     setTitle("Bill Details");
@@ -256,6 +296,9 @@ const BillDetailPage = () => {
 
         // Extract payment status from response
         setVoucherPaymentStatus(voucherResponse.data.payment_status);
+
+        // Extract voucher status from response
+        setVoucherStatus(voucherResponse.data.status);
 
         // Extract attachments from response (if available)
         if (voucherResponse.data.attachments && Array.isArray(voucherResponse.data.attachments)) {
@@ -405,6 +448,29 @@ const BillDetailPage = () => {
   const canPay = voucherPaymentStatus === 'unpaid' && (bill.status === 'open' || bill.status === 'overdue');
   const isOverdue = bill.status === 'overdue';
 
+  // Show Delete button only if voucher status is 'draft' (not finalized/pending/processed)
+  const canDelete = voucherStatus === 'draft';
+
+  // Handle delete bill
+  const handleDeleteBill = async () => {
+    if (!billId || !user?.businessId) return;
+
+    try {
+      setIsDeleting(true);
+      await voucherAPI.deleteVoucher(user.businessId, billId);
+      toast.success("Bill deleted successfully");
+      // Navigate back to bills list
+      navigate('/bills');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete bill';
+      toast.error(errorMessage);
+      console.error('Error deleting bill:', err);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -440,6 +506,15 @@ const BillDetailPage = () => {
                 {isOverdue ? "Pay Overdue Bill" : "Pay Now"}
               </Button>
             )}
+            {canDelete && (
+              <Button
+                variant="destructive"
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete Bill
+              </Button>
+            )}
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
@@ -447,6 +522,30 @@ const BillDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this bill?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the bill
+              <span className="font-semibold"> {bill.invoiceNumber} </span>
+              and remove all associated data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteBill}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? "Deleting..." : "Delete Bill"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-6">
@@ -456,24 +555,67 @@ const BillDetailPage = () => {
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium text-muted-foreground">Vendor</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-xl font-bold">{bill.vendorName}</h2>
-                    <div className="flex items-center gap-1">
-                      {getConfidenceIcon(getOcrConfidence('vendorName'))}
-                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('vendorName'))}`}>
-                        {Math.round(getOcrConfidence('vendorName') * 100)}%
-                      </span>
-                    </div>
-                  </div>
-                  {bill.vendorGstin && (
-                    <p className="text-sm text-muted-foreground">GSTIN: {bill.vendorGstin}</p>
-                  )}
-                  {bill.vendorAddress && (
-                    <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{bill.vendorAddress}</p>
+                  {/* Conditional rendering based on payee type */}
+                  {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">Employee</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-xl font-bold">{bill.vendorName}</h2>
+                      </div>
+                      {/* Bank Account Details */}
+                      <div className="mt-3 space-y-1.5">
+                        {bill.payeeBankAccountMasked && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Account:</span>
+                            <span className="ml-2 font-medium">{bill.payeeBankAccountMasked}</span>
+                          </div>
+                        )}
+                        {bill.payeeIfscCode && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">IFSC:</span>
+                            <span className="ml-2 font-medium">{bill.payeeIfscCode}</span>
+                          </div>
+                        )}
+                        {bill.payeeBankName && (
+                          <div className="text-sm">
+                            <span className="text-muted-foreground">Bank:</span>
+                            <span className="ml-2 font-medium">{bill.payeeBankName}</span>
+                          </div>
+                        )}
+                        {bill.payeeAccountType && (
+                          <div className="text-sm">
+                            <Badge variant="outline" className="capitalize">
+                              {bill.payeeAccountType}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Building2 className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm font-medium text-muted-foreground">Vendor</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h2 className="text-xl font-bold">{bill.vendorName}</h2>
+                        <div className="flex items-center gap-1">
+                          {getConfidenceIcon(getOcrConfidence('vendorName'))}
+                          <span className={`text-xs ${getConfidenceColor(getOcrConfidence('vendorName'))}`}>
+                            {Math.round(getOcrConfidence('vendorName') * 100)}%
+                          </span>
+                        </div>
+                      </div>
+                      {bill.vendorGstin && (
+                        <p className="text-sm text-muted-foreground">GSTIN: {bill.vendorGstin}</p>
+                      )}
+                      {bill.vendorAddress && (
+                        <p className="text-sm text-muted-foreground mt-2 whitespace-pre-line">{bill.vendorAddress}</p>
+                      )}
+                    </>
                   )}
                 </div>
 
@@ -577,80 +719,137 @@ const BillDetailPage = () => {
 
             {/* Details Tab */}
             <TabsContent value="details" className="space-y-6">
-              {/* Line Items */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Line Items</CardTitle>
-                    <div className="flex items-center gap-1">
-                      {getConfidenceIcon(getOcrConfidence('items'))}
-                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('items'))}`}>
-                        OCR {Math.round(getOcrConfidence('items') * 100)}%
-                      </span>
+              {/* Conditional rendering based on payee type */}
+              {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                /* Salary Details Card for Employee */
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Salary Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Description */}
+                      {bill.description && (
+                        <div className="p-4 bg-muted/50 rounded-lg">
+                          <p className="text-base font-medium">{bill.description}</p>
+                        </div>
+                      )}
+
+                      {/* Expense Category Badge */}
+                      {bill.expenseCategory && (
+                        <div>
+                          <Badge variant="outline" className="capitalize">
+                            {bill.expenseCategory}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="border-b">
-                        <tr>
-                          <th className="text-left py-3 px-2 font-medium">Description</th>
-                          <th className="text-right py-3 px-2 font-medium">Qty</th>
-                          <th className="text-right py-3 px-2 font-medium">Rate</th>
-                          <th className="text-right py-3 px-2 font-medium">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bill.items.map((item, index) => (
-                          <tr key={index} className="border-b">
-                            <td className="py-3 px-2">{item.description}</td>
-                            <td className="text-right py-3 px-2">{item.quantity}</td>
-                            <td className="text-right py-3 px-2">{formatCurrency(item.rate)}</td>
-                            <td className="text-right py-3 px-2 font-medium">{formatCurrency(item.amount)}</td>
+                  </CardContent>
+                </Card>
+              ) : (
+                /* Line Items for Vendor/Biller */
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Line Items</CardTitle>
+                      <div className="flex items-center gap-1">
+                        {getConfidenceIcon(getOcrConfidence('items'))}
+                        <span className={`text-xs ${getConfidenceColor(getOcrConfidence('items'))}`}>
+                          OCR {Math.round(getOcrConfidence('items') * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="border-b">
+                          <tr>
+                            <th className="text-left py-3 px-2 font-medium">Description</th>
+                            <th className="text-right py-3 px-2 font-medium">Qty</th>
+                            <th className="text-right py-3 px-2 font-medium">Rate</th>
+                            <th className="text-right py-3 px-2 font-medium">Amount</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
+                        </thead>
+                        <tbody>
+                          {bill.items.map((item, index) => (
+                            <tr key={index} className="border-b">
+                              <td className="py-3 px-2">{item.description}</td>
+                              <td className="text-right py-3 px-2">{item.quantity}</td>
+                              <td className="text-right py-3 px-2">{formatCurrency(item.rate)}</td>
+                              <td className="text-right py-3 px-2 font-medium">{formatCurrency(item.amount)}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Financial Breakdown */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Financial Breakdown</CardTitle>
+                  <CardTitle>
+                    {bill.payeeType === 'employee' || bill.payeeType === 'salary'
+                      ? 'Salary Breakdown'
+                      : 'Financial Breakdown'}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">{formatCurrency(bill.subtotal)}</span>
+                  {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                    /* Simplified breakdown for employee */
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Gross Salary</span>
+                        <span className="font-medium">{formatCurrency(bill.amount)}</span>
+                      </div>
+                      {bill.tdsAmount && bill.tdsAmount > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">TDS Deduction</span>
+                          <span className="font-medium text-red-600">- {formatCurrency(bill.tdsAmount)}</span>
+                        </div>
+                      )}
+                      <Separator />
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-lg font-semibold">Net Salary</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {formatCurrency(bill.amount - (bill.tdsAmount || 0))}
+                        </span>
+                      </div>
                     </div>
-                    {bill.cgst > 0 && (
+                  ) : (
+                    /* Standard breakdown for vendor/biller */
+                    <div className="space-y-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">CGST</span>
-                        <span className="font-medium">{formatCurrency(bill.cgst)}</span>
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-medium">{formatCurrency(bill.subtotal)}</span>
                       </div>
-                    )}
-                    {bill.sgst > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">SGST</span>
-                        <span className="font-medium">{formatCurrency(bill.sgst)}</span>
+                      {bill.cgst > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">CGST</span>
+                          <span className="font-medium">{formatCurrency(bill.cgst)}</span>
+                        </div>
+                      )}
+                      {bill.sgst > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">SGST</span>
+                          <span className="font-medium">{formatCurrency(bill.sgst)}</span>
+                        </div>
+                      )}
+                      {bill.igst > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">IGST</span>
+                          <span className="font-medium">{formatCurrency(bill.igst)}</span>
+                        </div>
+                      )}
+                      <Separator />
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-lg font-semibold">Total Amount</span>
+                        <span className="text-2xl font-bold text-primary">{formatCurrency(bill.amount)}</span>
                       </div>
-                    )}
-                    {bill.igst > 0 && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">IGST</span>
-                        <span className="font-medium">{formatCurrency(bill.igst)}</span>
-                      </div>
-                    )}
-                    <Separator />
-                    <div className="flex justify-between items-center pt-2">
-                      <span className="text-lg font-semibold">Total Amount</span>
-                      <span className="text-2xl font-bold text-primary">{formatCurrency(bill.amount)}</span>
                     </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

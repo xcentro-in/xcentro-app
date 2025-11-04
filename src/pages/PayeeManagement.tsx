@@ -65,7 +65,7 @@ const PayeeManagement = () => {
           {showAddPayee ? (
             <AddPayeeForm onPayeeAdded={handlePayeeAdded} />
           ) : (
-            <PayeeList />
+            <PayeeList onAddPayee={() => setShowAddPayee(true)} />
           )}
         </CardContent>
       </Card>

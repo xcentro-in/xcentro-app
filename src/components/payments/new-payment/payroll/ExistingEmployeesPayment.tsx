@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +38,10 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
       newSelection = [];
       setSelectAll(false);
     } else {
-      newSelection = filteredEmployees.map(emp => emp.relation_id);
+      // Only select verified employees
+      newSelection = filteredEmployees
+        .filter(emp => emp.doc_verified)
+        .map(emp => emp.relation_id);
       setSelectAll(true);
     }
     setSelectedEmployees(newSelection);
@@ -56,7 +60,9 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
       setSelectAll(false);
     } else {
       newSelection = [...selectedEmployees, relationId];
-      if (selectedEmployees.length + 1 === filteredEmployees.length) {
+      // Check if all verified employees are now selected
+      const verifiedEmployeesCount = filteredEmployees.filter(emp => emp.doc_verified).length;
+      if (newSelection.length === verifiedEmployeesCount) {
         setSelectAll(true);
       }
     }
@@ -105,9 +111,9 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={selectAll && filteredEmployees.length > 0}
+                  checked={selectAll && filteredEmployees.filter(emp => emp.doc_verified).length > 0}
                   onCheckedChange={handleToggleSelectAll}
-                  aria-label="Select all employees"
+                  aria-label="Select all verified employees"
                 />
               </TableHead>
               <TableHead>Name</TableHead>
@@ -118,38 +124,101 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
           </TableHeader>
           <TableBody>
             {filteredEmployees.length > 0 ? (
-              filteredEmployees.map((employee) => (
-                <TableRow key={employee.relation_id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedEmployees.includes(employee.relation_id)}
-                      onCheckedChange={() => handleToggleEmployee(employee.relation_id)}
-                      aria-label={`Select ${employee.full_name}`}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{employee.full_name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {employee.account_number_last4 ? `••••${employee.account_number_last4}` : 'No account'} • {employee.ifsc_code}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell className="text-left">
-                    <Input
-                      type="number"
-                      placeholder="Enter salary"
-                      value={salaryAmounts[employee.relation_id] || ''}
-                      onChange={(e) => handleSalaryChange(employee.relation_id, e.target.value)}
-                      className="w-32"
-                      min="0"
-                      step="1"
-                    />
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredEmployees.map((employee) => {
+                const isDisabled = !employee.doc_verified;
+
+                return (
+                  <TooltipProvider key={employee.relation_id}>
+                    <TableRow
+                      className={isDisabled ? 'opacity-50 cursor-not-allowed' : ''}
+                    >
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="inline-block">
+                              <Checkbox
+                                checked={selectedEmployees.includes(employee.relation_id)}
+                                onCheckedChange={() => !isDisabled && handleToggleEmployee(employee.relation_id)}
+                                aria-label={`Select ${employee.full_name}`}
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          {isDisabled && (
+                            <TooltipContent>
+                              <p>Please upload remuneration doc for this employee from your manage payee section.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>
+                              <div className="font-medium">{employee.full_name}</div>
+                              <div className="text-sm text-muted-foreground">
+                                {employee.account_number_last4 ? `••••${employee.account_number_last4}` : 'No account'} • {employee.ifsc_code}
+                              </div>
+                            </div>
+                          </TooltipTrigger>
+                          {isDisabled && (
+                            <TooltipContent>
+                              <p>Please upload remuneration doc for this employee from your manage payee section.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>{employee.email}</div>
+                          </TooltipTrigger>
+                          {isDisabled && (
+                            <TooltipContent>
+                              <p>Please upload remuneration doc for this employee from your manage payee section.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div>{employee.phone}</div>
+                          </TooltipTrigger>
+                          {isDisabled && (
+                            <TooltipContent>
+                              <p>Please upload remuneration doc for this employee from your manage payee section.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell className="text-left">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="inline-block">
+                              <Input
+                                type="number"
+                                placeholder="Enter salary"
+                                value={salaryAmounts[employee.relation_id] || ''}
+                                onChange={(e) => handleSalaryChange(employee.relation_id, e.target.value)}
+                                className="w-32"
+                                min="0"
+                                step="1"
+                                disabled={isDisabled}
+                              />
+                            </div>
+                          </TooltipTrigger>
+                          {isDisabled && (
+                            <TooltipContent>
+                              <p>Please upload remuneration doc for this employee from your manage payee section.</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  </TooltipProvider>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">

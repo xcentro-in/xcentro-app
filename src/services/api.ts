@@ -1189,6 +1189,16 @@ class ApiService {
       });
     },
 
+    // Delete voucher (only for unpaid bills)
+    deleteVoucher: async (businessId: string, voucherId: string) => {
+      return this.request(`/vouchers/${voucherId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     requestApproval: async (
       businessId: string,
       voucherId: string,

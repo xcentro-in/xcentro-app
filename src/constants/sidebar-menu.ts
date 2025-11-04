@@ -89,6 +89,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
     title: "Wallet",
     url: "/wallet",
     icon: Wallet,
+    requiresAccess: true,
   },
   {
     id: "creditcard",
