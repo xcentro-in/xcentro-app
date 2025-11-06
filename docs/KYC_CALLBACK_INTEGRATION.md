@@ -4,20 +4,23 @@
 
 This document describes how to implement the backend callback endpoint that handles KYC verification completion and communicates with the frontend using `postMessage`.
 
+**Backend Domain:** `api.xcentro.in`
+**Frontend Domain:** (Your production frontend URL, e.g., `app.xcentro.in`)
+
 ## Flow Summary
 
 1. **Frontend** initiates KYC by opening a popup to the KYC provider's verification URL
-2. **KYC Provider** completes verification and POSTs data to your backend callback endpoint
+2. **KYC Provider** completes verification and POSTs data to your backend callback endpoint at `https://api.xcentro.in/api/kyc/callback`
 3. **Backend** validates and stores the verification data
 4. **Backend** responds with an HTML page that:
    - Sends a `postMessage` to the parent window (opener)
    - Attempts to auto-close the popup
    - Shows a fallback message if auto-close fails
-5. **Frontend** receives the `postMessage`, verifies the origin, and proceeds with onboarding
+5. **Frontend** receives the `postMessage`, verifies the origin (`https://api.xcentro.in`), and proceeds with onboarding
 
 ## Backend Implementation
 
-### Callback Endpoint: `/api/kyc/callback` (or `/kyc/callback`)
+### Callback Endpoint: `https://api.xcentro.in/api/kyc/callback`
 
 **Method:** `POST`
 
@@ -26,6 +29,8 @@ This document describes how to implement the backend callback endpoint that hand
 - Format depends on your KYC provider's specifications
 
 **Response:** HTML page (see template below)
+
+**IMPORTANT:** This HTML page will be served from `api.xcentro.in` domain and must send `postMessage` to the frontend domain.
 
 ### HTML Response Template
 
@@ -103,10 +108,15 @@ This document describes how to implement the backend callback endpoint that hand
     (function() {
       // Configuration
       const config = {
-        // TODO: Replace with your actual frontend domain in production
-        frontendOrigin: window.location.origin.includes('localhost')
-          ? 'http://localhost:8080'
-          : 'https://app.example.com', // Update with your production domain
+        // Frontend domain configuration
+        // Set this based on your deployment environment
+        frontendOrigin: window.location.hostname.includes('localhost')
+          ? 'http://localhost:8080'                    // Local development
+          : window.location.hostname.includes('dev')
+          ? 'https://app-dev.xcentro.in'              // Development environment
+          : window.location.hostname.includes('staging')
+          ? 'https://app-staging.xcentro.in'          // Staging environment
+          : 'https://app.xcentro.in',                 // Production (update with actual domain)
 
         // KYC completion data
         message: {
@@ -342,33 +352,45 @@ def kyc_callback(request):
 
 ## Frontend Configuration
 
-The frontend expects the backend to send messages from these origins:
+The frontend is already configured to accept messages from these origins:
 
 ```javascript
 const trustedOrigins = [
-  window.location.origin,              // Same origin (for testing)
-  process.env.VITE_API_URL,            // Backend API domain from env
-  'https://api.example.com'            // Production backend domain
+  window.location.origin,              // Same origin (for local testing)
+  apiBaseUrl,                          // From VITE_API_URL env variable
+  'http://localhost:8888',             // Local backend development
+  'https://api.xcentro.in',            // Production backend ✓
+  'https://api-staging.xcentro.in',    // Staging backend ✓
+  'https://api-dev.xcentro.in',        // Development backend ✓
 ];
 ```
 
-**Important:** Update the frontend's `trustedOrigins` array in `UserOnboarding.tsx:90-94` to include your production backend domain.
+The configuration is in `src/pages/UserOnboarding.tsx:94-101` and supports all Xcentro backend environments.
 
 ## Testing
 
 ### Local Development
 
-1. Update HTML template `frontendOrigin` to `http://localhost:8080`
-2. Serve the HTML from your backend
-3. Open it in a popup from your frontend
-4. Verify console logs show message sent and received
+1. Backend serves HTML from `http://localhost:8888`
+2. Frontend runs on `http://localhost:8080`
+3. HTML template auto-detects localhost and uses `http://localhost:8080` as `frontendOrigin`
+4. Open popup from frontend and verify console logs show message sent and received
+
+### Staging Testing
+
+1. Backend: `https://api-staging.xcentro.in/api/kyc/callback`
+2. Frontend: `https://app-staging.xcentro.in` (or your staging URL)
+3. HTML template auto-detects 'staging' in hostname and uses staging frontend URL
+4. Test with actual KYC provider in staging environment
+5. Verify popup closes and onboarding completes
 
 ### Production Testing
 
-1. Update `frontendOrigin` to your production domain (e.g., `https://app.example.com`)
-2. Update frontend's `trustedOrigins` to include your backend domain
-3. Test with actual KYC provider in staging environment
-4. Verify popup closes and onboarding completes
+1. Backend: `https://api.xcentro.in/api/kyc/callback`
+2. Frontend: `https://app.xcentro.in` (update with your actual production domain)
+3. HTML template uses production frontend URL
+4. Test end-to-end KYC flow
+5. Verify popup closes and user proceeds to dashboard
 
 ## Optional: Fetch KYC Result API
 
@@ -405,16 +427,38 @@ Uncomment line 125 in `UserOnboarding.tsx` to enable this:
 - Ensure `window.close()` is called from the opened window, not parent
 
 ### postMessage not received
-- Check browser console for origin mismatch warnings
-- Verify `frontendOrigin` in HTML matches actual frontend URL
-- Ensure `trustedOrigins` in frontend includes backend domain
+- **Check browser console** for origin mismatch warnings
+- **Verify origins match:**
+  - HTML sends to: `https://app.xcentro.in` (or your frontend domain)
+  - Frontend accepts from: `https://api.xcentro.in`, `https://api-staging.xcentro.in`, etc.
+- **Check environment:** Make sure backend serves from expected domain (api.xcentro.in)
+- **Console logs:** Look for "Sending KYC completion message" in popup and "KYC completion message received" in parent
 
 ### Mixed content errors
 - Ensure both frontend and backend use HTTPS in production
 - Use relative URLs or same protocol for resources
+- Backend (`api.xcentro.in`) must use HTTPS to communicate with HTTPS frontend
+
+### Origin mismatch for localhost
+- Local backend should be `http://localhost:8888` (matches .env.example)
+- Local frontend should be `http://localhost:8080` (default Vite port)
+- HTML template auto-detects localhost and adjusts accordingly
+
+## Environment Summary
+
+| Environment | Backend Callback URL | Frontend URL | Status |
+|-------------|---------------------|--------------|--------|
+| Local | `http://localhost:8888/api/kyc/callback` | `http://localhost:8080` | ✓ Configured |
+| Development | `https://api-dev.xcentro.in/api/kyc/callback` | `https://app-dev.xcentro.in` | ✓ Configured |
+| Staging | `https://api-staging.xcentro.in/api/kyc/callback` | `https://app-staging.xcentro.in` | ✓ Configured |
+| Production | `https://api.xcentro.in/api/kyc/callback` | `https://app.xcentro.in` | ⚠️ Update frontend domain |
+
+**Action Required:** Update the production frontend domain in the HTML template if it differs from `app.xcentro.in`
 
 ## Support
 
 For questions or issues with this integration, contact the frontend team or refer to:
 - Frontend implementation: `src/pages/UserOnboarding.tsx:86-147`
+- Frontend trusted origins: `src/pages/UserOnboarding.tsx:94-101`
+- Environment variables: `.env.example`
 - postMessage docs: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage

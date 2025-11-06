@@ -86,12 +86,19 @@ const UserOnboarding = () => {
   // Listen for postMessage from KYC callback page
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
-      // TODO: Update with your actual backend domain in production
+      // Extract base URL from VITE_API_URL (remove /v1 path if present)
+      const apiBaseUrl = import.meta.env.VITE_API_URL
+        ? new URL(import.meta.env.VITE_API_URL).origin
+        : null;
+
       const trustedOrigins = [
-        window.location.origin, // Same origin (for testing)
-        process.env.VITE_API_URL || 'http://localhost:3000', // Backend API domain
-        // Add your production backend domain here, e.g., 'https://api.example.com'
-      ];
+        window.location.origin,     // Same origin (for local testing)
+        apiBaseUrl,                 // Backend API domain from env (e.g., https://api.xcentro.in)
+        'http://localhost:8888',    // Local backend development
+        'https://api.xcentro.in',   // Production backend
+        'https://api-staging.xcentro.in',  // Staging backend
+        'https://api-dev.xcentro.in',      // Development backend
+      ].filter(Boolean) as string[]; // Remove null values
 
       // Security check: Verify message origin
       if (!trustedOrigins.includes(event.origin)) {
