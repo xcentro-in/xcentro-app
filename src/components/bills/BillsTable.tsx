@@ -34,7 +34,8 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Loader2
+  Loader2,
+  Undo
 } from "lucide-react";
 
 // Utilities
@@ -376,6 +377,18 @@ const BillsTable = ({
                             >
                               <Clock className="h-3 w-3 mr-1" />
                               Pending
+                            </Badge>
+                          );
+                        }
+
+                        if (currentApprovalStatus === 'request_changes') {
+                          return (
+                            <Badge
+                              variant="outline"
+                              className="bg-yellow-100 text-yellow-800 border-yellow-200"
+                            >
+                              <Undo className="h-3 w-3 mr-1" />
+                              Changes Requested
                             </Badge>
                           );
                         }

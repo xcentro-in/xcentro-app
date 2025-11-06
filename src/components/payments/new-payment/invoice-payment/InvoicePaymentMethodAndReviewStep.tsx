@@ -43,6 +43,9 @@ const InvoicePaymentMethodAndReviewStep = ({
     description: `Invoice #${invoice.invoiceNumber} • Due: ${invoice.dueDate}`
   }));
 
+  // Extract voucher IDs from selected invoices
+  const voucherIds = selectedInvoices.map(invoice => invoice.id);
+
   return (
     <PaymentMethodAndReviewStep
       totalAmount={totalAmount}
@@ -53,6 +56,8 @@ const InvoicePaymentMethodAndReviewStep = ({
       onPaymentMethodChange={onPaymentMethodChange}
       onBack={onBack}
       onSubmit={onSubmit}
+      voucherIds={voucherIds}
+      paymentContext="vendor_payment"
       additionalSummaryData={{
         itemLabel: "Number of Invoices",
         amountLabel: "Invoice Amount",

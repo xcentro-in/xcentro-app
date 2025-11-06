@@ -759,21 +759,20 @@ class ApiService {
 
     // Get presigned S3 URL for employee remuneration document upload
     getEmployeeDocPresignedUrl: async (
-      businessId: string,
-      payeeId: string,
-      accountId: string
+      relationId: string,
+      businessId: string
     ): Promise<{
       data: {
-        url: string;
+        expires_in: string;
+        upload_url: string;
       };
-      message: string;
+      status: string;
     }> => {
-      return this.request(`/payees/remuneration/upload-url`, {
+      return this.request(`/payees/remuneration/upload-url?relation_id=${relationId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ accountId, payeeId }),
       });
     },
 
@@ -794,16 +793,34 @@ class ApiService {
 
     // Confirm employee remuneration document upload
     confirmEmployeeDocUpload: async (
-      businessId: string,
-      payeeId: string,
-      accountId: string
+      relationId: string,
+      businessId: string
     ): Promise<any> => {
-      return this.request(`/payees/remuneration/confirm-upload`, {
-        method: 'POST',
+      return this.request(`/payees/remuneration/confirm-upload?relation_id=${relationId}`, {
+        method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ payeeId, accountId }),
+      });
+    },
+
+    // Get employee remuneration document
+    getEmployeeDocument: async (
+      businessId: string,
+      relationId: string
+    ): Promise<{
+      data: {
+        has_document: Boolean;
+        download_url?: string;
+        expires_in?: string
+      };
+      status: string;
+    }> => {
+      return this.request(`/payees/remuneration/download-url?relation_id=${relationId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
       });
     }
   };
@@ -1035,6 +1052,26 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
+      });
+    },
+    makeCardPayment: async (businessId: string, params: {
+      amount: number; // in paise
+      currency: string;
+      payment_method: 'token_card' | 'netbanking';
+      description?: string;
+      calling_device: 'web' | 'mobile';
+      voucher_ids: string[];
+      token_details: {
+        card_id?: string; // for token-card
+        // bank_account_id?: string; // for token-bank
+      };
+    }) => {
+      return this.request('/process_payment/make_payment', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(params),
       });
     }
   };

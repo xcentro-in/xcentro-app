@@ -637,19 +637,19 @@ const BillDetailPage = () => {
           line_items: editFormData.items.map(item => ({
             description: item.description,
             quantity: item.quantity,
-            rate: round2(item.rate),
-            amount: round2(item.amount),
+            rate: Math.round(round2(item.rate) * 100), // Convert to paise
+            amount: Math.round(round2(item.amount) * 100), // Convert to paise
             gst_rate: item.gst_rate,
-            gst_amount: round2(item.gst_amount),
+            gst_amount: Math.round(round2(item.gst_amount) * 100), // Convert to paise
           })),
           discount: {
             type: editFormData.discountType,
             value: round2(editFormData.discountValue),
-            amount: round2(editFormData.discountAmount),
+            amount: Math.round(round2(editFormData.discountAmount) * 100), // Convert to paise
           },
           round_off: {
             applied: editFormData.roundOff,
-            amount: round2(editFormData.roundOffAmount),
+            amount: Math.round(round2(editFormData.roundOffAmount) * 100), // Convert to paise
           },
           gst_type: editFormData.gstType,
         };

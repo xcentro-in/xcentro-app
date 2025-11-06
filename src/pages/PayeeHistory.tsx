@@ -16,6 +16,7 @@ import { usePayeeTransactions } from "@/hooks/usePayeeTransactions";
 import { DownloadActions } from "@/components/payee-history/DownloadActions";
 // Use payee-specific TransactionsTable (no vendor column, no category, includes description)
 import TransactionsTable from "@/components/payee-history/TransactionsTable";
+import AttachmentsTab from "@/components/payee-history/AttachmentsTab";
 const PayeeHistory = () => {
   const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();
@@ -358,18 +359,27 @@ const PayeeHistory = () => {
       {/* Tab-based Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="inline-flex bg-transparent p-0 h-auto gap-8">
-          <TabsTrigger 
-            value="overview" 
+          <TabsTrigger
+            value="overview"
             className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
           >
             Overview
           </TabsTrigger>
-          <TabsTrigger 
-            value="history" 
+          <TabsTrigger
+            value="history"
             className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
           >
             Payment History
           </TabsTrigger>
+          {/* Show Attachments tab only for payroll/employee payees */}
+          {overview?.payee?.type === 'payroll' && (
+            <TabsTrigger
+              value="attachments"
+              className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
+              Attachments
+            </TabsTrigger>
+          )}
         </TabsList>
         
         <TabsContent value="overview" className="mt-6 space-y-6">
@@ -578,6 +588,20 @@ const PayeeHistory = () => {
             />
           )}
         </TabsContent>
+
+        {/* Attachments Tab - Only for payroll payees */}
+        {overview?.payee?.type === 'payroll' && (
+          <TabsContent value="attachments" className="mt-6">
+            {overview.payee && (
+              <AttachmentsTab
+                relationId={payeeId || ""}
+                payeeId={(overview.payee as PayrollPayee).id}
+                accountId={(overview.payee as PayrollPayee).accountNumber}
+                employeeName={overview.payee.name}
+              />
+            )}
+          </TabsContent>
+        )}
       </Tabs>
     </div>;
 };
