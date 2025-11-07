@@ -95,27 +95,31 @@ const BillsTable = ({
     bill.amount.toString().includes(searchValue)
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'open':
+  const getStatusColor = (voucherStatus: string) => {
+    switch (voucherStatus) {
+      case 'draft':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case 'finalized':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'posted':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'synced':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'paid':
+  const getStatusIcon = (voucherStatus: string) => {
+    switch (voucherStatus) {
+      case 'draft':
+        return <Clock className="h-3 w-3" />;
+      case 'finalized':
         return <CheckCircle className="h-3 w-3" />;
-      case 'open':
+      case 'posted':
         return <Calendar className="h-3 w-3" />;
-      case 'overdue':
-        return <AlertCircle className="h-3 w-3" />;
+      case 'synced':
+        return <CheckCircle className="h-3 w-3" />;
       default:
         return null;
     }
@@ -124,19 +128,36 @@ const BillsTable = ({
   const { permissions } = usePermissions();
 
   const isOverdue = (bill: Invoice) => {
-    return bill.status === 'overdue';
+    // Bill is overdue if:
+    // 1. Payment is not successful AND
+    // 2. Due date has passed
+    if (bill.paymentStatus === 'success') return false;
+
+    const dueDate = new Date(bill.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    return dueDate < today;
   };
 
   const canPay = (bill: Invoice) => {
     // User can pay if:
-    // 1. Bill is open/overdue AND
-    // 2. User has canPayBills permission AND
-    // 3a. If user needs approval: Bill must be approved
-    // 3b. If user doesn't need approval (Owner): Can pay directly
-    const isPayable = bill.status === 'open' || bill.status === 'overdue';
-    const hasPayPermission = permissions?.canPayBills === true;
+    // 1. Payment is not already successful AND
+    // 2. Voucher is not synced to ERP (synced vouchers are locked) AND
+    // 3. User has canPayBills permission AND
+    // 4a. If user needs approval: Bill must be approved
+    // 4b. If user doesn't need approval (Owner): Can pay directly
 
-    if (!isPayable || !hasPayPermission) return false;
+    // Cannot pay if already paid
+    if (bill.paymentStatus === 'success') return false;
+
+    // Cannot pay if synced to ERP (locked)
+    if (bill.voucherStatus === 'synced') return false;
+
+    // Must have pay permission
+    const hasPayPermission = permissions?.canPayBills === true;
+    if (!hasPayPermission) return false;
 
     // Owner doesn't need approval - can pay directly
     if (permissions?.needsApproval === false) {
@@ -149,11 +170,13 @@ const BillsTable = ({
 
   const needsApproval = (bill: Invoice) => {
     // Show "Ask for Approval" button if:
-    // 1. Bill is open/overdue AND
-    // 2. Bill is NOT approved AND
-    // 3. User has canRequestApproval permission (non-owners with pay rights)
+    // 1. Payment is not already successful AND
+    // 2. Voucher is not synced (locked) AND
+    // 3. Bill is NOT approved AND
+    // 4. User has canRequestApproval permission (non-owners with pay rights)
     return (
-      (bill.status === 'open' || bill.status === 'overdue') &&
+      bill.paymentStatus !== 'success' &&
+      bill.voucherStatus !== 'synced' &&
       bill.approvalStatus !== 'approved' &&
       permissions?.canRequestApproval === true
     );
@@ -343,11 +366,11 @@ const BillsTable = ({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={cn("capitalize text-xs", getStatusColor(bill.status))}
+                      className={cn("capitalize text-xs", getStatusColor(bill.voucherStatus))}
                     >
                       <span className="flex items-center gap-1">
-                        {getStatusIcon(bill.status)}
-                        {bill.status}
+                        {getStatusIcon(bill.voucherStatus)}
+                        {bill.voucherStatus}
                       </span>
                     </Badge>
                   </TableCell>
@@ -412,38 +435,50 @@ const BillsTable = ({
 
                   <TableCell>
                     <div className="flex items-center justify-center gap-2">
-                      {canPay(bill) && onPayBill && (
-                        <Button
-                          size="sm"
-                          variant={isOverdue(bill) ? "destructive" : "default"}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onPayBill(bill.id);
-                          }}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Pay
-                        </Button>
-                      )}
-                      {needsApproval(bill) && onRequestApproval && (
-                        <Button
-                          size="sm"
+                      {bill.paymentStatus === 'success' ? (
+                        <Badge
                           variant="outline"
-                          onClick={(e) => handleRequestApproval(bill.id, e)}
-                          disabled={requestingApproval[bill.id] || getApprovalStatus(bill) === 'pending'}
-                          className="h-7 px-3 text-xs"
+                          className="bg-green-100 text-green-800 border-green-200"
                         >
-                          {requestingApproval[bill.id] ? (
-                            <>
-                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                              Requesting...
-                            </>
-                          ) : getApprovalStatus(bill) === 'pending' ? (
-                            'Approval Requested'
-                          ) : (
-                            'Ask for Approval'
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Paid
+                        </Badge>
+                      ) : (
+                        <>
+                          {canPay(bill) && onPayBill && (
+                            <Button
+                              size="sm"
+                              variant={isOverdue(bill) ? "destructive" : "default"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onPayBill(bill.id);
+                              }}
+                              className="h-7 px-3 text-xs"
+                            >
+                              Pay
+                            </Button>
                           )}
-                        </Button>
+                          {needsApproval(bill) && onRequestApproval && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => handleRequestApproval(bill.id, e)}
+                              disabled={requestingApproval[bill.id] || getApprovalStatus(bill) === 'pending'}
+                              className="h-7 px-3 text-xs"
+                            >
+                              {requestingApproval[bill.id] ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Requesting...
+                                </>
+                              ) : getApprovalStatus(bill) === 'pending' ? (
+                                'Approval Requested'
+                              ) : (
+                                'Ask for Approval'
+                              )}
+                            </Button>
+                          )}
+                        </>
                       )}
                     </div>
                   </TableCell>

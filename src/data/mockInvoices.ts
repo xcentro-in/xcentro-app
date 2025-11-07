@@ -6,7 +6,7 @@ export interface Invoice {
   amount: number;
   dueDate: string;
   billDate: string;
-  status: 'paid' | 'open' | 'overdue';
+  status: 'paid' | 'open' | 'overdue'; // @deprecated - will be removed, use voucherStatus instead
   overdueDays?: number;
   gstin?: string;
   items: InvoiceItem[];
@@ -14,7 +14,10 @@ export interface Invoice {
   sgst: number;
   igst?: number;
   terms: string;
-  approvalStatus?: 'approved' | 'pending' | 'rejected' | 'request_changes' | null;
+  // New status fields
+  voucherStatus: 'draft' | 'finalized' | 'posted' | 'synced';
+  paymentStatus: 'pending' | 'success' | 'failed' | 'cancelled' | null;
+  approvalStatus: 'approved' | 'pending' | 'rejected' | 'request_changes' | '' | null;
 }
 
 export interface InvoiceItem {
@@ -34,6 +37,9 @@ export const mockInvoices: Invoice[] = [
     dueDate: "07/04/2023",
     billDate: "07/04/2023",
     status: "paid",
+    voucherStatus: "finalized",
+    paymentStatus: "success",
+    approvalStatus: "approved",
     gstin: "06AJYPM2998R3ZQ",
     items: [
       {
@@ -56,6 +62,9 @@ export const mockInvoices: Invoice[] = [
     dueDate: "08/04/2023",
     billDate: "08/04/2023",
     status: "open",
+    voucherStatus: "draft",
+    paymentStatus: null,
+    approvalStatus: "",
     gstin: "06AJYPM2998R3ZQ",
     items: [
       {
@@ -78,6 +87,9 @@ export const mockInvoices: Invoice[] = [
     dueDate: "06/04/2023",
     billDate: "06/04/2023",
     status: "overdue",
+    voucherStatus: "draft",
+    paymentStatus: null,
+    approvalStatus: "pending",
     overdueDays: 2,
     items: [
       {
@@ -100,6 +112,9 @@ export const mockInvoices: Invoice[] = [
     dueDate: "06/04/2023",
     billDate: "06/04/2023",
     status: "overdue",
+    voucherStatus: "draft",
+    paymentStatus: null,
+    approvalStatus: "approved",
     overdueDays: 2,
     items: [
       {
@@ -122,6 +137,9 @@ export const mockInvoices: Invoice[] = [
     dueDate: "05/04/2023",
     billDate: "05/04/2023",
     status: "overdue",
+    voucherStatus: "draft",
+    paymentStatus: null,
+    approvalStatus: "request_changes",
     overdueDays: 3,
     items: [
       {

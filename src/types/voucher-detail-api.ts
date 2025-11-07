@@ -10,16 +10,20 @@ export interface VoucherDetailLineItemAPI {
 }
 
 export interface VoucherDetailPayeeAPI {
+  relation_id: string;
   payee_id: string;
-  payee_name: string;
+  name: string; // API uses 'name' not 'payee_name'
   gstin?: string;
   pan?: string;
+  type?: string;
   address?: string;
   contact_email?: string;
   contact_phone?: string;
-  bank_account_number?: string;
+  bank_account_masked?: string;
+  account_id?: string;
   ifsc_code?: string;
   bank_name?: string;
+  account_type?: string;
 }
 
 export interface VoucherDetailApprovalAPI {
@@ -88,32 +92,43 @@ export interface VoucherDetailOCRDataAPI {
 export interface VoucherDetailResponseAPI {
   voucher_id: string;
   voucher_number: string;
+  voucher_date?: string | null;
+  fiscal_year?: string;
+  accounting_period?: string;
+  voucher_type?: string;
   invoice_number: string;
+  invoice_date: string | null; // ISO 8601
   invoice_due_date: string | null; // ISO 8601
-  bill_date: string | null; // ISO 8601
 
   // Payee information
   payee: VoucherDetailPayeeAPI;
 
   // Amounts (in paise)
-  subtotal_amount: number;
-  cgst_amount: number;
-  sgst_amount: number;
-  igst_amount: number;
-  total_amount: number;
+  gross_amount: number;
+  net_amount: number;
+  currency?: string;
+  gst_amount: number;
+  tds_amount: number;
+  cgst_amount?: number;
+  sgst_amount?: number;
+  igst_amount?: number;
 
-  // Line items
-  line_items: VoucherDetailLineItemAPI[];
+  // Line items (optional - may not be in all responses)
+  line_items?: VoucherDetailLineItemAPI[];
 
-  // Status
-  voucher_status: 'draft' | 'finalized' | 'pending' | 'processed';
-  payment_status: 'paid' | 'open' | 'overdue';
+  // Status fields (from API response)
+  voucher_status: 'draft' | 'finalized' | 'posted' | 'synced';
+  approval_status: 'approved' | 'pending' | 'rejected' | 'request_changes' | '' | null;
+  payment_status: 'pending' | 'success' | 'failed' | 'cancelled' | null;
 
   // Payment terms
   payment_terms?: string;
 
-  // Approval workflow
-  approvals: VoucherDetailApprovalAPI[];
+  // Financial details (optional object)
+  financial_details?: any;
+
+  // Approval workflow (optional)
+  approvals?: VoucherDetailApprovalAPI[];
   current_approval_level?: number;
 
   // Payment details
@@ -122,18 +137,22 @@ export interface VoucherDetailResponseAPI {
   // Accounting
   accounting_details?: VoucherDetailAccountingAPI;
 
-  // Attachments
-  attachments: VoucherDetailAttachmentAPI[];
+  // Attachments (may be object or array)
+  attachments?: VoucherDetailAttachmentAPI[] | any;
 
   // Timeline
-  timeline_events: VoucherDetailTimelineEventAPI[];
+  timeline_events?: VoucherDetailTimelineEventAPI[];
 
   // OCR data
   ocr_data?: VoucherDetailOCRDataAPI;
 
+  // ERP Sync
+  erp_sync_status?: string;
+  erp_sync_attempts?: number;
+
   // Metadata
-  created_date: string; // ISO 8601
-  updated_date: string; // ISO 8601
+  created_at?: string; // ISO 8601
+  updated_at?: string; // ISO 8601
   created_by?: string;
   updated_by?: string;
 }

@@ -9,6 +9,7 @@ interface PayrollPaymentMethodAndReviewStepProps {
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
+  voucherIds: string[];
   onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
@@ -20,6 +21,7 @@ const PayrollPaymentMethodAndReviewStep = ({
   paymentType,
   scheduledDate,
   frequency,
+  voucherIds,
   onPaymentMethodChange,
   onBack,
   onSubmit,
@@ -46,9 +48,6 @@ const PayrollPaymentMethodAndReviewStep = ({
     name: employee.full_name,
     amount: employee.salaryAmount || 0
   }));
-
-  // Extract voucher IDs (using relation_id for payroll)
-  const voucherIds = selectedEmployees.map(employee => employee.relation_id);
 
   return (
     <PaymentMethodAndReviewStep
