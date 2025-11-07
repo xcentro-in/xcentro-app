@@ -26,6 +26,14 @@ const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
     return undefined;
   });
 
+  // Calculate date 18 years ago (minimum age requirement)
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
+  // Default to 30 years ago for better initial calendar position
+  const defaultMonth = new Date();
+  defaultMonth.setFullYear(defaultMonth.getFullYear() - 30);
+
   const handleAadharChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '');
     if (value.length > 12) value = value.slice(0, 12);
@@ -111,12 +119,19 @@ const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
                 mode="single"
                 selected={date}
                 onSelect={handleDateSelect}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                disabled={(date) => date > eighteenYearsAgo || date < new Date("1900-01-01")}
                 initialFocus
+                defaultMonth={date || defaultMonth}
+                captionLayout="dropdown"
+                fromYear={1900}
+                toYear={eighteenYearsAgo.getFullYear()}
                 className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
+          <p className="text-xs text-muted-foreground mt-1">
+            You must be at least 18 years old. Use the dropdowns to quickly select year and month.
+          </p>
         </div>
       </div>
     </div>
