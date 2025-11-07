@@ -1,3 +1,5 @@
+import { rateLimitManager } from '@/lib/rateLimitManager';
+
 // Vite uses import.meta.env instead of process.env
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888/v1';
 
@@ -45,6 +47,35 @@ class ApiService {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+
+        // Handle 429 errors - rate limiting
+        if (response.status === 429) {
+          const retryAfterSecs = errorData.retry_after_secs || 60;
+          const scope = errorData.scope || 'unknown';
+          const policyGroup = errorData.policy_group || 'default';
+
+          console.log('[API] Rate limit hit:', {
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          // Add to rate limit manager (will handle popup queue)
+          rateLimitManager.addError({
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          // Still throw error so the calling code can handle it
+          const error: any = new Error(
+            `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
+          );
+          error.code = 'rate_limited';
+          error.status = 429;
+          error.retryAfter = retryAfterSecs;
+          throw error;
+        }
 
         // Handle 401 errors - authentication failures
         if (response.status === 401) {
