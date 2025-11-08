@@ -11,7 +11,7 @@ interface CalendarHeaderProps {
   onNext: () => void;
   onMonthSelect: (value: string) => void;
   activeView: "list" | "calendar";
-  onViewChange: (view: "list" | "calendar") => void;
+  onViewChange?: (view: "list" | "calendar") => void;
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -64,26 +64,28 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </Button>
         </div>
 
-        <div className="flex border rounded-lg overflow-hidden">
-          <Button 
-            variant={activeView === "list" ? "default" : "ghost"}
-            size="icon"
-            className={`h-9 w-9 ${activeView === "list" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
-            onClick={() => onViewChange("list")}
-            title="List View"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant={activeView === "calendar" ? "secondary" : "ghost"}
-            size="icon"
-            className={`h-9 w-9 ${activeView === "calendar" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
-            onClick={() => onViewChange("calendar")}
-            title="Calendar View"
-          >
-            <CalendarDays className="h-4 w-4" />
-          </Button>
-        </div>
+        {onViewChange && (
+          <div className="flex border rounded-lg overflow-hidden">
+            <Button
+              variant={activeView === "list" ? "default" : "ghost"}
+              size="icon"
+              className={`h-9 w-9 ${activeView === "list" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
+              onClick={() => onViewChange("list")}
+              title="List View"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={activeView === "calendar" ? "secondary" : "ghost"}
+              size="icon"
+              className={`h-9 w-9 ${activeView === "calendar" ? "bg-primary/10 text-primary hover:bg-primary/20" : ""}`}
+              onClick={() => onViewChange("calendar")}
+              title="Calendar View"
+            >
+              <CalendarDays className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

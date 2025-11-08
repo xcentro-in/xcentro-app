@@ -1,6 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Transaction } from '@/types/transaction';
+import { Transaction, TransactionStatus } from '@/types/transaction';
+import { apiService } from '@/services/api';
+
+// Helper function to map API payment_status to TransactionStatus
+const mapPaymentStatusToTransactionStatus = (
+  paymentStatus: 'pending' | 'success' | 'failed' | 'cancelled' | null,
+  voucherStatus: 'draft' | 'finalized' | 'posted' | 'synced'
+): TransactionStatus => {
+  // If payment is successful, it's completed
+  if (paymentStatus === 'success') {
+    return 'completed';
+  }
+
+  // If payment failed
+  if (paymentStatus === 'failed') {
+    return 'failed';
+  }
+
+  // If payment cancelled
+  if (paymentStatus === 'cancelled') {
+    return 'cancelled';
+  }
+
+  // If payment is pending or null (not yet paid)
+  // Check voucher status to determine if it's upcoming or pending
+  if (voucherStatus === 'draft') {
+    return 'pending';
+  }
+
+  // Finalized/posted/synced vouchers waiting for payment
+  return 'upcoming';
+};
 
 export interface UpcomingPaymentsParams {
   // Pagination (table view only)
@@ -59,24 +90,44 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
       setError(null);
 
       try {
-        // TODO: Replace with actual API call
-        // const queryParams = new URLSearchParams();
-        // if (page && limit) {
-        //   queryParams.append('page', page.toString());
-        //   queryParams.append('limit', limit.toString());
-        // }
-        // if (month) queryParams.append('month', month);
-        // if (search) queryParams.append('search', search);
-        // queryParams.append('sortBy', sortBy);
-        // queryParams.append('sortOrder', sortOrder);
-        // queryParams.append('businessId', user.businessId);
+        // For calendar view with month filter, use real API
+        if (month) {
+          const [year, monthNum] = month.split('-').map(Number);
+          const response = await apiService.voucher.getCalendar(
+            user.businessId,
+            year,
+            monthNum
+          );
 
-        // const response = await fetch(`/api/payments/upcoming?${queryParams}`, {
-        //   headers: {
-        //     'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
-        //   },
-        // });
+          // Map API response to Transaction type
+          const calendarData = response as any;
+          const mappedPayments: Transaction[] = calendarData.bills.map((bill: any) => ({
+            id: bill.voucher_id,
+            transactionId: bill.voucher_number,
+            vendor: bill.payee_name,
+            amount: bill.net_amount / 100, // Convert paise to rupees
+            status: mapPaymentStatusToTransactionStatus(bill.payment_status, bill.voucher_status),
+            date: bill.due_date,
+            method: 'bank' as const, // Default to bank for now
+            type: 'single' as const,
+            description: bill.description,
+            invoice: bill.invoice_number,
+          }));
 
+          const response2: UpcomingPaymentsResponse = {
+            payments: mappedPayments,
+            filters: {
+              month,
+              appliedFilters: 1
+            }
+          };
+
+          setData(response2);
+          setIsLoading(false);
+          return;
+        }
+
+        // For table view (no month filter), use mock data
         // Mock API simulation
         await new Promise(resolve => setTimeout(resolve, 600));
 

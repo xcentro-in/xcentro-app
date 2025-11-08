@@ -1419,6 +1419,16 @@ class ApiService {
         },
         body: JSON.stringify(voucherData),
       });
+    },
+
+    // Get calendar data for upcoming payments
+    getCalendar: async (businessId: string, year: number, month: number) => {
+      return this.request(`/vouchers/calendar?year=${year}&month=${month}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 

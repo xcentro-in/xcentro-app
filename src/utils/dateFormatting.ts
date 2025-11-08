@@ -134,3 +134,26 @@ export const formatTimeOnly = (dateString: string | null | undefined): string =>
     return 'Invalid Time';
   }
 };
+
+/**
+ * Format date for due date display (bills, invoices)
+ * Examples: "04/10/2025" (dd/MM/yyyy format)
+ */
+export const formatDueDate = (dateString: string | null | undefined): string => {
+  if (!dateString) {
+    return 'N/A';
+  }
+
+  try {
+    const date = parseISO(dateString);
+
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+
+    return format(date, 'dd/MM/yyyy');
+  } catch (error) {
+    console.error('Error formatting due date:', error);
+    return 'Invalid Date';
+  }
+};

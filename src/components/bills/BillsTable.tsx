@@ -40,7 +40,7 @@ import {
 
 // Utilities
 import { formatCurrency } from "@/utils/formatters";
-import { formatPaymentDate } from "@/utils/dateFormatting";
+import { formatDueDate } from "@/utils/dateFormatting";
 
 interface VoucherCounts {
   all: number;
@@ -355,7 +355,7 @@ const BillsTable = ({
                       "text-sm",
                       isOverdue(bill) && "text-red-600 font-medium"
                     )}>
-                      {formatPaymentDate(bill.dueDate)}
+                      {formatDueDate(bill.dueDate)}
                     </div>
                   </TableCell>
 

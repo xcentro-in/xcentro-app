@@ -24,6 +24,7 @@ export const FEATURE_FLAGS = {
   ERP_INTEGRATION: false,
   TWOFA_AUTHENTICATION: false,
   AUTHORIZED_DEVICES: false,
+  PAYMENT_CALENDAR_ADVANCED: false,
   MULTIPLE_ALLOWANCES: [
     // { percentageOfUsers: 0.25, userRoles: ["user"] },  // will add this if need to do A/B testing
     { userRoles: ["developer", "owner"] },
