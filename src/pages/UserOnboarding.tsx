@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format, parse, parseISO, isValid } from "date-fns";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 // import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
@@ -38,14 +39,13 @@ const UserOnboarding = () => {
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingStatus, setIsFetchingStatus] = useState(true);
-  const [kycInProgress, setKycInProgress] = useState(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
   const [aadhaarLink, setAadhaarLink] = useState("");
-  const [txnId, setTxnId] = useState("");
   const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Determine flow type
-  const businessId = sessionStorage.getItem("business-id");
+  // Note: BusinessOnboarding stores in localStorage, not sessionStorage
+  const businessId = localStorage.getItem("business-id");
   const isJoinFlow = !businessId;
 
   const progress = (currentStep / steps.length) * 100;
@@ -59,8 +59,6 @@ const UserOnboarding = () => {
 
         // If KYC is not in "not_started" state, pre-fill available data
         if (kycStatus !== "kyc_not_started") {
-          setKycInProgress(true);
-
           // Auto-fill available fields (don't fill Aadhaar for security)
           setFormData((prev) => ({
             ...prev,
@@ -83,75 +81,39 @@ const UserOnboarding = () => {
     fetchOnboardingStatus();
   }, []);
 
-  // Listen for postMessage from KYC callback page
+  // Listen for postMessage from KYC callback page (optional, just for logging)
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
-      // Extract base URL from VITE_API_URL (remove /v1 path if present)
+    const handleMessage = (event: MessageEvent) => {
+      // Extract base URL from VITE_API_URL
       const apiBaseUrl = import.meta.env.VITE_API_URL
         ? new URL(import.meta.env.VITE_API_URL).origin
         : null;
 
       const trustedOrigins = [
-        window.location.origin,     // Same origin (for local testing)
-        apiBaseUrl,                 // Backend API domain from env (e.g., https://api.xcentro.in)
-        'http://localhost:8888',    // Local backend development
-        'https://api.xcentro.in',   // Production backend
-        'https://api-staging.xcentro.in',  // Staging backend
-        'https://api-dev.xcentro.in',      // Development backend
-      ].filter(Boolean) as string[]; // Remove null values
+        window.location.origin,
+        apiBaseUrl,
+        'http://localhost:8888',
+        'https://api.xcentro.in',
+        'https://api-staging.xcentro.in',
+        'https://api-dev.xcentro.in',
+      ].filter(Boolean) as string[];
 
       // Security check: Verify message origin
       if (!trustedOrigins.includes(event.origin)) {
-        console.warn('Received message from untrusted origin:', event.origin);
         return;
       }
 
       const message = event.data;
 
-      // Check if it's a KYC completion message
+      // Log KYC completion message (actual completion happens on popup close)
       if (message?.type === 'KYC_COMPLETE') {
         console.log('KYC completion message received:', message);
-
-        // Close the popup if still open
-        if (aadhaarPopup && !aadhaarPopup.closed) {
-          aadhaarPopup.close();
-        }
-        setAadhaarPopup(null);
-
-        // Clear the popup check interval
-        if (popupCheckIntervalRef.current) {
-          clearInterval(popupCheckIntervalRef.current);
-          popupCheckIntervalRef.current = null;
-        }
-
-        // Handle based on status
-        if (message.status === 'success' && message.tx_id) {
-          console.log('KYC verification successful, tx_id:', message.tx_id);
-
-          // Optional: Fetch KYC result details using tx_id if needed
-          // const kycResult = await userAPI.getKYCResult(message.tx_id);
-
-          // Proceed to complete onboarding
-          await handleCompleteOnboarding();
-        } else {
-          console.error('KYC verification failed:', message);
-          toast.error('KYC verification failed. Please try again.');
-          setIsLoading(false);
-        }
       }
     };
 
-    // Add event listener
     window.addEventListener('message', handleMessage);
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('message', handleMessage);
-      if (popupCheckIntervalRef.current) {
-        clearInterval(popupCheckIntervalRef.current);
-      }
-    };
-  }, [aadhaarPopup]); // Re-run when popup changes
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   const handleNext = () => {
     // Step 1: Validate KYC details
@@ -201,19 +163,17 @@ const UserOnboarding = () => {
 
     setAadhaarPopup(popup);
 
-    // Fallback: Monitor popup closure as backup
-    // (Primary flow uses postMessage, but this handles manual close)
-    const checkPopupClosed = setInterval(() => {
+    // Monitor popup closure and auto-complete onboarding when closed
+    const checkPopupClosed = setInterval(async () => {
       if (popup.closed) {
         clearInterval(checkPopupClosed);
         setAadhaarPopup(null);
         popupCheckIntervalRef.current = null;
 
-        // If loading is still true, user closed popup manually
-        if (isLoading) {
-          toast.info("Verification window closed. Click 'Retry Verification' if you need to complete it again.");
-          setIsLoading(false);
-        }
+        console.log('Aadhaar verification popup closed, completing onboarding...');
+
+        // Automatically complete onboarding when popup closes
+        await handleCompleteOnboarding();
       }
     }, 1000);
 
@@ -258,6 +218,11 @@ const UserOnboarding = () => {
 
       if (completeResponse.data.status === "kyc_completed" || completeResponse.data.status === "kyc_verified") {
         toast.success("User onboarding completed successfully!");
+
+        // Clear business-id from localStorage since onboarding is complete
+        // Business context will now be managed by session/BusinessContext
+        localStorage.removeItem('business-id');
+        console.log("Cleared business-id from localStorage");
 
         // Step 1: Check user onboarding status
         console.log("Checking user onboarding status...");
@@ -311,17 +276,30 @@ const UserOnboarding = () => {
     setIsLoading(true);
 
     try {
-      // If KYC is already in progress, skip init and go straight to complete
-      if (kycInProgress) {
-        console.log("KYC already in progress, skipping init call");
-        await handleCompleteOnboarding();
+      // Always initialize the KYC flow, even if KYC was previously in progress
+      // This ensures we have a valid transaction ID for the current verification session
+      console.log("Initializing user onboarding and Aadhaar verification");
+
+      // Convert date format to yyyy-MM-dd for API using date-fns
+      let parsedDate: Date | undefined;
+
+      // Try parsing as ISO format first (from API)
+      if (formData.dateOfBirth.includes('T') || formData.dateOfBirth.match(/^\d{4}-\d{2}-\d{2}/)) {
+        parsedDate = parseISO(formData.dateOfBirth);
+      } else {
+        // Try parsing as dd-MM-yyyy format (from user input)
+        parsedDate = parse(formData.dateOfBirth, 'dd-MM-yyyy', new Date());
+      }
+
+      if (!parsedDate || !isValid(parsedDate)) {
+        toast.error("Invalid date of birth format");
+        setIsLoading(false);
         return;
       }
 
-      // Step 1: Initialize user onboarding (only if not in progress)
-      // Convert date format from dd-MM-yyyy to yyyy-MM-dd for API
-      const [day, month, year] = formData.dateOfBirth.split('-');
-      const apiDateFormat = `${year}-${month}-${day}`;
+      // Format to yyyy-MM-dd for API
+      const apiDateFormat = format(parsedDate, 'yyyy-MM-dd');
+      console.log("Date conversion:", { original: formData.dateOfBirth, converted: apiDateFormat });
 
       // Remove dashes from Aadhaar for API
       const aadhaarForApi = formData.aadharNumber.replace(/-/g, '');
@@ -335,7 +313,6 @@ const UserOnboarding = () => {
       );
 
       setAadhaarLink(initResponse.data.aadhaarLink);
-      setTxnId(initResponse.data.txnId);
 
       // Step 2: Open Aadhaar verification popup
       openAadhaarPopup(initResponse.data.aadhaarLink);

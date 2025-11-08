@@ -16,7 +16,7 @@ export interface PayeesResponse {
 // Helper function to map API response to Payee type
 const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   // Determine payee type based on tags or default to 'bank'
-  let type = apiPayee.payee_type;
+  const type = apiPayee.payee_type;
   // Base payee properties
   const basePayee = {
     id: apiPayee.relation_id,

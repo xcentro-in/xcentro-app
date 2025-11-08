@@ -99,7 +99,7 @@ class ApiService {
                 // If refresh fails, clear tokens and redirect to login
                 console.log('Token refresh failed, redirecting to login');
                 localStorage.removeItem('auth-token');
-                sessionStorage.removeItem('business-id');
+                localStorage.removeItem('business-id');
                 localStorage.removeItem('user-data');
                 this.authToken = null;
                 window.location.href = '/login';
@@ -109,7 +109,7 @@ class ApiService {
               console.error('Token refresh failed:', refreshError);
               // Clear tokens and redirect to login
               localStorage.removeItem('auth-token');
-              sessionStorage.removeItem('business-id');
+              localStorage.removeItem('business-id');
               localStorage.removeItem('user-data');
               this.authToken = null;
               window.location.href = '/login';
@@ -841,7 +841,7 @@ class ApiService {
       relationId: string
     ): Promise<{
       data: {
-        has_document: Boolean;
+        has_document: boolean;
         download_url?: string;
         expires_in?: string
       };

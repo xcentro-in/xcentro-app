@@ -187,7 +187,7 @@ const PayeeHistory = () => {
   const handleSave = async (section: 'company' | 'bank') => {
     try {
       // Prepare updates based on section
-      let updates: any = {};
+      const updates: any = {};
 
       if (section === 'company') {
         updates.email = editData.email;
