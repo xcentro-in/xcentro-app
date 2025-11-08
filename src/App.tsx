@@ -41,6 +41,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
+import { RateLimitPopup } from "./components/common/RateLimitPopup";
 
 import { SidebarProvider } from "./components/ui/sidebar";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -171,6 +172,7 @@ function App() {
           </PageTitleProvider>
         </AuthProvider>
         <Toaster />
+        <RateLimitPopup />
       </ErrorBoundary>
     </QueryClientProvider>
   );

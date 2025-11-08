@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,6 @@ import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 type UserFormData = {
   name: string;
@@ -47,9 +40,9 @@ const UserOnboarding = () => {
   const [isFetchingStatus, setIsFetchingStatus] = useState(true);
   const [kycInProgress, setKycInProgress] = useState(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
-  const [showPopupAlert, setShowPopupAlert] = useState(false);
   const [aadhaarLink, setAadhaarLink] = useState("");
   const [txnId, setTxnId] = useState("");
+  const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Determine flow type
   const businessId = sessionStorage.getItem("business-id");
@@ -90,6 +83,76 @@ const UserOnboarding = () => {
     fetchOnboardingStatus();
   }, []);
 
+  // Listen for postMessage from KYC callback page
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      // Extract base URL from VITE_API_URL (remove /v1 path if present)
+      const apiBaseUrl = import.meta.env.VITE_API_URL
+        ? new URL(import.meta.env.VITE_API_URL).origin
+        : null;
+
+      const trustedOrigins = [
+        window.location.origin,     // Same origin (for local testing)
+        apiBaseUrl,                 // Backend API domain from env (e.g., https://api.xcentro.in)
+        'http://localhost:8888',    // Local backend development
+        'https://api.xcentro.in',   // Production backend
+        'https://api-staging.xcentro.in',  // Staging backend
+        'https://api-dev.xcentro.in',      // Development backend
+      ].filter(Boolean) as string[]; // Remove null values
+
+      // Security check: Verify message origin
+      if (!trustedOrigins.includes(event.origin)) {
+        console.warn('Received message from untrusted origin:', event.origin);
+        return;
+      }
+
+      const message = event.data;
+
+      // Check if it's a KYC completion message
+      if (message?.type === 'KYC_COMPLETE') {
+        console.log('KYC completion message received:', message);
+
+        // Close the popup if still open
+        if (aadhaarPopup && !aadhaarPopup.closed) {
+          aadhaarPopup.close();
+        }
+        setAadhaarPopup(null);
+
+        // Clear the popup check interval
+        if (popupCheckIntervalRef.current) {
+          clearInterval(popupCheckIntervalRef.current);
+          popupCheckIntervalRef.current = null;
+        }
+
+        // Handle based on status
+        if (message.status === 'success' && message.tx_id) {
+          console.log('KYC verification successful, tx_id:', message.tx_id);
+
+          // Optional: Fetch KYC result details using tx_id if needed
+          // const kycResult = await userAPI.getKYCResult(message.tx_id);
+
+          // Proceed to complete onboarding
+          await handleCompleteOnboarding();
+        } else {
+          console.error('KYC verification failed:', message);
+          toast.error('KYC verification failed. Please try again.');
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Add event listener
+    window.addEventListener('message', handleMessage);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      if (popupCheckIntervalRef.current) {
+        clearInterval(popupCheckIntervalRef.current);
+      }
+    };
+  }, [aadhaarPopup]); // Re-run when popup changes
+
   const handleNext = () => {
     // Step 1: Validate KYC details
     if (currentStep === 1) {
@@ -125,34 +188,36 @@ const UserOnboarding = () => {
     }
   };
 
-  // Check if popup was blocked
+  // Open Aadhaar verification popup
   const openAadhaarPopup = (url: string) => {
-    // Show alert first
-    setShowPopupAlert(true);
+    const popup = window.open(url, "aadhaar-verification", "width=800,height=600,scrollbars=yes");
 
-    setTimeout(() => {
-      setShowPopupAlert(false);
-      const popup = window.open(url, "aadhaar-verification", "width=800,height=600");
+    // Check if popup was blocked
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      toast.error("Popup was blocked. Please enable popups for this site and try again.");
+      setIsLoading(false);
+      return;
+    }
 
-      if (!popup || popup.closed || typeof popup.closed === "undefined") {
-        toast.error("Popup was blocked. Please enable popups for this site and try again.");
-        setIsLoading(false);
-        return;
-      }
+    setAadhaarPopup(popup);
 
-      setAadhaarPopup(popup);
+    // Fallback: Monitor popup closure as backup
+    // (Primary flow uses postMessage, but this handles manual close)
+    const checkPopupClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopupClosed);
+        setAadhaarPopup(null);
+        popupCheckIntervalRef.current = null;
 
-      // Monitor popup closure
-      const checkPopupClosed = setInterval(async () => {
-        if (popup.closed) {
-          clearInterval(checkPopupClosed);
-          setAadhaarPopup(null);
-
-          // Call complete API when popup closes
-          await handleCompleteOnboarding();
+        // If loading is still true, user closed popup manually
+        if (isLoading) {
+          toast.info("Verification window closed. Click 'Retry Verification' if you need to complete it again.");
+          setIsLoading(false);
         }
-      }, 500);
-    }, 2000);
+      }
+    }, 1000);
+
+    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
   };
 
   const handleCompleteOnboarding = async () => {
@@ -461,19 +526,6 @@ const UserOnboarding = () => {
           )}
         </div>
       </div>
-
-      {/* Popup Alert Dialog */}
-      <AlertDialog open={showPopupAlert} onOpenChange={setShowPopupAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Enable Popups</AlertDialogTitle>
-            <AlertDialogDescription>
-              A popup window will open for Aadhaar verification. Please ensure popups are enabled for this site.
-              The verification window will open in 2 seconds...
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
