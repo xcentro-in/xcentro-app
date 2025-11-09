@@ -697,8 +697,30 @@ class ApiService {
 
   // Payees endpoints
   payees = {
-    getAll: async (businessId: string): Promise<any> => {
-      return this.request('/payees', {
+    getAll: async (businessId: string, params?: {
+      page?: number;
+      page_size?: number;
+      search?: string;
+      type?: string;
+    }): Promise<any> => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) {
+        queryParams.append('page', params.page.toString());
+      }
+      if (params?.page_size) {
+        queryParams.append('page_size', params.page_size.toString());
+      }
+      if (params?.search) {
+        queryParams.append('search', params.search);
+      }
+      if (params?.type && params.type !== 'all') {
+        queryParams.append('type', params.type);
+      }
+
+      const queryString = queryParams.toString();
+      const url = `/payees${queryString ? `?${queryString}` : ''}`;
+
+      return this.request(url, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,

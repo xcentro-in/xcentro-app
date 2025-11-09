@@ -13,6 +13,13 @@ export interface PayeesResponse {
   };
 }
 
+export interface UsePayeesParams {
+  page?: number;
+  page_size?: number;
+  search?: string;
+  typeFilter?: string;
+}
+
 // Helper function to map API response to Payee type
 const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   // Determine payee type based on tags or default to 'bank'
@@ -64,8 +71,9 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   }
 };
 
-export const usePayees = () => {
+export const usePayees = (params?: UsePayeesParams) => {
   const [data, setData] = useState<PayeesResponse | null>(null);
+  const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -78,8 +86,13 @@ export const usePayees = () => {
       setError(null);
 
       try {
-        // Call real API
-        const response: GetPayeesResponse = await payeesAPI.getAll(user.businessId);
+        // Call real API with pagination params
+        const response: GetPayeesResponse = await payeesAPI.getAll(user.businessId, {
+          page: params?.page,
+          page_size: params?.page_size,
+          search: params?.search,
+          type: params?.typeFilter
+        });
 
         // Handle empty data (null)
         if (!response.data || response.data.length === 0) {
@@ -91,6 +104,7 @@ export const usePayees = () => {
               businessId: user.businessId
             }
           });
+          setTotalCount(0);
         } else {
           // Map API response to Payee type
           const mappedPayees = response.data.map(mapAPIResponseToPayee);
@@ -105,6 +119,7 @@ export const usePayees = () => {
           };
 
           setData(payeesResponse);
+          setTotalCount(response.total_count);
         }
       } catch (err) {
         setError('Failed to fetch payees');
@@ -115,7 +130,7 @@ export const usePayees = () => {
     };
 
     fetchPayees();
-  }, [user?.businessId]);
+  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter]);
 
   const refetch = () => {
     setData(null);
@@ -227,6 +242,7 @@ export const usePayees = () => {
 
   return {
     payees: data?.payees || [],
+    totalCount,
     metadata: data?.metadata,
     isLoading,
     error,
