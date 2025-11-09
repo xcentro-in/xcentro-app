@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CreditCard,
@@ -28,6 +28,7 @@ import { PaymentMethodType } from "@/types/payment-method";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
+import { canViewFeature } from "@/lib/featureFlags";
 
 const FloatingLabelInput = ({ label, id, ...props }: { label: string; id: string } & React.ComponentProps<typeof Input>) => {
   return (
@@ -49,9 +50,44 @@ const FloatingLabelInput = ({ label, id, ...props }: { label: string; id: string
 };
 
 const AddPaymentMethod = () => {
-  const [currentTab, setCurrentTab] = useState<PaymentMethodType>("card");
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Check which payment methods are enabled via feature flags
+  const enabledPaymentMethods = useMemo(() => {
+    return {
+      card: canViewFeature('PAYMENT_METHOD_CARD', user),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+      bnpl: canViewFeature('PAYMENT_METHOD_BNPL', user),
+      upi: canViewFeature('PAYMENT_METHOD_UPI', user),
+    };
+  }, [user]);
+
+  // Get the first available payment method as default
+  const defaultPaymentMethod = useMemo(() => {
+    if (enabledPaymentMethods.card) return 'card';
+    if (enabledPaymentMethods.bank) return 'bank';
+    if (enabledPaymentMethods.bnpl) return 'bnpl';
+    if (enabledPaymentMethods.upi) return 'upi';
+    return 'card'; // Fallback
+  }, [enabledPaymentMethods]);
+
+  const [currentTab, setCurrentTab] = useState<PaymentMethodType>(defaultPaymentMethod as PaymentMethodType);
+
+  // Calculate grid columns based on enabled payment methods count
+  const enabledPaymentMethodsCount = useMemo(() => {
+    return Object.values(enabledPaymentMethods).filter(Boolean).length;
+  }, [enabledPaymentMethods]);
+
+  const gridColsClass = useMemo(() => {
+    switch (enabledPaymentMethodsCount) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-2';
+      case 3: return 'grid-cols-3';
+      case 4: return 'grid-cols-4';
+      default: return 'grid-cols-4';
+    }
+  }, [enabledPaymentMethodsCount]);
 
   // Card form state
   const [cardNumber, setCardNumber] = useState("");
@@ -146,40 +182,49 @@ const AddPaymentMethod = () => {
       <Card className="shadow-lg border-none bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
         <CardContent className="p-6 md:p-8">
           <Tabs value={currentTab} onValueChange={(value) => setCurrentTab(value as PaymentMethodType)}>
-            <TabsList className="grid grid-cols-4 mb-8 bg-muted/70 p-1">
-              <TabsTrigger 
-                value="card" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
-              >
-                <CreditCard className="h-4 w-4" />
-                <span>Card</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="bank" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
-              >
-                <BanknoteIcon className="h-4 w-4" />
-                <span>Bank</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="bnpl" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
-              >
-                <IndianRupee className="h-4 w-4" />
-                <span>BNPL</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="upi" 
-                className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
-              >
-                <PhoneIcon className="h-4 w-4" />
-                <span>UPI</span>
-              </TabsTrigger>
+            <TabsList className={`grid ${gridColsClass} mb-8 bg-muted/70 p-1`}>
+              {enabledPaymentMethods.card && (
+                <TabsTrigger
+                  value="card"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  <span>Card</span>
+                </TabsTrigger>
+              )}
+              {enabledPaymentMethods.bank && (
+                <TabsTrigger
+                  value="bank"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+                >
+                  <BanknoteIcon className="h-4 w-4" />
+                  <span>Bank</span>
+                </TabsTrigger>
+              )}
+              {enabledPaymentMethods.bnpl && (
+                <TabsTrigger
+                  value="bnpl"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+                >
+                  <IndianRupee className="h-4 w-4" />
+                  <span>BNPL</span>
+                </TabsTrigger>
+              )}
+              {enabledPaymentMethods.upi && (
+                <TabsTrigger
+                  value="upi"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:shadow-sm"
+                >
+                  <PhoneIcon className="h-4 w-4" />
+                  <span>UPI</span>
+                </TabsTrigger>
+              )}
             </TabsList>
             
             <div className="p-0.5 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent rounded-md mb-6"></div>
-            
-            <TabsContent value="card">
+
+            {enabledPaymentMethods.card && (
+              <TabsContent value="card">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="md:col-span-2">
@@ -330,8 +375,10 @@ const AddPaymentMethod = () => {
                 </div>
               </form>
             </TabsContent>
-            
-            <TabsContent value="bank">
+            )}
+
+            {enabledPaymentMethods.bank && (
+              <TabsContent value="bank">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
@@ -413,8 +460,10 @@ const AddPaymentMethod = () => {
                 </div>
               </form>
             </TabsContent>
-            
-            <TabsContent value="bnpl">
+            )}
+
+            {enabledPaymentMethods.bnpl && (
+              <TabsContent value="bnpl">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="bg-green-500/10 p-4 rounded-md flex gap-3 items-start mb-6 border border-green-500/20">
                   <Check className="h-5 w-5 text-green-500 mt-0.5" />
@@ -489,8 +538,10 @@ const AddPaymentMethod = () => {
                 </div>
               </form>
             </TabsContent>
-            
-            <TabsContent value="upi">
+            )}
+
+            {enabledPaymentMethods.upi && (
+              <TabsContent value="upi">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-2">
@@ -565,6 +616,7 @@ const AddPaymentMethod = () => {
                 </div>
               </form>
             </TabsContent>
+            )}
           </Tabs>
         </CardContent>
       </Card>

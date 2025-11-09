@@ -12,6 +12,8 @@ import PaymentCalendarHeader from "@/components/payments/shared/ui/PaymentCalend
 import PaymentInsightsGrid from "@/components/payments/upcoming-payments/insights/PaymentInsightsGrid";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useUpcomingPayments } from "@/hooks/useUpcomingPayments";
+import { useAuth } from "@/contexts/AuthContext";
+import { canViewFeature } from "@/lib/featureFlags";
 
 type ViewType = "list" | "calendar";
 
@@ -28,7 +30,11 @@ const PaymentCalendar = () => {
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [activeView, setActiveView] = useState<ViewType>("list");
+  const [activeView, setActiveView] = useState<ViewType>("calendar");
+
+  // Check if user has access to advanced calendar features (list view, insights)
+  const { user } = useAuth();
+  const showAdvancedViews = canViewFeature('PAYMENT_CALENDAR_ADVANCED', user);
 
   // Fetch calendar data for the selected month (calendar view only)
   const { payments: calendarPayments, isLoading: isLoadingCalendar } = useUpcomingPayments({
@@ -69,15 +75,15 @@ const PaymentCalendar = () => {
   
   return (
     <div className="space-y-8">
-      {activeView === "calendar" ? (
+      {activeView === "calendar" || !showAdvancedViews ? (
         <div className="bg-white rounded-xl border shadow-sm p-6 animate-fade-in">
           <CalendarHeader
             currentDate={currentDate}
             onPrevious={handlePrevious}
             onNext={handleNext}
             onMonthSelect={handleMonthSelect}
-            activeView={activeView}
-            onViewChange={setActiveView}
+            activeView={showAdvancedViews ? activeView : "calendar"}
+            onViewChange={showAdvancedViews ? setActiveView : undefined}
           />
 
           <div className="mt-6">

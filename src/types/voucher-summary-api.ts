@@ -11,7 +11,7 @@ export interface VoucherDetailsResponseAPI {
     fiscal_year: string;
     accounting_period: string;
     voucher_type: string;
-    status: 'draft' | 'finalized' | 'pending' | 'processed';
+    voucher_status: 'draft' | 'finalized' | 'posted' | 'synced';
 
     // Payee/Vendor info
     payee: {
@@ -63,12 +63,15 @@ export interface VoucherDetailsResponseAPI {
       };
     };
 
-    // Payment status
-    payment_status: 'paid' | 'unpaid';
+    // Status fields
+    approval_status: 'approved' | 'pending' | 'rejected' | 'request_changes' | '' | null;
+    payment_status: 'pending' | 'success' | 'failed' | 'cancelled' | null;
 
     // Additional fields
     expense_category?: string;
     description?: string;
+    attachments?: any; // Can be object or array
+    financial_details?: any; // Can be object
     erp_sync_status?: string;
     erp_sync_attempts?: number;
     created_at: string; // ISO 8601

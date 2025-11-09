@@ -51,6 +51,9 @@ const BatchPaymentMethodAndReviewStep = ({
     description: row.description
   }));
 
+  // Extract voucher IDs from payment rows
+  const voucherIds = paymentRows.map(row => row.id);
+
   return (
     <PaymentMethodAndReviewStep
       totalAmount={totalAmount}
@@ -61,6 +64,8 @@ const BatchPaymentMethodAndReviewStep = ({
       onPaymentMethodChange={onPaymentMethodChange}
       onBack={() => setStep(2)}
       onSubmit={onSubmit}
+      voucherIds={voucherIds}
+      paymentContext="batch_payment"
       additionalSummaryData={{
         itemLabel: "Number of Vouchers",
         listTitle: `Payment Vouchers (${paymentRows.length})`

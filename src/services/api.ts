@@ -1,3 +1,5 @@
+import { rateLimitManager } from '@/lib/rateLimitManager';
+
 // Vite uses import.meta.env instead of process.env
 const API_BASE_URL = 'https://api.xcentro.in/v1';
 
@@ -46,6 +48,35 @@ class ApiService {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
 
+        // Handle 429 errors - rate limiting
+        if (response.status === 429) {
+          const retryAfterSecs = errorData.retry_after_secs || 60;
+          const scope = errorData.scope || 'unknown';
+          const policyGroup = errorData.policy_group || 'default';
+
+          console.log('[API] Rate limit hit:', {
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          // Add to rate limit manager (will handle popup queue)
+          rateLimitManager.addError({
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          // Still throw error so the calling code can handle it
+          const error: any = new Error(
+            `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
+          );
+          error.code = 'rate_limited';
+          error.status = 429;
+          error.retryAfter = retryAfterSecs;
+          throw error;
+        }
+
         // Handle 401 errors - authentication failures
         if (response.status === 401) {
           // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
@@ -68,7 +99,7 @@ class ApiService {
                 // If refresh fails, clear tokens and redirect to login
                 console.log('Token refresh failed, redirecting to login');
                 localStorage.removeItem('auth-token');
-                sessionStorage.removeItem('business-id');
+                localStorage.removeItem('business-id');
                 localStorage.removeItem('user-data');
                 this.authToken = null;
                 window.location.href = '/login';
@@ -78,7 +109,7 @@ class ApiService {
               console.error('Token refresh failed:', refreshError);
               // Clear tokens and redirect to login
               localStorage.removeItem('auth-token');
-              sessionStorage.removeItem('business-id');
+              localStorage.removeItem('business-id');
               localStorage.removeItem('user-data');
               this.authToken = null;
               window.location.href = '/login';
@@ -759,21 +790,20 @@ class ApiService {
 
     // Get presigned S3 URL for employee remuneration document upload
     getEmployeeDocPresignedUrl: async (
-      businessId: string,
-      payeeId: string,
-      accountId: string
+      relationId: string,
+      businessId: string
     ): Promise<{
       data: {
-        url: string;
+        expires_in: string;
+        upload_url: string;
       };
-      message: string;
+      status: string;
     }> => {
-      return this.request(`/payees/remuneration/upload-url`, {
+      return this.request(`/payees/remuneration/upload-url?relation_id=${relationId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ accountId, payeeId }),
       });
     },
 
@@ -794,16 +824,34 @@ class ApiService {
 
     // Confirm employee remuneration document upload
     confirmEmployeeDocUpload: async (
-      businessId: string,
-      payeeId: string,
-      accountId: string
+      relationId: string,
+      businessId: string
     ): Promise<any> => {
-      return this.request(`/payees/remuneration/confirm-upload`, {
-        method: 'POST',
+      return this.request(`/payees/remuneration/confirm-upload?relation_id=${relationId}`, {
+        method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ payeeId, accountId }),
+      });
+    },
+
+    // Get employee remuneration document
+    getEmployeeDocument: async (
+      businessId: string,
+      relationId: string
+    ): Promise<{
+      data: {
+        has_document: boolean;
+        download_url?: string;
+        expires_in?: string
+      };
+      status: string;
+    }> => {
+      return this.request(`/payees/remuneration/download-url?relation_id=${relationId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
       });
     }
   };
@@ -1035,6 +1083,26 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
+      });
+    },
+    makeCardPayment: async (businessId: string, params: {
+      amount: number; // in paise
+      currency: string;
+      payment_method: 'token_card' | 'netbanking';
+      description?: string;
+      calling_device: 'web' | 'mobile';
+      voucher_ids: string[];
+      token_details: {
+        card_id?: string; // for token-card
+        // bank_account_id?: string; // for token-bank
+      };
+    }) => {
+      return this.request('/process_payment/make_payment', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(params),
       });
     }
   };
@@ -1350,6 +1418,16 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(voucherData),
+      });
+    },
+
+    // Get calendar data for upcoming payments
+    getCalendar: async (businessId: string, year: number, month: number) => {
+      return this.request(`/vouchers/calendar?year=${year}&month=${month}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
       });
     }
   };

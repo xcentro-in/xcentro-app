@@ -20,6 +20,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [voucherIds, setVoucherIds] = useState<string[]>([]);
 
   // Payment schedule states
   const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
@@ -54,13 +55,21 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const handleEmployeesSelect = (employees: Employee[]) => {
     setSelectedEmployees(employees);
   };
-  
+
+  const handleVouchersCreated = (ids: string[]) => {
+    setVoucherIds(ids);
+  };
+
   const handleNext = () => {
     setCurrentStep('payment-review');
     onStepChange(1);
   };
-  
+
   const handleBack = () => {
+    // Clear voucher and payment method state when going back
+    // This ensures fresh voucher creation if user changes employee selection
+    setVoucherIds([]);
+    setSelectedPaymentMethod(undefined);
     setCurrentStep('employees');
     onStepChange(0);
   };
@@ -96,6 +105,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         onPaymentTypeChange={setPaymentType}
         onScheduledDateChange={setScheduledDate}
         onFrequencyChange={setFrequency}
+        onVouchersCreated={handleVouchersCreated}
         onNext={handleNext}
       />
     );
@@ -109,6 +119,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
         paymentType={paymentType}
         scheduledDate={scheduledDate}
         frequency={frequency}
+        voucherIds={voucherIds}
         onPaymentMethodChange={handlePaymentMethodSelected}
         onBack={handleBack}
         onSubmit={handleSubmit}

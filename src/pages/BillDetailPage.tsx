@@ -80,7 +80,10 @@ interface BillSummary {
   amount: number; // in rupees (converted from paise)
   dueDate: string;
   billDate: string;
-  status: 'paid' | 'open' | 'overdue';
+  status: 'paid' | 'open' | 'overdue'; // @deprecated
+  voucherStatus: 'draft' | 'finalized' | 'posted' | 'synced';
+  paymentStatus: 'pending' | 'success' | 'failed' | 'cancelled' | null;
+  approvalStatus: 'approved' | 'pending' | 'rejected' | 'request_changes' | '' | null;
   overdueDays?: number;
   terms: string;
   // Payee details
@@ -205,10 +208,10 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
 
   const voucher = response.data;
 
-  // Calculate payment status (paid/open/overdue)
+  // Calculate payment status (paid/open/overdue) - deprecated
   const calculatePaymentStatus = (): 'paid' | 'open' | 'overdue' => {
-    // If voucher status is 'processed', it's paid
-    if (voucher.status === 'processed') return 'paid';
+    // Check payment_status field for actual status
+    if (voucher.payment_status === 'success') return 'paid';
 
     // Check if overdue
     if (voucher.invoice_due_date) {
@@ -256,7 +259,10 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     amount: voucher.gross_amount / 100, // Convert paise to rupees
     dueDate: formatDate(voucher.invoice_due_date),
     billDate: formatDate(voucher.invoice_date),
-    status: calculatePaymentStatus(),
+    status: calculatePaymentStatus(), // @deprecated
+    voucherStatus: voucher.voucher_status, // Direct from API: 'draft', 'finalized', 'posted', 'synced'
+    paymentStatus: voucher.payment_status, // Direct from API
+    approvalStatus: voucher.approval_status || '', // Direct from API
     overdueDays: calculateOverdueDays(),
     terms: '', // Not provided in response
     // Payee details
@@ -296,10 +302,10 @@ const BillDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Payment status from main voucher response (determines Pay button and Payment tab visibility)
-  const [voucherPaymentStatus, setVoucherPaymentStatus] = useState<'paid' | 'unpaid'>('unpaid');
+  const [voucherPaymentStatus, setVoucherPaymentStatus] = useState<'pending' | 'success' | 'failed' | 'cancelled' | null>(null);
 
-  // Voucher status from main response (determines Delete button visibility)
-  const [voucherStatus, setVoucherStatus] = useState<'draft' | 'finalized' | 'pending' | 'processed'>('draft');
+  // Voucher status from main response (determines Delete button visibility) - UNUSED, using bill.voucherStatus instead
+  const [voucherStatus, setVoucherStatus] = useState<'draft' | 'finalized' | 'posted' | 'synced'>('draft');
 
   // Attachments from main voucher response
   const [attachments, setAttachments] = useState<any[]>([]);
@@ -398,7 +404,7 @@ const BillDetailPage = () => {
         setVoucherPaymentStatus(voucherResponse.data.payment_status);
 
         // Extract voucher status from response
-        setVoucherStatus(voucherResponse.data.status);
+        setVoucherStatus(voucherResponse.data.voucher_status);
 
         // Extract attachments from response (if available)
         if (voucherResponse.data.attachments && Array.isArray(voucherResponse.data.attachments)) {
@@ -493,29 +499,78 @@ const BillDetailPage = () => {
     return <AlertCircle className="h-3 w-3 text-red-600" />;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'open':
+  const getStatusColor = (voucherStatus: string) => {
+    switch (voucherStatus) {
+      case 'draft':
         return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
+      case 'finalized':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'posted':
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      case 'synced':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'paid':
+  const getStatusIcon = (voucherStatus: string) => {
+    switch (voucherStatus) {
+      case 'draft':
+        return <Clock className="h-4 w-4" />;
+      case 'finalized':
         return <CheckCircle className="h-4 w-4" />;
-      case 'open':
+      case 'posted':
         return <Calendar className="h-4 w-4" />;
-      case 'overdue':
-        return <AlertCircle className="h-4 w-4" />;
+      case 'synced':
+        return <CheckCircle className="h-4 w-4" />;
       default:
         return null;
+    }
+  };
+
+  const getPaymentStatusColor = (paymentStatus: string | null) => {
+    switch (paymentStatus) {
+      case 'success':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'failed':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'cancelled':
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+      default:
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+  };
+
+  const getPaymentStatusIcon = (paymentStatus: string | null) => {
+    switch (paymentStatus) {
+      case 'success':
+        return <CheckCircle className="h-3 w-3" />;
+      case 'pending':
+        return <Clock className="h-3 w-3" />;
+      case 'failed':
+        return <AlertCircle className="h-3 w-3" />;
+      case 'cancelled':
+        return <X className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPaymentStatusLabel = (paymentStatus: string | null) => {
+    switch (paymentStatus) {
+      case 'success':
+        return 'Paid';
+      case 'pending':
+        return 'Pending';
+      case 'failed':
+        return 'Failed';
+      case 'cancelled':
+        return 'Cancelled';
+      default:
+        return 'Unpaid';
     }
   };
 
@@ -544,15 +599,25 @@ const BillDetailPage = () => {
     );
   }
 
-  // Show Pay button only if payment_status is 'unpaid' and bill status allows payment
-  const canPay = voucherPaymentStatus === 'unpaid' && (bill.status === 'open' || bill.status === 'overdue');
-  const isOverdue = bill.status === 'overdue';
+  // Show Pay button only if payment is not successful and voucher is not synced
+  const canPay = bill.paymentStatus !== 'success' && bill.voucherStatus !== 'synced';
 
-  // Show Delete button only if voucher status is 'draft' (not finalized/pending/processed)
-  const canDelete = voucherStatus === 'draft';
+  // Bill is overdue if payment not successful and due date has passed
+  const isOverdue = () => {
+    if (bill.paymentStatus === 'success') return false;
+    if (!bill.dueDate) return false;
+    const dueDate = new Date(bill.dueDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate < today;
+  };
+
+  // Show Delete button only if voucher status is 'draft'
+  const canDelete = bill.voucherStatus === 'draft';
 
   // Show Edit button only if voucher status is 'draft'
-  const canEdit = voucherStatus === 'draft';
+  const canEdit = bill.voucherStatus === 'draft';
 
   // Handle delete bill
   const handleDeleteBill = async () => {
@@ -637,19 +702,19 @@ const BillDetailPage = () => {
           line_items: editFormData.items.map(item => ({
             description: item.description,
             quantity: item.quantity,
-            rate: round2(item.rate),
-            amount: round2(item.amount),
+            rate: Math.round(round2(item.rate) * 100), // Convert to paise
+            amount: Math.round(round2(item.amount) * 100), // Convert to paise
             gst_rate: item.gst_rate,
-            gst_amount: round2(item.gst_amount),
+            gst_amount: Math.round(round2(item.gst_amount) * 100), // Convert to paise
           })),
           discount: {
             type: editFormData.discountType,
             value: round2(editFormData.discountValue),
-            amount: round2(editFormData.discountAmount),
+            amount: Math.round(round2(editFormData.discountAmount) * 100), // Convert to paise
           },
           round_off: {
             applied: editFormData.roundOff,
-            amount: round2(editFormData.roundOffAmount),
+            amount: Math.round(round2(editFormData.roundOffAmount) * 100), // Convert to paise
           },
           gst_type: editFormData.gstType,
         };
@@ -828,10 +893,18 @@ const BillDetailPage = () => {
             <div>
               <h1 className="text-2xl font-bold">Invoice {bill.invoiceNumber}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className={getStatusColor(bill.status)}>
+                {bill.voucherStatus && (
+                  <Badge variant="outline" className={getStatusColor(bill.voucherStatus)}>
+                    <span className="flex items-center gap-1">
+                      {getStatusIcon(bill.voucherStatus)}
+                      {bill.voucherStatus.charAt(0).toUpperCase() + bill.voucherStatus.slice(1)}
+                    </span>
+                  </Badge>
+                )}
+                <Badge variant="outline" className={getPaymentStatusColor(bill.paymentStatus)}>
                   <span className="flex items-center gap-1">
-                    {getStatusIcon(bill.status)}
-                    {bill.status.charAt(0).toUpperCase() + bill.status.slice(1)}
+                    {getPaymentStatusIcon(bill.paymentStatus)}
+                    {getPaymentStatusLabel(bill.paymentStatus)}
                   </span>
                 </Badge>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -1402,7 +1475,7 @@ const BillDetailPage = () => {
           >
             <TabsList className={`grid w-full ${(() => {
               const showERP = canViewFeature('ERP_INTEGRATION', user);
-              const showPayment = voucherPaymentStatus === 'paid'; // Only show Payment tab if paid
+              const showPayment = voucherPaymentStatus === 'success'; // Only show Payment tab if paid
               const showAttachments = attachments.length > 0;
 
               let cols = 2; // Details, Activity (always visible)
@@ -1420,7 +1493,7 @@ const BillDetailPage = () => {
                 <Activity className="h-4 w-4 mr-2" />
                 Activity
               </TabsTrigger>
-              {voucherPaymentStatus === 'paid' && (
+              {voucherPaymentStatus === 'success' && (
                 <TabsTrigger value="payment">
                   <CreditCard className="h-4 w-4 mr-2" />
                   Payment
@@ -1642,7 +1715,7 @@ const BillDetailPage = () => {
             </TabsContent>
 
             {/* Payment Tab - Only visible if payment is made */}
-            {voucherPaymentStatus === 'paid' && (
+            {voucherPaymentStatus === 'success' && (
             <TabsContent value="payment" className="space-y-6">
               <Card>
                 <CardHeader>

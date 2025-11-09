@@ -9,6 +9,7 @@ interface PayrollPaymentMethodAndReviewStepProps {
   paymentType: PaymentScheduleType;
   scheduledDate?: Date;
   frequency: string;
+  voucherIds: string[];
   onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
@@ -20,6 +21,7 @@ const PayrollPaymentMethodAndReviewStep = ({
   paymentType,
   scheduledDate,
   frequency,
+  voucherIds,
   onPaymentMethodChange,
   onBack,
   onSubmit,
@@ -42,9 +44,9 @@ const PayrollPaymentMethodAndReviewStep = ({
   };
 
   const paymentItems = selectedEmployees.map(employee => ({
-    id: employee.id,
-    name: employee.name,
-    amount: employee.salaryAmount
+    id: employee.relation_id,
+    name: employee.full_name,
+    amount: employee.salaryAmount || 0
   }));
 
   return (
@@ -57,6 +59,8 @@ const PayrollPaymentMethodAndReviewStep = ({
       onPaymentMethodChange={onPaymentMethodChange}
       onBack={onBack}
       onSubmit={onSubmit}
+      voucherIds={voucherIds}
+      paymentContext="payroll"
       additionalSummaryData={{
         itemLabel: "Employees",
         amountLabel: "Total Salary",

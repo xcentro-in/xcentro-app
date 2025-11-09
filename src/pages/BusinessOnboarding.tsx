@@ -77,7 +77,7 @@ const BusinessOnboarding = () => {
         if (kybStatus !== "kyc_not_started" && kybInitiated) {
           setBusinessId(bid || "");
           if (bid) {
-            sessionStorage.setItem('business-id', bid);
+            localStorage.setItem('business-id', bid);
           }
 
           // Auto-fill Step 1: Basic Info
@@ -151,9 +151,9 @@ const BusinessOnboarding = () => {
           const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
           bid = initResponse.data.bid;
 
-          // Store bid in state and sessionStorage
+          // Store bid in state and localStorage
           setBusinessId(bid);
-          sessionStorage.setItem('business-id', bid);
+          localStorage.setItem('business-id', bid);
         } catch (initError: any) {
           // Handle 409 Conflict: Business already exists
           if (initError.status === 409) {
@@ -170,7 +170,7 @@ const BusinessOnboarding = () => {
 
               if (bid) {
                 setBusinessId(bid);
-                sessionStorage.setItem('business-id', bid);
+                localStorage.setItem('business-id', bid);
 
                 // Pre-fill form with existing data
                 setFormData((prev) => ({

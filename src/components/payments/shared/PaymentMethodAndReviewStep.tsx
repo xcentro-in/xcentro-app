@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -11,6 +11,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePaymentSources } from "@/hooks/usePaymentSources";
 import { PaymentSource } from "@/types/payment-source";
 import { useAuth } from "@/contexts/AuthContext";
+import { processPaymentAPI } from "@/services/api";
+import { toast } from "sonner";
+import { canViewFeature } from "@/lib/featureFlags";
 
 export interface PaymentItem {
   id: string;
@@ -32,7 +35,8 @@ interface PaymentMethodAndReviewStepProps {
   onSubmit: () => void;
   additionalSummaryData?: Record<string, any>;
   paymentContext?: string; // e.g., "vendor_payment", "payroll", etc.
-  voucherId?: string; // Voucher ID from draft creation, used for payment processing
+  voucherIds?: string[]; // Voucher IDs to be paid (changed from single voucherId to array)
+  voucherId?: string; // @deprecated - kept for backward compatibility, use voucherIds instead
 }
 
 const PaymentMethodAndReviewStep = ({
@@ -46,6 +50,7 @@ const PaymentMethodAndReviewStep = ({
   onSubmit,
   additionalSummaryData,
   paymentContext = "vendor_payment",
+  voucherIds,
   voucherId
 }: PaymentMethodAndReviewStepProps) => {
   const { user } = useAuth();
@@ -58,6 +63,39 @@ const PaymentMethodAndReviewStep = ({
     fetchPaymentSources,
     getSourceById
   } = usePaymentSources();
+
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Support backward compatibility: if voucherId is provided, convert to array
+  const vouchers = voucherIds || (voucherId ? [voucherId] : []);
+
+  // Check which payment methods are enabled via feature flags
+  const enabledPaymentMethods = useMemo(() => {
+    return {
+      card: canViewFeature('PAYMENT_METHOD_CARD', user),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+    };
+  }, [user]);
+
+  // Get the first available payment method as default
+  const defaultPaymentMethod = useMemo(() => {
+    if (enabledPaymentMethods.card) return 'card';
+    if (enabledPaymentMethods.bank) return 'bank';
+    return 'card'; // Fallback
+  }, [enabledPaymentMethods]);
+
+  // Calculate grid columns based on enabled payment methods count
+  const enabledPaymentMethodsCount = useMemo(() => {
+    return Object.values(enabledPaymentMethods).filter(Boolean).length;
+  }, [enabledPaymentMethods]);
+
+  const gridColsClass = useMemo(() => {
+    switch (enabledPaymentMethodsCount) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-2';
+      default: return 'grid-cols-2';
+    }
+  }, [enabledPaymentMethodsCount]);
 
   // Fetch payment sources when component mounts
   useEffect(() => {
@@ -79,6 +117,67 @@ const PaymentMethodAndReviewStep = ({
   const processingFee = selectedSource?.fee_breakdown?.convenience_fee || 0;
   const gst = selectedSource?.fee_breakdown?.convenience_fee_gst || 0;
   const finalAmount = selectedSource?.fee_breakdown?.total_amount || totalAmount;
+
+  // Detect calling device (web vs mobile)
+  const getCallingDevice = (): 'web' | 'mobile' => {
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+
+    // Check for mobile devices
+    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+
+    return isMobile ? 'mobile' : 'web';
+  };
+
+  // Handle payment confirmation
+  const handleConfirmPayment = async () => {
+    if (!selectedSource || !user?.businessId) {
+      toast.error("Please select a payment method");
+      return;
+    }
+
+    // Only process card payments (as per requirement)
+    if (selectedSource.source_type !== 'card') {
+      toast.error("Only card payments are supported at the moment");
+      return;
+    }
+
+    if (vouchers.length === 0) {
+      toast.error("No vouchers to process");
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      // Prepare payment payload
+      const paymentPayload = {
+        amount: Math.round(totalAmount * 100), // Convert to paise
+        currency: "INR",
+        payment_method: "token_card" as const,
+        description: "Payment for vouchers",
+        calling_device: getCallingDevice(),
+        voucher_ids: vouchers,
+        token_details: {
+          card_id: selectedSource.source_id, // source_id is the stored card ID
+        },
+      };
+
+      // Make payment API call
+      const response = await processPaymentAPI.makeCardPayment(user.businessId, paymentPayload);
+
+      toast.success("Payment processed successfully!");
+
+      // Call parent's onSubmit callback for post-payment actions
+      onSubmit();
+    } catch (error) {
+      console.error("Payment error:", error);
+      toast.error("Payment failed", {
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
 
   const renderPaymentSource = (source: PaymentSource) => {
     const isDisabled = !source.is_allowed;
@@ -207,19 +306,24 @@ const PaymentMethodAndReviewStep = ({
             <CardTitle className="text-lg">Select Payment Method</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="bank" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="bank" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Bank
-                </TabsTrigger>
-                <TabsTrigger value="card" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Card
-                </TabsTrigger>
+            <Tabs defaultValue={defaultPaymentMethod} className="space-y-4">
+              <TabsList className={`grid w-full ${gridColsClass}`}>
+                {enabledPaymentMethods.bank && (
+                  <TabsTrigger value="bank" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Bank
+                  </TabsTrigger>
+                )}
+                {enabledPaymentMethods.card && (
+                  <TabsTrigger value="card" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Card
+                  </TabsTrigger>
+                )}
               </TabsList>
 
-              <TabsContent value="bank" className="space-y-3">
+              {enabledPaymentMethods.bank && (
+                <TabsContent value="bank" className="space-y-3">
                 <div className="text-sm text-muted-foreground mb-3">
                   Bank transfers and UPI payments
                 </div>
@@ -241,8 +345,10 @@ const PaymentMethodAndReviewStep = ({
                   </TooltipProvider>
                 )}
               </TabsContent>
+              )}
 
-              <TabsContent value="card" className="space-y-4">
+              {enabledPaymentMethods.card && (
+                <TabsContent value="card" className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="font-medium">Cards</h4>
@@ -269,6 +375,7 @@ const PaymentMethodAndReviewStep = ({
                   </div>
                 </div>
               </TabsContent>
+              )}
             </Tabs>
           </CardContent>
         </Card>
@@ -362,15 +469,20 @@ const PaymentMethodAndReviewStep = ({
       </div>
 
       <div className="flex justify-between gap-4">
-        <Button variant="outline" onClick={onBack} className="w-auto">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="w-auto"
+          disabled={isProcessingPayment}
+        >
           Back
         </Button>
         <Button
-          onClick={onSubmit}
-          disabled={!selectedPaymentMethod}
+          onClick={handleConfirmPayment}
+          disabled={!selectedPaymentMethod || isProcessingPayment}
           className="w-auto"
         >
-          Confirm Payment
+          {isProcessingPayment ? "Processing..." : "Confirm Payment"}
         </Button>
       </div>
     </div>

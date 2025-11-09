@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, parse, parseISO, isValid } from "date-fns";
 
 interface KYCDetailsFormProps {
   formData: {
@@ -17,14 +17,48 @@ interface KYCDetailsFormProps {
   updateFormData: (data: Partial<KYCDetailsFormProps['formData']>) => void;
 }
 
+// Helper function to parse date from either API ISO format or dd-MM-yyyy format
+const parseDateOfBirth = (dobString: string): Date | undefined => {
+  if (!dobString) return undefined;
+
+  // Try parsing as ISO format first (from API)
+  if (dobString.includes('T') || dobString.match(/^\d{4}-\d{2}-\d{2}/)) {
+    const date = parseISO(dobString);
+    if (isValid(date)) return date;
+  }
+
+  // Try parsing as dd-MM-yyyy format (from user input)
+  const date = parse(dobString, 'dd-MM-yyyy', new Date());
+  if (isValid(date)) return date;
+
+  return undefined;
+};
+
 const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
-  const [date, setDate] = useState<Date | undefined>(() => {
-    if (formData.dateOfBirth) {
-      const [day, month, year] = formData.dateOfBirth.split('-');
-      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  const [date, setDate] = useState<Date | undefined>(() => parseDateOfBirth(formData.dateOfBirth));
+
+  // Update date when formData.dateOfBirth changes (e.g., when pre-filled from API)
+  useEffect(() => {
+    const parsedDate = parseDateOfBirth(formData.dateOfBirth);
+    if (parsedDate && parsedDate.getTime() !== date?.getTime()) {
+      setDate(parsedDate);
+
+      // Normalize the date format to dd-MM-yyyy if it's in ISO format
+      // This ensures formData.dateOfBirth is always in the expected format
+      if (formData.dateOfBirth && (formData.dateOfBirth.includes('T') || formData.dateOfBirth.match(/^\d{4}-\d{2}-\d{2}/))) {
+        const formatted = format(parsedDate, "dd-MM-yyyy");
+        updateFormData({ dateOfBirth: formatted });
+      }
     }
-    return undefined;
-  });
+  }, [formData.dateOfBirth]);
+
+  // Calculate date 18 years ago (minimum age requirement)
+  const eighteenYearsAgo = new Date();
+  eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+
+  // Default to 30 years ago for better initial calendar position
+  const defaultMonth = new Date();
+  defaultMonth.setFullYear(defaultMonth.getFullYear() - 30);
 
   const handleAadharChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, '');
@@ -111,12 +145,19 @@ const KYCDetailsForm = ({ formData, updateFormData }: KYCDetailsFormProps) => {
                 mode="single"
                 selected={date}
                 onSelect={handleDateSelect}
-                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                disabled={(date) => date > eighteenYearsAgo || date < new Date("1900-01-01")}
                 initialFocus
+                defaultMonth={date || defaultMonth}
+                captionLayout="dropdown"
+                fromYear={1900}
+                toYear={eighteenYearsAgo.getFullYear()}
                 className="pointer-events-auto"
               />
             </PopoverContent>
           </Popover>
+          <p className="text-xs text-muted-foreground mt-1">
+            You must be at least 18 years old. Use the dropdowns to quickly select year and month.
+          </p>
         </div>
       </div>
     </div>

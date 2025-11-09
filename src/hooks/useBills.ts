@@ -17,7 +17,10 @@ const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
     amount: voucher.totalAmount / 100, // Convert paise to rupees
     dueDate: voucher.invoiceDueDate || '', // Use empty string if null
     billDate: voucher.paymentDate || voucher.invoiceDueDate || '', // Use payment date or due date
-    status: voucher.status,
+    status: voucher.status, // @deprecated - kept for backward compatibility
+    voucherStatus: voucher.voucherStatus,
+    paymentStatus: voucher.paymentStatus,
+    approvalStatus: voucher.approvalStatus || '', // Empty string if null/undefined
     overdueDays: voucher.status === 'overdue' ? undefined : undefined, // Calculate if needed
     gstin: '', // Not provided by API
     items: [], // Not provided by list API
@@ -25,7 +28,6 @@ const mapVoucherToInvoice = (voucher: VoucherListItemAPI): Invoice => {
     sgst: 0, // Not provided by list API
     igst: 0, // Not provided by list API
     terms: '', // Not provided by list API
-    approvalStatus: voucher.approvalStatus, // Approval status from API
   };
 };
 
@@ -55,42 +57,30 @@ const mapVoucherDetailToInvoice = (voucherDetail: VoucherDetailResponseAPI): Inv
     }
   };
 
-  // Map approval status
-  const mapApprovalStatus = (approvals: any[]): 'approved' | 'pending' | 'rejected' | null => {
-    if (!approvals || approvals.length === 0) return null;
-
-    // Check if any approval is rejected
-    if (approvals.some(a => a.approval_status === 'rejected')) return 'rejected';
-
-    // Check if all approvals are approved
-    if (approvals.every(a => a.approval_status === 'approved')) return 'approved';
-
-    // Otherwise, it's pending
-    return 'pending';
-  };
-
   return {
     id: voucherDetail.voucher_id,
     invoiceNumber: voucherDetail.invoice_number,
-    vendorName: voucherDetail.payee.payee_name,
+    vendorName: voucherDetail.payee.name, // Note: API uses 'name' not 'payee_name'
     vendorAddress: voucherDetail.payee.address || '',
-    amount: voucherDetail.total_amount / 100, // Convert paise to rupees
+    amount: (voucherDetail.net_amount || voucherDetail.gross_amount) / 100, // Convert paise to rupees
     dueDate: formatDate(voucherDetail.invoice_due_date),
-    billDate: formatDate(voucherDetail.bill_date),
-    status: voucherDetail.payment_status,
-    overdueDays: calculateOverdueDays(voucherDetail.invoice_due_date, voucherDetail.payment_status),
+    billDate: formatDate(voucherDetail.invoice_date), // Note: API uses 'invoice_date' not 'bill_date'
+    status: 'open', // @deprecated - not used anymore
+    voucherStatus: voucherDetail.voucher_status, // API sends "voucher_status"
+    paymentStatus: voucherDetail.payment_status,
+    approvalStatus: voucherDetail.approval_status || '', // Direct value from API
+    overdueDays: calculateOverdueDays(voucherDetail.invoice_due_date, 'open'),
     gstin: voucherDetail.payee.gstin || '',
-    items: voucherDetail.line_items.map(item => ({
+    items: (voucherDetail.line_items || []).map(item => ({
       description: item.description,
       quantity: item.quantity,
       rate: item.rate / 100, // Convert paise to rupees
       amount: item.amount / 100, // Convert paise to rupees
     })),
-    cgst: voucherDetail.cgst_amount / 100, // Convert paise to rupees
-    sgst: voucherDetail.sgst_amount / 100, // Convert paise to rupees
-    igst: voucherDetail.igst_amount / 100, // Convert paise to rupees
+    cgst: (voucherDetail.cgst_amount || 0) / 100, // Convert paise to rupees
+    sgst: (voucherDetail.sgst_amount || 0) / 100, // Convert paise to rupees
+    igst: (voucherDetail.igst_amount || 0) / 100, // Convert paise to rupees
     terms: voucherDetail.payment_terms || '',
-    approvalStatus: mapApprovalStatus(voucherDetail.approvals),
   };
 };
 
@@ -249,8 +239,8 @@ export const useBills = (filters: BillsFilters = {}) => {
       // Call actual API to get voucher details
       const response = await voucherAPI.getDetails(user.businessId, billId);
 
-      // Type the response
-      const voucherDetail = response as VoucherDetailResponseAPI;
+      // Extract data from response wrapper
+      const voucherDetail = (response as any).data as VoucherDetailResponseAPI;
 
       // Map to Invoice type
       const bill = mapVoucherDetailToInvoice(voucherDetail);

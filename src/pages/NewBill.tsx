@@ -374,19 +374,19 @@ const NewBill = () => {
         line_items: billData.items.map(item => ({
           description: item.description,
           quantity: item.quantity,
-          rate: round2(item.rate),
-          amount: round2(item.amount),
+          rate: Math.round(round2(item.rate) * 100), // Convert to paise
+          amount: Math.round(round2(item.amount) * 100), // Convert to paise
           gst_rate: item.gst_rate, // Percentage, keep as-is
-          gst_amount: round2(item.gst_amount),
+          gst_amount: Math.round(round2(item.gst_amount) * 100), // Convert to paise
         })),
         discount: {
           type: billData.discountType,
           value: round2(billData.discountValue),
-          amount: round2(billData.discountAmount),
+          amount: Math.round(round2(billData.discountAmount) * 100), // Convert to paise
         },
         round_off: {
           applied: billData.roundOff,
-          amount: round2(billData.roundOffAmount),
+          amount: Math.round(round2(billData.roundOffAmount) * 100), // Convert to paise
         },
         gst_type: billData.gstType,
       };

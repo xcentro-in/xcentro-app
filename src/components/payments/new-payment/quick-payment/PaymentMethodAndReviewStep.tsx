@@ -65,6 +65,7 @@ const QuickPaymentMethodAndReviewStep = ({
       onSubmit={onSubmit}
       additionalSummaryData={{ invoiceReference }}
       voucherId={voucherId}
+      paymentContext="vendor_payment"
     />
   );
 };

@@ -139,10 +139,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Continue with local cleanup even if API fails
     }
 
-    // Clear sessionStorage items (tokens are in cookies, cleared by backend)
-    sessionStorage.removeItem('business-id');
-
-    // Clear any localStorage items that might still exist
+    // Clear localStorage items (tokens are in cookies, cleared by backend)
+    localStorage.removeItem('business-id');
     localStorage.removeItem('user-data');
 
     // Clear user roles
@@ -310,7 +308,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (state.isAuthenticated) {
         console.log('[AuthContext] Session expired during app usage, logging out');
         // Clear local state immediately
-        sessionStorage.removeItem('business-id');
+        localStorage.removeItem('business-id');
         localStorage.removeItem('user-data');
         setUserRolesState([]);
         dispatch({ type: 'LOGOUT' });

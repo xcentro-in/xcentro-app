@@ -1,22 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { format, parse, parseISO, isValid } from "date-fns";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 // import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 
 type UserFormData = {
   name: string;
@@ -45,14 +39,13 @@ const UserOnboarding = () => {
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingStatus, setIsFetchingStatus] = useState(true);
-  const [kycInProgress, setKycInProgress] = useState(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
-  const [showPopupAlert, setShowPopupAlert] = useState(false);
   const [aadhaarLink, setAadhaarLink] = useState("");
-  const [txnId, setTxnId] = useState("");
+  const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Determine flow type
-  const businessId = sessionStorage.getItem("business-id");
+  // Note: BusinessOnboarding stores in localStorage, not sessionStorage
+  const businessId = localStorage.getItem("business-id");
   const isJoinFlow = !businessId;
 
   const progress = (currentStep / steps.length) * 100;
@@ -66,8 +59,6 @@ const UserOnboarding = () => {
 
         // If KYC is not in "not_started" state, pre-fill available data
         if (kycStatus !== "kyc_not_started") {
-          setKycInProgress(true);
-
           // Auto-fill available fields (don't fill Aadhaar for security)
           setFormData((prev) => ({
             ...prev,
@@ -88,6 +79,40 @@ const UserOnboarding = () => {
     };
 
     fetchOnboardingStatus();
+  }, []);
+
+  // Listen for postMessage from KYC callback page (optional, just for logging)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Extract base URL from VITE_API_URL
+      const apiBaseUrl = import.meta.env.VITE_API_URL
+        ? new URL(import.meta.env.VITE_API_URL).origin
+        : null;
+
+      const trustedOrigins = [
+        window.location.origin,
+        apiBaseUrl,
+        'http://localhost:8888',
+        'https://api.xcentro.in',
+        'https://api-staging.xcentro.in',
+        'https://api-dev.xcentro.in',
+      ].filter(Boolean) as string[];
+
+      // Security check: Verify message origin
+      if (!trustedOrigins.includes(event.origin)) {
+        return;
+      }
+
+      const message = event.data;
+
+      // Log KYC completion message (actual completion happens on popup close)
+      if (message?.type === 'KYC_COMPLETE') {
+        console.log('KYC completion message received:', message);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   const handleNext = () => {
@@ -125,34 +150,34 @@ const UserOnboarding = () => {
     }
   };
 
-  // Check if popup was blocked
+  // Open Aadhaar verification popup
   const openAadhaarPopup = (url: string) => {
-    // Show alert first
-    setShowPopupAlert(true);
+    const popup = window.open(url, "aadhaar-verification", "width=800,height=600,scrollbars=yes");
 
-    setTimeout(() => {
-      setShowPopupAlert(false);
-      const popup = window.open(url, "aadhaar-verification", "width=800,height=600");
+    // Check if popup was blocked
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      toast.error("Popup was blocked. Please enable popups for this site and try again.");
+      setIsLoading(false);
+      return;
+    }
 
-      if (!popup || popup.closed || typeof popup.closed === "undefined") {
-        toast.error("Popup was blocked. Please enable popups for this site and try again.");
-        setIsLoading(false);
-        return;
+    setAadhaarPopup(popup);
+
+    // Monitor popup closure and auto-complete onboarding when closed
+    const checkPopupClosed = setInterval(async () => {
+      if (popup.closed) {
+        clearInterval(checkPopupClosed);
+        setAadhaarPopup(null);
+        popupCheckIntervalRef.current = null;
+
+        console.log('Aadhaar verification popup closed, completing onboarding...');
+
+        // Automatically complete onboarding when popup closes
+        await handleCompleteOnboarding();
       }
+    }, 1000);
 
-      setAadhaarPopup(popup);
-
-      // Monitor popup closure
-      const checkPopupClosed = setInterval(async () => {
-        if (popup.closed) {
-          clearInterval(checkPopupClosed);
-          setAadhaarPopup(null);
-
-          // Call complete API when popup closes
-          await handleCompleteOnboarding();
-        }
-      }, 500);
-    }, 2000);
+    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
   };
 
   const handleCompleteOnboarding = async () => {
@@ -193,6 +218,11 @@ const UserOnboarding = () => {
 
       if (completeResponse.data.status === "kyc_completed" || completeResponse.data.status === "kyc_verified") {
         toast.success("User onboarding completed successfully!");
+
+        // Clear business-id from localStorage since onboarding is complete
+        // Business context will now be managed by session/BusinessContext
+        localStorage.removeItem('business-id');
+        console.log("Cleared business-id from localStorage");
 
         // Step 1: Check user onboarding status
         console.log("Checking user onboarding status...");
@@ -246,17 +276,30 @@ const UserOnboarding = () => {
     setIsLoading(true);
 
     try {
-      // If KYC is already in progress, skip init and go straight to complete
-      if (kycInProgress) {
-        console.log("KYC already in progress, skipping init call");
-        await handleCompleteOnboarding();
+      // Always initialize the KYC flow, even if KYC was previously in progress
+      // This ensures we have a valid transaction ID for the current verification session
+      console.log("Initializing user onboarding and Aadhaar verification");
+
+      // Convert date format to yyyy-MM-dd for API using date-fns
+      let parsedDate: Date | undefined;
+
+      // Try parsing as ISO format first (from API)
+      if (formData.dateOfBirth.includes('T') || formData.dateOfBirth.match(/^\d{4}-\d{2}-\d{2}/)) {
+        parsedDate = parseISO(formData.dateOfBirth);
+      } else {
+        // Try parsing as dd-MM-yyyy format (from user input)
+        parsedDate = parse(formData.dateOfBirth, 'dd-MM-yyyy', new Date());
+      }
+
+      if (!parsedDate || !isValid(parsedDate)) {
+        toast.error("Invalid date of birth format");
+        setIsLoading(false);
         return;
       }
 
-      // Step 1: Initialize user onboarding (only if not in progress)
-      // Convert date format from dd-MM-yyyy to yyyy-MM-dd for API
-      const [day, month, year] = formData.dateOfBirth.split('-');
-      const apiDateFormat = `${year}-${month}-${day}`;
+      // Format to yyyy-MM-dd for API
+      const apiDateFormat = format(parsedDate, 'yyyy-MM-dd');
+      console.log("Date conversion:", { original: formData.dateOfBirth, converted: apiDateFormat });
 
       // Remove dashes from Aadhaar for API
       const aadhaarForApi = formData.aadharNumber.replace(/-/g, '');
@@ -270,7 +313,6 @@ const UserOnboarding = () => {
       );
 
       setAadhaarLink(initResponse.data.aadhaarLink);
-      setTxnId(initResponse.data.txnId);
 
       // Step 2: Open Aadhaar verification popup
       openAadhaarPopup(initResponse.data.aadhaarLink);
@@ -461,19 +503,6 @@ const UserOnboarding = () => {
           )}
         </div>
       </div>
-
-      {/* Popup Alert Dialog */}
-      <AlertDialog open={showPopupAlert} onOpenChange={setShowPopupAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Enable Popups</AlertDialogTitle>
-            <AlertDialogDescription>
-              A popup window will open for Aadhaar verification. Please ensure popups are enabled for this site.
-              The verification window will open in 2 seconds...
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
