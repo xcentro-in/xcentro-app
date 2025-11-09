@@ -254,8 +254,15 @@ const AddPaymentMethod = () => {
                         value={expiryMonth}
                         onChange={(e) => {
                           const value = e.target.value.replace(/[^0-9]/g, "");
-                          if (value === "" || (parseInt(value) >= 1 && parseInt(value) <= 12)) {
+                          // Allow empty or values that could become valid months (0, 1-12, 01-09)
+                          if (value === "" || value.length === 1 || (parseInt(value) >= 1 && parseInt(value) <= 12)) {
                             setExpiryMonth(value);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // Auto-pad single digit to MM format on blur
+                          if (expiryMonth.length === 1) {
+                            setExpiryMonth(expiryMonth.padStart(2, "0"));
                           }
                         }}
                         className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors w-20 text-center peer"
