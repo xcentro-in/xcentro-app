@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Badge } from "@/components/ui/badge";
 import { Transaction } from "@/types/transaction";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/utils/formatters";
 
 interface CalendarEventDetailsProps {
   open: boolean;
@@ -93,7 +94,7 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
                     <div className="col-span-2">
                       <div className="text-sm text-muted-foreground">Amount</div>
                       <div className="font-semibold text-xl">
-                        ${event.amount.toLocaleString()}
+                        {formatCurrency(event.amount)}
                       </div>
                     </div>
                     

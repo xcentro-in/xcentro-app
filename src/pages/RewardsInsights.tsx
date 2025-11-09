@@ -5,10 +5,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import RewardsHistory from "./RewardsHistory";
 import RedemptionHistory from "./RedemptionHistory";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const RewardsInsights = () => {
   const [activeTab, setActiveTab] = useState<string>("redemption");
   const location = useLocation();
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle("Rewards Insights");
+  }, [setTitle]);
 
   // Check if we should load a specific tab from URL state
   useEffect(() => {
@@ -20,7 +26,6 @@ const RewardsInsights = () => {
   return (
     <div className="space-y-8">
       <RewardsHeader 
-        title="Rewards Insights" 
         description="Track your rewards earning and redemption history" 
       />
       

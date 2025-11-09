@@ -8,13 +8,19 @@ import MilestoneCards from "@/components/rewards/MilestoneCards";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
 import RedemptionCategoryDialog from "@/components/rewards/dialog/RedemptionCategoryDialog";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const Rewards = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setTitle } = usePageTitle();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState<boolean>(false);
   const availablePoints = 24530;
+  
+  useEffect(() => {
+    setTitle("My Rewards");
+  }, [setTitle]);
   
   useEffect(() => {
     // Check if redirected after redemption
@@ -40,7 +46,6 @@ const Rewards = () => {
   return (
     <div className="space-y-8">
       <RewardsHeader 
-        title="My Rewards" 
         description="Track & redeem your business rewards" 
       />
       

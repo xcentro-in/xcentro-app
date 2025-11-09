@@ -1,10 +1,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dispatch, SetStateAction } from "react";
+import { ApprovalStatus } from "@/types/approval";
 
 interface ApprovalInboxTabsProps {
-  activeTab: "pending" | "action_required" | "approved";
-  setActiveTab: Dispatch<SetStateAction<"pending" | "action_required" | "approved">>;
+  activeTab: ApprovalStatus;
+  onTabChange: (tab: ApprovalStatus) => void;
   tabs: Array<{
     value: string;
     label: string;
@@ -12,8 +12,8 @@ interface ApprovalInboxTabsProps {
   }>;
 }
 
-const ApprovalInboxTabs = ({ activeTab, setActiveTab, tabs }: ApprovalInboxTabsProps) => (
-  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "pending" | "action_required" | "approved")}>
+const ApprovalInboxTabs = ({ activeTab, onTabChange, tabs }: ApprovalInboxTabsProps) => (
+  <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as ApprovalStatus)}>
     <TabsList className="w-full sm:w-auto">
       {tabs.map((tab) => (
         <TabsTrigger key={tab.value} value={tab.value}>

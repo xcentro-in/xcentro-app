@@ -5,7 +5,6 @@ import {
   FileText, 
   Clock,
   Calendar,
-  Download,
   SlidersHorizontal,
   ChevronUp,
   ChevronDown,
@@ -27,6 +26,9 @@ import {
 } from "@/components/insights/InsightsCharts";
 import CustomizeViewDialog from "@/components/insights/CustomizeViewDialog";
 import StatCard from "@/components/insights/StatCard";
+import PaymentActivityMap from "@/components/insights/PaymentActivityMap";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 // Mock data for charts
 const spendingData = [
@@ -68,19 +70,24 @@ interface ViewOptions {
   showCategoryBreakdown: boolean;
   showTaxCompliance: boolean;
   showCashFlowForecast: boolean;
-  showCreditCardInsights: boolean;
+  showPaymentActivityMap: boolean;
   timePeriod: string;
 }
 
 const Insights = () => {
+  const { setTitle } = usePageTitle();
   const [showInsights, setShowInsights] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+  
+  useEffect(() => {
+    setTitle("Financial Insights");
+  }, [setTitle]);
   const [viewOptions, setViewOptions] = useState({
     showSpendingTrend: true,
     showCategoryBreakdown: true,
     showTaxCompliance: true,
     showCashFlowForecast: true,
-    showCreditCardInsights: true,
+    showPaymentActivityMap: true,
     timePeriod: "thisMonth",
   });
   
@@ -88,7 +95,6 @@ const Insights = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Financial Insights</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Analytics and insights to optimize your business spending
           </p>
@@ -108,11 +114,6 @@ const Insights = () => {
               <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button variant="outline" className="h-10 gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
           
           <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
             <DialogTrigger asChild>
@@ -145,6 +146,9 @@ const Insights = () => {
           />
         ))}
       </div>
+
+      {/* Payment Activity Section */}
+      {viewOptions.showPaymentActivityMap && <PaymentActivityMap />}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {viewOptions.showSpendingTrend && (

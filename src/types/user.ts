@@ -1,5 +1,5 @@
 
-export type UserRole = 'owner' | 'admin' | 'finance_manager' | 'accountant' | 'basic_user';
+export type UserRole = 'owner' | 'admin' | 'manager' | 'auditor';
 
 export type UserStatus = 'active' | 'pending' | 'revoked';
 
@@ -10,18 +10,18 @@ export interface User {
   role: UserRole;
   department?: string;
   status: UserStatus;
-  lastActive?: string;
-  dateAdded: string;
+  addedAt: string;
+  kycNeeded?: boolean;
 }
 
 export interface UserInvite {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
   department?: string;
-  invitedBy: string;
-  invitedAt: string;
-  expiresAt: string;
+  addedAt: string;
+  kycNeeded: boolean;
 }
 
 export const userRolePermissions: Record<UserRole, string[]> = {
@@ -41,32 +41,25 @@ export const userRolePermissions: Record<UserRole, string[]> = {
     'Access financial reports',
     'Configure most settings'
   ],
-  finance_manager: [
+  manager: [
     'View all financial data',
     'Manage payment methods',
     'Create and approve transactions',
     'Access financial reports',
     'Limited settings access'
   ],
-  accountant: [
+  auditor: [
     'View financial data',
-    'Create transactions',
-    'Request transaction approvals',
-    'Access basic reports',
-    'No settings access'
-  ],
-  basic_user: [
-    'View assigned transactions',
-    'Create transaction requests',
-    'View basic financial data',
-    'No approvals or settings access'
+    'Access all reports',
+    'Review transactions',
+    'No approval or modification rights',
+    'Read-only access'
   ]
 };
 
 export const userRoleLabels: Record<UserRole, string> = {
-  owner: 'Business Owner',
+  owner: 'Owner',
   admin: 'Administrator',
-  finance_manager: 'Finance Manager',
-  accountant: 'Accountant',
-  basic_user: 'Basic User'
+  manager: 'Manager',
+  auditor: 'Auditor'
 };

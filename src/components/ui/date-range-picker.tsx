@@ -25,7 +25,7 @@ export function DatePickerWithRange({
 }: DatePickerWithRangeProps) {
   const [open, setOpen] = React.useState(false);
 
-  // Format date in a more compact way
+  // Format date in a more compact way - keeping dd/MM/yy format for date picker UI
   const formatDateDisplay = (date: Date) => {
     return format(date, "dd/MM/yy");
   };

@@ -88,11 +88,11 @@ const PaymentConfirmationStep = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Invoice Date</span>
-                  <span className="font-medium">{invoiceDetails.invoiceDate}</span>
+                  <span className="font-medium">{invoiceDetails.invoiceDate?.toString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Due Date</span>
-                  <span className="font-medium">{invoiceDetails.dueDate}</span>
+                  <span className="font-medium">{invoiceDetails.dueDate?.toString()}</span>
                 </div>
               </div>
             </div>

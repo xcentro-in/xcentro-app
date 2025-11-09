@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import PaymentMethodSelector from "@/components/payments/PaymentMethodSelector";
+import PaymentMethodSelector from "@/components/payments/new-payment/shared/payment-methods/PaymentMethodSelector";
 import { useNavigate } from "react-router-dom";
 
 interface QuickPaySectionProps {
