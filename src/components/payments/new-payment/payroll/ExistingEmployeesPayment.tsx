@@ -29,7 +29,17 @@ const ExistingEmployeesPayment = ({ employees, onSubmit, onSelectionChange }: Ex
 
   const handleSalaryChange = (relationId: string, value: string) => {
     const numValue = parseFloat(value) || 0;
-    setSalaryAmounts(prev => ({ ...prev, [relationId]: numValue }));
+    const updatedAmounts = { ...salaryAmounts, [relationId]: numValue };
+    setSalaryAmounts(updatedAmounts);
+
+    // Notify parent immediately when salary changes for selected employees
+    const employeesToPay = employees
+      .filter(emp => selectedEmployees.includes(emp.relation_id))
+      .map(emp => ({
+        ...emp,
+        salaryAmount: emp.relation_id === relationId ? numValue : (updatedAmounts[emp.relation_id] || 0)
+      }));
+    onSelectionChange?.(employeesToPay);
   };
 
   const handleToggleSelectAll = () => {
