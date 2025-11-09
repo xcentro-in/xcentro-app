@@ -11,19 +11,21 @@ interface TablePaginationProps {
   totalItems: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
+  itemName?: string; // e.g., "transactions", "payees", "items"
 }
 
-const TablePagination = ({ 
-  currentPage, 
-  totalPages, 
+const TablePagination = ({
+  currentPage,
+  totalPages,
   totalItems,
   itemsPerPage,
-  onPageChange 
+  onPageChange,
+  itemName = "transactions"
 }: TablePaginationProps) => {
   return (
     <div className="flex items-center justify-between mt-4">
       <div className="text-sm text-muted-foreground">
-        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} transactions
+        Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} {itemName}
       </div>
       
       <Pagination>
