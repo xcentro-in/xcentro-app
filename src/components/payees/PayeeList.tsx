@@ -39,6 +39,7 @@ import { PayeeDetailsDrawer } from "./PayeeDetailsDrawer";
 import { usePayees } from "@/hooks/usePayees";
 import { EmptyPayees } from "./EmptyPayees";
 import { useAuth } from "@/contexts/AuthContext";
+import TablePagination from "@/components/payee-history/TablePagination";
 
 interface PayeeListProps {
   onAddPayee?: () => void;
@@ -52,14 +53,23 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   // Show empty state if vendor has not been added (use AuthContext flag as ground truth)
   // Don't fetch payees if no vendor has been added yet
   if (!user?.hasAddedVendor) {
     return <EmptyPayees onAddPayee={onAddPayee} />;
   }
 
-  // Fetch payees using the hook - only called if hasAddedVendor is true
-  const { payees, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees();
+  // Fetch payees using the hook with pagination - only called if hasAddedVendor is true
+  const { payees, totalCount, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees({
+    page,
+    page_size: pageSize,
+    search: searchValue,
+    typeFilter: typeFilter === 'all' ? undefined : typeFilter
+  });
 
   const handleSetDefault = async (id: string) => {
     try {
@@ -83,13 +93,26 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     navigate(`/payees/${payeeId}`);
   };
 
-  const filteredPayees = useMemo(() => {
-    return payees.filter(payee => {
-      const matchesSearch = payee.name.toLowerCase().includes(searchValue.toLowerCase());
-      const matchesType = typeFilter === "all" || payee.type === typeFilter;
-      return matchesSearch && matchesType;
-    });
-  }, [payees, searchValue, typeFilter]);
+  // Pagination handlers
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1); // Reset to first page when changing page size
+  };
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  // Remove frontend filtering - backend handles it now via API params
+  // const filteredPayees = useMemo(() => {
+  //   return payees.filter(payee => {
+  //     const matchesSearch = payee.name.toLowerCase().includes(searchValue.toLowerCase());
+  //     const matchesType = typeFilter === "all" || payee.type === typeFilter;
+  //     return matchesSearch && matchesType;
+  //   });
+  // }, [payees, searchValue, typeFilter]);
 
   const getPayeeIcon = (type: PayeeType) => {
     switch (type) {
@@ -147,30 +170,58 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
-        <div className="relative w-full sm:w-64">
-          <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search payees..."
-            className="pl-8"
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-          />
+        <div className="flex-1 flex gap-4">
+          <div className="relative w-full sm:w-64">
+            <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search payees..."
+              className="pl-8"
+              value={searchValue}
+              onChange={(e) => {
+                setSearchValue(e.target.value);
+                setPage(1); // Reset to first page on search
+              }}
+            />
+          </div>
+
+          <Select value={typeFilter} onValueChange={(value) => {
+            setTypeFilter(value as PayeeType | "all");
+            setPage(1); // Reset to first page on filter change
+          }}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="Filter by type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="bank">Bank</SelectItem>
+              <SelectItem value="biller">Biller</SelectItem>
+              <SelectItem value="payroll">Payroll</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        
-        <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as PayeeType | "all")}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Filter by type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="bank">Bank</SelectItem>
-            <SelectItem value="biller">Biller</SelectItem>
-            <SelectItem value="payroll">Payroll</SelectItem>
-          </SelectContent>
-        </Select>
+
+        {/* Page size selector */}
+        <div className="flex items-center space-x-2">
+          <p className="text-sm font-medium">Rows per page</p>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(value) => handlePageSizeChange(Number(value))}
+          >
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue placeholder={pageSize} />
+            </SelectTrigger>
+            <SelectContent side="top">
+              {[10, 20, 30, 40, 50].map((size) => (
+                <SelectItem key={size} value={String(size)}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {filteredPayees.length === 0 ? (
+      {payees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No payees found. Try adjusting your search or add a new payee.
         </div>
@@ -186,7 +237,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPayees.map((payee) => (
+              {payees.map((payee) => (
                 <TableRow key={payee.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -241,6 +292,19 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
               ))}
             </TableBody>
           </Table>
+        </div>
+      )}
+
+      {/* Pagination controls */}
+      {payees.length > 0 && (
+        <div className="flex justify-center mt-4">
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={totalCount}
+            itemsPerPage={pageSize}
+            onPageChange={handlePageChange}
+          />
         </div>
       )}
 

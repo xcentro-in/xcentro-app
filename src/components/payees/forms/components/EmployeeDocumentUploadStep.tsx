@@ -51,12 +51,11 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       // Step 1: Get presigned S3 URL
       setUploadStatus({ status: 'getting_url', message: 'Getting upload URL...' });
       const presignedResponse = await payeesAPI.getEmployeeDocPresignedUrl(
-        user.businessId,
-        employeeData.payee_id,
-        employeeData.account_id
+        employeeData.relation_id,
+        user.businessId
       );
 
-      if (!presignedResponse.data.url) {
+      if (!presignedResponse.data.upload_url) {
         throw new Error('Failed to get upload URL');
       }
 
@@ -65,7 +64,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       // Step 2: Upload file to S3 using PUT
       setUploadStatus({ status: 'uploading', message: 'Uploading document...' });
 
-      await payeesAPI.uploadToS3(presignedResponse.data.url, selectedFile);
+      await payeesAPI.uploadToS3(presignedResponse.data.upload_url, selectedFile);
 
       setUploadProgress(70);
 
@@ -73,9 +72,8 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       setUploadStatus({ status: 'confirming', message: 'Confirming upload...' });
 
       const confirmResponse = await payeesAPI.confirmEmployeeDocUpload(
-        user.businessId,
-        employeeData.payee_id,
-        employeeData.account_id
+        employeeData.relation_id,
+        user.businessId
       );
 
       if (confirmResponse.status === 'success') {
