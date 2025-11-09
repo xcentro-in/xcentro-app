@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +13,7 @@ import { PaymentSource } from "@/types/payment-source";
 import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
+import { canViewFeature } from "@/lib/featureFlags";
 
 export interface PaymentItem {
   id: string;
@@ -67,6 +68,34 @@ const PaymentMethodAndReviewStep = ({
 
   // Support backward compatibility: if voucherId is provided, convert to array
   const vouchers = voucherIds || (voucherId ? [voucherId] : []);
+
+  // Check which payment methods are enabled via feature flags
+  const enabledPaymentMethods = useMemo(() => {
+    return {
+      card: canViewFeature('PAYMENT_METHOD_CARD', user),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+    };
+  }, [user]);
+
+  // Get the first available payment method as default
+  const defaultPaymentMethod = useMemo(() => {
+    if (enabledPaymentMethods.card) return 'card';
+    if (enabledPaymentMethods.bank) return 'bank';
+    return 'card'; // Fallback
+  }, [enabledPaymentMethods]);
+
+  // Calculate grid columns based on enabled payment methods count
+  const enabledPaymentMethodsCount = useMemo(() => {
+    return Object.values(enabledPaymentMethods).filter(Boolean).length;
+  }, [enabledPaymentMethods]);
+
+  const gridColsClass = useMemo(() => {
+    switch (enabledPaymentMethodsCount) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-2';
+      default: return 'grid-cols-2';
+    }
+  }, [enabledPaymentMethodsCount]);
 
   // Fetch payment sources when component mounts
   useEffect(() => {
@@ -277,19 +306,24 @@ const PaymentMethodAndReviewStep = ({
             <CardTitle className="text-lg">Select Payment Method</CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="card" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="bank" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Bank
-                </TabsTrigger>
-                <TabsTrigger value="card" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  Card
-                </TabsTrigger>
+            <Tabs defaultValue={defaultPaymentMethod} className="space-y-4">
+              <TabsList className={`grid w-full ${gridColsClass}`}>
+                {enabledPaymentMethods.bank && (
+                  <TabsTrigger value="bank" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Bank
+                  </TabsTrigger>
+                )}
+                {enabledPaymentMethods.card && (
+                  <TabsTrigger value="card" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Card
+                  </TabsTrigger>
+                )}
               </TabsList>
 
-              <TabsContent value="bank" className="space-y-3">
+              {enabledPaymentMethods.bank && (
+                <TabsContent value="bank" className="space-y-3">
                 <div className="text-sm text-muted-foreground mb-3">
                   Bank transfers and UPI payments
                 </div>
@@ -311,8 +345,10 @@ const PaymentMethodAndReviewStep = ({
                   </TooltipProvider>
                 )}
               </TabsContent>
+              )}
 
-              <TabsContent value="card" className="space-y-4">
+              {enabledPaymentMethods.card && (
+                <TabsContent value="card" className="space-y-4">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="font-medium">Cards</h4>
@@ -339,6 +375,7 @@ const PaymentMethodAndReviewStep = ({
                   </div>
                 </div>
               </TabsContent>
+              )}
             </Tabs>
           </CardContent>
         </Card>

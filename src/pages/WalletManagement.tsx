@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, CreditCard, Building2, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,13 +10,44 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { EmptyWallet } from "@/components/wallet/EmptyWallet";
 import { useWallet } from "@/hooks/useWallet";
 import { StoredCard, BankAccount } from "@/types/wallet";
+import { useAuth } from "@/contexts/AuthContext";
+import { canViewFeature } from "@/lib/featureFlags";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
+  const { user } = useAuth();
   const { cards, bankAccounts, isLoading, error } = useWallet();
 
   const showEmptyState = cards.length === 0 && bankAccounts.length === 0;
+
+  // Check which payment methods are enabled via feature flags
+  const enabledPaymentMethods = useMemo(() => {
+    return {
+      card: canViewFeature('PAYMENT_METHOD_CARD', user),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+    };
+  }, [user]);
+
+  // Get the first available payment method as default
+  const defaultPaymentMethod = useMemo(() => {
+    if (enabledPaymentMethods.card) return 'cards';
+    if (enabledPaymentMethods.bank) return 'banks';
+    return 'cards'; // Fallback
+  }, [enabledPaymentMethods]);
+
+  // Calculate grid columns based on enabled payment methods count
+  const enabledPaymentMethodsCount = useMemo(() => {
+    return Object.values(enabledPaymentMethods).filter(Boolean).length;
+  }, [enabledPaymentMethods]);
+
+  const gridColsClass = useMemo(() => {
+    switch (enabledPaymentMethodsCount) {
+      case 1: return 'grid-cols-1';
+      case 2: return 'grid-cols-2';
+      default: return 'grid-cols-2';
+    }
+  }, [enabledPaymentMethodsCount]);
 
   useEffect(() => {
     setTitle("Payment Sources");
@@ -129,21 +160,26 @@ const WalletManagement = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            <Tabs defaultValue="cards" className="w-full">
+            <Tabs defaultValue={defaultPaymentMethod} className="w-full">
               <div className="px-6 pb-4">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="cards" className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
-                    Cards ({cards.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="banks" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Banks ({bankAccounts.length})
-                  </TabsTrigger>
+                <TabsList className={`grid w-full ${gridColsClass}`}>
+                  {enabledPaymentMethods.card && (
+                    <TabsTrigger value="cards" className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      Cards ({cards.length})
+                    </TabsTrigger>
+                  )}
+                  {enabledPaymentMethods.bank && (
+                    <TabsTrigger value="banks" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Banks ({bankAccounts.length})
+                    </TabsTrigger>
+                  )}
                 </TabsList>
               </div>
 
-              <TabsContent value="cards" className="mt-0">
+              {enabledPaymentMethods.card && (
+                <TabsContent value="cards" className="mt-0">
                 {cards.length > 0 ? (
                   <div className="space-y-0">
                     {cards.map((card) => renderCard(card))}
@@ -163,8 +199,10 @@ const WalletManagement = () => {
                   </div>
                 )}
               </TabsContent>
+              )}
 
-              <TabsContent value="banks" className="mt-0">
+              {enabledPaymentMethods.bank && (
+                <TabsContent value="banks" className="mt-0">
                 {bankAccounts.length > 0 ? (
                   <div className="space-y-0">
                     {bankAccounts.map((account) => renderBankAccount(account))}
@@ -184,6 +222,7 @@ const WalletManagement = () => {
                   </div>
                 )}
               </TabsContent>
+              )}
             </Tabs>
           </CardContent>
         </Card>

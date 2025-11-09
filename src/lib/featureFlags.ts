@@ -25,11 +25,15 @@ export const FEATURE_FLAGS = {
   TWOFA_AUTHENTICATION: false,
   AUTHORIZED_DEVICES: false,
   PAYMENT_CALENDAR_ADVANCED: false,
+  PAYMENT_METHOD_CARD: true,
+  PAYMENT_METHOD_BANK: false,
+  PAYMENT_METHOD_BNPL: false,
+  PAYMENT_METHOD_UPI: false,
   MULTIPLE_ALLOWANCES: [
-    // { percentageOfUsers: 0.25, userRoles: ["user"] },  // will add this if need to do A/B testing
     { userRoles: ["developer", "owner"] },
   ],
 } as const satisfies Record<string, FeatureFlagRule[] | boolean>
+    // { percentageOfUsers: 0.25, userRoles: ["user"] },  // will add this if need to do A/B testing
 
 export function canViewFeature(featureName: FeatureFlagName, user: User) {
   const rules = FEATURE_FLAGS[featureName]
