@@ -1,11 +1,11 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
-import { CreditCard, Building2, Info, AlertCircle } from "lucide-react";
+import { CreditCard, Building2, Info, AlertCircle, CheckCircle2 } from "lucide-react";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePaymentSources } from "@/hooks/usePaymentSources";
@@ -65,6 +65,10 @@ const PaymentMethodAndReviewStep = ({
   } = usePaymentSources();
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [paymentPopup, setPaymentPopup] = useState<Window | null>(null);
+  const [paymentRedirectUrl, setPaymentRedirectUrl] = useState("");
+  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
+  const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Support backward compatibility: if voucherId is provided, convert to array
   const vouchers = voucherIds || (voucherId ? [voucherId] : []);
@@ -108,6 +112,15 @@ const PaymentMethodAndReviewStep = ({
     }
   }, [user?.businessId, totalAmount, paymentContext, fetchPaymentSources]);
 
+  // Cleanup popup interval on unmount
+  useEffect(() => {
+    return () => {
+      if (popupCheckIntervalRef.current) {
+        clearInterval(popupCheckIntervalRef.current);
+      }
+    };
+  }, []);
+
   // Get selected payment source details
   const selectedSource = selectedPaymentMethod
     ? getSourceById(selectedPaymentMethod)
@@ -126,6 +139,44 @@ const PaymentMethodAndReviewStep = ({
     const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
 
     return isMobile ? 'mobile' : 'web';
+  };
+
+  // Open payment redirect popup
+  const openPaymentPopup = (url: string) => {
+    const popup = window.open(url, "payment-verification", "width=800,height=600,scrollbars=yes");
+
+    // Check if popup was blocked
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      toast.error("Popup was blocked. Please enable popups for this site and try again.");
+      setIsProcessingPayment(false);
+      return;
+    }
+
+    setPaymentPopup(popup);
+
+    // Monitor popup closure and show completion message when closed
+    const checkPopupClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopupClosed);
+        setPaymentPopup(null);
+        popupCheckIntervalRef.current = null;
+
+        console.log('Payment popup closed, showing completion message...');
+
+        // Show completion message
+        setShowCompletionMessage(true);
+        setIsProcessingPayment(false);
+      }
+    }, 1000);
+
+    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
+  };
+
+  // Handle retry payment popup
+  const handleRetryPayment = () => {
+    if (paymentRedirectUrl) {
+      openPaymentPopup(paymentRedirectUrl);
+    }
   };
 
   // Handle payment confirmation
@@ -165,16 +216,26 @@ const PaymentMethodAndReviewStep = ({
       // Make payment API call
       const response = await processPaymentAPI.makeCardPayment(user.businessId, paymentPayload);
 
-      toast.success("Payment processed successfully!");
+      // Extract redirect URL from response
+      if (response.data?.redirect_url) {
+        const redirectUrl = response.data.redirect_url;
+        setPaymentRedirectUrl(redirectUrl);
 
-      // Call parent's onSubmit callback for post-payment actions
-      onSubmit();
+        toast.success("Payment initiated successfully!");
+
+        // Open payment popup with redirect URL
+        openPaymentPopup(redirectUrl);
+      } else {
+        // Fallback: if no redirect URL, show success and complete
+        toast.success("Payment processed successfully!");
+        setIsProcessingPayment(false);
+        onSubmit();
+      }
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed", {
         description: error instanceof Error ? error.message : "Please try again"
       });
-    } finally {
       setIsProcessingPayment(false);
     }
   };
@@ -468,18 +529,77 @@ const PaymentMethodAndReviewStep = ({
         </Card>
       </div>
 
+      {/* Show completion message after popup closes */}
+      {showCompletionMessage && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6">
+            <div className="space-y-4 text-center">
+              <div className="flex justify-center">
+                <div className="rounded-full bg-green-100 p-3">
+                  <CheckCircle2 className="h-12 w-12 text-green-600" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Payment Processing Complete
+                </h3>
+                <p className="text-sm text-muted-foreground px-4">
+                  You can check the status of your transaction in the bills section in some time.
+                </p>
+              </div>
+
+              <Button
+                onClick={() => {
+                  setShowCompletionMessage(false);
+                  onSubmit();
+                }}
+                className="w-full max-w-xs"
+              >
+                View Bills
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Show payment popup status while processing */}
+      {isProcessingPayment && paymentPopup && !showCompletionMessage && (
+        <div className="rounded-lg border p-4 bg-blue-50 border-blue-200">
+          <div className="flex items-start gap-3">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-blue-800">Payment Verification in Progress</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Complete the payment verification in the popup window. This page will automatically continue
+                once you're done.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRetryPayment}
+                className="mt-3"
+              >
+                Retry Payment
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between gap-4">
         <Button
           variant="outline"
           onClick={onBack}
           className="w-auto"
-          disabled={isProcessingPayment}
+          disabled={isProcessingPayment || showCompletionMessage}
         >
           Back
         </Button>
         <Button
           onClick={handleConfirmPayment}
-          disabled={!selectedPaymentMethod || isProcessingPayment}
+          disabled={!selectedPaymentMethod || isProcessingPayment || showCompletionMessage}
           className="w-auto"
         >
           {isProcessingPayment ? "Processing..." : "Confirm Payment"}

@@ -507,6 +507,8 @@ const UserOnboarding = () => {
           )}
         </div>
       </div>
+        </div>
+      </div>
     </div>
   );
 };
