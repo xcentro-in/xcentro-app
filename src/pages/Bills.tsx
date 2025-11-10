@@ -148,7 +148,7 @@ const Bills = () => {
           id: selectedBillForPayment.id,
           name: selectedBillForPayment.vendorName,
           amount: selectedBillForPayment.amount,
-          description: `Invoice #${selectedBillForPayment.invoiceNumber}`,
+          description: `Invoice #${selectedBillForPayment.invoiceNumber} • Due: ${formatDueDate(selectedBillForPayment.dueDate)}`,
         },
       ]
     : [];
@@ -173,16 +173,16 @@ const Bills = () => {
           <PaymentMethodAndReviewStep
             totalAmount={selectedBillForPayment.amount}
             paymentItems={paymentItems}
-            summaryType="simple"
-            scheduleText={formatDueDate(selectedBillForPayment.dueDate)}
+            summaryType="list"
+            scheduleText="Immediate"
             selectedPaymentMethod={selectedPaymentMethod}
             onPaymentMethodChange={setSelectedPaymentMethod}
             onBack={handleBackToBills}
             onSubmit={handlePaymentSubmit}
             additionalSummaryData={{
-              invoiceReference: selectedBillForPayment.invoiceNumber,
-              vendorName: selectedBillForPayment.vendorName,
-              gstin: selectedBillForPayment.gstin,
+              itemLabel: "Number of Bills",
+              amountLabel: "Bill Amount",
+              listTitle: `Bill Details (1)`,
             }}
             paymentContext="vendor_payment"
             voucherIds={[selectedBillForPayment.id]}
