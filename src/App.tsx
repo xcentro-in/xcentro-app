@@ -1,7 +1,5 @@
-import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import Dashboard from "./pages/Dashboard";
 import Payments from "./pages/Payments";
@@ -63,35 +61,6 @@ function App() {
   const AnalyticsEnabled = canViewFeature("BUSINESS_ANALYTICS", getUser());
   const CreditCardBillEnabled = canViewFeature("REWARD_POINT_SYSTEM", getUser());
   const ReferralEnabled = canViewFeature("REFERRAL_SYSTEM", getUser());
-
-  // Check popup permissions on app initialization
-  useEffect(() => {
-    const checkPopupPermission = () => {
-      // Open a blank popup to test if popups are allowed
-      const testPopup = window.open('', '_blank', 'width=1,height=1,left=9999,top=9999');
-
-      if (!testPopup || testPopup.closed || typeof testPopup.closed === 'undefined') {
-        // Popup was blocked
-        toast.warning(
-          "Popups are blocked! Please enable popups for this site to use Aadhaar verification.",
-          {
-            duration: 10000,
-            description: "Click on the popup blocker icon in your browser's address bar to allow popups."
-          }
-        );
-        console.warn("Popup blocker detected. User needs to enable popups for Aadhaar verification.");
-      } else {
-        // Popup opened successfully, close it immediately
-        testPopup.close();
-        console.log("Popup permission granted");
-      }
-    };
-
-    // Run check after a short delay to ensure page is fully loaded
-    const timeoutId = setTimeout(checkPopupPermission, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

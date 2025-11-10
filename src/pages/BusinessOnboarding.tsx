@@ -238,7 +238,9 @@ const BusinessOnboarding = () => {
         bid,
         backendBusinessType,
         undefined, // PAN removed - backend derives from GSTIN
-        requiresCIN(formData.type) ? formData.documents.cin : undefined
+        requiresCIN(formData.type) ? formData.documents.cin : undefined,
+        formData.model, // Business model
+        formData.turnover // Business turnover
       );
 
       console.log("Business onboarding complete response:", completeResponse);

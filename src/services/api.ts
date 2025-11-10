@@ -532,7 +532,9 @@ class ApiService {
       bid: string,
       businessType: string,
       pan?: string,
-      cin?: string
+      cin?: string,
+      businessModel?: string,
+      businessTurnover?: string
     ): Promise<{
       data: {
         bid: string;
@@ -553,6 +555,16 @@ class ApiService {
 
       if (cin) {
         body.cid = cin;
+      }
+
+      // Add business model if provided
+      if (businessModel) {
+        body.businessModel = businessModel;
+      }
+
+      // Add business turnover if provided
+      if (businessTurnover) {
+        body.businessTurnover = businessTurnover;
       }
 
       return this.request('/business/onboard/complete', {
