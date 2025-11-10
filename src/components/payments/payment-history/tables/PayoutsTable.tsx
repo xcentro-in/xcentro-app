@@ -21,6 +21,7 @@ import TablePagination from "@/components/payee-history/TablePagination";
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/formatters";
 import { Payout } from "@/types/payout";
+import { useNavigate } from "react-router-dom";
 
 interface PayoutsTableProps {
   payouts: Payout[];
@@ -55,14 +56,14 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   onItemsPerPageChange,
 }) => {
   const [expandedRowId, setExpandedRowId] = React.useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleRowClick = (payoutId: string) => {
     setExpandedRowId(expandedRowId === payoutId ? null : payoutId);
   };
 
   const handleViewDetails = (payoutId: string) => {
-    // TODO: Implement navigation to payout details page
-    console.log(`Navigating to details for payout: ${payoutId}`);
+    navigate(`/payments/${payoutId}`);
   };
 
   const handleBillClick = (billId: string) => {
@@ -204,7 +205,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                             </div>
                             <div className="flex justify-end mt-4">
                               <Button variant="outline" size="sm" onClick={() => handleViewDetails(payout.payoutId)}>
-                                View Payout Details <ExternalLink className="ml-2 h-4 w-4" />
+                                View Details <ExternalLink className="ml-2 h-4 w-4" />
                               </Button>
                             </div>
                           </div>
