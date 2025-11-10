@@ -133,7 +133,8 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
         });
 
         // Refresh onboarding status to update hasAddedVendor flag
-        await refreshOnboardingStatus();
+        // Use retry logic to handle backend delay in updating flags
+        await refreshOnboardingStatus({ withRetry: true });
 
         // Call onSubmit callback after 2 seconds
         setTimeout(() => {

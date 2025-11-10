@@ -123,7 +123,8 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
       const employeeData = response.data || response;
 
       // Refresh onboarding status
-      await refreshOnboardingStatus();
+      // Use retry logic to handle backend delay in updating flags
+      await refreshOnboardingStatus({ withRetry: true });
 
       // Navigate immediately to document upload step
       onEmployeeCreated({

@@ -39,7 +39,8 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
     toast.success(`New payment method added successfully!`);
 
     // Refresh onboarding status to update hasAddedPaymentMethod flag
-    await refreshOnboardingStatus();
+    // Use retry logic to handle backend delay in updating flags
+    await refreshOnboardingStatus({ withRetry: true });
 
     onPaymentMethodAdded();
   };

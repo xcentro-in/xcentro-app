@@ -17,7 +17,11 @@ interface AuthContextType extends AuthState {
   setUserRoles: (roles: UserRole[]) => void;
   userRoles: UserRole[];
   fetchUserProfile: () => Promise<void>;
-  refreshOnboardingStatus: () => Promise<void>;
+  refreshOnboardingStatus: (options?: {
+    withRetry?: boolean;
+    maxRetries?: number;
+    initialDelay?: number;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -253,28 +257,97 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const refreshOnboardingStatus = async (): Promise<void> => {
+  const refreshOnboardingStatus = async (options?: {
+    withRetry?: boolean;
+    maxRetries?: number;
+    initialDelay?: number;
+  }): Promise<void> => {
     // Don't call if no user or no businessId
     if (!state.user?.businessId) {
       console.warn('Cannot refresh onboarding status: no user or businessId');
       return;
     }
 
-    try {
-      const onboardingResponse = await authAPI.getOnboardingStatus(state.user.businessId);
+    const {
+      withRetry = false,
+      maxRetries = 3,
+      initialDelay = 800,
+    } = options || {};
 
-      if (onboardingResponse.data) {
-        // Update only the onboarding flags
-        updateUser({
-          hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
-          hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
-          hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
-          hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
-        });
+    // Store current flag values to detect changes
+    const currentFlags = {
+      hasCompletedOnboarding: state.user?.hasCompletedOnboarding ?? false,
+      hasAddedPaymentMethod: state.user?.hasAddedPaymentMethod ?? false,
+      hasAddedVendor: state.user?.hasAddedVendor ?? false,
+      hasCreatedFirstPayment: state.user?.hasCreatedFirstPayment ?? false,
+    };
+
+    const attemptRefresh = async (attemptNumber: number): Promise<boolean> => {
+      try {
+        const onboardingResponse = await authAPI.getOnboardingStatus(state.user!.businessId);
+
+        if (onboardingResponse.data) {
+          const newFlags = {
+            hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
+            hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
+            hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
+            hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
+          };
+
+          // Update the user state
+          updateUser(newFlags);
+
+          // Check if any flag changed from false to true
+          const hasChanges =
+            (!currentFlags.hasAddedPaymentMethod && newFlags.hasAddedPaymentMethod) ||
+            (!currentFlags.hasAddedVendor && newFlags.hasAddedVendor) ||
+            (!currentFlags.hasCreatedFirstPayment && newFlags.hasCreatedFirstPayment) ||
+            (!currentFlags.hasCompletedOnboarding && newFlags.hasCompletedOnboarding);
+
+          if (hasChanges) {
+            console.log(`✅ Onboarding status updated successfully on attempt ${attemptNumber}`);
+            return true; // Success - flags changed
+          }
+
+          return false; // No changes detected
+        }
+
+        return false;
+      } catch (error) {
+        console.error(`Failed to refresh onboarding status (attempt ${attemptNumber}):`, error);
+        return false;
       }
-    } catch (error) {
-      console.error('Failed to refresh onboarding status:', error);
-      // Don't throw - this is a non-critical update
+    };
+
+    // If not using retry, just do a single attempt
+    if (!withRetry) {
+      await attemptRefresh(1);
+      return;
+    }
+
+    // Retry logic with increasing delays
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      // Add delay before each attempt (except the first one gets initial delay)
+      if (attempt === 1) {
+        await new Promise(resolve => setTimeout(resolve, initialDelay));
+      } else {
+        // Exponential backoff: 800ms, 1200ms, 1600ms
+        const delay = initialDelay + (attempt - 1) * 400;
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      const success = await attemptRefresh(attempt);
+
+      if (success) {
+        // Flags changed successfully, stop polling
+        return;
+      }
+
+      if (attempt < maxRetries) {
+        console.log(`🔄 No changes detected, retrying... (${attempt}/${maxRetries})`);
+      } else {
+        console.warn('⚠️ Onboarding status not updated after max retries. Changes may take longer to propagate.');
+      }
     }
   };
 

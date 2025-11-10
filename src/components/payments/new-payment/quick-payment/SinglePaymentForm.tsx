@@ -221,7 +221,8 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     });
 
     // Refresh onboarding status to update hasCreatedFirstPayment flag
-    await refreshOnboardingStatus();
+    // Use retry logic to handle backend delay in updating flags
+    await refreshOnboardingStatus({ withRetry: true });
   };
 
   // Map vendor to Payee type for compatibility with PaymentMethodAndReviewStep
