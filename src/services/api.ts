@@ -1,7 +1,7 @@
 import { rateLimitManager } from '@/lib/rateLimitManager';
 
 // Vite uses import.meta.env instead of process.env
-const API_BASE_URL = 'https://api.xcentro.in/v1';
+const API_BASE_URL = 'https://staging-api.xcentro.in/v1';
 
 class ApiService {
   private baseUrl: string;
