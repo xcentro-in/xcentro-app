@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
-import { CreditCard, Building2, Info, AlertCircle, CheckCircle2 } from "lucide-react";
+import { CreditCard, Building2, Info, AlertCircle } from "lucide-react";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePaymentSources } from "@/hooks/usePaymentSources";
@@ -53,6 +54,7 @@ const PaymentMethodAndReviewStep = ({
   voucherIds,
   voucherId
 }: PaymentMethodAndReviewStepProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     sources,
@@ -67,7 +69,6 @@ const PaymentMethodAndReviewStep = ({
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [paymentPopup, setPaymentPopup] = useState<Window | null>(null);
   const [paymentRedirectUrl, setPaymentRedirectUrl] = useState("");
-  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
   const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Support backward compatibility: if voucherId is provided, convert to array
@@ -154,29 +155,22 @@ const PaymentMethodAndReviewStep = ({
 
     setPaymentPopup(popup);
 
-    // Monitor popup closure and show completion message when closed
+    // Monitor popup closure and redirect to payment history when closed
     const checkPopupClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(checkPopupClosed);
         setPaymentPopup(null);
         popupCheckIntervalRef.current = null;
 
-        console.log('Payment popup closed, showing completion message...');
+        console.log('Payment popup closed, redirecting to payment history...');
 
-        // Show completion message
-        setShowCompletionMessage(true);
-        setIsProcessingPayment(false);
+        // Redirect to payment history page
+        toast.success("Payment processing complete! Redirecting to payment history...");
+        navigate('/payments');
       }
     }, 1000);
 
     popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
-  };
-
-  // Handle retry payment popup
-  const handleRetryPayment = () => {
-    if (paymentRedirectUrl) {
-      openPaymentPopup(paymentRedirectUrl);
-    }
   };
 
   // Handle payment confirmation
@@ -351,6 +345,26 @@ const PaymentMethodAndReviewStep = ({
       </div>
     </div>
   );
+
+  // Show full-page loading state while payment is processing
+  if (isProcessingPayment) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">Processing Payment</h3>
+            <p className="text-muted-foreground">Getting payment info...</p>
+            <p className="text-sm text-muted-foreground">
+              Please complete the payment verification in the popup window
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -529,77 +543,18 @@ const PaymentMethodAndReviewStep = ({
         </Card>
       </div>
 
-      {/* Show completion message after popup closes */}
-      {showCompletionMessage && (
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
-            <div className="space-y-4 text-center">
-              <div className="flex justify-center">
-                <div className="rounded-full bg-green-100 p-3">
-                  <CheckCircle2 className="h-12 w-12 text-green-600" />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Payment Processing Complete
-                </h3>
-                <p className="text-sm text-muted-foreground px-4">
-                  You can check the status of your transaction in the bills section in some time.
-                </p>
-              </div>
-
-              <Button
-                onClick={() => {
-                  setShowCompletionMessage(false);
-                  onSubmit();
-                }}
-                className="w-full max-w-xs"
-              >
-                View Bills
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Show payment popup status while processing */}
-      {isProcessingPayment && paymentPopup && !showCompletionMessage && (
-        <div className="rounded-lg border p-4 bg-blue-50 border-blue-200">
-          <div className="flex items-start gap-3">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-blue-800">Payment Verification in Progress</h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Complete the payment verification in the popup window. This page will automatically continue
-                once you're done.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleRetryPayment}
-                className="mt-3"
-              >
-                Retry Payment
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex justify-between gap-4">
         <Button
           variant="outline"
           onClick={onBack}
           className="w-auto"
-          disabled={isProcessingPayment || showCompletionMessage}
+          disabled={isProcessingPayment}
         >
           Back
         </Button>
         <Button
           onClick={handleConfirmPayment}
-          disabled={!selectedPaymentMethod || isProcessingPayment || showCompletionMessage}
+          disabled={!selectedPaymentMethod || isProcessingPayment}
           className="w-auto"
         >
           {isProcessingPayment ? "Processing..." : "Confirm Payment"}
