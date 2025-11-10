@@ -4,62 +4,175 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Mail, Smartphone, CreditCard, Shield, BellRing, Check } from "lucide-react";
+import { Mail, Smartphone, MessageSquare, Check, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
-import { NotificationCategory } from "@/types/notification";
+import { notificationsAPI } from "@/services/api";
+import { PreferencesResponse } from "@/types/notification";
 
 const NotificationSettings = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [notifications, setNotifications] = useState({
-    email: true,
-    push: true,
-    payments: true,
-    security: true,
-    marketing: false
+    email: false,
+    push: false,
+    messages: false,
   });
 
-  // Categories for notifications display customization
-  const [categories, setCategories] = useState({
+  // Categories for notifications - based on backend API
+  const [categoryPreferences, setCategoryPreferences] = useState<Record<string, boolean>>({
     announcements: true,
-    rewards: true,
-    payments: true,
-    payees: false,
     approvals: true,
+    insights: true,
+    payees: true,
+    payments: true,
+    rewards: true,
     security: true,
-    insights: false
   });
-  
+
   // Store the initial states to compare for changes
   const [initialNotifications, setInitialNotifications] = useState({...notifications});
-  const [initialCategories, setInitialCategories] = useState({...categories});
-  
+  const [initialCategoryPreferences, setInitialCategoryPreferences] = useState({...categoryPreferences});
+
   // Track if any changes have been made
   const [hasChanges, setHasChanges] = useState(false);
-  
-  // Check for changes when notifications state updates
-  useEffect(() => {
-    const notificationChanged = Object.keys(notifications).some(
-      key => notifications[key as keyof typeof notifications] !== 
-             initialNotifications[key as keyof typeof initialNotifications]
-    );
-    
-    const categoriesChanged = Object.keys(categories).some(
-      key => categories[key as keyof typeof categories] !== 
-             initialCategories[key as keyof typeof categories]
-    );
-    
-    setHasChanges(notificationChanged || categoriesChanged);
-  }, [notifications, initialNotifications, categories, initialCategories]);
-  
-  const handleSavePreferences = () => {
-    // Save the current state as the new initial state
-    setInitialNotifications({...notifications});
-    setInitialCategories({...categories});
-    setHasChanges(false);
-    
-    // Show success message
-    toast.success("Notification preferences saved successfully");
+
+  // Category display labels
+  const categoryLabels: Record<string, { title: string; description: string }> = {
+    announcements: {
+      title: "Announcements",
+      description: "System announcements and important updates"
+    },
+    approvals: {
+      title: "Approvals",
+      description: "Payment approval requests and status updates"
+    },
+    insights: {
+      title: "Insights",
+      description: "Business insights and analytics reports"
+    },
+    payees: {
+      title: "Payees",
+      description: "Payee management and updates"
+    },
+    payments: {
+      title: "Payments",
+      description: "Payment status and transaction notifications"
+    },
+    rewards: {
+      title: "Rewards",
+      description: "Rewards points and milestone achievements"
+    },
+    security: {
+      title: "Security",
+      description: "Security alerts and authentication updates"
+    },
   };
+
+  // Fetch preferences on mount
+  useEffect(() => {
+    fetchPreferences();
+  }, []);
+
+  const fetchPreferences = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await notificationsAPI.getPreferences() as PreferencesResponse;
+
+      const prefs = response.data;
+      const newNotifications = {
+        email: prefs.email_enabled,
+        push: prefs.push_enabled,
+        messages: prefs.messages_enabled,
+      };
+
+      setNotifications(newNotifications);
+      setInitialNotifications(newNotifications);
+
+      setCategoryPreferences(prefs.category_preferences);
+      setInitialCategoryPreferences(prefs.category_preferences);
+
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch notification preferences:', err);
+      setError('Failed to load notification preferences');
+      setIsLoading(false);
+    }
+  };
+
+  // Check for changes when state updates
+  useEffect(() => {
+    const notificationChanged = notifications.email !== initialNotifications.email;
+
+    const categoryChanged = Object.keys(categoryPreferences).some(
+      category => categoryPreferences[category] !== initialCategoryPreferences[category]
+    );
+
+    setHasChanges(notificationChanged || categoryChanged);
+  }, [notifications, initialNotifications, categoryPreferences, initialCategoryPreferences]);
+
+  const handleSavePreferences = async () => {
+    try {
+      setIsSaving(true);
+
+      await notificationsAPI.updatePreferences({
+        email_enabled: notifications.email,
+        push_enabled: false, // Always false - not operational
+        messages_enabled: false, // Always false - not operational
+        category_preferences: categoryPreferences,
+      });
+
+      // Update initial states
+      setInitialNotifications({...notifications});
+      setInitialCategoryPreferences({...categoryPreferences});
+      setHasChanges(false);
+
+      toast.success("Notification preferences saved successfully");
+    } catch (err) {
+      console.error('Failed to save notification preferences:', err);
+      toast.error("Failed to save notification preferences");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updateCategoryPreference = (category: string, value: boolean) => {
+    setCategoryPreferences(prev => ({
+      ...prev,
+      [category]: value,
+    }));
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Loading preferences...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center gap-2">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button onClick={fetchPreferences} variant="outline" size="sm" className="mt-2">
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -71,7 +184,12 @@ const NotificationSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Global Channel Settings */}
           <div className="space-y-4">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+              Notification Channels
+            </h3>
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-muted-foreground" />
@@ -80,12 +198,12 @@ const NotificationSettings = () => {
                   <p className="text-sm text-muted-foreground">Receive notifications via email</p>
                 </div>
               </div>
-              <Switch 
+              <Switch
                 checked={notifications.email}
                 onCheckedChange={(checked) => setNotifications({...notifications, email: checked})}
               />
             </div>
-            
+
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Smartphone className="h-5 w-5 text-muted-foreground" />
@@ -94,181 +212,83 @@ const NotificationSettings = () => {
                   <p className="text-sm text-muted-foreground">Receive push notifications on your devices</p>
                 </div>
               </div>
-              <Switch 
-                checked={notifications.push}
+              <Switch
+                checked={false}
                 onCheckedChange={(checked) => setNotifications({...notifications, push: checked})}
+                disabled
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <p className="font-medium">SMS Messages</p>
+                  <p className="text-sm text-muted-foreground">Receive notifications via SMS</p>
+                </div>
+              </div>
+              <Switch
+                checked={false}
+                onCheckedChange={(checked) => setNotifications({...notifications, messages: checked})}
+                disabled
               />
             </div>
           </div>
-          
-          <div className="border-t pt-4">
-            <h3 className="font-medium mb-3">What to notify about</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notify-payments" className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-muted-foreground" />
-                  Payment Activity
-                </Label>
-                <Switch 
-                  id="notify-payments"
-                  checked={notifications.payments}
-                  onCheckedChange={(checked) => setNotifications({...notifications, payments: checked})}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notify-security" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4 text-muted-foreground" />
-                  Security Alerts
-                </Label>
-                <Switch 
-                  id="notify-security"
-                  checked={notifications.security}
-                  onCheckedChange={(checked) => setNotifications({...notifications, security: checked})}
-                />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <Label htmlFor="notify-marketing" className="flex items-center gap-2">
-                  <BellRing className="h-4 w-4 text-muted-foreground" />
-                  Marketing & Updates
-                </Label>
-                <Switch 
-                  id="notify-marketing"
-                  checked={notifications.marketing}
-                  onCheckedChange={(checked) => setNotifications({...notifications, marketing: checked})}
-                />
-              </div>
-            </div>
-          </div>
 
-          <div className="border-t pt-4">
-            <h3 className="font-medium mb-3">Categories to display in notifications</h3>
+          {/* Category-specific preferences */}
+          <div className="border-t pt-6">
+            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wide mb-4">
+              Notification Categories
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Select which notification categories you want to see prominently
+              Choose which categories you want to receive notifications for
             </p>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-announcements" 
-                  checked={categories.announcements} 
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, announcements: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-announcements"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Announcements
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-rewards" 
-                  checked={categories.rewards}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, rewards: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-rewards"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Rewards
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-payments" 
-                  checked={categories.payments}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, payments: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-payments"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Payments
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-payees" 
-                  checked={categories.payees}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, payees: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-payees"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Payees
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-approvals" 
-                  checked={categories.approvals}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, approvals: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-approvals"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Approvals
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-security" 
-                  checked={categories.security}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, security: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-security"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Security
-                </label>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="cat-insights" 
-                  checked={categories.insights}
-                  onCheckedChange={(checked) => 
-                    setCategories({...categories, insights: !!checked})
-                  }
-                />
-                <label
-                  htmlFor="cat-insights"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Insights
-                </label>
-              </div>
+              {Object.keys(categoryPreferences).map(category => {
+                const label = categoryLabels[category];
+                if (!label) return null;
+
+                return (
+                  <div key={category} className="flex items-center justify-between p-4 border rounded-lg hover:border-primary/50 transition-colors">
+                    <div className="flex-1 mr-3">
+                      <Label htmlFor={category} className="font-medium cursor-pointer">
+                        {label.title}
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-0.5">
+                        {label.description}
+                      </p>
+                    </div>
+                    <Switch
+                      id={category}
+                      checked={categoryPreferences[category] || false}
+                      onCheckedChange={(checked) => updateCategoryPreference(category, checked)}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button 
-            onClick={handleSavePreferences} 
-            disabled={!hasChanges}
+        <CardFooter className="flex justify-between items-center">
+          <p className="text-sm text-muted-foreground">
+            {hasChanges ? "You have unsaved changes" : "All changes saved"}
+          </p>
+          <Button
+            onClick={handleSavePreferences}
+            disabled={!hasChanges || isSaving}
           >
-            <Check className="mr-1 h-4 w-4" />
-            Save Preferences
+            {isSaving ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Save Preferences
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

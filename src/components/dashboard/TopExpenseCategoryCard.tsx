@@ -1,13 +1,14 @@
 
 import { ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/utils/formatters";
 
 const TopExpenseCategoryCard = () => {
   // This would typically be data fetched from an API
   const topCategory = {
     name: "Payroll",
     percentage: 38,
-    amount: "$28,687"
+    amount: 28687
   };
 
   return (
@@ -28,7 +29,7 @@ const TopExpenseCategoryCard = () => {
           </div>
         </div>
         <div className="mt-2 text-sm font-medium">
-          {topCategory.amount} this month
+          {formatCurrency(topCategory.amount)} this month
         </div>
       </CardContent>
     </Card>

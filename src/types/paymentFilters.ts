@@ -1,6 +1,6 @@
 
 import { DateRange } from "react-day-picker";
-import { ActiveFilter } from "@/components/payments/AppliedFilters";
+import { ActiveFilter } from "@/components/payments/payee-management/filters/AppliedFilters";
 
 export interface PaymentFiltersState {
   dateFilter: string;

@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { formatPaymentDate } from "@/utils/dateFormatting";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
@@ -67,9 +68,11 @@ const ReviewInvoiceStep = ({
     toast.success("Vendor saved for future use");
   };
   
+  // Use centralized date formatting - shows as "4 Oct 2025" format
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), "MMM dd, yyyy");
+      const date = new Date(dateString);
+      return format(date, "d MMM yyyy");
     } catch (error) {
       return dateString;
     }
@@ -265,7 +268,7 @@ const ReviewInvoiceStep = ({
                     )}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {formatDate(invoiceDetails.invoiceDate)}
+                    {formatDate(invoiceDetails.invoiceDate?.toString() || '')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -292,7 +295,7 @@ const ReviewInvoiceStep = ({
                     )}
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {formatDate(invoiceDetails.dueDate)}
+                    {formatDate(invoiceDetails.dueDate?.toString() || '')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -343,11 +346,11 @@ const ReviewInvoiceStep = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Invoice Date:</span>
-                  <span>{formatDate(invoiceDetails.invoiceDate)}</span>
+                  <span>{formatDate(invoiceDetails.invoiceDate?.toString() || '')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Due Date:</span>
-                  <span>{formatDate(invoiceDetails.dueDate)}</span>
+                  <span>{formatDate(invoiceDetails.dueDate?.toString() || '')}</span>
                 </div>
                 <div className="flex justify-between font-medium pt-2 border-t">
                   <span>Total Amount:</span>

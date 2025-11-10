@@ -39,7 +39,7 @@ const ConnectedIntegration = ({
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            Invoices will sync daily to show upcoming payables
+            Bills will sync daily to show upcoming payables
           </p>
           
           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
@@ -52,7 +52,7 @@ const ConnectedIntegration = ({
       <div className="flex items-center gap-3 mt-4 pt-4 border-t">
         <Button variant="outline" className="gap-1">
           <FileText className="h-4 w-4" />
-          View Synced Invoices
+          View Synced Bills
         </Button>
         <Button 
           variant="ghost" 

@@ -7,10 +7,16 @@ import Referrals from "@/components/network/Referrals";
 import { Button } from "@/components/ui/button";
 import { Send, Users } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const Network = () => {
   const [activeTab, setActiveTab] = useState<string>("transfers");
   const location = useLocation();
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Business Network");
+  }, [setTitle]);
   
   // Check if the location state contains a tab to activate
   useEffect(() => {
@@ -23,7 +29,6 @@ const Network = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Business Network</h1>
           <p className="text-muted-foreground">
             Extend value and influence across your business network
           </p>

@@ -2,9 +2,8 @@ import { Bell, LogOut, ChevronDown, Settings, Users, Star, Building, AlertCircle
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { mockBusinesses } from "@/data/mockBusinesses";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -18,34 +17,59 @@ import LogoutConfirmationDialog from "./LogoutConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useNotifications } from "@/hooks/use-notifications";
 import NotificationPopup from "./notifications/NotificationPopup";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { FeatureEnabled } from "./FeatureEnabled";
+import { useAuth } from "@/contexts/AuthContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 
 const TopNav = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { title } = usePageTitle();
+  const { user, logout: authLogout } = useAuth();
+  const { selectedBusiness, availableBusinesses, switchBusiness } = useBusiness();
+  
+  const hasMultipleBusinesses = availableBusinesses.length > 1;
   
   const {
     notifications,
     unreadCount,
     isOpen: notificationsOpen,
+    isLoading: notificationsLoading,
+    error: notificationsError,
     openNotifications,
     closeNotifications,
     markAsRead,
     markAllAsRead,
-    dismissNotification
+    dismissNotification,
+    fetchUnreadCount
   } = useNotifications();
+
+  // Fetch unread count when TopNav mounts and periodically
+  useEffect(() => {
+    // Initial fetch
+    fetchUnreadCount(true);
+
+    // Refresh count every 60 seconds
+    const intervalId = setInterval(() => {
+      fetchUnreadCount();
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+  }, [fetchUnreadCount]);
   
   const handleLogout = () => {
-    // Here you would implement actual logout logic
-    // For example: authService.logout();
-    
+    // TODO: This will call the actual backend logout API
+    authLogout();
+
     // Show success toast
     toast({
       title: "Logged out successfully",
       description: "You have been logged out of your account.",
     });
-    
+
     // Redirect to login page (or home page)
     navigate("/");
   };
@@ -53,67 +77,88 @@ const TopNav = () => {
   return (
     <header className="h-16 border-b border-border px-6 flex items-center justify-between z-20 bg-background/90 backdrop-blur-sm">
       <div className="flex-1">
-        <div className="peer-data-[state=collapsed]/sidebar:block hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
-                  <Building className="h-3.5 w-3.5 text-indigo-600" />
-                </div>
-                <span className="font-medium">ABC Company</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-60">
-              {mockBusinesses.map(business => (
-                <DropdownMenuItem key={business.id} className="flex items-center gap-2 py-2">
-                  <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
-                    <Building className="h-4 w-4 text-indigo-600" />
+        {title && (
+          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        )}
+        <div className={cn("peer-data-[state=collapsed]/sidebar:block", title ? "hidden" : "block")}>
+          {hasMultipleBusinesses ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
+                    <Building className="h-3.5 w-3.5 text-indigo-600" />
                   </div>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium">{business.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {business.status === "verified" ? 
+                  <span className="font-medium">
+                    {selectedBusiness ? selectedBusiness.name : "Loading..."}
+                  </span>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-60">
+                {availableBusinesses.map(business => (
+                  <DropdownMenuItem 
+                    key={business.bid} 
+                    className="flex items-center gap-2 py-2 cursor-pointer"
+                    onClick={() => switchBusiness(business.bid)}
+                  >
+                    <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
+                      <Building className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div className="flex flex-col items-start">
+                      <span className="text-sm font-medium">{business.name}</span>
+                      <span className="text-xs text-muted-foreground">
                         <span className="flex items-center gap-1 text-green-600">
                           <Check className="h-3 w-3" /> Verified
-                        </span> : 
-                        <span className="flex items-center gap-1 text-amber-600">
-                          <AlertCircle className="h-3 w-3" /> Pending
                         </span>
-                      }
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                      </span>
+                    </div>
+                    {selectedBusiness?.bid === business.bid && (
+                      <Check className="h-4 w-4 text-primary ml-auto" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded bg-indigo-100 flex items-center justify-center">
+                <Building className="h-3.5 w-3.5 text-indigo-600" />
+              </div>
+              <span className="font-medium">
+                {selectedBusiness ? selectedBusiness.name : "Loading..."}
+              </span>
+            </div>
+          )}
         </div>
       </div>
       
       <div className="flex items-center gap-3">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="gap-1.5 pr-3 hidden md:flex"
-          onClick={() => navigate('/rewards')}
-        >
-          <div className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-500/10">
-            <Star className="h-3.5 w-3.5 text-amber-500" />
-          </div>
-          <span className="font-medium">24,530</span>
-          <span className="text-xs text-muted-foreground">points</span>
-        </Button>
+        <FeatureEnabled featureFlag="REWARD_POINT_SYSTEM">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="gap-1.5 pr-3 hidden md:flex"
+            onClick={() => navigate('/rewards')}
+          >
+            <div className="flex items-center justify-center h-6 w-6 rounded-full bg-amber-500/10">
+              <Star className="h-3.5 w-3.5 text-amber-500" />
+            </div>
+            <span className="font-medium">{user?.rewardPoints?.toLocaleString() || "24,530"}</span>
+            <span className="text-xs text-muted-foreground">points</span>
+          </Button>
+        </FeatureEnabled>
         
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="relative"
           onClick={openNotifications}
         >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground animate-scale-in">
-              {unreadCount}
+            <span className="absolute top-1 right-1 flex h-2 w-2 rounded-full bg-primary">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
             </span>
           )}
         </Button>
@@ -125,13 +170,14 @@ const TopNav = () => {
               className="h-9 px-2 py-1.5 rounded-lg hover:bg-accent transition-colors"
             >
               <div className="flex items-center gap-2 cursor-pointer">
-                <Avatar className="h-7 w-7 transition-transform hover:scale-105">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm">JD</AvatarFallback>
-                </Avatar>
                 {!isMobile && (
                   <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium leading-none">John Doe</span>
-                    <span className="text-xs text-muted-foreground leading-tight">ABC Company</span>
+                    <span className="text-sm font-medium leading-none">
+                      {user?.name || "Arvind Mehta"}
+                    </span>
+                    <span className="text-xs text-muted-foreground leading-tight">
+                      {selectedBusiness ? selectedBusiness.name : "Loading..."}
+                    </span>
                   </div>
                 )}
                 <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />
@@ -153,13 +199,15 @@ const TopNav = () => {
               <Settings className="h-4 w-4 mr-2" />
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              className="flex items-center px-3 py-2 cursor-pointer"
-              onClick={() => navigate('/network', { state: { activeTab: "referrals" } })}
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Referrals
-            </DropdownMenuItem>
+            <FeatureEnabled featureFlag="REFERRAL_SYSTEM">
+              <DropdownMenuItem 
+                className="flex items-center px-3 py-2 cursor-pointer"
+                onClick={() => navigate('/network', { state: { activeTab: "referrals" } })}
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Referrals
+              </DropdownMenuItem>
+            </FeatureEnabled>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem 
               className="flex items-center px-3 py-2 cursor-pointer text-destructive hover:text-destructive focus:text-destructive"
@@ -185,6 +233,8 @@ const TopNav = () => {
         onMarkAllAsRead={markAllAsRead}
         onMarkAsRead={markAsRead}
         onDismiss={dismissNotification}
+        isLoading={notificationsLoading}
+        error={notificationsError}
       />
     </header>
   );

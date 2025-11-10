@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatPaymentDate } from "@/utils/dateFormatting";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Transaction } from "@/types/transaction";
 import { TransactionStatusBadge } from "@/components/transactions/TransactionStatusBadge";
@@ -26,7 +26,7 @@ export const TransactionTableRow = ({
         ₹{transaction.amount.toLocaleString()}
       </TableCell>
       <TableCell>
-        {format(new Date(transaction.date), 'dd MMM yyyy')}
+        {formatPaymentDate(transaction.date)}
       </TableCell>
       <TableCell>
         <TransactionStatusBadge status={transaction.status} />

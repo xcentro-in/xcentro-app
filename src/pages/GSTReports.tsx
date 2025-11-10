@@ -8,8 +8,16 @@ import { PaymentDetailsTable } from '@/components/gst-reports/PaymentDetailsTabl
 import { AlertsAndSuggestions } from '@/components/gst-reports/AlertsAndSuggestions';
 import { ForecastSection } from '@/components/gst-reports/ForecastSection';
 import { IndustryComparison } from '@/components/gst-reports/IndustryComparison';
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 const GSTReports = () => {
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("GST Reports");
+  }, [setTitle]);
+
   return (
     <div className="space-y-6">
       <PageHeader />

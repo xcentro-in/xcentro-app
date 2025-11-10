@@ -1,38 +1,48 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, AlertCircle, User, MapPin, FileText } from "lucide-react";
+import { Check, AlertCircle, User, Shield, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 interface ReviewDetailsFormProps {
   formData: {
     kyc: {
-      aadharNumber: string;
-      aadharFrontUrl: string;
-      aadharBackUrl: string;
-    };
-    contact: {
-      address: string;
-      city: string;
-      state: string;
-      country: string;
-      postalCode: string;
-      email: string;
-      phone: string;
-    };
-    profile: {
       name: string;
-      kycStatus: "pending" | "verified" | "rejected";
+      aadharNumber: string;
+      panNumber: string;
+      dateOfBirth: string;
+    };
+    role: {
+      role: string;
     };
   };
 }
 
+const getRoleLabel = (role: string): string => {
+  const labels: Record<string, string> = {
+    owner: 'Business Owner',
+    admin: 'Admin',
+    finance_manager: 'Approver',
+    accountant: 'Auditor'
+  };
+  return labels[role] || 'Not selected';
+};
+
+const getRoleDescription = (role: string): string => {
+  const descriptions: Record<string, string> = {
+    owner: 'Full super admin rights',
+    admin: 'Rights to make changes',
+    finance_manager: 'Approve expense payables',
+    accountant: 'View-only access'
+  };
+  return descriptions[role] || '';
+};
+
 const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
-  const isComplete = formData.kyc.aadharNumber && 
-                    formData.kyc.aadharFrontUrl &&
-                    formData.kyc.aadharBackUrl &&
-                    formData.contact.email &&
-                    formData.contact.phone &&
-                    formData.profile.name;
+  // Role is no longer required in the check since it's hardcoded to "owner"
+  const isComplete = formData.kyc.name &&
+                    formData.kyc.aadharNumber &&
+                    formData.kyc.panNumber &&
+                    formData.kyc.dateOfBirth;
 
   return (
     <div className="space-y-6">
@@ -66,39 +76,37 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
               <User className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-medium">{formData.profile.name || "Name not provided"}</h3>
-              <p className="text-sm text-muted-foreground">{formData.contact.email || "Email not provided"}</p>
+              <h3 className="text-lg font-medium">{formData.kyc.name || "Name not provided"}</h3>
             </div>
           </div>
 
           <Separator />
 
-          <div>
-            <h4 className="text-sm font-medium mb-3">Contact Details</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Address</p>
-                <p className="font-medium">{formData.contact.address || "Not provided"}</p>
+          {/* Role Selection Display - COMMENTED OUT (role is now hardcoded to "owner") */}
+          {/* <div>
+            <h4 className="text-sm font-medium mb-3">Selected Role</h4>
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-primary" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">City</p>
-                <p className="font-medium">{formData.contact.city || "Not provided"}</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{getRoleLabel(formData.role.role)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {getRoleDescription(formData.role.role)}
+                </p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">State</p>
-                <p className="font-medium">{formData.contact.state || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{formData.contact.phone || "Not provided"}</p>
-              </div>
+              {formData.role.role ? (
+                <Check className="h-4 w-4 text-green-600" />
+              ) : (
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+              )}
             </div>
           </div>
 
-          <Separator />
+          <Separator /> */}
 
           <div>
-            <h4 className="text-sm font-medium mb-3">KYC Documents</h4>
+            <h4 className="text-sm font-medium mb-3">KYC Information</h4>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
@@ -122,14 +130,29 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
                   <FileText className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium">Aadhar Documents</p>
+                  <p className="text-sm font-medium">PAN Number</p>
                   <p className="text-xs text-muted-foreground">
-                    {(formData.kyc.aadharFrontUrl && formData.kyc.aadharBackUrl) 
-                      ? "Both documents uploaded" 
-                      : "Documents missing"}
+                    {formData.kyc.panNumber || "Not provided"}
                   </p>
                 </div>
-                {(formData.kyc.aadharFrontUrl && formData.kyc.aadharBackUrl) ? (
+                {formData.kyc.panNumber ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-amber-600" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Date of Birth</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formData.kyc.dateOfBirth || "Not provided"}
+                  </p>
+                </div>
+                {formData.kyc.dateOfBirth ? (
                   <Check className="h-4 w-4 text-green-600" />
                 ) : (
                   <AlertCircle className="h-4 w-4 text-amber-600" />
@@ -143,8 +166,9 @@ const ReviewDetailsForm = ({ formData }: ReviewDetailsFormProps) => {
       <div className="rounded-lg border p-4 bg-muted/30">
         <h3 className="text-sm font-medium mb-2">What happens next?</h3>
         <p className="text-sm text-muted-foreground">
-          After submission, we'll verify your information and KYC documents. 
-          This typically takes 1-2 business days. You'll receive an email once your verification is complete.
+          After submission, your Aadhaar will be e-verified through UIDAI APIs 
+          and your PAN will be validated. This typically completes within minutes. 
+          You'll receive a confirmation once verification is complete.
         </p>
       </div>
     </div>

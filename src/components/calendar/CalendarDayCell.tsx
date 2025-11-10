@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { CalendarDay, CalendarEvent } from "@/types/calendar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getStatusColor, getMethodIcon } from "@/utils/calendarUtils";
+import { formatCurrency } from "@/utils/formatters";
 
 interface CalendarDayCellProps {
   day: CalendarDay;
@@ -58,7 +59,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
                   <span className="truncate">{filteredEvents[0].title}</span>
                 </div>
                 <div className="font-semibold mt-0.5 truncate">
-                  ${filteredEvents[0].amount.toLocaleString()}
+                  {formatCurrency(filteredEvents[0].amount)}
                 </div>
               </div>
             </TooltipTrigger>
@@ -66,7 +67,7 @@ const CalendarDayCell: React.FC<CalendarDayCellProps> = ({ day, filterType, onCl
               <div className="font-semibold mb-1">{filteredEvents[0].title}</div>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Amount:</span>
-                <span className="font-medium">${filteredEvents[0].amount.toLocaleString()}</span>
+                <span className="font-medium">{formatCurrency(filteredEvents[0].amount)}</span>
                 
                 <span className="text-muted-foreground">Method:</span>
                 <span className="font-medium">{filteredEvents[0].method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>

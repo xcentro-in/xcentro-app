@@ -15,6 +15,7 @@ export const mockPayees: Payee[] = [
     defaultPaymentMode: "bank",
     tags: ["vendor", "supplies"],
     createdAt: "2023-10-15",
+    updatedAt: "2023-10-15",
     isDefault: true,
   } as BankPayee,
   {
@@ -29,6 +30,7 @@ export const mockPayees: Payee[] = [
     defaultPaymentMode: "credit",
     tags: ["tech", "subscription"],
     createdAt: "2023-11-20",
+    updatedAt: "2023-11-20",
     isDefault: false,
   } as BankPayee,
   {
@@ -42,6 +44,7 @@ export const mockPayees: Payee[] = [
     billingCycle: "monthly",
     autoPayment: true,
     createdAt: "2023-09-05",
+    updatedAt: "2023-09-05",
     isDefault: true,
   } as BillerPayee,
   {
@@ -55,6 +58,7 @@ export const mockPayees: Payee[] = [
     billingCycle: "monthly",
     autoPayment: true,
     createdAt: "2023-08-12",
+    updatedAt: "2023-08-12",
     isDefault: false,
   } as BillerPayee,
   {
@@ -70,6 +74,7 @@ export const mockPayees: Payee[] = [
     salaryType: "fixed",
     payrollCycle: "monthly",
     createdAt: "2023-07-01",
+    updatedAt: "2023-07-01",
     isDefault: false,
   } as PayrollPayee,
   {
@@ -85,6 +90,7 @@ export const mockPayees: Payee[] = [
     salaryType: "variable",
     payrollCycle: "bi-weekly",
     createdAt: "2023-07-15",
+    updatedAt: "2023-07-15",
     isDefault: false,
   } as PayrollPayee,
 ];

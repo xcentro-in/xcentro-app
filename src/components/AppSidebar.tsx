@@ -4,7 +4,7 @@ import {
   SidebarContent,
 } from "@/components/ui/sidebar";
 import { SidebarHeader } from "./sidebar/SidebarHeader";
-import { SidebarMenu } from "./sidebar/SidebarMenu";
+import SidebarMenu from "./sidebar/SidebarMenu";
 import { SidebarFooter } from "./sidebar/SidebarFooter";
 
 const AppSidebar = () => {

@@ -8,6 +8,7 @@ export interface BasePayee {
   email: string;
   contactNumber: string;
   createdAt: string;
+  updatedAt: string;
   isDefault: boolean;
 }
 

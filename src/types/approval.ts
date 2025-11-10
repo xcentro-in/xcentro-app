@@ -1,27 +1,36 @@
 
-export type ApprovalStatus = 
-  | 'pending'    // Waiting for approval
-  | 'urgent'     // Needs immediate attention
-  | 'flagged'    // Marked for review
-  | 'approved'   // Transaction approved
-  | 'rejected'   // Transaction rejected
-  | 'changes_requested'; // Changes requested before approval
+export type ApprovalStatus = "pending" | "approved" | "rejected" | "request_changes";
 
-export type DateCategory = 'today' | 'yesterday' | 'this_week' | 'older';
-export type PaymentMethod = 'bank' | 'credit';
+export interface ApprovalHistoryEntry {
+  approvalId: string;
+  requesterUserId: string;
+  requesterName: string;
+  approverUserId: string;
+  approverName: string;
+  action: ApprovalStatus;
+  remarks: string;
+  createdAt: string; // ISO 8601 format
+}
 
 export interface ApprovalTransaction {
   id: string;
+  payee: string;
+  description: string;
+  amount: number;
+  date: string; // Assuming this is the transaction date
+  status: ApprovalStatus;
+  requestedBy: {
+    name: string;
+    role: string;
+  };
+  invoiceNumber: string;
+  dueDate: string;
+  category: string;
+  notes?: string;
+  paymentMethod: "credit" | "bank" | "wallet";
   initiatedBy: string;
   initiatorRole: string;
-  payee: string;
-  amount: number;
-  description: string;
   requestedDate: string;
-  status: ApprovalStatus;
-  dateCategory: DateCategory;
-  paymentMethod: PaymentMethod;
-  isRead: boolean;
-  isUrgent?: boolean;
-  notes?: string;
+  isRead?: boolean;
+  approvalHistory?: ApprovalHistoryEntry[]; // Chronological order from API
 }

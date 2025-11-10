@@ -4,24 +4,25 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import SinglePaymentForm from "@/components/payments/SinglePaymentForm";
-import BatchPaymentForm from "@/components/payments/BatchPaymentForm";
-import GSTPaymentForm from "@/components/payments/GSTPaymentForm";
-import CreditCardBillPaymentForm from "@/components/payments/CreditCardBillPaymentForm";
-import PayrollPaymentForm from "@/components/payments/PayrollPaymentForm";
-import PaymentCategorySelection from "@/components/payments/PaymentCategorySelection";
-import PayInvoice from "./PayInvoice";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import SinglePaymentForm from "@/components/payments/new-payment/quick-payment/SinglePaymentForm";
+import BatchPaymentForm from "@/components/payments/new-payment/batch-payment/BatchPaymentForm";
+import GSTPaymentForm from "@/components/payments/new-payment/gst-payment/GSTPaymentForm";
+import CreditCardBillPaymentForm from "@/components/payments/new-payment/credit-card-bill/CreditCardBillPaymentForm";
+import PayrollPaymentForm from "@/components/payments/new-payment/payroll/PayrollPaymentForm";
+import PaymentCategorySelection from "@/components/payments/new-payment/selection/PaymentCategorySelection";
+import InvoicePaymentForm from "@/components/payments/new-payment/invoice-payment/InvoicePaymentForm";
 import { useLocation, useNavigate } from "react-router-dom";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
 const steps = {
-  single: ["Details", "Payee", "Payment method", "Reward Top-Up", "Review"],
-  batch: ["Upload/Import", "Validate", "Payment method", "Reward Top-Up", "Review"],
+  single: ["Details & Payee", "Payment Method & Review"],
+  batch: ["Upload/Import", "Validate", "Payment Method & Review"],
   gst: ["Upload/Details", "Payment method", "Reward Top-Up", "Review"],
   creditcard: ["Bill Upload/Details", "Payment method", "Reward Top-Up", "Review"],
-  payroll: ["Entry Method", "Details", "Payment method", "Reward Top-Up", "Review"],
-  invoice: ["Upload Invoice", "Review Details", "Payment method", "Reward Top-Up", "Confirmation"]
+  payroll: ["Employee Selection", "Payment Method & Review"],
+  invoice: ["Invoice Selection", "Payment Method & Review"]
 };
 
 const paymentTitles = {
@@ -41,12 +42,13 @@ const paymentSubtitles = {
   gst: "Pay your GST taxes",
   creditcard: "Pay your credit card bills",
   payroll: "Process payroll for your employees",
-  invoice: "Upload and pay vendor invoices"
+  invoice: "Select and pay multiple vendor invoices"
 };
 
 const NewPayment = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
   const locationState = location.state as {
     paymentCategory?: PaymentCategory;
     paymentMethod?: string;
@@ -64,6 +66,16 @@ const NewPayment = () => {
     }
   }, [locationState]);
 
+  // Update page title when category changes
+  useEffect(() => {
+    setTitle(paymentTitles[paymentCategory]);
+    
+    // Clean up title when component unmounts
+    return () => {
+      setTitle('');
+    };
+  }, [paymentCategory, setTitle]);
+
   const handleCategorySelect = (category: PaymentCategory) => {
     setPaymentCategory(category);
     setStep(1);
@@ -80,29 +92,18 @@ const NewPayment = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">
-            {paymentTitles[paymentCategory]}
-          </h1>
-          <p className="text-muted-foreground mt-1 animate-slide-up" style={{
-            animationDelay: "50ms"
-          }}>
-            {paymentSubtitles[paymentCategory]}
-          </p>
-        </div>
-        
+      <div className="flex flex-col gap-4">
         {paymentCategory !== "selection" && (
           <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleReset} 
-            className="gap-2 animate-slide-down bg-lime-500 hover:bg-lime-400"
+            variant="ghost" 
+            className="w-fit pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-muted-foreground"
+            onClick={handleReset}
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Change payment type
           </Button>
         )}
+        
       </div>
 
       <Card className="animate-scale-in">
@@ -126,7 +127,7 @@ const NewPayment = () => {
               {paymentCategory === "gst" && <GSTPaymentForm onStepChange={setStep} />}
               {paymentCategory === "creditcard" && <CreditCardBillPaymentForm onStepChange={setStep} initialMethod={paymentMethod === "quick" ? "quick" : "upload"} />}
               {paymentCategory === "payroll" && <PayrollPaymentForm onStepChange={setStep} />}
-              {paymentCategory === "invoice" && <PayInvoice onStepChange={setStep} />}
+              {paymentCategory === "invoice" && <InvoicePaymentForm onStepChange={setStep} />}
             </>
           )}
         </CardContent>

@@ -1,6 +1,6 @@
 
 import { useNavigate } from "react-router-dom";
-import { Plus, ShoppingBag, Calendar } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import InsightCard from "@/components/dashboard/InsightCard";
@@ -9,19 +9,42 @@ import RewardStatus from "@/components/dashboard/RewardStatus";
 import QuickActions from "@/components/dashboard/QuickActions";
 import DashboardCalendarWidget from "@/components/calendar/DashboardCalendarWidget";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
-import RecentVendorsCard from "@/components/payments/RecentVendorsCard";
+import RecentVendorsCard from "@/components/payments/upcoming-payments/insights/RecentVendorsCard";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 import { mockCalendarTransactions } from "@/data/mockCalendarEvents";
 import TopExpenseCategoryCard from "@/components/dashboard/TopExpenseCategoryCard";
 import UpcomingLargePaymentsCard from "@/components/dashboard/UpcomingLargePaymentsCard";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { FeatureEnabled } from "@/components/FeatureEnabled"
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import EmptyStateDashboard from "@/components/dashboard/EmptyStateDashboard";
 
 const insights = [
-  { title: "Monthly Spend", value: "$75,493", change: 12.8, trend: "up" as const },
+  { title: "Monthly Spend", value: 75493, change: 12.8, trend: "up" as const },
 ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  
+  const { setTitle } = usePageTitle();
+  const { user } = useAuth();
+
+  // Check if we should show empty state
+  const showEmptyState =
+    user?.hasCompletedOnboarding === false ||
+    (!user?.hasAddedPaymentMethod && !user?.hasAddedVendor && !user?.hasCreatedFirstPayment);
+
+  useEffect(() => {
+    // TODO: This will be populated from backend after login
+    const userName = user?.name?.split(' ')[0] || 'User';
+
+    if (showEmptyState) {
+      setTitle(`Let's get started, ${userName}`);
+    } else {
+      setTitle(`Welcome back, ${userName}`);
+    }
+  }, [setTitle, user, showEmptyState]);
+
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(
     t => t.status === "pending" || t.status === "urgent" || t.status === "flagged"
@@ -31,6 +54,26 @@ const Dashboard = () => {
     t => t.status === "urgent"
   ).length;
   
+  // Show empty state for new users
+  if (showEmptyState) {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+          <div>
+            <Badge variant="outline" className="mb-2.5 px-3 py-1.5 text-xs font-medium bg-primary/5 border-primary/10 text-primary animate-fade-in">
+              Getting Started
+            </Badge>
+            <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+              Complete these steps to unlock your business finance dashboard
+            </p>
+          </div>
+        </div>
+        
+        <EmptyStateDashboard />
+      </div>
+    );
+  }
+  
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
@@ -38,7 +81,6 @@ const Dashboard = () => {
           <Badge variant="outline" className="mb-2.5 px-3 py-1.5 text-xs font-medium bg-primary/5 border-primary/10 text-primary animate-fade-in">
             Business Dashboard
           </Badge>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Welcome back, John</h1>
           <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
             Here's what's happening with your business finances today
           </p>
@@ -73,9 +115,11 @@ const Dashboard = () => {
         <div className="lg:col-span-1">
           <RecentTransactions />
         </div>
+        <FeatureEnabled featureFlag="REWARD_POINT_SYSTEM">
         <div className="lg:col-span-2">
           <RewardStatus />
         </div>
+        </FeatureEnabled>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">

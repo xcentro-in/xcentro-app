@@ -14,10 +14,19 @@ import BusinessesTab from "@/components/settings/BusinessesTab";
 import RewardsTab from "@/components/settings/RewardsTab";
 import UsersTab from "@/components/settings/UsersTab";
 import { cn } from "@/lib/utils";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
+import { FeatureFlagName } from "@/lib/featureFlags";
+import { FeatureEnabled } from "@/components/FeatureEnabled";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { setTitle } = usePageTitle();
+  
+  useEffect(() => {
+    setTitle("Settings");
+  }, [setTitle]);
 
   const tabItems = [
     { id: "account", label: "Account", icon: <User className="h-4 w-4" /> },
@@ -46,6 +55,11 @@ const Settings = () => {
     }
   };
 
+  const categoryFeatureFlags: Record<string, FeatureFlagName> = {
+    integration: 'ERP_INTEGRATION',
+    rewards: 'REWARD_POINT_SYSTEM',
+  } as const;
+
   return (
     <div className="h-full flex w-full flex-grow">
       {/* Left sidebar with tabs */}
@@ -57,22 +71,26 @@ const Settings = () => {
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
-          {tabItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-md transition-colors",
-                activeTab === item.id
-                  ? "bg-accent text-accent-foreground"
-                  : "text-muted-foreground hover:bg-accent/50",
-                sidebarCollapsed && "justify-center px-2"
-              )}
-            >
-              {item.icon}
-              {!sidebarCollapsed && item.label}
-            </button>
-          ))}
+          {tabItems.map((item) => {
+            const featureFlag = categoryFeatureFlags[item.id] || 'ALLOWED_FIELDS';
+            return(
+              <FeatureEnabled key={item.id} featureFlag={featureFlag}>
+              <button
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "w-full flex items-center gap-2 py-2 px-3 text-sm font-medium rounded-md transition-colors",
+                  activeTab === item.id
+                    ? "bg-accent text-accent-foreground"
+                    : "text-muted-foreground hover:bg-accent/50",
+                  sidebarCollapsed && "justify-center px-2"
+                )}
+              >
+                {item.icon}
+                {!sidebarCollapsed && item.label}
+              </button>
+              </FeatureEnabled>
+            )
+          })}
         </nav>
       </div>
 

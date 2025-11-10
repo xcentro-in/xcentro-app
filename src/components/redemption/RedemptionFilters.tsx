@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DateRangePicker } from "@/components/payments/DateRangePicker";
+import { DateRangePicker } from "@/components/payments/payee-management/filters/DateRangePicker";
 import { DateRange } from "react-day-picker";
 
 interface RedemptionFiltersProps {
