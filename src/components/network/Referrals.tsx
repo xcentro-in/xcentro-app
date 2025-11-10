@@ -19,7 +19,7 @@ const Referrals = () => {
       <div className="max-w-2xl">
         <h2 className="text-2xl font-semibold mb-2">Referrals</h2>
         <p className="text-muted-foreground">
-          Invite other businesses to join PaySphere and earn reward points.
+          Invite other businesses to join Xcentro and earn reward points.
         </p>
       </div>
       
