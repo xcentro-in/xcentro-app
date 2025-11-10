@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import { Invoice } from "@/data/mockInvoices";
 import BillsTable from "@/components/bills/BillsTable";
 import { useNavigate } from "react-router-dom";
@@ -8,12 +8,19 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useBills } from "@/hooks/useBills";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVoucherCounts } from "@/hooks/useVoucherCounts";
+import PaymentMethodAndReviewStep, { PaymentItem } from "@/components/payments/shared/PaymentMethodAndReviewStep";
+import { formatDueDate } from "@/utils/dateFormatting";
 
 const Bills = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const { user } = useAuth();
   const [searchValue, setSearchValue] = useState("");
+
+  // Payment view state
+  const [isPaymentView, setIsPaymentView] = useState(false);
+  const [selectedBillForPayment, setSelectedBillForPayment] = useState<Invoice | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
 
   // Bills data management
   const [billsFilters, setBillsFilters] = useState({
@@ -73,12 +80,37 @@ const Bills = () => {
   };
 
   const handlePayBill = async (billId: string) => {
-    try {
-      await payBill(billId);
-      // Success feedback could be added here
-      console.log('Bill paid successfully');
-    } catch (error) {
-      console.error('Failed to pay bill:', error);
+    // Find the bill from the bills list
+    const billToPay = bills.find(bill => bill.id === billId);
+    if (billToPay) {
+      setSelectedBillForPayment(billToPay);
+      setIsPaymentView(true);
+    }
+  };
+
+  const handleBackToBills = () => {
+    setIsPaymentView(false);
+    setSelectedBillForPayment(null);
+    setSelectedPaymentMethod("");
+  };
+
+  const handlePaymentSubmit = async () => {
+    if (selectedBillForPayment) {
+      try {
+        // Call the payBill function from the hook
+        await payBill(selectedBillForPayment.id);
+
+        // Refetch voucher counts to update the UI
+        refetchCounts();
+
+        // Return to bills view
+        handleBackToBills();
+
+        console.log('Bill paid successfully');
+      } catch (error) {
+        console.error('Failed to pay bill:', error);
+        // Error is already handled by the payment component
+      }
     }
   };
 
@@ -109,6 +141,58 @@ const Bills = () => {
     );
   }
 
+  // Prepare payment items when in payment view
+  const paymentItems: PaymentItem[] = selectedBillForPayment
+    ? [
+        {
+          id: selectedBillForPayment.id,
+          name: selectedBillForPayment.vendorName,
+          amount: selectedBillForPayment.amount,
+          description: `Invoice #${selectedBillForPayment.invoiceNumber}`,
+        },
+      ]
+    : [];
+
+  // If in payment view, render the payment component
+  if (isPaymentView && selectedBillForPayment) {
+    return (
+      <div className="h-full flex flex-col">
+        {/* Header with back button */}
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleBackToBills}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Bills
+            </Button>
+            <span className="text-lg font-semibold">Pay Bill</span>
+          </div>
+        </div>
+
+        {/* Payment Component */}
+        <div className="flex-1 overflow-auto p-6">
+          <PaymentMethodAndReviewStep
+            totalAmount={selectedBillForPayment.amount}
+            paymentItems={paymentItems}
+            summaryType="simple"
+            scheduleText={formatDueDate(selectedBillForPayment.dueDate)}
+            selectedPaymentMethod={selectedPaymentMethod}
+            onPaymentMethodChange={setSelectedPaymentMethod}
+            onBack={handleBackToBills}
+            onSubmit={handlePaymentSubmit}
+            additionalSummaryData={{
+              invoiceReference: selectedBillForPayment.invoiceNumber,
+              vendorName: selectedBillForPayment.vendorName,
+              gstin: selectedBillForPayment.gstin,
+            }}
+            paymentContext="vendor_payment"
+            voucherIds={[selectedBillForPayment.id]}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Default view: Bills table
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
