@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - mvp-docker
+      - staging-docker
 
 env:
   REGISTRY: ghcr.io
