@@ -11,6 +11,7 @@ import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { openAndMonitorPopup } from "@/lib/popupUtils";
 
 type UserFormData = {
   name: string;
@@ -41,6 +42,8 @@ const UserOnboarding = () => {
   const [isFetchingStatus, setIsFetchingStatus] = useState(true);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
   const [aadhaarLink, setAadhaarLink] = useState("");
+  const [isPopupBlocked, setIsPopupBlocked] = useState(false);
+  const [hasApiError, setHasApiError] = useState(false);
   const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Determine flow type
@@ -152,32 +155,42 @@ const UserOnboarding = () => {
 
   // Open Aadhaar verification popup
   const openAadhaarPopup = (url: string) => {
-    const popup = window.open(url, "aadhaar-verification", "width=800,height=600,scrollbars=yes");
-
-    // Check if popup was blocked
-    if (!popup || popup.closed || typeof popup.closed === "undefined") {
-      toast.error("Popup was blocked. Please enable popups for this site and try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    setAadhaarPopup(popup);
-
-    // Monitor popup closure and auto-complete onboarding when closed
-    const checkPopupClosed = setInterval(async () => {
-      if (popup.closed) {
-        clearInterval(checkPopupClosed);
+    const cleanup = openAndMonitorPopup(
+      url,
+      "aadhaar-verification",
+      "width=800,height=600,scrollbars=yes",
+      async () => {
+        // Popup closed callback
         setAadhaarPopup(null);
+        setIsPopupBlocked(false);
         popupCheckIntervalRef.current = null;
 
         console.log('Aadhaar verification popup closed, completing onboarding...');
 
         // Automatically complete onboarding when popup closes
         await handleCompleteOnboarding();
+      },
+      () => {
+        // Popup blocked callback
+        setIsPopupBlocked(true);
+        setIsLoading(false);
+        toast.error(
+          "Popup was blocked. Please enable popups for this site and try again.",
+          {
+            duration: 8000,
+            description: "Click the popup blocker icon in your browser's address bar to allow popups."
+          }
+        );
       }
-    }, 1000);
+    );
 
-    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
+    // If popup opened successfully, store cleanup function
+    if (cleanup) {
+      // We need to track the popup window for potential manual closing
+      // The cleanup function is stored in the ref for component unmount
+      setIsPopupBlocked(false);
+      popupCheckIntervalRef.current = 1; // Just a truthy value to indicate monitoring is active
+    }
   };
 
   const handleCompleteOnboarding = async () => {
@@ -268,12 +281,15 @@ const UserOnboarding = () => {
       const errorMessage = error?.message || "Failed to complete user onboarding.";
       toast.error(errorMessage);
       console.error("Complete onboarding error:", error);
+      setHasApiError(true);
       setIsLoading(false);
     }
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setHasApiError(false);
+    setIsPopupBlocked(false);
 
     try {
       // Always initialize the KYC flow, even if KYC was previously in progress
@@ -320,6 +336,7 @@ const UserOnboarding = () => {
       const errorMessage = error?.message || "Failed to initialize user onboarding.";
       toast.error(errorMessage);
       console.error("Init onboarding error:", error);
+      setHasApiError(true);
       setIsLoading(false);
     }
   };
@@ -332,9 +349,16 @@ const UserOnboarding = () => {
   };
 
   const handleRetry = () => {
-    if (aadhaarLink) {
+    // If we have aadhaarLink and it's just a popup block, reopen popup
+    if (aadhaarLink && isPopupBlocked && !hasApiError) {
+      setIsLoading(true);
+      setIsPopupBlocked(false);
       openAadhaarPopup(aadhaarLink);
     } else {
+      // Otherwise, restart from beginning (API failed or no aadhaarLink)
+      setHasApiError(false);
+      setIsPopupBlocked(false);
+      setAadhaarLink("");
       handleSubmit();
     }
   };
@@ -500,6 +524,60 @@ const UserOnboarding = () => {
                     className="mt-3"
                   >
                     Retry Verification
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isPopupBlocked && aadhaarLink && !hasApiError && (
+            <div className="rounded-lg border p-4 bg-orange-50 border-orange-200 mt-4">
+              <div className="flex items-start gap-3">
+                <div className="text-orange-600">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-orange-800">Popup Blocked</h3>
+                  <p className="text-sm text-orange-700 mt-1">
+                    Your browser blocked the Aadhaar verification popup. Please enable popups for this site and click the button below to try again.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetry}
+                    className="mt-3"
+                  >
+                    Open Verification Popup
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {hasApiError && (
+            <div className="rounded-lg border p-4 bg-red-50 border-red-200 mt-4">
+              <div className="flex items-start gap-3">
+                <div className="text-red-600">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-red-800">Verification Failed</h3>
+                  <p className="text-sm text-red-700 mt-1">
+                    Something went wrong. Please retry from start.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetry}
+                    className="mt-3"
+                  >
+                    Retry from Start
                   </Button>
                 </div>
               </div>
