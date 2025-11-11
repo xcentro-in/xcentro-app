@@ -16,4 +16,5 @@ export interface Payout {
     convenienceFee: number;
     gstOnFee: number;
   };
+  retryOfPaymentId: string | null; // ID of original payment if this is a retry attempt
 }

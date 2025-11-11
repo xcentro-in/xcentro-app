@@ -62,6 +62,41 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Pre-compute set of payment IDs that have already been retried (O(n) operation, done once)
+  const retriedPaymentIds = React.useMemo(() => {
+    return new Set(
+      payouts
+        .filter(p => p.retryOfPaymentId !== null)
+        .map(p => p.retryOfPaymentId as string)
+    );
+  }, [payouts]);
+
+  // Check if retry button should be shown for a payment (O(1) per call)
+  const shouldShowRetryButton = (payout: Payout): boolean => {
+    // Rule 1: Only show retry for failed payments
+    if (payout.status !== 'Failed') {
+      return false;
+    }
+
+    // Rule 2: Don't show retry for retry payments (only for originals)
+    if (payout.retryOfPaymentId !== null) {
+      return false;
+    }
+
+    // Rule 3: Check if this payment has already been retried (O(1) lookup)
+    if (retriedPaymentIds.has(payout.payoutId)) {
+      return false;
+    }
+
+    // Rule 4: Check 7-day window
+    const daysSincePayment = (Date.now() - new Date(payout.date).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSincePayment > 7) {
+      return false;
+    }
+
+    return true;
+  };
+
   const handleRowClick = (payoutId: string) => {
     setExpandedRowId(expandedRowId === payoutId ? null : payoutId);
   };
@@ -257,7 +292,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                               </div>
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
-                              {payout.status === "Failed" && (
+                              {shouldShowRetryButton(payout) && (
                                 <Button
                                   variant="outline"
                                   size="sm"
