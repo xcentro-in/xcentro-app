@@ -25,6 +25,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PayoutsTableProps {
   payouts: Payout[];
@@ -71,30 +72,32 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
     );
   }, [payouts]);
 
-  // Check if retry button should be shown for a payment (O(1) per call)
+  // Check if retry button should be shown for a payment
   const shouldShowRetryButton = (payout: Payout): boolean => {
-    // Rule 1: Only show retry for failed payments
-    if (payout.status !== 'Failed') {
-      return false;
-    }
+    // Only show retry button for failed payments
+    return payout.status === 'Failed';
+  };
 
-    // Rule 2: Don't show retry for retry payments (only for originals)
+  // Get the reason why retry is disabled, or null if retry is allowed (O(1) per call)
+  const getRetryDisabledReason = (payout: Payout): string | null => {
+    // Rule 1: Don't allow retry for retry payments (only for originals)
     if (payout.retryOfPaymentId !== null) {
-      return false;
+      return "This is a retry payment. Only original payments can be retried.";
     }
 
-    // Rule 3: Check if this payment has already been retried (O(1) lookup)
+    // Rule 2: Check if this payment has already been retried (O(1) lookup)
     if (retriedPaymentIds.has(payout.payoutId)) {
-      return false;
+      return "This payment has already been retried. Maximum 1 retry allowed.";
     }
 
-    // Rule 4: Check 7-day window
+    // Rule 3: Check 7-day window
     const daysSincePayment = (Date.now() - new Date(payout.date).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSincePayment > 7) {
-      return false;
+      return "Retry window expired. Payments can only be retried within 7 days.";
     }
 
-    return true;
+    // Retry is allowed
+    return null;
   };
 
   const handleRowClick = (payoutId: string) => {
@@ -293,15 +296,42 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                             </div>
                             <div className="flex justify-end gap-2 mt-4">
                               {shouldShowRetryButton(payout) && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
-                                  onClick={(e) => handleRetryPayment(payout.payoutId, e)}
-                                >
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Retry Payment
-                                </Button>
+                                <TooltipProvider>
+                                  {(() => {
+                                    const disabledReason = getRetryDisabledReason(payout);
+                                    const isDisabled = disabledReason !== null;
+
+                                    const retryButton = (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={(e) => handleRetryPayment(payout.payoutId, e)}
+                                        disabled={isDisabled}
+                                      >
+                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                        Retry Payment
+                                      </Button>
+                                    );
+
+                                    // If disabled, wrap in tooltip
+                                    if (isDisabled) {
+                                      return (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            {retryButton}
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p className="max-w-xs">{disabledReason}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      );
+                                    }
+
+                                    // If enabled, return button without tooltip
+                                    return retryButton;
+                                  })()}
+                                </TooltipProvider>
                               )}
                               <Button
                                 variant="outline"
