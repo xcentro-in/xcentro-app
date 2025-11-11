@@ -17,4 +17,6 @@ export interface Payout {
     gstOnFee: number;
   };
   retryOfPaymentId: string | null; // ID of original payment if this is a retry attempt
+  retryCount: number; // Number of times this payment has been retried
+  hasSuccessfulRetry: boolean; // Whether this payment has a successful retry
 }

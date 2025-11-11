@@ -63,34 +63,30 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Pre-compute set of payment IDs that have already been retried (O(n) operation, done once)
-  const retriedPaymentIds = React.useMemo(() => {
-    return new Set(
-      payouts
-        .filter(p => p.retryOfPaymentId !== null)
-        .map(p => p.retryOfPaymentId as string)
-    );
-  }, [payouts]);
-
   // Check if retry button should be shown for a payment
   const shouldShowRetryButton = (payout: Payout): boolean => {
     // Only show retry button for failed payments
     return payout.status === 'Failed';
   };
 
-  // Get the reason why retry is disabled, or null if retry is allowed (O(1) per call)
+  // Get the reason why retry is disabled, or null if retry is allowed
   const getRetryDisabledReason = (payout: Payout): string | null => {
     // Rule 1: Don't allow retry for retry payments (only for originals)
-    if (payout.retryOfPaymentId !== null) {
+    if (payout.retryOfPaymentId !== null && payout.retryOfPaymentId !== undefined) {
       return "This is a retry payment. Only original payments can be retried.";
     }
 
-    // Rule 2: Check if this payment has already been retried (O(1) lookup)
-    if (retriedPaymentIds.has(payout.payoutId)) {
+    // Rule 2: Check if this payment has already been successfully retried
+    if (payout.hasSuccessfulRetry) {
+      return "This payment has already been retried successfully.";
+    }
+
+    // Rule 3: Check if this payment has already been retried (max 1 retry)
+    if (payout.retryCount >= 1) {
       return "This payment has already been retried. Maximum 1 retry allowed.";
     }
 
-    // Rule 3: Check 7-day window
+    // Rule 4: Check 7-day window
     const daysSincePayment = (Date.now() - new Date(payout.date).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSincePayment > 7) {
       return "Retry window expired. Payments can only be retried within 7 days.";
