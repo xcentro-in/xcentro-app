@@ -295,20 +295,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     verified: boolean = true
   ): void => {
     if (!state.user) {
-      console.warn('Cannot update onboarding flag: no user');
       return;
     }
 
     // Only update if currently false (idempotent - never flip from true to false)
-    if (!state.user[flag]) {
-      if (verified) {
-        updateUser({ [flag]: true });
-        console.log(`✅ Optimistically updated ${flag} to true (operation verified)`);
-      } else {
-        console.warn(`⚠️ Skipping optimistic update for ${flag}: operation not verified`);
-      }
-    } else {
-      console.log(`ℹ️ Flag ${flag} already true, skipping update`);
+    if (!state.user[flag] && verified) {
+      updateUser({ [flag]: true });
     }
   };
 

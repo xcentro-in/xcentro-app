@@ -59,8 +59,6 @@ const WalletManagement = () => {
     if (!isLoading && !error && user) {
       // If flag is false BUT we have payment methods, optimistically update the flag
       if (!user.hasAddedPaymentMethod && hasPaymentMethods) {
-        const count = cards.length + bankAccounts.length;
-        console.log(`💳 Wallet verification: Found ${count} payment methods, updating hasAddedPaymentMethod flag`);
         optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
       }
     }

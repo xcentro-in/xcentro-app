@@ -33,7 +33,6 @@ const PaymentsTableContainer = () => {
     if (!isLoading && !error && user) {
       // If flag is false BUT we have payments, optimistically update the flag
       if (!user.hasCreatedFirstPayment && totalCount > 0) {
-        console.log(`💸 Payments verification: Found ${totalCount} payments, updating hasCreatedFirstPayment flag`);
         optimisticallyUpdateOnboardingFlag('hasCreatedFirstPayment', true);
       }
     }

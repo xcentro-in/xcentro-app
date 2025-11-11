@@ -70,7 +70,6 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     if (!isLoading && !error && user) {
       // If flag is false BUT we have payees, optimistically update the flag
       if (!user.hasAddedVendor && totalCount > 0) {
-        console.log(`📊 Payee list verification: Found ${totalCount} payees, updating hasAddedVendor flag`);
         optimisticallyUpdateOnboardingFlag('hasAddedVendor', true);
       }
     }
