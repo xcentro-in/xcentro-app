@@ -204,7 +204,9 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
           </TableHeader>
           <TableBody>
             {payouts.length > 0 ? (
-              payouts.map((payout) => (
+              payouts.map((payout) => {
+                // Ignore Lovable.dev data-lov-id warning - it's dev-only and doesn't affect production
+                return (
                 <React.Fragment key={payout.payoutId}>
                   <TableRow
                     onClick={() => handleRowClick(payout.payoutId)}
@@ -364,7 +366,8 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                     </TableRow>
                   ))}
                 </React.Fragment>
-              ))
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
