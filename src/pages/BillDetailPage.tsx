@@ -339,6 +339,9 @@ const BillDetailPage = () => {
   const [originalEditData, setOriginalEditData] = useState<EditFormData | null>(null); // Store original for change detection
   const [isSaving, setIsSaving] = useState(false);
 
+  // Approval state
+  const [isRequestingApproval, setIsRequestingApproval] = useState(false);
+
   useEffect(() => {
     setTitle(isEditMode ? "Edit Bill" : "Bill Details");
   }, [setTitle, isEditMode]);
@@ -639,6 +642,26 @@ const BillDetailPage = () => {
     }
   };
 
+  // Handle approval request
+  const handleRequestApproval = async () => {
+    if (!billId || !user?.businessId || !user?.id) return;
+
+    try {
+      setIsRequestingApproval(true);
+      await voucherAPI.approveVoucher(user.businessId, billId, user.id);
+      toast.success("Approval request sent successfully");
+
+      // Update local bill state to reflect pending approval
+      setBill(prevBill => prevBill ? { ...prevBill, approvalStatus: 'pending' } : null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to request approval';
+      toast.error(errorMessage);
+      console.error('Error requesting approval:', err);
+    } finally {
+      setIsRequestingApproval(false);
+    }
+  };
+
   // Save edited bill changes
   const handleSaveBillChanges = async () => {
     if (!editFormData || !originalEditData || !billId || !user?.businessId) return;
@@ -920,12 +943,12 @@ const BillDetailPage = () => {
             {user?.role !== 'owner' && (
               <Button
                 variant="default"
-                className="bg-green-600 hover:bg-green-700"
-                disabled={bill.approvalStatus === 'pending'}
-                onClick={() => {/* TODO: Handle approval request */}}
+                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
+                disabled={bill.approvalStatus === 'pending' || isRequestingApproval}
+                onClick={handleRequestApproval}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                {bill.approvalStatus === 'pending' ? 'Approval Pending' : 'Ask for Approval'}
+                {isRequestingApproval ? 'Requesting...' : bill.approvalStatus === 'pending' ? 'Pending for Approval' : 'Ask for Approval'}
               </Button>
             )}
 
