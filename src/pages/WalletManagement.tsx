@@ -16,10 +16,11 @@ import { canViewFeature } from "@/lib/featureFlags";
 const WalletManagement = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
-  const { user } = useAuth();
+  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const { cards, bankAccounts, isLoading, error } = useWallet();
 
   const showEmptyState = cards.length === 0 && bankAccounts.length === 0;
+  const hasPaymentMethods = cards.length > 0 || bankAccounts.length > 0;
 
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
@@ -52,6 +53,16 @@ const WalletManagement = () => {
   useEffect(() => {
     setTitle("Payment Sources");
   }, [setTitle]);
+
+  // Verification: Check if payment methods exist while flag is false, then flip flag
+  useEffect(() => {
+    if (!isLoading && !error && user) {
+      // If flag is false BUT we have payment methods, optimistically update the flag
+      if (!user.hasAddedPaymentMethod && hasPaymentMethods) {
+        optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
+      }
+    }
+  }, [isLoading, error, hasPaymentMethods, cards.length, bankAccounts.length, user, optimisticallyUpdateOnboardingFlag]);
 
   // TODO: Usage data not available in current API response
   // The following metadata fields are currently not available from the backend:

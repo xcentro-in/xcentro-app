@@ -20,7 +20,7 @@ interface ManualPayrollFormProps {
 }
 
 const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
-  const { user, refreshOnboardingStatus } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form fields
@@ -122,10 +122,8 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;
 
-      // Refresh onboarding status
-      await refreshOnboardingStatus();
-
       // Navigate immediately to document upload step
+      // Flag will be updated automatically when PayeeList renders and detects payees exist
       onEmployeeCreated({
         relation_id: employeeData.relation_id,
         payee_id: employeeData.payee_id,

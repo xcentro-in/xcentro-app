@@ -1,10 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CardContent } from "@/components/ui/card";
 import PayoutsTable from "./PayoutsTable";
 import { usePaymentList } from "@/hooks/usePaymentList";
+import { useAuth } from "@/contexts/AuthContext";
 
 const PaymentsTableContainer = () => {
+  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   // The state for filters and pagination
   const [dateRange, setDateRange] = useState<'last7days' | 'last30days' | 'last3months' | 'custom'>('last30days');
   const [customDateFrom, setCustomDateFrom] = useState<string>();
@@ -25,6 +27,16 @@ const PaymentsTableContainer = () => {
     limit: itemsPerPage,
     offset: offset,
   });
+
+  // Verification: Check if payments exist while flag is false, then flip flag
+  useEffect(() => {
+    if (!isLoading && !error && user) {
+      // If flag is false BUT we have payments, optimistically update the flag
+      if (!user.hasCreatedFirstPayment && totalCount > 0) {
+        optimisticallyUpdateOnboardingFlag('hasCreatedFirstPayment', true);
+      }
+    }
+  }, [isLoading, error, totalCount, user, optimisticallyUpdateOnboardingFlag]);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
