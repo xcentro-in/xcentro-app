@@ -73,9 +73,16 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
     navigate(`/payments/${payoutId}`);
   };
 
-  const handleBillClick = (billId: string) => {
-    // TODO: Implement navigation to individual bill details page
-    console.log(`Navigating to details for bill: ${billId}`);
+  const handleBillClick = (voucherId: string | undefined, billId: string, event: React.MouseEvent) => {
+    // Prevent row expansion when clicking bill link
+    event.stopPropagation();
+
+    if (voucherId) {
+      navigate(`/bills/${voucherId}`);
+    } else {
+      toast.error("Bill details not available");
+      console.error(`No voucher ID found for bill: ${billId}`);
+    }
   };
 
   // Cleanup popup interval on unmount
@@ -297,7 +304,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                             <div className="space-y-1">
                               {payout.breakdown.bills.map((bill) => (
                                 <div key={bill.billId} className="flex justify-between text-sm">
-                                  <Button variant="link" className="h-auto p-0 text-primary" onClick={() => handleBillClick(bill.billId)}>
+                                  <Button variant="link" className="h-auto p-0 text-primary" onClick={(e) => handleBillClick(bill.voucherId, bill.billId, e)}>
                                     Bill #{bill.billId}
                                   </Button>
                                   <span>{formatCurrency(bill.amount, true)}</span>
