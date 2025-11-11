@@ -1138,6 +1138,17 @@ class ApiService {
         },
         body: JSON.stringify(params),
       });
+    },
+    retryPayment: async (businessId: string, params: {
+      original_payment_id: string;
+    }) => {
+      return this.request('/process_payment/retry', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(params),
+      });
     }
   };
 

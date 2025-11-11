@@ -28,6 +28,9 @@ export interface PaymentListItemAPI {
   totalAmount: number; // Total amount in paise
   status: 'success' | 'pending' | 'failed' | 'processing';
   breakdown: PaymentListBreakdownAPI;
+  retryOfPaymentId: string | null; // ID of original payment if this is a retry
+  retryCount: number; // Number indicating which retry attempt this is (0 for original)
+  hasSuccessfulRetry: boolean; // Whether this payment has a successful retry
 }
 
 export interface PaymentListResponseAPI {
