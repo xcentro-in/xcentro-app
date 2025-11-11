@@ -52,6 +52,9 @@ const mapPaymentToPayout = (payment: PaymentListItemAPI): Payout => {
       convenienceFee: payment.breakdown.convenienceFee / 100, // Convert paise to rupees
       gstOnFee: payment.breakdown.gstOnFee / 100, // Convert paise to rupees
     },
+    retryOfPaymentId: payment.retryOfPaymentId,
+    retryCount: payment.retryCount,
+    hasSuccessfulRetry: payment.hasSuccessfulRetry,
   };
 };
 
