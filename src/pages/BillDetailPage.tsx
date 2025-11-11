@@ -943,12 +943,24 @@ const BillDetailPage = () => {
             {user?.role !== 'owner' && (
               <Button
                 variant="default"
-                className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-                disabled={bill.approvalStatus === 'pending' || isRequestingApproval}
+                className={
+                  bill.approvalStatus === 'approved'
+                    ? 'bg-blue-600 hover:bg-blue-600 cursor-not-allowed'
+                    : bill.approvalStatus === 'pending'
+                    ? 'bg-amber-500 hover:bg-amber-500 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
+                }
+                disabled={bill.approvalStatus === 'pending' || bill.approvalStatus === 'approved' || isRequestingApproval}
                 onClick={handleRequestApproval}
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                {isRequestingApproval ? 'Requesting...' : bill.approvalStatus === 'pending' ? 'Pending for Approval' : 'Ask for Approval'}
+                {isRequestingApproval
+                  ? 'Requesting...'
+                  : bill.approvalStatus === 'approved'
+                  ? 'Approved ✓'
+                  : bill.approvalStatus === 'pending'
+                  ? 'Pending for Approval'
+                  : 'Ask for Approval'}
               </Button>
             )}
 
