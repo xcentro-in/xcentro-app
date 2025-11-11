@@ -314,12 +314,15 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                                       </Button>
                                     );
 
-                                    // If disabled, wrap in tooltip
+                                    // If disabled, wrap button in span and apply tooltip to span
+                                    // (disabled elements don't fire pointer events)
                                     if (isDisabled) {
                                       return (
                                         <Tooltip>
                                           <TooltipTrigger asChild>
-                                            {retryButton}
+                                            <span className="inline-block">
+                                              {retryButton}
+                                            </span>
                                           </TooltipTrigger>
                                           <TooltipContent>
                                             <p className="max-w-xs">{disabledReason}</p>
