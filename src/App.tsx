@@ -38,6 +38,7 @@ import OnboardingChoice from "./pages/OnboardingChoice";
 import PendingApproval from "./pages/PendingApproval";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyEmail from "./pages/VerifyEmail";
+import PaymentProcessing from "./pages/PaymentProcessing";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -95,6 +96,11 @@ function App() {
               <Route path="/pending-approval" element={
                 <ProtectedRoute>
                   <PendingApproval />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment-processing" element={
+                <ProtectedRoute>
+                  <PaymentProcessing />
                 </ProtectedRoute>
               } />
 

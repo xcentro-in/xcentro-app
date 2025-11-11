@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,9 +67,6 @@ const PaymentMethodAndReviewStep = ({
   } = usePaymentSources();
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentPopup, setPaymentPopup] = useState<Window | null>(null);
-  const [paymentRedirectUrl, setPaymentRedirectUrl] = useState("");
-  const popupCheckIntervalRef = useRef<number | null>(null);
 
   // Support backward compatibility: if voucherId is provided, convert to array
   const vouchers = voucherIds || (voucherId ? [voucherId] : []);
@@ -113,15 +110,6 @@ const PaymentMethodAndReviewStep = ({
     }
   }, [user?.businessId, totalAmount, paymentContext, fetchPaymentSources]);
 
-  // Cleanup popup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (popupCheckIntervalRef.current) {
-        clearInterval(popupCheckIntervalRef.current);
-      }
-    };
-  }, []);
-
   // Get selected payment source details
   const selectedSource = selectedPaymentMethod
     ? getSourceById(selectedPaymentMethod)
@@ -140,37 +128,6 @@ const PaymentMethodAndReviewStep = ({
     const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
 
     return isMobile ? 'mobile' : 'web';
-  };
-
-  // Open payment redirect popup
-  const openPaymentPopup = (url: string) => {
-    const popup = window.open(url, "payment-verification", "width=800,height=600,scrollbars=yes");
-
-    // Check if popup was blocked
-    if (!popup || popup.closed || typeof popup.closed === "undefined") {
-      toast.error("Popup was blocked. Please enable popups for this site and try again.");
-      setIsProcessingPayment(false);
-      return;
-    }
-
-    setPaymentPopup(popup);
-
-    // Monitor popup closure and redirect to payment history when closed
-    const checkPopupClosed = setInterval(() => {
-      if (popup.closed) {
-        clearInterval(checkPopupClosed);
-        setPaymentPopup(null);
-        popupCheckIntervalRef.current = null;
-
-        console.log('Payment popup closed, redirecting to payment history...');
-
-        // Redirect to payment history page
-        toast.success("Payment processing complete! Redirecting to payment history...");
-        navigate('/payments');
-      }
-    }, 1000);
-
-    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
   };
 
   // Handle payment confirmation
@@ -213,12 +170,11 @@ const PaymentMethodAndReviewStep = ({
       // Extract redirect URL from response
       if (response.data?.redirect_url) {
         const redirectUrl = response.data.redirect_url;
-        setPaymentRedirectUrl(redirectUrl);
 
         toast.success("Payment initiated successfully!");
 
-        // Open payment popup with redirect URL
-        openPaymentPopup(redirectUrl);
+        // Navigate to payment processing page with redirect URL
+        navigate('/payment-processing', { state: { redirectUrl } });
       } else {
         // Fallback: if no redirect URL, show success and complete
         toast.success("Payment processed successfully!");
