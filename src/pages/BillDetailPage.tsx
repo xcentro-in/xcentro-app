@@ -916,6 +916,19 @@ const BillDetailPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Approval Button - Only shown for non-owner roles */}
+            {user?.role !== 'owner' && (
+              <Button
+                variant="default"
+                className="bg-green-600 hover:bg-green-700"
+                disabled={bill.approvalStatus === 'pending'}
+                onClick={() => {/* TODO: Handle approval request */}}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {bill.approvalStatus === 'pending' ? 'Approval Pending' : 'Ask for Approval'}
+              </Button>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
