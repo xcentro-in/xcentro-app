@@ -170,7 +170,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                       <div className="text-xs">{format(new Date(payout.date), "hh:mm a")}</div>
                     </TableCell>
                     <TableCell className="font-medium text-primary">
-                      {payout.payoutId}
+                      {payout.payoutId.substring(0, 8)}...
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{payout.payees[0]}</div>
@@ -222,9 +222,14 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                   {expandedRowId === payout.payoutId && (payout.breakdown ? (
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableCell colSpan={7}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                        <div className="p-4 space-y-4">
                           <div>
-                            <h4 className="font-semibold mb-2">Payees</h4>
+                            <h4 className="font-semibold mb-2">Payment ID</h4>
+                            <p className="text-sm font-mono text-muted-foreground">{payout.payoutId}</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-semibold mb-2">Payees</h4>
                             <ul className="list-disc list-inside text-sm text-muted-foreground">
                               {payout.payees.map((payee, index) => (
                                 <li key={index}>{payee}</li>
@@ -271,6 +276,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                                 View Details <ExternalLink className="ml-2 h-4 w-4" />
                               </Button>
                             </div>
+                          </div>
                           </div>
                         </div>
                       </TableCell>
