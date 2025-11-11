@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, BanknoteIcon, ExternalLink } from "lucide-react";
+import { CreditCard, BanknoteIcon, ExternalLink, RefreshCw } from "lucide-react";
 import TablePagination from "@/components/payee-history/TablePagination";
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/formatters";
@@ -203,7 +203,17 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                                 <span>{formatCurrency(payout.breakdown.gstOnFee, true)}</span>
                               </div>
                             </div>
-                            <div className="flex justify-end mt-4">
+                            <div className="flex justify-end gap-2 mt-4">
+                              {payout.status === "Failed" && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                                >
+                                  <RefreshCw className="mr-2 h-4 w-4" />
+                                  Retry Payment
+                                </Button>
+                              )}
                               <Button variant="outline" size="sm" onClick={() => handleViewDetails(payout.payoutId)}>
                                 View Details <ExternalLink className="ml-2 h-4 w-4" />
                               </Button>
