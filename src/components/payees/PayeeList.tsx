@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -47,7 +47,7 @@ interface PayeeListProps {
 
 const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
@@ -57,19 +57,29 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Show empty state if vendor has not been added (use AuthContext flag as ground truth)
-  // Don't fetch payees if no vendor has been added yet
-  if (!user?.hasAddedVendor) {
-    return <EmptyPayees onAddPayee={onAddPayee} />;
-  }
-
-  // Fetch payees using the hook with pagination - only called if hasAddedVendor is true
+  // Always fetch payees - verification logic will handle flag updates
   const { payees, totalCount, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees({
     page,
     page_size: pageSize,
     search: searchValue,
     typeFilter: typeFilter === 'all' ? undefined : typeFilter
   });
+
+  // Verification: Check if payees exist while flag is false, then flip flag
+  useEffect(() => {
+    if (!isLoading && !error && user) {
+      // If flag is false BUT we have payees, optimistically update the flag
+      if (!user.hasAddedVendor && totalCount > 0) {
+        console.log(`📊 Payee list verification: Found ${totalCount} payees, updating hasAddedVendor flag`);
+        optimisticallyUpdateOnboardingFlag('hasAddedVendor', true);
+      }
+    }
+  }, [isLoading, error, totalCount, user, optimisticallyUpdateOnboardingFlag]);
+
+  // Show empty state if NO payees exist (regardless of flag)
+  if (!isLoading && !error && totalCount === 0) {
+    return <EmptyPayees onAddPayee={onAddPayee} />;
+  }
 
   const handleSetDefault = async (id: string) => {
     try {

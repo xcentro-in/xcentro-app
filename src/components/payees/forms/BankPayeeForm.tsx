@@ -13,7 +13,7 @@ interface BankPayeeFormProps {
 }
 
 const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
-  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form fields
@@ -132,12 +132,8 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
           isFullyVerified: response.data?.is_fully_verified
         });
 
-        // Optimistically update hasAddedVendor flag
-        // Since API confirmed vendor was created, immediately update the flag
-        // Backend will sync the real value on page reload
-        optimisticallyUpdateOnboardingFlag('hasAddedVendor', true);
-
         // Call onSubmit callback after 2 seconds
+        // Flag will be updated automatically when PayeeList renders and detects vendors exist
         setTimeout(() => {
           onSubmit();
         }, 2000);

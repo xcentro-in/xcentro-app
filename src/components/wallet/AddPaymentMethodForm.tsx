@@ -31,17 +31,13 @@ interface AddPaymentMethodFormProps {
 }
 
 const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProps) => {
-  const { optimisticallyUpdateOnboardingFlag } = useAuth();
   const [currentTab, setCurrentTab] = useState<PaymentMethodType>("card");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     toast.success(`New payment method added successfully!`);
 
-    // Optimistically update hasAddedPaymentMethod flag
-    // Since payment method was successfully added (toast confirms), immediately update the flag
-    optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
-
+    // Flag will be updated automatically when WalletManagement renders and detects payment methods exist
     onPaymentMethodAdded();
   };
 
