@@ -22,6 +22,9 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/utils/formatters";
 import { Payout } from "@/types/payout";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { processPaymentAPI } from "@/services/api";
+import { toast } from "sonner";
 
 interface PayoutsTableProps {
   payouts: Payout[];
@@ -56,7 +59,11 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   onItemsPerPageChange,
 }) => {
   const [expandedRowId, setExpandedRowId] = React.useState<string | null>(null);
+  const [isRetryingPayment, setIsRetryingPayment] = React.useState(false);
+  const [paymentPopup, setPaymentPopup] = React.useState<Window | null>(null);
+  const popupCheckIntervalRef = React.useRef<number | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleRowClick = (payoutId: string) => {
     setExpandedRowId(expandedRowId === payoutId ? null : payoutId);
@@ -71,7 +78,109 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
     console.log(`Navigating to details for bill: ${billId}`);
   };
 
+  // Cleanup popup interval on unmount
+  React.useEffect(() => {
+    return () => {
+      if (popupCheckIntervalRef.current) {
+        clearInterval(popupCheckIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Open payment redirect popup
+  const openPaymentPopup = (url: string) => {
+    const popup = window.open(url, "payment-verification", "width=800,height=600,scrollbars=yes");
+
+    // Check if popup was blocked
+    if (!popup || popup.closed || typeof popup.closed === "undefined") {
+      toast.error("Popup was blocked. Please enable popups for this site and try again.");
+      setIsRetryingPayment(false);
+      return;
+    }
+
+    setPaymentPopup(popup);
+
+    // Monitor popup closure and redirect to payment history when closed
+    const checkPopupClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkPopupClosed);
+        setPaymentPopup(null);
+        popupCheckIntervalRef.current = null;
+
+        console.log('Payment popup closed, redirecting to payment history...');
+
+        // Redirect to payment history page
+        toast.success("Payment processing complete! Redirecting to payment history...");
+        navigate('/payments');
+      }
+    }, 1000);
+
+    popupCheckIntervalRef.current = checkPopupClosed as unknown as number;
+  };
+
+  // Handle retry payment
+  const handleRetryPayment = async (payoutId: string, event: React.MouseEvent) => {
+    // Prevent row expansion when clicking retry button
+    event.stopPropagation();
+
+    if (!user?.businessId) {
+      toast.error("Unable to process payment. Please try logging in again.");
+      return;
+    }
+
+    setIsRetryingPayment(true);
+
+    try {
+      // Make retry payment API call
+      const response = await processPaymentAPI.retryPayment(user.businessId, {
+        original_payment_id: payoutId
+      });
+
+      // Extract redirect URL from response
+      if (response.data?.redirect_url) {
+        const redirectUrl = response.data.redirect_url;
+
+        toast.success("Retry payment initiated successfully!");
+
+        // Open payment popup with redirect URL
+        openPaymentPopup(redirectUrl);
+      } else {
+        // Fallback: if no redirect URL, show success and complete
+        toast.success("Payment retry processed successfully!");
+        setIsRetryingPayment(false);
+        // Optionally refresh the page or update the payout status
+        navigate('/payments');
+      }
+    } catch (error) {
+      console.error("Retry payment error:", error);
+      toast.error("Payment retry failed", {
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+      setIsRetryingPayment(false);
+    }
+  };
+
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Show full-page loading state while payment is processing
+  if (isRetryingPayment) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">Processing Retry Payment</h3>
+            <p className="text-muted-foreground">Getting payment info...</p>
+            <p className="text-sm text-muted-foreground">
+              Please complete the payment verification in the popup window
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -209,12 +318,19 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                                   variant="outline"
                                   size="sm"
                                   className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
+                                  onClick={(e) => handleRetryPayment(payout.payoutId, e)}
+                                  disabled={isRetryingPayment}
                                 >
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Retry Payment
+                                  <RefreshCw className={`mr-2 h-4 w-4 ${isRetryingPayment ? 'animate-spin' : ''}`} />
+                                  {isRetryingPayment ? 'Retrying...' : 'Retry Payment'}
                                 </Button>
                               )}
-                              <Button variant="outline" size="sm" onClick={() => handleViewDetails(payout.payoutId)}>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewDetails(payout.payoutId)}
+                                disabled={isRetryingPayment}
+                              >
                                 View Details <ExternalLink className="ml-2 h-4 w-4" />
                               </Button>
                             </div>
