@@ -51,6 +51,7 @@ import {
   Building2,
   Calendar,
   CheckCircle,
+  Check,
   AlertCircle,
   AlertTriangle,
   Eye,
@@ -953,11 +954,15 @@ const BillDetailPage = () => {
                 disabled={bill.approvalStatus === 'pending' || bill.approvalStatus === 'approved' || isRequestingApproval}
                 onClick={handleRequestApproval}
               >
-                <CheckCircle className="h-4 w-4 mr-2" />
+                {bill.approvalStatus === 'approved' ? (
+                  <Check className="h-4 w-4 mr-2" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
                 {isRequestingApproval
                   ? 'Requesting...'
                   : bill.approvalStatus === 'approved'
-                  ? 'Approved ✓'
+                  ? 'Approved'
                   : bill.approvalStatus === 'pending'
                   ? 'Pending for Approval'
                   : 'Ask for Approval'}
