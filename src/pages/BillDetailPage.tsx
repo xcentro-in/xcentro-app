@@ -648,7 +648,7 @@ const BillDetailPage = () => {
 
     try {
       setIsRequestingApproval(true);
-      await voucherAPI.approveVoucher(user.businessId, billId, user.id);
+      await voucherAPI.requestApproval(user.businessId, billId, user.id);
       toast.success("Approval request sent successfully");
 
       // Update local bill state to reflect pending approval
