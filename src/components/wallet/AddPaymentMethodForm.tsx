@@ -31,16 +31,16 @@ interface AddPaymentMethodFormProps {
 }
 
 const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProps) => {
-  const { refreshOnboardingStatus } = useAuth();
+  const { optimisticallyUpdateOnboardingFlag } = useAuth();
   const [currentTab, setCurrentTab] = useState<PaymentMethodType>("card");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     toast.success(`New payment method added successfully!`);
 
-    // Refresh onboarding status to update hasAddedPaymentMethod flag
-    // Use retry logic to handle backend delay in updating flags
-    await refreshOnboardingStatus({ withRetry: true });
+    // Optimistically update hasAddedPaymentMethod flag
+    // Since payment method was successfully added (toast confirms), immediately update the flag
+    optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
 
     onPaymentMethodAdded();
   };

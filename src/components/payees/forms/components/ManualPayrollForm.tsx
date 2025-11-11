@@ -20,7 +20,7 @@ interface ManualPayrollFormProps {
 }
 
 const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
-  const { user, refreshOnboardingStatus } = useAuth();
+  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form fields
@@ -122,9 +122,9 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;
 
-      // Refresh onboarding status
-      // Use retry logic to handle backend delay in updating flags
-      await refreshOnboardingStatus({ withRetry: true });
+      // Optimistically update hasAddedVendor flag (employee is also a type of payee/vendor)
+      // Since API confirmed employee was created, immediately update the flag
+      optimisticallyUpdateOnboardingFlag('hasAddedVendor', true);
 
       // Navigate immediately to document upload step
       onEmployeeCreated({

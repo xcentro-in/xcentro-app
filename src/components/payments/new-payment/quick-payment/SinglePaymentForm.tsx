@@ -24,7 +24,7 @@ interface FormState {
 }
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
-  const { user, refreshOnboardingStatus } = useAuth();
+  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const { vendors } = useVendors(user?.businessId);
   const [step, setStep] = useState(1);
   const [paymentType, setPaymentType] = useState<PaymentType>("now");
@@ -220,9 +220,9 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
       description: "Your payment has been successfully processed.",
     });
 
-    // Refresh onboarding status to update hasCreatedFirstPayment flag
-    // Use retry logic to handle backend delay in updating flags
-    await refreshOnboardingStatus({ withRetry: true });
+    // Optimistically update hasCreatedFirstPayment flag
+    // Since payment was successfully processed (toast confirms), immediately update the flag
+    optimisticallyUpdateOnboardingFlag('hasCreatedFirstPayment', true);
   };
 
   // Map vendor to Payee type for compatibility with PaymentMethodAndReviewStep
