@@ -63,6 +63,16 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Pre-compute set of payment IDs that have been retried (client-side check)
+  // This is needed because backend's retryCount on original payment doesn't reflect retry existence
+  const retriedPaymentIds = React.useMemo(() => {
+    return new Set(
+      payouts
+        .filter(p => p.retryOfPaymentId !== null && p.retryOfPaymentId !== undefined)
+        .map(p => p.retryOfPaymentId as string)
+    );
+  }, [payouts]);
+
   // Check if retry button should be shown for a payment
   const shouldShowRetryButton = (payout: Payout): boolean => {
     // Only show retry button for failed payments
@@ -76,14 +86,15 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
       return "This is a retry payment. Only original payments can be retried.";
     }
 
-    // Rule 2: Check if this payment has already been successfully retried
-    if (payout.hasSuccessfulRetry) {
-      return "This payment has already been retried successfully.";
+    // Rule 2: Check if this payment has already been retried (client-side scan)
+    // Backend's retryCount on original doesn't reflect this, so we check the list
+    if (retriedPaymentIds.has(payout.payoutId)) {
+      return "This payment has already been retried. Maximum 1 retry allowed.";
     }
 
-    // Rule 3: Check if this payment has already been retried (max 1 retry)
-    if (payout.retryCount >= 1) {
-      return "This payment has already been retried. Maximum 1 retry allowed.";
+    // Rule 3: Check if this payment has a successful retry (backend field)
+    if (payout.hasSuccessfulRetry) {
+      return "This payment has already been retried successfully.";
     }
 
     // Rule 4: Check 7-day window
