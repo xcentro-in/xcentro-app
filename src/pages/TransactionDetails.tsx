@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical } from "lucide-react";
 import { PaymentDetails, PaymentStatus } from "@/types/payment";
-import { fetchPaymentDetails } from "@/lib/api";
+import { processPaymentAPI } from "@/services/api";
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -51,8 +51,15 @@ const TransactionDetails = () => {
         return;
       }
 
+      const businessId = localStorage.getItem('business-id');
+      if (!businessId) {
+        setError("Business ID not found");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetchPaymentDetails(id);
+        const response = await processPaymentAPI.getDetails(businessId, id);
         setPayment(response.data);
       } catch (err) {
         console.error("Error fetching payment details:", err);

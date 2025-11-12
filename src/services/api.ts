@@ -1080,6 +1080,14 @@ class ApiService {
 
   // Process Payment endpoints
   processPayment = {
+    getDetails: async (businessId: string, paymentId: string) => {
+      return this.request(`/process_payment/${paymentId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
     getPaymentSourcesWithFees: async (params: {
       business_id: string;
       payment_context: string;
