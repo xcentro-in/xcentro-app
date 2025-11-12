@@ -1,5 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical } from "lucide-react";
 import { PaymentDetails, PaymentStatus } from "@/types/payment";
@@ -38,6 +39,7 @@ const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
 
 const TransactionDetails = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [payment, setPayment] = useState<PaymentDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,15 +53,14 @@ const TransactionDetails = () => {
         return;
       }
 
-      const businessId = localStorage.getItem('business-id');
-      if (!businessId) {
-        setError("Business ID not found");
+      if (!user?.businessId) {
+        setError('Missing business ID');
         setLoading(false);
         return;
       }
 
       try {
-        const response = await processPaymentAPI.getDetails(businessId, id);
+        const response = await processPaymentAPI.getDetails(user.businessId, id);
         setPayment(response.data);
       } catch (err) {
         console.error("Error fetching payment details:", err);
