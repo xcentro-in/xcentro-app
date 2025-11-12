@@ -69,9 +69,9 @@ const TransactionsTable = ({
     }
   };
 
-  // Handle row click to navigate to transaction details
-  const handleRowClick = (transactionId: string) => {
-    navigate(`/payments/${transactionId}`);
+  // Handle row click to navigate to bill details
+  const handleRowClick = (voucherId: string) => {
+    navigate(`/bills/${voucherId}`);
   };
 
   return (
