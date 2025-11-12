@@ -162,73 +162,108 @@ const TransactionDetails = () => {
         </DropdownMenu>
       </div>
 
-      {/* Payment Header */}
-      <Card className="animate-fade-in">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold mb-2">Payment Details</h1>
-              <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                <span>Payment ID: {payment.payment_id}</span>
-                <button
-                  onClick={() => copyToClipboard(payment.payment_id, "Payment ID")}
-                  className="hover:text-primary transition-colors"
-                >
-                  <Copy className="h-4 w-4" />
-                </button>
+      {/* Payment Header and Activity Timeline */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
+        {/* Payment Details - Left Column */}
+        <Card className="lg:col-span-2">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold mb-2">Payment Details</h1>
+                <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                  <span>Payment ID: {payment.payment_id}</span>
+                  <button
+                    onClick={() => copyToClipboard(payment.payment_id, "Payment ID")}
+                    className="hover:text-primary transition-colors"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {format(new Date(payment.created_at), "MMMM d, yyyy 'at' h:mm a")}
+                </div>
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
-                {format(new Date(payment.created_at), "MMMM d, yyyy 'at' h:mm a")}
+              <PaymentStatusBadge status={payment.status} />
+            </div>
+
+            <Separator className="my-6" />
+
+            <div className="bg-muted/30 rounded-lg p-6">
+              <h3 className="text-sm font-medium text-muted-foreground mb-4">Amount Breakdown</h3>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Total</span>
+                  <span className="font-medium">
+                    {formatAmount(payment.net_amount, payment.currency)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">+ Service Charge</span>
+                  <span className="font-medium">
+                    {formatAmount(payment.service_charge, payment.currency)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-muted-foreground">+ GST on Service Charge</span>
+                  <span className="font-medium">
+                    {formatAmount(payment.service_charge_gst, payment.currency)}
+                  </span>
+                </div>
+
+                <Separator className="my-3" />
+
+                <div className="flex justify-between items-center pt-2">
+                  <span className="text-base font-semibold">Net Amount</span>
+                  <span className="text-3xl font-bold text-primary">
+                    {formatAmount(payment.total_amount, payment.currency)}
+                  </span>
+                </div>
               </div>
             </div>
-            <PaymentStatusBadge status={payment.status} />
-          </div>
 
-          <Separator className="my-6" />
-
-          <div className="bg-muted/30 rounded-lg p-6">
-            <h3 className="text-sm font-medium text-muted-foreground mb-4">Amount Breakdown</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Total</span>
-                <span className="font-medium">
-                  {formatAmount(payment.net_amount, payment.currency)}
-                </span>
+            {payment.description && (
+              <div className="mt-6">
+                <div className="text-sm text-muted-foreground">Description</div>
+                <p className="mt-1">{payment.description}</p>
               </div>
+            )}
+          </CardContent>
+        </Card>
 
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">+ Service Charge</span>
-                <span className="font-medium">
-                  {formatAmount(payment.service_charge, payment.currency)}
-                </span>
+        {/* Activity Timeline - Right Column */}
+        {payment.activity && payment.activity.length > 0 && (
+          <Card className="lg:col-span-1">
+            <CardContent className="p-6">
+              <h3 className="text-base font-semibold mb-4">Activity Timeline</h3>
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {payment.activity.map((activity, index) => (
+                  <div key={index} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                      </div>
+                      {index < payment.activity.length - 1 && (
+                        <div className="w-px flex-1 bg-border mt-2" />
+                      )}
+                    </div>
+                    <div className="flex-1 pb-4">
+                      <div className="font-medium text-sm">{activity.action}</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        By {activity.actor_name}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {format(new Date(activity.timestamp), "MMM d, yyyy 'at' h:mm a")}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">+ GST on Service Charge</span>
-                <span className="font-medium">
-                  {formatAmount(payment.service_charge_gst, payment.currency)}
-                </span>
-              </div>
-
-              <Separator className="my-3" />
-
-              <div className="flex justify-between items-center pt-2">
-                <span className="text-base font-semibold">Net Amount</span>
-                <span className="text-3xl font-bold text-primary">
-                  {formatAmount(payment.total_amount, payment.currency)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {payment.description && (
-            <div className="mt-6">
-              <div className="text-sm text-muted-foreground">Description</div>
-              <p className="mt-1">{payment.description}</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Payment Method Details */}
@@ -330,41 +365,6 @@ const TransactionDetails = () => {
           </div>
         </TransactionDetailCard>
       </div>
-
-      {/* Activity Timeline */}
-      {payment.activity && payment.activity.length > 0 && (
-        <TransactionDetailCard
-          title="Activity Timeline"
-          className="animate-fade-in"
-          style={{ animationDelay: "150ms" }}
-        >
-          <div className="p-6">
-            <div className="space-y-4">
-              {payment.activity.map((activity, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <CheckCircle2 className="h-4 w-4 text-primary" />
-                    </div>
-                    {index < payment.activity.length - 1 && (
-                      <div className="w-px h-full bg-border mt-2" />
-                    )}
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <div className="font-medium">{activity.action}</div>
-                    <div className="text-sm text-muted-foreground mt-1">
-                      By {activity.actor_name}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {format(new Date(activity.timestamp), "MMMM d, yyyy 'at' h:mm a")}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </TransactionDetailCard>
-      )}
     </div>
   );
 };
