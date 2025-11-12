@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical, Receipt } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical } from "lucide-react";
 import { PaymentDetails, PaymentStatus } from "@/types/payment";
 import { processPaymentAPI } from "@/services/api";
 import { format } from "date-fns";
@@ -137,10 +137,11 @@ const TransactionDetails = () => {
             <ArrowLeft className="h-4 w-4" />
             Back to Transactions
           </Button>
-          <Button variant="default" className="gap-2" onClick={handleGenerateInvoice}>
-            <Receipt className="h-4 w-4" />
-            Generate Invoice to Claim ITC
-          </Button>
+          {payment.status === "success" && (
+            <Button variant="default" onClick={handleGenerateInvoice}>
+              Generate Invoice to Claim ITC
+            </Button>
+          )}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
