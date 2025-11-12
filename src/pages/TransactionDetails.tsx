@@ -273,31 +273,14 @@ const TransactionDetails = () => {
           style={{ animationDelay: "50ms" }}
         >
           <div className="p-6 space-y-4">
-            <div>
-              <div className="text-sm text-muted-foreground">Method</div>
-              <div className="flex items-center gap-2 mt-1">
-                <CreditCard className="h-4 w-4 text-primary" />
-                <span className="font-medium capitalize">
-                  {payment.payment_method.replace("_", " ")}
-                </span>
-              </div>
-            </div>
-
-            <Separator />
-
             {payment.payment_source && (
               <>
-                <div>
-                  <div className="text-sm text-muted-foreground">Source Type</div>
-                  <div className="font-medium mt-1 capitalize">
-                    {payment.payment_source.source_type}
+                <div className="flex items-center gap-3">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <CreditCard className="h-6 w-6 text-primary" />
                   </div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-muted-foreground">Card Details</div>
-                  <div className="space-y-1 mt-1">
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <Badge variant="outline" className="capitalize">
                         {payment.payment_source.card_type}
                       </Badge>
@@ -305,11 +288,13 @@ const TransactionDetails = () => {
                         {payment.payment_source.card_category}
                       </Badge>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-lg font-semibold tracking-wider">
                       •••• {payment.payment_source.last_four_digits}
                     </div>
                   </div>
                 </div>
+
+                <Separator />
 
                 <div>
                   <div className="text-sm text-muted-foreground">Bank</div>
