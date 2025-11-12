@@ -2,7 +2,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical, Receipt } from "lucide-react";
 import { PaymentDetails, PaymentStatus } from "@/types/payment";
 import { processPaymentAPI } from "@/services/api";
 import { format } from "date-fns";
@@ -81,6 +81,10 @@ const TransactionDetails = () => {
     toast.success("Payment summary downloaded successfully");
   };
 
+  const handleGenerateInvoice = () => {
+    toast.success("Invoice generation initiated for ITC claim");
+  };
+
   const formatAmount = (amount: number, currency: string = "INR") => {
     const symbol = currency === "INR" ? "₹" : "$";
     const formattedAmount = (amount / 100).toLocaleString("en-IN", {
@@ -128,10 +132,16 @@ const TransactionDetails = () => {
   return (
     <div className="space-y-6 pb-12 print:p-6">
       <div className="flex items-center justify-between print:hidden">
-        <Button variant="ghost" className="gap-1" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-          Back to Transactions
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" className="gap-1" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+            Back to Transactions
+          </Button>
+          <Button variant="default" className="gap-2" onClick={handleGenerateInvoice}>
+            <Receipt className="h-4 w-4" />
+            Generate Invoice to Claim ITC
+          </Button>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="h-9 w-9">
@@ -176,28 +186,37 @@ const TransactionDetails = () => {
 
           <Separator className="my-6" />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <div className="text-sm text-muted-foreground">Net Amount</div>
-              <div className="text-2xl font-bold mt-1">
-                {formatAmount(payment.net_amount, payment.currency)}
+          <div className="bg-muted/30 rounded-lg p-6">
+            <h3 className="text-sm font-medium text-muted-foreground mb-4">Amount Breakdown</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Total</span>
+                <span className="font-medium">
+                  {formatAmount(payment.net_amount, payment.currency)}
+                </span>
               </div>
-            </div>
 
-            <div>
-              <div className="text-sm text-muted-foreground">Service Charges</div>
-              <div className="text-lg font-medium mt-1">
-                {formatAmount(payment.service_charge, payment.currency)}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">+ Service Charge</span>
+                <span className="font-medium">
+                  {formatAmount(payment.service_charge, payment.currency)}
+                </span>
               </div>
-              <div className="text-xs text-muted-foreground">
-                + GST: {formatAmount(payment.service_charge_gst, payment.currency)}
-              </div>
-            </div>
 
-            <div>
-              <div className="text-sm text-muted-foreground">Total Amount</div>
-              <div className="text-2xl font-bold text-primary mt-1">
-                {formatAmount(payment.total_amount, payment.currency)}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">+ GST on Service Charge</span>
+                <span className="font-medium">
+                  {formatAmount(payment.service_charge_gst, payment.currency)}
+                </span>
+              </div>
+
+              <Separator className="my-3" />
+
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-base font-semibold">Net Amount</span>
+                <span className="text-3xl font-bold text-primary">
+                  {formatAmount(payment.total_amount, payment.currency)}
+                </span>
               </div>
             </div>
           </div>
