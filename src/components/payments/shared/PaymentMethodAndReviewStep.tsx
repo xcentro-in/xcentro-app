@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -53,6 +54,7 @@ const PaymentMethodAndReviewStep = ({
   voucherIds,
   voucherId
 }: PaymentMethodAndReviewStepProps) => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     sources,
@@ -165,16 +167,25 @@ const PaymentMethodAndReviewStep = ({
       // Make payment API call
       const response = await processPaymentAPI.makeCardPayment(user.businessId, paymentPayload);
 
-      toast.success("Payment processed successfully!");
+      // Extract redirect URL from response
+      if (response.data?.redirect_url) {
+        const redirectUrl = response.data.redirect_url;
 
-      // Call parent's onSubmit callback for post-payment actions
-      onSubmit();
+        toast.success("Payment initiated successfully!");
+
+        // Navigate to payment processing page with redirect URL
+        navigate('/payment-processing', { state: { redirectUrl } });
+      } else {
+        // Fallback: if no redirect URL, show success and complete
+        toast.success("Payment processed successfully!");
+        setIsProcessingPayment(false);
+        onSubmit();
+      }
     } catch (error) {
       console.error("Payment error:", error);
       toast.error("Payment failed", {
         description: error instanceof Error ? error.message : "Please try again"
       });
-    } finally {
       setIsProcessingPayment(false);
     }
   };
@@ -290,6 +301,26 @@ const PaymentMethodAndReviewStep = ({
       </div>
     </div>
   );
+
+  // Show full-page loading state while payment is processing
+  if (isProcessingPayment) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
+          </div>
+          <div className="space-y-2">
+            <h3 className="text-xl font-semibold">Processing Payment</h3>
+            <p className="text-muted-foreground">Getting payment info...</p>
+            <p className="text-sm text-muted-foreground">
+              Please complete the payment verification in the popup window
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

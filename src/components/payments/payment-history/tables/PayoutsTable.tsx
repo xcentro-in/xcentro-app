@@ -16,11 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CreditCard, BanknoteIcon, ExternalLink } from "lucide-react";
+import { CreditCard, BanknoteIcon, ExternalLink, RefreshCw } from "lucide-react";
 import TablePagination from "@/components/payee-history/TablePagination";
 import { format } from "date-fns";
 import { formatCurrency } from "@/utils/formatters";
 import { Payout } from "@/types/payout";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { processPaymentAPI } from "@/services/api";
+import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface PayoutsTableProps {
   payouts: Payout[];
@@ -55,19 +60,108 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   onItemsPerPageChange,
 }) => {
   const [expandedRowId, setExpandedRowId] = React.useState<string | null>(null);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Pre-compute set of payment IDs that have been retried (client-side check)
+  // This is needed because backend's retryCount on original payment doesn't reflect retry existence
+  const retriedPaymentIds = React.useMemo(() => {
+    return new Set(
+      payouts
+        .filter(p => p.retryOfPaymentId !== null && p.retryOfPaymentId !== undefined)
+        .map(p => p.retryOfPaymentId as string)
+    );
+  }, [payouts]);
+
+  // Check if retry button should be shown for a payment
+  const shouldShowRetryButton = (payout: Payout): boolean => {
+    // Only show retry button for failed payments
+    return payout.status === 'Failed';
+  };
+
+  // Get the reason why retry is disabled, or null if retry is allowed
+  const getRetryDisabledReason = (payout: Payout): string | null => {
+    // Rule 1: Don't allow retry for retry payments (only for originals)
+    if (payout.retryOfPaymentId !== null && payout.retryOfPaymentId !== undefined) {
+      return "This is a retry payment. Only original payments can be retried.";
+    }
+
+    // Rule 2: Check if this payment has already been retried (client-side scan)
+    // Backend's retryCount on original doesn't reflect this, so we check the list
+    if (retriedPaymentIds.has(payout.payoutId)) {
+      return "This payment has already been retried. Maximum 1 retry allowed.";
+    }
+
+    // Rule 3: Check if this payment has a successful retry (backend field)
+    if (payout.hasSuccessfulRetry) {
+      return "This payment has already been retried successfully.";
+    }
+
+    // Rule 4: Check 7-day window
+    const daysSincePayment = (Date.now() - new Date(payout.date).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSincePayment > 7) {
+      return "Retry window expired. Payments can only be retried within 7 days.";
+    }
+
+    // Retry is allowed
+    return null;
+  };
 
   const handleRowClick = (payoutId: string) => {
     setExpandedRowId(expandedRowId === payoutId ? null : payoutId);
   };
 
   const handleViewDetails = (payoutId: string) => {
-    // TODO: Implement navigation to payout details page
-    console.log(`Navigating to details for payout: ${payoutId}`);
+    navigate(`/payments/${payoutId}`);
   };
 
-  const handleBillClick = (billId: string) => {
-    // TODO: Implement navigation to individual bill details page
-    console.log(`Navigating to details for bill: ${billId}`);
+  const handleBillClick = (voucherId: string | undefined, billId: string, event: React.MouseEvent) => {
+    // Prevent row expansion when clicking bill link
+    event.stopPropagation();
+
+    if (voucherId) {
+      navigate(`/bills/${voucherId}`);
+    } else {
+      toast.error("Bill details not available");
+      console.error(`No voucher ID found for bill: ${billId}`);
+    }
+  };
+
+  // Handle retry payment
+  const handleRetryPayment = async (payoutId: string, event: React.MouseEvent) => {
+    // Prevent row expansion when clicking retry button
+    event.stopPropagation();
+
+    if (!user?.businessId) {
+      toast.error("Unable to process payment. Please try logging in again.");
+      return;
+    }
+
+    try {
+      // Make retry payment API call
+      const response = await processPaymentAPI.retryPayment(user.businessId, {
+        original_payment_id: payoutId
+      });
+
+      // Extract redirect URL from response
+      if (response.data?.redirect_url) {
+        const redirectUrl = response.data.redirect_url;
+
+        toast.success("Retry payment initiated successfully!");
+
+        // Navigate to payment processing page with redirect URL
+        navigate('/payment-processing', { state: { redirectUrl } });
+      } else {
+        // Fallback: if no redirect URL, show success and complete
+        toast.success("Payment retry processed successfully!");
+        navigate('/payments');
+      }
+    } catch (error) {
+      console.error("Retry payment error:", error);
+      toast.error("Payment retry failed", {
+        description: error instanceof Error ? error.message : "Please try again"
+      });
+    }
   };
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -110,7 +204,9 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
           </TableHeader>
           <TableBody>
             {payouts.length > 0 ? (
-              payouts.map((payout) => (
+              payouts.map((payout) => {
+                // Ignore Lovable.dev data-lov-id warning - it's dev-only and doesn't affect production
+                return (
                 <React.Fragment key={payout.payoutId}>
                   <TableRow
                     onClick={() => handleRowClick(payout.payoutId)}
@@ -121,7 +217,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                       <div className="text-xs">{format(new Date(payout.date), "hh:mm a")}</div>
                     </TableCell>
                     <TableCell className="font-medium text-primary">
-                      {payout.payoutId}
+                      {payout.payoutId.substring(0, 8)}...
                     </TableCell>
                     <TableCell>
                       <div className="font-medium">{payout.payees[0]}</div>
@@ -173,9 +269,14 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                   {expandedRowId === payout.payoutId && (payout.breakdown ? (
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableCell colSpan={7}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                        <div className="p-4 space-y-4">
                           <div>
-                            <h4 className="font-semibold mb-2">Payees</h4>
+                            <h4 className="font-semibold mb-2">Payment ID</h4>
+                            <p className="text-sm font-mono text-muted-foreground">{payout.payoutId}</p>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <h4 className="font-semibold mb-2">Payees</h4>
                             <ul className="list-disc list-inside text-sm text-muted-foreground">
                               {payout.payees.map((payee, index) => (
                                 <li key={index}>{payee}</li>
@@ -187,7 +288,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                             <div className="space-y-1">
                               {payout.breakdown.bills.map((bill) => (
                                 <div key={bill.billId} className="flex justify-between text-sm">
-                                  <Button variant="link" className="h-auto p-0 text-primary" onClick={() => handleBillClick(bill.billId)}>
+                                  <Button variant="link" className="h-auto p-0 text-primary" onClick={(e) => handleBillClick(bill.voucherId, bill.billId, e)}>
                                     Bill #{bill.billId}
                                   </Button>
                                   <span>{formatCurrency(bill.amount, true)}</span>
@@ -202,11 +303,57 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                                 <span>{formatCurrency(payout.breakdown.gstOnFee, true)}</span>
                               </div>
                             </div>
-                            <div className="flex justify-end mt-4">
-                              <Button variant="outline" size="sm" onClick={() => handleViewDetails(payout.payoutId)}>
-                                View Payout Details <ExternalLink className="ml-2 h-4 w-4" />
+                            <div className="flex justify-end gap-2 mt-4">
+                              {shouldShowRetryButton(payout) && (
+                                <TooltipProvider>
+                                  {(() => {
+                                    const disabledReason = getRetryDisabledReason(payout);
+                                    const isDisabled = disabledReason !== null;
+
+                                    const retryButton = (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={(e) => handleRetryPayment(payout.payoutId, e)}
+                                        disabled={isDisabled}
+                                      >
+                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                        Retry Payment
+                                      </Button>
+                                    );
+
+                                    // If disabled, wrap button in span and apply tooltip to span
+                                    // (disabled elements don't fire pointer events)
+                                    if (isDisabled) {
+                                      return (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <span className="inline-block">
+                                              {retryButton}
+                                            </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p className="max-w-xs">{disabledReason}</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      );
+                                    }
+
+                                    // If enabled, return button without tooltip
+                                    return retryButton;
+                                  })()}
+                                </TooltipProvider>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewDetails(payout.payoutId)}
+                              >
+                                View Details <ExternalLink className="ml-2 h-4 w-4" />
                               </Button>
                             </div>
+                          </div>
                           </div>
                         </div>
                       </TableCell>
@@ -219,7 +366,8 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                     </TableRow>
                   ))}
                 </React.Fragment>
-              ))
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">

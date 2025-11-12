@@ -51,6 +51,7 @@ import {
   Building2,
   Calendar,
   CheckCircle,
+  Check,
   AlertCircle,
   AlertTriangle,
   Eye,
@@ -338,6 +339,9 @@ const BillDetailPage = () => {
   const [editFormData, setEditFormData] = useState<EditFormData | null>(null);
   const [originalEditData, setOriginalEditData] = useState<EditFormData | null>(null); // Store original for change detection
   const [isSaving, setIsSaving] = useState(false);
+
+  // Approval state
+  const [isRequestingApproval, setIsRequestingApproval] = useState(false);
 
   useEffect(() => {
     setTitle(isEditMode ? "Edit Bill" : "Bill Details");
@@ -639,6 +643,26 @@ const BillDetailPage = () => {
     }
   };
 
+  // Handle approval request
+  const handleRequestApproval = async () => {
+    if (!billId || !user?.businessId || !user?.id) return;
+
+    try {
+      setIsRequestingApproval(true);
+      await voucherAPI.requestApproval(user.businessId, billId, user.id);
+      toast.success("Approval request sent successfully");
+
+      // Update local bill state to reflect pending approval
+      setBill(prevBill => prevBill ? { ...prevBill, approvalStatus: 'pending' } : null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to request approval';
+      toast.error(errorMessage);
+      console.error('Error requesting approval:', err);
+    } finally {
+      setIsRequestingApproval(false);
+    }
+  };
+
   // Save edited bill changes
   const handleSaveBillChanges = async () => {
     if (!editFormData || !originalEditData || !billId || !user?.businessId) return;
@@ -916,6 +940,35 @@ const BillDetailPage = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Approval Button - Only shown for non-owner roles */}
+            {user?.role !== 'owner' && (
+              <Button
+                variant="default"
+                className={
+                  bill.approvalStatus === 'approved'
+                    ? 'bg-blue-600 hover:bg-blue-600 cursor-not-allowed'
+                    : bill.approvalStatus === 'pending'
+                    ? 'bg-amber-500 hover:bg-amber-500 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
+                }
+                disabled={bill.approvalStatus === 'pending' || bill.approvalStatus === 'approved' || isRequestingApproval}
+                onClick={handleRequestApproval}
+              >
+                {bill.approvalStatus === 'approved' ? (
+                  <Check className="h-4 w-4 mr-2" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {isRequestingApproval
+                  ? 'Requesting...'
+                  : bill.approvalStatus === 'approved'
+                  ? 'Approved'
+                  : bill.approvalStatus === 'pending'
+                  ? 'Pending for Approval'
+                  : 'Ask for Approval'}
+              </Button>
+            )}
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

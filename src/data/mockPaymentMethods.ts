@@ -29,7 +29,7 @@ export const mockPaymentMethods: PaymentMethod[] = [
   {
     id: "3",
     type: "bank",
-    accountHolderName: "PaySphere Ltd",
+    accountHolderName: "Xcentro Ltd",
     bankName: "HDFC Bank",
     lastFourDigits: "9876",
     ifscCode: "HDFC0001234",
@@ -54,7 +54,7 @@ export const mockPaymentMethods: PaymentMethod[] = [
   {
     id: "5",
     type: "upi",
-    upiId: "paysphere@icici",
+    upiId: "xcentro@icici",
     linkedBank: "ICICI Bank",
     isDefault: false,
     enabledForRecurring: true,

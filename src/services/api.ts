@@ -532,7 +532,9 @@ class ApiService {
       bid: string,
       businessType: string,
       pan?: string,
-      cin?: string
+      cin?: string,
+      businessModel?: string,
+      businessTurnover?: string
     ): Promise<{
       data: {
         bid: string;
@@ -553,6 +555,16 @@ class ApiService {
 
       if (cin) {
         body.cid = cin;
+      }
+
+      // Add business model if provided
+      if (businessModel) {
+        body.businessModel = businessModel;
+      }
+
+      // Add business turnover if provided
+      if (businessTurnover) {
+        body.businessTurnover = businessTurnover;
       }
 
       return this.request('/business/onboard/complete', {
@@ -1120,6 +1132,17 @@ class ApiService {
       };
     }) => {
       return this.request('/process_payment/make_payment', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(params),
+      });
+    },
+    retryPayment: async (businessId: string, params: {
+      original_payment_id: string;
+    }) => {
+      return this.request('/process_payment/retry', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,

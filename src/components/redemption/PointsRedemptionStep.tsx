@@ -140,7 +140,7 @@ const PointsRedemptionStep: React.FC<PointsRedemptionStepProps> = ({
           <div className="flex items-center justify-center gap-10 p-6">
             <div className="text-center">
               <div className="text-4xl font-bold">{pointsToRedeem.toLocaleString()}</div>
-              <div className="text-sm text-muted-foreground mt-1">PaySphere Points</div>
+              <div className="text-sm text-muted-foreground mt-1">Xcentro Points</div>
             </div>
             <div className="text-primary">
               <ArrowRight className="h-8 w-8" />
@@ -154,7 +154,7 @@ const PointsRedemptionStep: React.FC<PointsRedemptionStepProps> = ({
           </div>
           
           <div className="bg-white/80 dark:bg-black/20 p-3 text-center text-sm text-muted-foreground">
-            Conversion Rate: 1 PaySphere Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
+            Conversion Rate: 1 Xcentro Point = {selectedPartner?.conversionRatio} {selectedPartner?.name} Points
           </div>
         </div>
       </div>

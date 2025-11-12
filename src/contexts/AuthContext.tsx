@@ -18,6 +18,10 @@ interface AuthContextType extends AuthState {
   userRoles: UserRole[];
   fetchUserProfile: () => Promise<void>;
   refreshOnboardingStatus: () => Promise<void>;
+  optimisticallyUpdateOnboardingFlag: (
+    flag: 'hasAddedPaymentMethod' | 'hasAddedVendor' | 'hasCreatedFirstPayment',
+    verified?: boolean
+  ) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -278,6 +282,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  /**
+   * Optimistically update onboarding flag without waiting for backend
+   * Only updates from false -> true (idempotent, safe)
+   * Backend will sync the real value on page reload
+   *
+   * @param flag - The onboarding flag to update
+   * @param verified - Optional: whether the operation was verified (e.g., checking list count)
+   */
+  const optimisticallyUpdateOnboardingFlag = (
+    flag: 'hasAddedPaymentMethod' | 'hasAddedVendor' | 'hasCreatedFirstPayment',
+    verified: boolean = true
+  ): void => {
+    if (!state.user) {
+      return;
+    }
+
+    // Only update if currently false (idempotent - never flip from true to false)
+    if (!state.user[flag] && verified) {
+      updateUser({ [flag]: true });
+    }
+  };
+
   // Initialize auth state on mount - check for existing session
   useEffect(() => {
     const initAuth = async () => {
@@ -335,6 +361,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     userRoles,
     fetchUserProfile,
     refreshOnboardingStatus,
+    optimisticallyUpdateOnboardingFlag,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
