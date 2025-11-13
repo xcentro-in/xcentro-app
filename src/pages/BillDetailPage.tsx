@@ -1886,23 +1886,36 @@ const BillDetailPage = () => {
                         )}
 
                         {/* Payout Information */}
-                        {paymentData.payout_utr && (
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">
-                              Payout UTR
-                              <span className="text-xs text-muted-foreground block">
-                                (Visible in payee's bank statement)
-                              </span>
-                            </p>
-                            <p className="font-mono font-medium">{paymentData.payout_utr}</p>
-                          </div>
-                        )}
+                        {paymentData.payout_utr && paymentData.payout_completed_at ? (
+                          <>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Payout UTR
+                                <span className="text-xs text-muted-foreground block">
+                                  (Visible in payee's bank statement)
+                                </span>
+                              </p>
+                              <p className="font-mono font-medium">{paymentData.payout_utr}</p>
+                            </div>
 
-                        {paymentData.payout_completed_at && (
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Payout Completed At</p>
+                              <p className="font-medium">
+                                {format(new Date(paymentData.payout_completed_at), 'MMM d, yyyy h:mm a')}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
                           <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Payout Completed At</p>
-                            <p className="font-medium">
-                              {format(new Date(paymentData.payout_completed_at), 'MMM d, yyyy h:mm a')}
+                            <p className="text-sm text-muted-foreground">Payout Status</p>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Payout Pending
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Payment collected. Payout to payee will be processed shortly.
                             </p>
                           </div>
                         )}
