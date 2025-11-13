@@ -1850,7 +1850,9 @@ const BillDetailPage = () => {
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment Method</p>
                           <p className="font-medium capitalize">
-                            {paymentData.payment_method.replace(/_/g, ' ')}
+                            {paymentData.payment_method.includes('card')
+                              ? 'Card'
+                              : paymentData.payment_method.replace(/_/g, ' ')}
                           </p>
                         </div>
 
