@@ -1843,20 +1843,6 @@ const BillDetailPage = () => {
                         </div>
 
                         <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Voucher Number</p>
-                          <p className="font-mono font-medium">{paymentData.voucher_number}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Payment Method</p>
-                          <p className="font-medium capitalize">
-                            {paymentData.payment_method.includes('card')
-                              ? 'Card'
-                              : paymentData.payment_method.replace(/_/g, ' ')}
-                          </p>
-                        </div>
-
-                        <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment Date</p>
                           <p className="font-medium">
                             {format(new Date(paymentData.payment_date), 'MMM d, yyyy h:mm a')}
@@ -1883,7 +1869,7 @@ const BillDetailPage = () => {
                               )}
                             </p>
                           </div>
-                        )}
+                        )}                        
 
                         {/* Payout Information */}
                         {paymentData.payout_utr && paymentData.payout_completed_at ? (
@@ -1915,7 +1901,7 @@ const BillDetailPage = () => {
                               </Badge>
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Payment collected. Payout to payee will be processed shortly.
+                              Payee yet to recieve amount
                             </p>
                           </div>
                         )}
@@ -1936,7 +1922,7 @@ const BillDetailPage = () => {
                             <>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
-                                  Convenience Fee ({paymentData.convenience_fee_rate})
+                                  Convenience Fee
                                 </span>
                                 <span className="font-medium">{formatCurrency(paymentData.convenience_fee / 100)}</span>
                               </div>
@@ -1946,11 +1932,6 @@ const BillDetailPage = () => {
                                 </span>
                                 <span className="font-medium">{formatCurrency(paymentData.gst_on_fee / 100)}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Total Fee Amount</span>
-                                <span className="font-medium">{formatCurrency(paymentData.total_fee_amount / 100)}</span>
-                              </div>
-                              <Separator />
                             </>
                           )}
 
@@ -1961,23 +1942,6 @@ const BillDetailPage = () => {
                         </div>
                       </div>
 
-                      {/* Payment Receipt Button */}
-                      <div className="flex justify-end pt-2">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Receipt
-                        </Button>
-                      </div>
-
-                      {paymentData.description && (
-                        <>
-                          <Separator />
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-sm">Description</h3>
-                            <p className="text-sm text-muted-foreground">{paymentData.description}</p>
-                          </div>
-                        </>
-                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12">
