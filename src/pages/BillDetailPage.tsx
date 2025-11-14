@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -1834,22 +1834,12 @@ const BillDetailPage = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1">
                           <p className="text-sm text-muted-foreground">Payment ID</p>
-                          <p className="font-mono font-medium text-sm">{paymentData.payment_id}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Voucher Number</p>
-                          <p className="font-mono font-medium">{paymentData.voucher_number}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Payment Gateway</p>
-                          <p className="font-medium capitalize">{paymentData.gateway_used}</p>
-                        </div>
-
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Payment Method</p>
-                          <p className="font-medium capitalize">{paymentData.payment_method}</p>
+                          <Link
+                            to={`/payments/${paymentData.payment_id}`}
+                            className="font-mono font-medium text-sm text-primary hover:underline"
+                          >
+                            {paymentData.payment_id}
+                          </Link>
                         </div>
 
                         <div className="space-y-1">
@@ -1859,59 +1849,60 @@ const BillDetailPage = () => {
                           </p>
                         </div>
 
-                        {paymentData.payment_source_type === 'card' && paymentData.last_four_digits && (
+                        {/* Card/Bank Details - show if available */}
+                        {(paymentData.card_type || paymentData.last_four_digits || paymentData.bank_name) && (
                           <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Card Details</p>
+                            <p className="text-sm text-muted-foreground">
+                              {paymentData.card_type ? 'Card Details' : 'Bank Details'}
+                            </p>
                             <p className="font-medium">
-                              {paymentData.card_type?.toUpperCase()} {paymentData.card_category} •••• {paymentData.last_four_digits}
+                              {paymentData.card_type && (
+                                <>
+                                  {paymentData.card_type.toUpperCase()} {paymentData.card_category}{' '}
+                                </>
+                              )}
+                              {paymentData.last_four_digits && (
+                                <>•••• {paymentData.last_four_digits}</>
+                              )}
+                              {paymentData.bank_name && (
+                                <>{paymentData.last_four_digits ? ' - ' : ''}{paymentData.bank_name}</>
+                              )}
                             </p>
                           </div>
-                        )}
+                        )}                        
 
-                        {paymentData.gateway_payment_id && (
+                        {/* Payout Information */}
+                        {paymentData.payout_utr && paymentData.payout_completed_at ? (
+                          <>
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">
+                                Payout UTR
+                                <span className="text-xs text-muted-foreground block">
+                                  (Visible in payee's bank statement)
+                                </span>
+                              </p>
+                              <p className="font-mono font-medium">{paymentData.payout_utr}</p>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="text-sm text-muted-foreground">Payout Completed At</p>
+                              <p className="font-medium">
+                                {format(new Date(paymentData.payout_completed_at), 'MMM d, yyyy h:mm a')}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
                           <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Gateway Payment ID</p>
-                            <p className="font-mono font-medium text-sm">{paymentData.gateway_payment_id}</p>
-                          </div>
-                        )}
-
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">Settlement Status</p>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className={
-                              paymentData.settlement_status === 'settled'
-                                ? 'bg-green-100 text-green-800 border-green-200'
-                                : paymentData.settlement_status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
-                                : 'bg-red-100 text-red-800 border-red-200'
-                            }>
-                              {paymentData.settlement_status === 'settled' && <CheckCircle className="h-3 w-3 mr-1" />}
-                              {paymentData.settlement_status === 'pending' && <Clock className="h-3 w-3 mr-1" />}
-                              {paymentData.settlement_status.charAt(0).toUpperCase() + paymentData.settlement_status.slice(1)}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {paymentData.settlement_utr && (
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Settlement UTR</p>
-                            <p className="font-mono font-medium">{paymentData.settlement_utr}</p>
-                          </div>
-                        )}
-
-                        {paymentData.settled_at && (
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Settled At</p>
-                            <p className="font-medium">
-                              {format(new Date(paymentData.settled_at), 'MMM d, yyyy h:mm a')}
+                            <p className="text-sm text-muted-foreground">Payout Status</p>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Payout Pending
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Payee yet to recieve amount
                             </p>
-                          </div>
-                        )}
-
-                        {paymentData.settlement_reference_id && (
-                          <div className="space-y-1">
-                            <p className="text-sm text-muted-foreground">Settlement Reference</p>
-                            <p className="font-mono font-medium text-sm">{paymentData.settlement_reference_id}</p>
                           </div>
                         )}
                       </div>
@@ -1931,7 +1922,7 @@ const BillDetailPage = () => {
                             <>
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
-                                  Convenience Fee ({paymentData.convenience_fee_rate})
+                                  Convenience Fee
                                 </span>
                                 <span className="font-medium">{formatCurrency(paymentData.convenience_fee / 100)}</span>
                               </div>
@@ -1941,11 +1932,6 @@ const BillDetailPage = () => {
                                 </span>
                                 <span className="font-medium">{formatCurrency(paymentData.gst_on_fee / 100)}</span>
                               </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Total Fee Amount</span>
-                                <span className="font-medium">{formatCurrency(paymentData.total_fee_amount / 100)}</span>
-                              </div>
-                              <Separator />
                             </>
                           )}
 
@@ -1956,60 +1942,6 @@ const BillDetailPage = () => {
                         </div>
                       </div>
 
-                      {/* Settlement Information */}
-                      {(paymentData.settlement_amount > 0 || paymentData.mdr_amount > 0) && (
-                        <>
-                          <Separator />
-                          <div className="space-y-3">
-                            <h3 className="font-semibold text-sm">Settlement Information</h3>
-                            <div className="space-y-2 text-sm">
-                              {paymentData.settlement_amount > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">Settlement Amount</span>
-                                  <span className="font-medium">{formatCurrency(paymentData.settlement_amount / 100)}</span>
-                                </div>
-                              )}
-
-                              {paymentData.mdr_amount > 0 && (
-                                <div className="flex justify-between">
-                                  <span className="text-muted-foreground">
-                                    MDR Charges {paymentData.mdr_rate && `(${paymentData.mdr_rate})`}
-                                  </span>
-                                  <span className="font-medium text-red-600">- {formatCurrency(paymentData.mdr_amount / 100)}</span>
-                                </div>
-                              )}
-
-                              {paymentData.net_settlement_amount > 0 && (
-                                <>
-                                  <Separator />
-                                  <div className="flex justify-between text-base font-semibold">
-                                    <span>Net Settlement Amount</span>
-                                    <span className="text-primary">{formatCurrency(paymentData.net_settlement_amount / 100)}</span>
-                                  </div>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      )}
-
-                      {/* Payment Receipt Button */}
-                      <div className="flex justify-end pt-2">
-                        <Button variant="outline" size="sm">
-                          <Download className="h-4 w-4 mr-2" />
-                          Download Receipt
-                        </Button>
-                      </div>
-
-                      {paymentData.description && (
-                        <>
-                          <Separator />
-                          <div className="space-y-2">
-                            <h3 className="font-semibold text-sm">Description</h3>
-                            <p className="text-sm text-muted-foreground">{paymentData.description}</p>
-                          </div>
-                        </>
-                      )}
                     </div>
                   ) : (
                     <div className="text-center py-12">
