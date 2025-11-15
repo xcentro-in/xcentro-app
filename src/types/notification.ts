@@ -1,6 +1,6 @@
 
 export type NotificationPriority = "high" | "medium" | "low";
-export type NotificationCategory = "payment" | "settlement" | "payee" | "payout" | "report" | "system" | "user" | "announcements" | "rewards" | "approvals" | "security" | "insights";
+export type NotificationCategory = "payment" | "settlement" | "payee" | "payout" | "report" | "system" | "user" | "announcements" | "rewards" | "approvals" | "security" | "insights" | "others";
 export type NotificationStatus = "pending" | "processing" | "sent" | "failed" | "read";
 export type NotificationChannel = "email" | "push" | "web";
 
@@ -70,6 +70,7 @@ export interface NotificationPreferences {
     payments?: boolean;
     rewards?: boolean;
     security?: boolean;
+    others?: boolean;
   };
   created_at: string;
   updated_at?: string;

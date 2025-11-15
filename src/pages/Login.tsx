@@ -66,58 +66,40 @@ const Login = () => {
         try {
           const businessStatus = await businessAPI.getOnboardingStatus();
           const kybStatus = businessStatus.data.kybStatus;
+          const isKybComplete = kybStatus === "kyc_completed" || kybStatus === "kyc_verified";
 
-          if (kybStatus === "kyc_completed" || kybStatus === "kyc_verified") {
-            // KYB completed, now check user onboarding status
-            console.log("KYB completed, checking user onboarding status");
+          if (isKybComplete) {
+            // KYB complete, now check user onboarding status
+            console.log("KYB complete, checking user KYC status");
 
             try {
               const userStatus = await userAPI.getOnboardingStatus();
               const kycStatus = userStatus.data.kycStatus;
+              const isKycComplete = kycStatus === "kyc_completed" || kycStatus === "kyc_verified";
 
-              if (kycStatus === "kyc_not_started" || kycStatus === "kyc_in_progress") {
-                // User KYC not complete, navigate to user onboarding
-                console.log("User KYC not complete, navigating to user onboarding");
-                navigate("/onboarding", { replace: true });
+              if (isKycComplete) {
+                // Both KYB and KYC complete but no roles assigned yet - pending approval
+                console.log("Both KYB and KYC complete but no roles assigned, navigating to pending-approval");
+                toast.success("Onboarding complete! Waiting for role assignment.");
+                navigate("/pending-approval", { replace: true });
               } else {
-                // Both KYB and KYC complete but no roles - try refreshing roles
-                console.log("Both KYB and KYC complete but no roles, refreshing roles");
-                const refreshedRoles = await userAPI.getRoles();
-
-                if (refreshedRoles.data.length === 0) {
-                  // Still no roles - show error and logout
-                  toast.error("Onboarding complete but no roles assigned. Please try again later or contact support.");
-                  console.error("No roles assigned after complete onboarding");
-                  await logout();
-                  navigate("/login", { replace: true });
-                } else {
-                  // Roles now exist, route based on role
-                  const primaryRole = refreshedRoles.data[0];
-                  if (primaryRole.role === "none" && !primaryRole.kycNeeded) {
-                    navigate("/pending-approval", { replace: true });
-                  } else if (primaryRole.kycNeeded) {
-                    navigate("/onboarding", { replace: true });
-                  } else {
-                    await fetchUserProfile();
-                    navigate("/", { replace: true });
-                  }
-                }
+                // KYC not complete - navigate to user onboarding
+                console.log("KYC not complete, navigating to user onboarding");
+                navigate("/onboarding", { replace: true });
               }
             } catch (userStatusError) {
-              // Failed to fetch user status - show error and logout
-              console.error("Failed to fetch user onboarding status:", userStatusError);
-              toast.error("Unable to check your onboarding status. Please try again later.");
-              await logout();
-              navigate("/login", { replace: true });
+              // No user onboarding found - start user onboarding
+              console.log("No user onboarding found, navigating to user onboarding");
+              navigate("/onboarding", { replace: true });
             }
           } else {
-            // KYB not completed, continue business onboarding
+            // KYB not complete - navigate to business onboarding
             console.log("KYB not complete, navigating to business onboarding");
             navigate("/business-onboarding", { replace: true });
           }
         } catch (businessStatusError) {
-          // No business onboarding started, start fresh
-          console.log("No business onboarding found, starting fresh");
+          // No business onboarding found - start business onboarding
+          console.log("No business onboarding found, starting business onboarding");
           navigate("/business-onboarding", { replace: true });
         }
       } else {
