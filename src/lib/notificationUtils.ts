@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
  * All event types follow the format: category.action.details
  *
  * Valid categories: announcements, rewards, payments, payees, approvals, security, insights
+ * Unknown categories will be mapped to 'others'
  */
 export function extractCategoryFromEventType(eventType: string): NotificationCategory {
   const category = eventType.split('.')[0];
@@ -23,7 +24,8 @@ export function extractCategoryFromEventType(eventType: string): NotificationCat
     'rewards': 'rewards',
   };
 
-  return categoryMap[category] || 'announcements';
+  // Return 'others' for any unmatched category
+  return categoryMap[category] || 'others';
 }
 
 /**
@@ -122,9 +124,10 @@ export function getCategoryDisplayName(category: NotificationCategory): string {
     'approvals': 'Approvals',
     'security': 'Security',
     'insights': 'Insights',
+    'others': 'Others',
   };
 
-  return displayNames[category] || category;
+  return displayNames[category] || 'Others';
 }
 
 /**

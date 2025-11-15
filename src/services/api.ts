@@ -1069,6 +1069,7 @@ class ApiService {
         payments?: boolean;
         rewards?: boolean;
         security?: boolean;
+        others?: boolean;
       };
     }) => {
       return this.request('/notifications/preferences', {

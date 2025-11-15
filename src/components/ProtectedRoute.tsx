@@ -8,7 +8,7 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userRoles } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
@@ -26,43 +26,56 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
 
         try {
           console.log('[ProtectedRoute] Checking onboarding status...');
-          const rolesResponse = await userAPI.getRoles();
-          const roles = rolesResponse.data;
-          console.log('[ProtectedRoute] Roles:', roles);
+          // Use roles from AuthContext instead of fetching again
+          const roles = userRoles || [];
+          console.log('[ProtectedRoute] Roles from AuthContext:', roles);
 
           if (roles.length === 0) {
-            // NO ROLES: Check onboarding status
+            // NO ROLES: Check KYB and KYC status to determine next step
+
+            // Step 1: Check business onboarding status (KYB)
             try {
               const businessStatus = await businessAPI.getOnboardingStatus();
               const kybStatus = businessStatus.data.kybStatus;
-              console.log('[ProtectedRoute] Business status:', kybStatus);
+              const isKybComplete = kybStatus === "kyc_completed" || kybStatus === "kyc_verified";
 
-              if (kybStatus === "kyc_completed" || kybStatus === "kyc_verified") {
-                // Business complete, check user onboarding
+              console.log('[ProtectedRoute] KYB status:', kybStatus, '- Complete:', isKybComplete);
+
+              if (isKybComplete) {
+                // KYB complete, now check user KYC status
                 try {
                   const userStatus = await userAPI.getOnboardingStatus();
                   const kycStatus = userStatus.data.kycStatus;
-                  console.log('[ProtectedRoute] User status:', kycStatus);
+                  const isKycComplete = kycStatus === "kyc_completed" || kycStatus === "kyc_verified";
 
-                  if (kycStatus === "kyc_not_started" || kycStatus === "kyc_in_progress") {
-                    console.log('[ProtectedRoute] Redirecting to user onboarding');
+                  console.log('[ProtectedRoute] KYC status:', kycStatus, '- Complete:', isKycComplete);
+
+                  if (isKycComplete) {
+                    // Both KYB and KYC complete, but no roles assigned - pending approval
+                    console.log('[ProtectedRoute] Both KYB and KYC complete but no roles, redirecting to pending-approval');
+                    navigate('/pending-approval', { replace: true });
+                    return;
+                  } else {
+                    // KYC not complete, redirect to user onboarding
+                    console.log('[ProtectedRoute] KYC not complete, redirecting to user onboarding');
                     navigate('/onboarding', { replace: true });
                     return;
                   }
                 } catch (error) {
-                  console.log('[ProtectedRoute] User status error, redirecting to user onboarding');
+                  // No user onboarding found, redirect to start KYC
+                  console.log('[ProtectedRoute] No user onboarding found, redirecting to user onboarding');
                   navigate('/onboarding', { replace: true });
                   return;
                 }
               } else {
-                // Business not complete, redirect to business onboarding
-                console.log('[ProtectedRoute] Redirecting to business onboarding');
+                // KYB not complete, redirect to business onboarding
+                console.log('[ProtectedRoute] KYB not complete, redirecting to business-onboarding');
                 navigate('/business-onboarding', { replace: true });
                 return;
               }
             } catch (error) {
-              // No business onboarding started
-              console.log('[ProtectedRoute] No business found, redirecting to business onboarding');
+              // No business found, start business onboarding
+              console.log('[ProtectedRoute] No business found, redirecting to business-onboarding');
               navigate('/business-onboarding', { replace: true });
               return;
             }
@@ -71,13 +84,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
             const primaryRole = roles[0];
             console.log('[ProtectedRoute] Primary role:', primaryRole);
 
-            if (primaryRole.role === "none" && !primaryRole.kycNeeded) {
-              console.log('[ProtectedRoute] Redirecting to pending approval');
+            if (primaryRole.kycNeeded) {
+              // KYC needed, check if already completed
+              try {
+                const userStatus = await userAPI.getOnboardingStatus();
+                const kycStatus = userStatus.data.kycStatus;
+                const isKycComplete = kycStatus === "kyc_completed" || kycStatus === "kyc_verified";
+
+                console.log('[ProtectedRoute] KYC status (with roles):', kycStatus, '- Complete:', isKycComplete);
+
+                if (isKycComplete) {
+                  // KYC already complete, allow access (roles will be updated on next refresh)
+                  console.log('[ProtectedRoute] KYC complete with roles, allowing access');
+                } else {
+                  // KYC not complete, redirect to onboarding
+                  console.log('[ProtectedRoute] KYC not complete, redirecting to user onboarding');
+                  navigate('/onboarding', { replace: true });
+                  return;
+                }
+              } catch (error) {
+                // Can't get KYC status, redirect to onboarding to be safe
+                console.log('[ProtectedRoute] Cannot get KYC status, redirecting to user onboarding');
+                navigate('/onboarding', { replace: true });
+                return;
+              }
+            } else if (primaryRole.role === "none") {
+              // Role is "none", pending approval
+              console.log('[ProtectedRoute] Role is none, redirecting to pending approval');
               navigate('/pending-approval', { replace: true });
-              return;
-            } else if (primaryRole.kycNeeded) {
-              console.log('[ProtectedRoute] Redirecting to user onboarding');
-              navigate('/onboarding', { replace: true });
               return;
             }
             // Otherwise, user is fully onboarded - allow access
@@ -94,7 +128,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     };
 
     checkOnboardingStatus();
-  }, [isAuthenticated, isLoading, location.pathname, navigate]);
+  }, [isAuthenticated, isLoading, location.pathname, navigate, userRoles]);
 
   // Show loading state while checking authentication
   if (isLoading || isCheckingOnboarding) {

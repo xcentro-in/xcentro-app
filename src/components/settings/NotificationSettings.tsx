@@ -29,6 +29,7 @@ const NotificationSettings = () => {
     payments: true,
     rewards: true,
     security: true,
+    others: true,
   });
 
   // Store the initial states to compare for changes
@@ -67,6 +68,10 @@ const NotificationSettings = () => {
     security: {
       title: "Security",
       description: "Security alerts and authentication updates"
+    },
+    others: {
+      title: "Others",
+      description: "Miscellaneous notifications and updates"
     },
   };
 

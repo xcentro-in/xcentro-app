@@ -60,6 +60,14 @@ const UserOnboarding = () => {
         const statusResponse = await userAPI.getOnboardingStatus();
         const { name, dob, taxId, mobile, kycStatus, nationalId } = statusResponse.data;
 
+        // If KYC is already completed or verified, redirect to dashboard
+        if (kycStatus === "kyc_completed" || kycStatus === "kyc_verified") {
+          console.log("KYC has already been completed, redirecting to dashboard");
+          toast.error("KYC has already been completed");
+          navigate("/", { replace: true });
+          return;
+        }
+
         // If KYC is not in "not_started" state, pre-fill available data
         if (kycStatus !== "kyc_not_started") {
           // Auto-fill available fields (don't fill Aadhaar for security)
@@ -82,7 +90,7 @@ const UserOnboarding = () => {
     };
 
     fetchOnboardingStatus();
-  }, []);
+  }, [navigate]);
 
   // Listen for postMessage from KYC callback page (optional, just for logging)
   useEffect(() => {
@@ -198,31 +206,37 @@ const UserOnboarding = () => {
       // Determine flow type
       // 1. Check if user has roles (invited user flow)
       let isInvitedUser = false;
+      let existingRole = "owner"; // Default role for new business flow
+
       try {
         const rolesResponse = await userAPI.getRoles();
         if (rolesResponse.data.length > 0) {
           isInvitedUser = true;
+          // Use the existing role from the invited user
+          existingRole = rolesResponse.data[0].role;
         }
       } catch (error) {
         // No roles, continue with normal flow
       }
 
-      // Hardcoded role claim to "owner" (only used for new business flow)
-      const claimedRole = "owner";
+      // For invited users: use their existing role
+      // For new business: use "owner"
+      const claimedRole = existingRole;
 
       console.log("Completing user onboarding:", {
         claimedRole,
         businessId,
         isJoinFlow,
-        isInvitedUser
+        isInvitedUser,
+        existingRole
       });
 
       // Call complete onboarding API
-      // For invited user flow: pass nothing (user already has roles, just needs KYC)
-      // For new business flow: pass businessId
+      // For invited user flow: pass their existing role (backend needs it for validation)
+      // For new business flow: pass "owner" + businessId
       // For join existing business flow: would need gstin (not in current form)
       const completeResponse = await userAPI.completeOnboarding(
-        isInvitedUser ? undefined : claimedRole,
+        claimedRole, // Always send the role (even for invited users)
         isInvitedUser ? undefined : (businessId || undefined),
         undefined // gstin removed from form
       );
