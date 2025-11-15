@@ -2,7 +2,7 @@
 import { getCurrentLocale } from '@/config/locale';
 import { format, isThisYear } from 'date-fns';
 
-export const formatCurrency = (amount: number, isPrecise: boolean = false): string => {
+export const formatCurrency = (amount: number, isPrecise: boolean = true): string => {
   // TODO: add more edge cases into formatter
   /**
    * // Handle array case (as ValueType can be an array)

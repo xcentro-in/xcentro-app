@@ -106,12 +106,9 @@ export interface VoucherPaymentResponseAPI {
   voucher_number: string;
   payment_status: 'success' | 'pending' | 'failed' | 'processing';
   payment_date: string; // ISO 8601
-  gateway_used: string;
-  gateway_payment_id: string;
-  payment_method: string; // 'card', 'upi', 'netbanking', etc.
-  payment_source_type: string; // 'card', 'bank_account', etc.
+  payment_method: string; // 'token_card', 'upi', 'netbanking', etc.
 
-  // Card-specific fields (when payment_source_type is 'card')
+  // Card-specific fields (when payment method is card-based)
   card_type?: string; // 'visa', 'mastercard', 'amex', 'rupay'
   card_category?: string; // 'credit', 'debit'
   last_four_digits?: string;
@@ -120,24 +117,17 @@ export interface VoucherPaymentResponseAPI {
   // Amount breakdown (all in paise)
   voucher_amount: number;
   convenience_fee: number;
-  convenience_fee_rate: string; // e.g., "0.00%"
+  convenience_fee_rate: string; // e.g., "₹813.55 (fixed)"
   gst_on_fee: number;
   gst_rate: string; // e.g., "18.00%"
   total_fee_amount: number;
   total_amount_paid: number;
 
-  // Settlement details
-  settlement_status: 'pending' | 'settled' | 'failed';
-  settled_at: string | null; // ISO 8601
-  settlement_amount: number; // in paise
-  mdr_amount: number; // Merchant Discount Rate amount in paise
-  mdr_rate: string; // e.g., "2.00%"
-  net_settlement_amount: number; // in paise
-  settlement_reference_id: string;
-  settlement_utr: string;
+  // Payout details (what the payee receives)
+  payout_utr: string; // UTR visible in payee's bank statement
+  payout_completed_at: string | null; // ISO 8601 - when payee received the money
 
   description: string;
-  metadata: Record<string, any>;
 }
 
 // GET /v1/vouchers/:voucherId/accounting
