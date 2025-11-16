@@ -9,8 +9,10 @@ const PaymentProcessing = () => {
   const [paymentPopup, setPaymentPopup] = useState<Window | null>(null);
   const popupCheckIntervalRef = useRef<number | null>(null);
 
-  // Get redirect URL from navigation state
+  // Get redirect URL and target from navigation state
   const redirectUrl = location.state?.redirectUrl as string | undefined;
+  const redirectTarget = (location.state?.redirectTarget as string | undefined) || '/payments'; // Default to payments page
+  const flowType = (location.state?.flowType as string | undefined) || 'payment'; // 'payment' or 'tokenization'
 
   // Cleanup popup interval on unmount
   useEffect(() => {
@@ -35,24 +37,28 @@ const PaymentProcessing = () => {
     // Check if popup was blocked
     if (!popup || popup.closed || typeof popup.closed === "undefined") {
       toast.error("Popup was blocked. Please enable popups for this site and try again.");
-      navigate('/payments');
+      navigate(redirectTarget);
       return;
     }
 
     setPaymentPopup(popup);
 
-    // Monitor popup closure and redirect to payment history when closed
+    // Monitor popup closure and redirect when closed
     const checkPopupClosed = setInterval(() => {
       if (popup.closed) {
         clearInterval(checkPopupClosed);
         setPaymentPopup(null);
         popupCheckIntervalRef.current = null;
 
-        console.log('Payment popup closed, redirecting to payment history...');
+        const action = flowType === 'tokenization' ? 'Card verification' : 'Payment processing';
+        console.log(`${action} popup closed, redirecting to ${redirectTarget}...`);
 
-        // Redirect to payment history page
-        toast.success("Payment processing complete! Redirecting to payment history...");
-        navigate('/payments');
+        // Redirect to the appropriate page based on flow type
+        const successMessage = flowType === 'tokenization'
+          ? "Card verification complete! Redirecting to wallet..."
+          : "Payment processing complete! Redirecting to payment history...";
+        toast.success(successMessage);
+        navigate(redirectTarget);
       }
     }, 1000);
 
@@ -61,24 +67,39 @@ const PaymentProcessing = () => {
 
   // If no redirect URL, show error state
   if (!redirectUrl) {
+    const errorTitle = flowType === 'tokenization' ? 'No Card Verification in Progress' : 'No Payment in Progress';
+    const errorMessage = flowType === 'tokenization'
+      ? 'There is no active card verification to process.'
+      : 'There is no active payment to process.';
+    const buttonText = flowType === 'tokenization' ? 'Go to Wallet' : 'Go to Payment History';
+
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center space-y-4">
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold">No Payment in Progress</h2>
+            <h2 className="text-2xl font-semibold">{errorTitle}</h2>
             <p className="text-muted-foreground">
-              There is no active payment to process.
+              {errorMessage}
             </p>
           </div>
-          <Button onClick={() => navigate('/payments')}>
-            Go to Payment History
+          <Button onClick={() => navigate(redirectTarget)}>
+            {buttonText}
           </Button>
         </div>
       </div>
     );
   }
 
-  // Show payment processing spinner
+  // Show processing spinner
+  const processingTitle = flowType === 'tokenization' ? 'Verifying Card' : 'Processing Payment';
+  const processingSubtitle = flowType === 'tokenization' ? 'Getting card info...' : 'Getting payment info...';
+  const processingInstruction = flowType === 'tokenization'
+    ? 'Please complete the card verification in the popup window'
+    : 'Please complete the payment verification in the popup window';
+  const warningMessage = flowType === 'tokenization'
+    ? "Please don't refresh while verification is in progress"
+    : "Please don't refresh while transaction is in progress";
+
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center space-y-4">
@@ -86,13 +107,13 @@ const PaymentProcessing = () => {
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary"></div>
         </div>
         <div className="space-y-2">
-          <h3 className="text-xl font-semibold">Processing Payment</h3>
-          <p className="text-muted-foreground">Getting payment info...</p>
+          <h3 className="text-xl font-semibold">{processingTitle}</h3>
+          <p className="text-muted-foreground">{processingSubtitle}</p>
           <p className="text-sm text-muted-foreground">
-            Please complete the payment verification in the popup window
+            {processingInstruction}
           </p>
           <p className="text-sm font-medium text-orange-600">
-            Please don't refresh while transaction is in progress
+            {warningMessage}
           </p>
         </div>
       </div>
