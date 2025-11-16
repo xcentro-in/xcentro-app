@@ -139,11 +139,22 @@ const AddPaymentMethod = () => {
           card_category: cardCategory,
         });
 
-        // TODO: Handle redirection URL from response
-        // For now, just show success message
+        // Handle redirection URL from response
         if (response.status === "success") {
-          toast.success("Card tokenized successfully!");
-          navigate("/wallet");
+          // If there's a redirect URL (3DS authentication required), navigate to payment processing page
+          if (response.data?.redirect_url) {
+            navigate("/payment-processing", {
+              state: {
+                redirectUrl: response.data.redirect_url,
+                redirectTarget: "/wallet", // Redirect to wallet after popup closes
+                flowType: "tokenization", // Indicate this is tokenization flow
+              },
+            });
+          } else {
+            // No 3DS required, card tokenized successfully
+            toast.success("Card added successfully!");
+            navigate("/wallet");
+          }
         } else {
           toast.error(response.message || "Failed to tokenize card");
         }
