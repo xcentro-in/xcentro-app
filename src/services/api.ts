@@ -1165,11 +1165,10 @@ class ApiService {
   wallet = {
     fetch: async (businessId: string) => {
       return this.request('/wallet/fetch', {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ business_id: businessId }),
       });
     }
   };

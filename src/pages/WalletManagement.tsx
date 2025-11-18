@@ -253,104 +253,98 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
+    const isInactive = !card.is_active || card.is_failed_tokenization;
+    const isFailed = card.is_failed_tokenization;
+
     return (
       <div
         key={card.card_id}
-        className="flex items-center p-5 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group border-b border-slate-100 last:border-b-0"
+        className={`flex flex-col p-5 transition-all duration-300 border-b border-slate-100 last:border-b-0 ${
+          isInactive
+            ? 'bg-slate-50/30 opacity-60'
+            : 'hover:bg-slate-50/50 cursor-pointer group'
+        }`}
       >
-        {/* Icon */}
-        <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
-          {getCardNetworkIcon(card.card_type) ? (
-            <img
-              src={getCardNetworkIcon(card.card_type)}
-              alt={card.card_type}
-              className="h-6 w-auto object-contain"
-            />
-          ) : (
-            <div className="w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-slate-600 to-slate-700">
-              <span className="text-white text-xs font-medium">
-                {card.card_type.toUpperCase().slice(0, 4)}
-              </span>
+        <div className="flex items-center">
+          {/* Icon */}
+          <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
+            {getCardNetworkIcon(card.card_type) ? (
+              <img
+                src={getCardNetworkIcon(card.card_type)}
+                alt={card.card_type}
+                className={`h-6 w-auto object-contain ${isInactive ? 'grayscale' : ''}`}
+              />
+            ) : (
+              <div className={`w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${
+                isInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
+              }`}>
+                <span className="text-white text-xs font-medium">
+                  {card.card_type.toUpperCase().slice(0, 4)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <h3 className={`font-medium text-base ${isInactive ? 'text-slate-500' : 'text-slate-900'}`}>
+                  {card.nickname || card.issuer_bank}
+                </h3>
+                {card.nickname && (
+                  <span className="text-xs text-slate-400">({card.issuer_bank})</span>
+                )}
+              </div>
             </div>
-          )}
+
+            {/* Details */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`font-mono text-sm ${isInactive ? 'text-slate-400' : 'text-slate-600'}`}>
+                  •••• •••• •••• {card.last_four_digits}
+                </span>
+                <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
+                  card.card_category === 'credit'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}>
+                  {card.card_category === 'credit' ? 'Credit' : 'Debit'}
+                </Badge>
+                {card.is_active && !isFailed && (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
+                    Active
+                  </Badge>
+                )}
+                {isInactive && (
+                  <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
+                    Inactive
+                  </Badge>
+                )}
+              </div>
+              <div className={`flex items-center gap-2 text-xs ${isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
+                <span>Expires {card.expiry_month}/{card.expiry_year}</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-base text-slate-900">
-                {card.issuer_bank}
-              </h3>
-              {/* TODO: Primary badge not available in API - requires isDefault field */}
-              {/* {card.is_primary && (
-                <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs px-2 py-0.5">
-                  Primary
-                </Badge>
-              )} */}
-            </div>
-            {/* TODO: Usage level not available in API */}
-            {/* <div className="flex items-center gap-2">
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                usage.level === 'high' ? 'bg-green-500'
-                : usage.level === 'medium' ? 'bg-amber-500'
-                : 'bg-slate-400'
-              }`}></div>
-              <span className={`text-xs font-medium uppercase tracking-wide ${
-                usage.level === 'high' ? 'text-green-600'
-                : usage.level === 'medium' ? 'text-amber-600'
-                : 'text-slate-500'
-              }`}>
-                {usage.level === 'high' ? 'High Use' : usage.level === 'medium' ? 'Regular' : 'Occasional'}
-              </span>
-            </div> */}
-          </div>
-
-          {/* Details */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-sm text-slate-600">
-                •••• •••• •••• {card.last_four_digits}
-              </span>
-              <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
-                card.card_category === 'credit'
-                  ? 'bg-green-50 text-green-700 border-green-200'
-                  : 'bg-blue-50 text-blue-700 border-blue-200'
-              }`}>
-                {card.card_category === 'credit' ? 'Credit' : 'Debit'}
-              </Badge>
-              {card.is_active && (
-                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
-                  Active
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>Expires {card.expiry_month}/{card.expiry_year}</span>
+        {/* Failed Tokenization Notice */}
+        {isFailed && (
+          <div className="mt-3 pl-[4.25rem]">
+            <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              <p className="text-xs text-amber-700">
+                <span className="font-medium">Verification failed.</span> This card will be displayed for 7 days only.
+                {card.failure_reason && (
+                  <span className="block mt-1 text-amber-600">
+                    Reason: {card.failure_reason}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-
-          {/* TODO: Meta information not available in API */}
-          {/* <div className="flex items-center gap-5 text-xs text-slate-500">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Used {usage.lastUsed}</span>
-            </div>
-          </div> */}
-        </div>
-
-        {/* TODO: Stats not available in API */}
-        {/* <div className="flex gap-6 ml-6">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-slate-900">{usage.transactions}</div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider">Uses</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-slate-900">{usage.amount}</div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider">Amount</div>
-          </div>
-        </div> */}
+        )}
       </div>
     );
   };
