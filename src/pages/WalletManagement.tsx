@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, Building2, ShieldCheck } from "lucide-react";
+import { Plus, CreditCard, Building2, ShieldCheck, ChevronLeft, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { EmptyWallet } from "@/components/wallet/EmptyWallet";
@@ -12,6 +14,8 @@ import { useWallet } from "@/hooks/useWallet";
 import { StoredCard, BankAccount } from "@/types/wallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
+import { toast } from "sonner";
+import { walletAPI } from "@/services/api";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
@@ -49,6 +53,78 @@ const WalletManagement = () => {
       default: return 'grid-cols-2';
     }
   }, [enabledPaymentMethodsCount]);
+
+  // Card enabled/disabled state management
+  const [cardEnabledStates, setCardEnabledStates] = useState<Record<string, boolean>>({});
+  const debounceTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Initialize card states from API data
+  useEffect(() => {
+    if (cards.length > 0) {
+      const initialStates: Record<string, boolean> = {};
+      cards.forEach(card => {
+        // Only track active/inactive cards, not pending/failed
+        if (card.card_status === 'active' || card.card_status === 'inactive') {
+          initialStates[card.card_id] = card.card_status === 'active';
+        }
+      });
+      setCardEnabledStates(initialStates);
+    }
+  }, [cards]);
+
+  // Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimersRef.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
+
+  // Handle card toggle with debouncing
+  const handleCardToggle = useCallback((cardId: string, newEnabledState: boolean) => {
+    if (!user?.businessId) {
+      toast.error('Business ID not found. Please log in again.');
+      return;
+    }
+
+    // Optimistically update UI immediately
+    setCardEnabledStates(prev => ({
+      ...prev,
+      [cardId]: newEnabledState
+    }));
+
+    // Clear existing debounce timer for this card
+    if (debounceTimersRef.current[cardId]) {
+      clearTimeout(debounceTimersRef.current[cardId]);
+    }
+
+    // Set new debounce timer (500ms delay)
+    debounceTimersRef.current[cardId] = setTimeout(async () => {
+      try {
+        // Call API to update card status
+        await walletAPI.updateCardStatus(user.businessId, cardId, newEnabledState);
+
+        console.log(`API call: Updated card ${cardId} to ${newEnabledState ? 'active' : 'inactive'}`);
+
+        // Show success toast
+        toast.success(
+          newEnabledState ? 'Card enabled successfully' : 'Card disabled successfully'
+        );
+      } catch (error) {
+        console.error('Failed to update card status:', error);
+
+        // Revert optimistic update on error
+        setCardEnabledStates(prev => ({
+          ...prev,
+          [cardId]: !newEnabledState
+        }));
+
+        toast.error('Failed to update card status. Please try again.');
+      } finally {
+        // Clean up the timer reference
+        delete debounceTimersRef.current[cardId];
+      }
+    }, 500);
+  }, [user?.businessId]);
 
   useEffect(() => {
     setTitle("Payment Sources");
@@ -253,104 +329,141 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
+    // Determine if card can be toggled (only active/inactive cards)
+    const isPending = card.card_status === 'pending';
+    const isFailed = card.card_status === 'failed';
+    const showToggle = card.card_status === 'active' || card.card_status === 'inactive';
+
+    // Get current enabled state from local state for toggleable cards, fallback to card status
+    const isEnabled = showToggle
+      ? (cardEnabledStates[card.card_id] ?? (card.card_status === 'active'))
+      : false;
+
+    // Determine visual state based on toggle state for toggleable cards, or card status for others
+    const isVisuallyInactive = showToggle ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
+
     return (
       <div
         key={card.card_id}
-        className="flex items-center p-5 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer group border-b border-slate-100 last:border-b-0"
+        className={`flex flex-col p-5 transition-all duration-300 border-b border-slate-100 last:border-b-0 ${
+          isVisuallyInactive
+            ? 'bg-slate-50/30 opacity-60'
+            : 'hover:bg-slate-50/50 cursor-pointer group'
+        }`}
       >
-        {/* Icon */}
-        <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
-          {getCardNetworkIcon(card.card_type) ? (
-            <img
-              src={getCardNetworkIcon(card.card_type)}
-              alt={card.card_type}
-              className="h-6 w-auto object-contain"
-            />
-          ) : (
-            <div className="w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-slate-600 to-slate-700">
-              <span className="text-white text-xs font-medium">
-                {card.card_type.toUpperCase().slice(0, 4)}
-              </span>
+        <div className="flex items-center">
+          {/* Icon */}
+          <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
+            {getCardNetworkIcon(card.card_type) ? (
+              <img
+                src={getCardNetworkIcon(card.card_type)}
+                alt={card.card_type}
+                className={`h-6 w-auto object-contain ${isVisuallyInactive ? 'grayscale' : ''}`}
+              />
+            ) : (
+              <div className={`w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${
+                isVisuallyInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
+              }`}>
+                <span className="text-white text-xs font-medium">
+                  {card.card_type.toUpperCase().slice(0, 4)}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <h3 className={`font-medium text-base ${isVisuallyInactive ? 'text-slate-500' : 'text-slate-900'}`}>
+                  {card.nickname || card.issuer_bank}
+                </h3>
+                {card.nickname && card.issuer_bank && (
+                  <span className="text-xs text-slate-400">({card.issuer_bank})</span>
+                )}
+              </div>
+            </div>
+
+            {/* Details */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className={`font-mono text-sm ${isVisuallyInactive ? 'text-slate-400' : 'text-slate-600'}`}>
+                  •••• •••• •••• {card.last_four_digits}
+                </span>
+                <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
+                  card.card_category === 'credit'
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                }`}>
+                  {card.card_category === 'credit' ? 'Credit' : 'Debit'}
+                </Badge>
+                {/* Status badges - for toggleable cards, use toggle state */}
+                {showToggle && isEnabled && (
+                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
+                    Active
+                  </Badge>
+                )}
+                {showToggle && !isEnabled && (
+                  <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
+                    Inactive
+                  </Badge>
+                )}
+                {/* Non-toggleable status badges */}
+                {isPending && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-xs px-2 py-0.5 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Pending
+                  </Badge>
+                )}
+                {isFailed && (
+                  <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-xs px-2 py-0.5">
+                    Failed
+                  </Badge>
+                )}
+              </div>
+              <div className={`flex items-center gap-2 text-xs ${isVisuallyInactive ? 'text-slate-400' : 'text-slate-500'}`}>
+                <span>Expires {card.expiry_month}/{card.expiry_year}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Toggle Switch for Active/Inactive Cards */}
+          {showToggle && (
+            <div className="ml-6 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor={`card-toggle-${card.card_id}`}
+                  className="text-sm font-medium text-slate-700 cursor-pointer"
+                >
+                  Enabled
+                </Label>
+                <Switch
+                  id={`card-toggle-${card.card_id}`}
+                  checked={isEnabled}
+                  onCheckedChange={(checked) => handleCardToggle(card.card_id, checked)}
+                  className="data-[state=checked]:bg-emerald-600"
+                />
+              </div>
             </div>
           )}
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-base text-slate-900">
-                {card.issuer_bank}
-              </h3>
-              {/* TODO: Primary badge not available in API - requires isDefault field */}
-              {/* {card.is_primary && (
-                <Badge className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-xs px-2 py-0.5">
-                  Primary
-                </Badge>
-              )} */}
-            </div>
-            {/* TODO: Usage level not available in API */}
-            {/* <div className="flex items-center gap-2">
-              <div className={`w-1.5 h-1.5 rounded-full ${
-                usage.level === 'high' ? 'bg-green-500'
-                : usage.level === 'medium' ? 'bg-amber-500'
-                : 'bg-slate-400'
-              }`}></div>
-              <span className={`text-xs font-medium uppercase tracking-wide ${
-                usage.level === 'high' ? 'text-green-600'
-                : usage.level === 'medium' ? 'text-amber-600'
-                : 'text-slate-500'
-              }`}>
-                {usage.level === 'high' ? 'High Use' : usage.level === 'medium' ? 'Regular' : 'Occasional'}
-              </span>
-            </div> */}
-          </div>
-
-          {/* Details */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-3">
-              <span className="font-mono text-sm text-slate-600">
-                •••• •••• •••• {card.last_four_digits}
-              </span>
-              <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
-                card.card_category === 'credit'
-                  ? 'bg-green-50 text-green-700 border-green-200'
-                  : 'bg-blue-50 text-blue-700 border-blue-200'
-              }`}>
-                {card.card_category === 'credit' ? 'Credit' : 'Debit'}
-              </Badge>
-              {card.is_active && (
-                <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
-                  Active
-                </Badge>
-              )}
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <span>Expires {card.expiry_month}/{card.expiry_year}</span>
+        {/* Failed Tokenization Notice */}
+        {isFailed && card.is_failed_tokenization && (
+          <div className="mt-3 pl-[4.25rem]">
+            <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              <p className="text-xs text-amber-700">
+                <span className="font-medium">Verification failed.</span> This card will be displayed for 7 days only.
+                {card.failure_reason && (
+                  <span className="block mt-1 text-amber-600">
+                    Reason: {card.failure_reason}
+                  </span>
+                )}
+              </p>
             </div>
           </div>
-
-          {/* TODO: Meta information not available in API */}
-          {/* <div className="flex items-center gap-5 text-xs text-slate-500">
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>Used {usage.lastUsed}</span>
-            </div>
-          </div> */}
-        </div>
-
-        {/* TODO: Stats not available in API */}
-        {/* <div className="flex gap-6 ml-6">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-slate-900">{usage.transactions}</div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider">Uses</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-slate-900">{usage.amount}</div>
-            <div className="text-xs text-slate-500 uppercase tracking-wider">Amount</div>
-          </div>
-        </div> */}
+        )}
       </div>
     );
   };
@@ -419,8 +532,18 @@ const WalletManagement = () => {
     <div className="space-y-6">
       {/* Header - Always visible */}
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
+          </div>
         </div>
 
         <Button

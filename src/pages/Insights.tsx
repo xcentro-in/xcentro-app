@@ -1,13 +1,14 @@
-import { 
-  BarChart2, 
-  DollarSign, 
-  CreditCard, 
-  FileText, 
+import {
+  BarChart2,
+  DollarSign,
+  CreditCard,
+  FileText,
   Clock,
   Calendar,
   SlidersHorizontal,
   ChevronUp,
   ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 // Import refactored components
 
@@ -75,10 +77,11 @@ interface ViewOptions {
 }
 
 const Insights = () => {
+  const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const [showInsights, setShowInsights] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
-  
+
   useEffect(() => {
     setTitle("Financial Insights");
   }, [setTitle]);
@@ -90,14 +93,24 @@ const Insights = () => {
     showPaymentActivityMap: true,
     timePeriod: "thisMonth",
   });
-  
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-        <div>
-          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-            Analytics and insights to optimize your business spending
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+              Analytics and insights to optimize your business spending
+            </p>
+          </div>
         </div>
         
         <div className="flex items-center gap-2 animate-slide-down" style={{ animationDelay: "100ms" }}>

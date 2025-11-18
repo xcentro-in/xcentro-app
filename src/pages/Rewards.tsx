@@ -2,6 +2,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import RewardsSummary from "@/components/rewards/RewardsSummary";
 import MilestoneCards from "@/components/rewards/MilestoneCards";
@@ -45,9 +47,19 @@ const Rewards = () => {
 
   return (
     <div className="space-y-8">
-      <RewardsHeader 
-        description="Track & redeem your business rewards" 
-      />
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <RewardsHeader
+          description="Track & redeem your business rewards"
+        />
+      </div>
       
       {/* Header Stats Bar */}
       <RewardsSummary 

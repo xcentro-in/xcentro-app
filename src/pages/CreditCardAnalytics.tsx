@@ -1,9 +1,10 @@
 
 import React, { useState } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronLeft } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 // Import components
 import KeyInsightsCard from "@/components/credit-card-analytics/KeyInsightsCard";
@@ -31,6 +32,7 @@ import {
 } from "@/components/credit-card-analytics/utils/chartDataHelpers";
 
 export default function CreditCardAnalytics() {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState("3m");
   const [cardData] = useState(generateMockCardSpendData());
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
@@ -43,26 +45,36 @@ export default function CreditCardAnalytics() {
     showRecommendations: true,
     compactView: false,
   });
-  
+
   // Generate chart data
   const utilizationData = generateUtilizationData(cardData);
   const hiddenChargesData = generateHiddenChargesData(cardData);
   const rewardsData = generateRewardsData(cardData);
   const spendingData = generateSpendingData(cardData);
   const latePaymentData = generateLatePaymentData(cardData);
-  
+
   // Find special cards
   const bestCard = findBestCard(cardData);
   const worstCard = findWorstCard(cardData);
   const highUtilizationCard = findHighUtilizationCard(cardData);
-  
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Credit Card Insights & Analytics</h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Comparative analysis of your credit card spending patterns and fees
-        </p>
+      <div className="flex items-start gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Credit Card Insights & Analytics</h1>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Comparative analysis of your credit card spending patterns and fees
+          </p>
+        </div>
       </div>
       
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">

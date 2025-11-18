@@ -117,7 +117,7 @@ const AddPaymentMethodForm = ({ onPaymentMethodAdded }: AddPaymentMethodFormProp
                   <SelectItem value="visa">Visa</SelectItem>
                   <SelectItem value="mastercard">Mastercard</SelectItem>
                   <SelectItem value="amex">American Express</SelectItem>
-                  <SelectItem value="dinersclub">Diners Club</SelectItem>
+                  <SelectItem value="diners">Diners Club</SelectItem>
                   <SelectItem value="rupay">RuPay</SelectItem>
                 </SelectContent>
               </Select>

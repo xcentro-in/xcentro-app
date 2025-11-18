@@ -1164,12 +1164,20 @@ class ApiService {
   // Wallet endpoints
   wallet = {
     fetch: async (businessId: string) => {
-      return this.request('/wallet/fetch', {
-        method: 'POST',
+      return this.request('/wallet', {
+        method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ business_id: businessId }),
+      });
+    },
+    updateCardStatus: async (businessId: string, cardId: string, isActive: boolean) => {
+      return this.request(`/wallet/cards/${cardId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ is_active: isActive }),
       });
     }
   };
