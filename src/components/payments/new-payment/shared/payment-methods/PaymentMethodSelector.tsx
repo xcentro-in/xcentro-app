@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import PaymentRecommendationCard from "../../../upcoming-payments/insights/PaymentRecommendation";
 import { usePaymentRecommendations } from "@/hooks/usePaymentRecommendations";
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
 
 interface PaymentMethodSelectorProps {
   onSelect: (paymentMethodId: string) => void;
@@ -67,19 +68,6 @@ const PaymentMethodSelector = ({
     }
   };
 
-  const getCardNetworkLogo = (cardType: string) => {
-    switch (cardType.toLowerCase()) {
-      case "visa":
-        return "/lovable-uploads/b9b4153b-9e1f-4d42-bf1a-d9542c830869.png";
-      case "mastercard":
-        return "/lovable-uploads/d410a8cf-777f-48c4-8430-bea8af7a96cc.png";
-      case "amex":
-        return "/lovable-uploads/e5fb902c-794e-4682-8d5a-8acf5a9e0c0d.png";
-      default:
-        return null;
-    }
-  };
-  
   const getMethodDetails = (method: PaymentMethod) => {
     switch (method.type) {
       case "card":

@@ -142,7 +142,7 @@ const Login = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img 
-              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max" 
+              src="https://ik.imagekit.io/mddzdzy9m/Xcentro/logo_dark_transparent.png?updatedAt=1763483534131&tr=w-200,h-200,c-at_max" 
               alt="Xcentro Logo" 
               className="h-24 w-auto object-contain" 
             />
