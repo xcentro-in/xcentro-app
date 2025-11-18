@@ -1,7 +1,7 @@
 import React from "react";
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Search, Filter, ChevronRight, Award, Clock, X, Download, BarChart3 } from "lucide-react";
+import { Calendar, Search, Filter, ChevronRight, Award, Clock, X, Download, BarChart3, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -223,6 +223,7 @@ interface RewardsHistoryProps {
 }
 
 const RewardsHistory = ({ embeddedView = false }: RewardsHistoryProps) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("30");
   const [typeFilter, setTypeFilter] = useState("all");
@@ -264,11 +265,21 @@ const RewardsHistory = ({ embeddedView = false }: RewardsHistoryProps) => {
   return (
     <div className="space-y-6">
       {!embeddedView && (
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Earning History</h1>
-          <p className="text-muted-foreground">
-            Track all your reward point earnings across transactions
-          </p>
+        <div className="flex items-start gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Earning History</h1>
+            <p className="text-muted-foreground">
+              Track all your reward point earnings across transactions
+            </p>
+          </div>
         </div>
       )}
       

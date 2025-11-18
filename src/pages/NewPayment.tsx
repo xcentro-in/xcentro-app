@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronLeft } from "lucide-react";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import SinglePaymentForm from "@/components/payments/new-payment/quick-payment/SinglePaymentForm";
 import BatchPaymentForm from "@/components/payments/new-payment/batch-payment/BatchPaymentForm";
@@ -93,9 +93,21 @@ const NewPayment = () => {
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4">
+        {paymentCategory === "selection" && (
+          <div className="flex items-center gap-3 -mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
         {paymentCategory !== "selection" && (
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             className="w-fit pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-muted-foreground"
             onClick={handleReset}
           >
@@ -103,7 +115,7 @@ const NewPayment = () => {
             Change payment type
           </Button>
         )}
-        
+
       </div>
 
       <Card className="animate-scale-in">

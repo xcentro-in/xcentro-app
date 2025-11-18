@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, ArrowLeft } from "lucide-react";
+import { Plus, ArrowLeft, ChevronLeft } from "lucide-react";
 import { Invoice } from "@/data/mockInvoices";
 import BillsTable from "@/components/bills/BillsTable";
 import { useNavigate } from "react-router-dom";
@@ -199,6 +199,14 @@ const Bills = () => {
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => navigate("/")}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
             <div className="flex items-center gap-2">
               <span className="text-lg font-semibold">Bills</span>
             </div>
