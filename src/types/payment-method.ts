@@ -15,7 +15,7 @@ export interface CardPaymentMethod extends BasePaymentMethod {
   cardholderName: string;
   lastFourDigits: string;
   expiryDate: string;
-  cardType: "visa" | "mastercard" | "amex" | "dinersclub" | "rupay";
+  cardType: "visa" | "mastercard" | "amex" | "diners" | "rupay";
 }
 
 export interface BankPaymentMethod extends BasePaymentMethod {

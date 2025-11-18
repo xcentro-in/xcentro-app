@@ -1,7 +1,7 @@
 export interface StoredCard {
   card_id: string;
   last_four_digits: string;
-  card_type: 'visa' | 'mastercard' | 'amex' | 'rupay' | 'dinersclub' | string;
+  card_type: 'visa' | 'mastercard' | 'amex' | 'rupay' | 'diners' | string;
   card_category: 'credit' | 'debit' | string;
   expiry_month: string;
   expiry_year: string;
