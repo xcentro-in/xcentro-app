@@ -6,6 +6,7 @@ export interface StoredCard {
   expiry_month: string;
   expiry_year: string;
   issuer_bank: string;
+  card_status: 'active' | 'inactive' | 'failed' | 'pending';
   is_active: boolean;
   is_failed_tokenization: boolean;
   failure_reason?: string;

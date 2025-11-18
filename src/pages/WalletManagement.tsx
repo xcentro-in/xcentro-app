@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, Building2, ShieldCheck, ChevronLeft } from "lucide-react";
+import { Plus, CreditCard, Building2, ShieldCheck, ChevronLeft, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -253,8 +253,11 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
-    const isInactive = !card.is_active || card.is_failed_tokenization;
-    const isFailed = card.is_failed_tokenization;
+    // Use card_status to determine active/inactive state
+    const isActive = card.card_status === 'active';
+    const isPending = card.card_status === 'pending';
+    const isFailed = card.card_status === 'failed';
+    const isInactive = !isActive; // inactive, failed, or pending are all shown as inactive
 
     return (
       <div
@@ -293,7 +296,7 @@ const WalletManagement = () => {
                 <h3 className={`font-medium text-base ${isInactive ? 'text-slate-500' : 'text-slate-900'}`}>
                   {card.nickname || card.issuer_bank}
                 </h3>
-                {card.nickname && (
+                {card.nickname && card.issuer_bank && (
                   <span className="text-xs text-slate-400">({card.issuer_bank})</span>
                 )}
               </div>
@@ -312,12 +315,23 @@ const WalletManagement = () => {
                 }`}>
                   {card.card_category === 'credit' ? 'Credit' : 'Debit'}
                 </Badge>
-                {card.is_active && !isFailed && (
+                {isActive && (
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
                     Active
                   </Badge>
                 )}
-                {isInactive && (
+                {isPending && (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-xs px-2 py-0.5 flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    Pending
+                  </Badge>
+                )}
+                {isFailed && (
+                  <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-xs px-2 py-0.5">
+                    Failed
+                  </Badge>
+                )}
+                {card.card_status === 'inactive' && (
                   <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
                     Inactive
                   </Badge>
@@ -331,7 +345,7 @@ const WalletManagement = () => {
         </div>
 
         {/* Failed Tokenization Notice */}
-        {isFailed && (
+        {isFailed && card.is_failed_tokenization && (
           <div className="mt-3 pl-[4.25rem]">
             <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
               <p className="text-xs text-amber-700">
