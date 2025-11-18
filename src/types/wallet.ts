@@ -1,12 +1,15 @@
 export interface StoredCard {
   card_id: string;
   last_four_digits: string;
-  card_type: 'visa' | 'mastercard' | 'amex' | 'rupay';
-  card_category: 'credit' | 'debit';
+  card_type: 'visa' | 'mastercard' | 'amex' | 'rupay' | 'dinersclub' | string;
+  card_category: 'credit' | 'debit' | string;
   expiry_month: string;
   expiry_year: string;
   issuer_bank: string;
   is_active: boolean;
+  is_failed_tokenization: boolean;
+  failure_reason?: string;
+  nickname?: string;
 }
 
 export interface BankAccount {
