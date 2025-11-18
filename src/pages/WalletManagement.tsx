@@ -326,23 +326,24 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
-    // Use card_status to determine active/inactive state
-    const isActive = card.card_status === 'active';
+    // Determine if card can be toggled (only active/inactive cards)
     const isPending = card.card_status === 'pending';
     const isFailed = card.card_status === 'failed';
-    const isInactive = !isActive; // inactive, failed, or pending are all shown as inactive
     const showToggle = card.card_status === 'active' || card.card_status === 'inactive';
 
-    // Get current enabled state from local state, fallback to card status
-    const isEnabled = cardEnabledStates[card.card_id] ?? isActive;
+    // Get current enabled state from local state for toggleable cards, fallback to card status
+    const isEnabled = showToggle
+      ? (cardEnabledStates[card.card_id] ?? (card.card_status === 'active'))
+      : false;
+
+    // Determine visual state based on toggle state for toggleable cards, or card status for others
+    const isVisuallyInactive = showToggle ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
 
     return (
       <div
         key={card.card_id}
         className={`flex flex-col p-5 transition-all duration-300 border-b border-slate-100 last:border-b-0 ${
-          !isEnabled && showToggle
-            ? 'bg-slate-50/30 opacity-60'
-            : isInactive
+          isVisuallyInactive
             ? 'bg-slate-50/30 opacity-60'
             : 'hover:bg-slate-50/50 cursor-pointer group'
         }`}
@@ -354,11 +355,11 @@ const WalletManagement = () => {
               <img
                 src={getCardNetworkIcon(card.card_type)}
                 alt={card.card_type}
-                className={`h-6 w-auto object-contain ${(!isEnabled && showToggle) || isInactive ? 'grayscale' : ''}`}
+                className={`h-6 w-auto object-contain ${isVisuallyInactive ? 'grayscale' : ''}`}
               />
             ) : (
               <div className={`w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${
-                (!isEnabled && showToggle) || isInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
+                isVisuallyInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
               }`}>
                 <span className="text-white text-xs font-medium">
                   {card.card_type.toUpperCase().slice(0, 4)}
@@ -372,7 +373,7 @@ const WalletManagement = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <h3 className={`font-medium text-base ${(!isEnabled && showToggle) || isInactive ? 'text-slate-500' : 'text-slate-900'}`}>
+                <h3 className={`font-medium text-base ${isVisuallyInactive ? 'text-slate-500' : 'text-slate-900'}`}>
                   {card.nickname || card.issuer_bank}
                 </h3>
                 {card.nickname && card.issuer_bank && (
@@ -384,7 +385,7 @@ const WalletManagement = () => {
             {/* Details */}
             <div className="space-y-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`font-mono text-sm ${(!isEnabled && showToggle) || isInactive ? 'text-slate-400' : 'text-slate-600'}`}>
+                <span className={`font-mono text-sm ${isVisuallyInactive ? 'text-slate-400' : 'text-slate-600'}`}>
                   •••• •••• •••• {card.last_four_digits}
                 </span>
                 <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
@@ -394,16 +395,18 @@ const WalletManagement = () => {
                 }`}>
                   {card.card_category === 'credit' ? 'Credit' : 'Debit'}
                 </Badge>
-                {isEnabled && showToggle && (
+                {/* Status badges - for toggleable cards, use toggle state */}
+                {showToggle && isEnabled && (
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
                     Active
                   </Badge>
                 )}
-                {!isEnabled && card.card_status === 'inactive' && (
+                {showToggle && !isEnabled && (
                   <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
                     Inactive
                   </Badge>
                 )}
+                {/* Non-toggleable status badges */}
                 {isPending && (
                   <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200 text-xs px-2 py-0.5 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
@@ -416,7 +419,7 @@ const WalletManagement = () => {
                   </Badge>
                 )}
               </div>
-              <div className={`flex items-center gap-2 text-xs ${(!isEnabled && showToggle) || isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 text-xs ${isVisuallyInactive ? 'text-slate-400' : 'text-slate-500'}`}>
                 <span>Expires {card.expiry_month}/{card.expiry_year}</span>
               </div>
             </div>
