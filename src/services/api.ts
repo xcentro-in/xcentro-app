@@ -1170,6 +1170,15 @@ class ApiService {
           'X-Business-ID': businessId,
         },
       });
+    },
+    updateCardStatus: async (businessId: string, cardId: string, isActive: boolean) => {
+      return this.request(`/wallet/cards/${cardId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ is_active: isActive }),
+      });
     }
   };
 

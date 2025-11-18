@@ -15,6 +15,7 @@ import { StoredCard, BankAccount } from "@/types/wallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
 import { toast } from "sonner";
+import { walletAPI } from "@/services/api";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
@@ -80,6 +81,11 @@ const WalletManagement = () => {
 
   // Handle card toggle with debouncing
   const handleCardToggle = useCallback((cardId: string, newEnabledState: boolean) => {
+    if (!user?.businessId) {
+      toast.error('Business ID not found. Please log in again.');
+      return;
+    }
+
     // Optimistically update UI immediately
     setCardEnabledStates(prev => ({
       ...prev,
@@ -94,13 +100,10 @@ const WalletManagement = () => {
     // Set new debounce timer (500ms delay)
     debounceTimersRef.current[cardId] = setTimeout(async () => {
       try {
-        // TODO: Implement API call to update card status
-        // const response = await walletAPI.updateCardStatus(cardId, {
-        //   is_active: newEnabledState,
-        //   card_status: newEnabledState ? 'active' : 'inactive'
-        // });
+        // Call API to update card status
+        await walletAPI.updateCardStatus(user.businessId, cardId, newEnabledState);
 
-        console.log(`API call: Update card ${cardId} to ${newEnabledState ? 'active' : 'inactive'}`);
+        console.log(`API call: Updated card ${cardId} to ${newEnabledState ? 'active' : 'inactive'}`);
 
         // Show success toast
         toast.success(
@@ -121,7 +124,7 @@ const WalletManagement = () => {
         delete debounceTimersRef.current[cardId];
       }
     }, 500);
-  }, []);
+  }, [user?.businessId]);
 
   useEffect(() => {
     setTitle("Payment Sources");
