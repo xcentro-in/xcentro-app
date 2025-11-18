@@ -1,23 +1,36 @@
 
 import React from "react";
-import { 
-  CreditCard, 
-  Receipt, 
+import {
+  CreditCard,
+  Receipt,
   BarChart2,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function CreditCards() {
+  const navigate = useNavigate();
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Credit Cards</h1>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Manage your credit cards, pay bills, and analyze your spending patterns
-        </p>
+      <div className="flex items-start gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Credit Cards</h1>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Manage your credit cards, pay bills, and analyze your spending patterns
+          </p>
+        </div>
       </div>
       
       <div className="grid gap-6 md:grid-cols-2">

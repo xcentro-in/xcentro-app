@@ -7,7 +7,7 @@ import ApprovalTransactionList from "@/components/approvals/ApprovalTransactionL
 import { ApprovalStatus, ApprovalTransaction } from "@/types/approval";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Search, Info, TrendingUp, AlertCircle } from "lucide-react";
+import { RefreshCw, Search, Info, TrendingUp, AlertCircle, ChevronLeft } from "lucide-react";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { isWithinInterval, subDays } from "date-fns";
 import { useApprovalInbox } from "@/hooks/useApprovalInbox";
@@ -16,8 +16,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
 import { BatchApprovalResponse } from "@/types/batch-approval-api";
+import { useNavigate } from "react-router-dom";
 
 const ApprovalInbox = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ApprovalStatus>("pending");
   const { setTitle } = usePageTitle();
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,12 +237,22 @@ const ApprovalInbox = () => {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <p className="text-muted-foreground animate-slide-up" style={{
-          animationDelay: "50ms"
-        }}>
-          Review and approve pending bill payments
-        </p>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div className="space-y-1">
+          <p className="text-muted-foreground animate-slide-up" style={{
+            animationDelay: "50ms"
+          }}>
+            Review and approve pending bill payments
+          </p>
+        </div>
       </div>
 
       {/* Summary Cards */}

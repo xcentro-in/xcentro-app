@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Grid2X2, List, Upload, CreditCard, BarChart2 } from "lucide-react";
+import { Grid2X2, List, Upload, CreditCard, BarChart2, ChevronLeft } from "lucide-react";
 import { mockCreditCardBills } from "@/data/mockCreditCardBills";
 import { CreditCardBill } from "@/types/credit-card-bill";
 import BillCard from "@/components/credit-card-bills/BillCard";
@@ -79,10 +79,20 @@ export default function CreditCardBills() {
   
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Manage and pay your credit card bills
-        </p>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Manage and pay your credit card bills
+          </p>
+        </div>
       </div>
       
       {!showUploadBill && !showQuickPay ? (

@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, Building2, ShieldCheck } from "lucide-react";
+import { Plus, CreditCard, Building2, ShieldCheck, ChevronLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -419,8 +419,18 @@ const WalletManagement = () => {
     <div className="space-y-6">
       {/* Header - Always visible */}
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <p className="text-muted-foreground mt-1">Manage your business payment methods</p>
+          </div>
         </div>
 
         <Button

@@ -12,15 +12,19 @@ import EmployeeSalaryBreakdownCard from "@/components/payroll/EmployeeSalaryBrea
 import PayrollVarianceReportCard from "@/components/payroll/PayrollVarianceReportCard";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const PayrollReport = () => {
+  const navigate = useNavigate();
   const { payrollData, payDate, setPayDate } = usePayrollData();
   const { setTitle } = usePageTitle();
-  
+
   useEffect(() => {
     setTitle("Payroll Report");
   }, [setTitle]);
-  
+
   const simulatePaydayChange = (newDate: number) => {
     setPayDate(newDate);
     // In a real app, this would recalculate cash flow projections
@@ -28,10 +32,20 @@ const PayrollReport = () => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-          Optimize your salary payments and track compliance
-        </p>
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+            Optimize your salary payments and track compliance
+          </p>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
