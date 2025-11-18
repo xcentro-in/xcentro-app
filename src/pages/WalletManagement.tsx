@@ -1,10 +1,12 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, CreditCard, Building2, ShieldCheck, ChevronLeft, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { EmptyWallet } from "@/components/wallet/EmptyWallet";
@@ -12,6 +14,7 @@ import { useWallet } from "@/hooks/useWallet";
 import { StoredCard, BankAccount } from "@/types/wallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
+import { toast } from "sonner";
 
 const WalletManagement = () => {
   const navigate = useNavigate();
@@ -49,6 +52,76 @@ const WalletManagement = () => {
       default: return 'grid-cols-2';
     }
   }, [enabledPaymentMethodsCount]);
+
+  // Card enabled/disabled state management
+  const [cardEnabledStates, setCardEnabledStates] = useState<Record<string, boolean>>({});
+  const debounceTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Initialize card states from API data
+  useEffect(() => {
+    if (cards.length > 0) {
+      const initialStates: Record<string, boolean> = {};
+      cards.forEach(card => {
+        // Only track active/inactive cards, not pending/failed
+        if (card.card_status === 'active' || card.card_status === 'inactive') {
+          initialStates[card.card_id] = card.card_status === 'active';
+        }
+      });
+      setCardEnabledStates(initialStates);
+    }
+  }, [cards]);
+
+  // Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(debounceTimersRef.current).forEach(timer => clearTimeout(timer));
+    };
+  }, []);
+
+  // Handle card toggle with debouncing
+  const handleCardToggle = useCallback((cardId: string, newEnabledState: boolean) => {
+    // Optimistically update UI immediately
+    setCardEnabledStates(prev => ({
+      ...prev,
+      [cardId]: newEnabledState
+    }));
+
+    // Clear existing debounce timer for this card
+    if (debounceTimersRef.current[cardId]) {
+      clearTimeout(debounceTimersRef.current[cardId]);
+    }
+
+    // Set new debounce timer (500ms delay)
+    debounceTimersRef.current[cardId] = setTimeout(async () => {
+      try {
+        // TODO: Implement API call to update card status
+        // const response = await walletAPI.updateCardStatus(cardId, {
+        //   is_active: newEnabledState,
+        //   card_status: newEnabledState ? 'active' : 'inactive'
+        // });
+
+        console.log(`API call: Update card ${cardId} to ${newEnabledState ? 'active' : 'inactive'}`);
+
+        // Show success toast
+        toast.success(
+          newEnabledState ? 'Card enabled successfully' : 'Card disabled successfully'
+        );
+      } catch (error) {
+        console.error('Failed to update card status:', error);
+
+        // Revert optimistic update on error
+        setCardEnabledStates(prev => ({
+          ...prev,
+          [cardId]: !newEnabledState
+        }));
+
+        toast.error('Failed to update card status. Please try again.');
+      } finally {
+        // Clean up the timer reference
+        delete debounceTimersRef.current[cardId];
+      }
+    }, 500);
+  }, []);
 
   useEffect(() => {
     setTitle("Payment Sources");
@@ -258,12 +331,18 @@ const WalletManagement = () => {
     const isPending = card.card_status === 'pending';
     const isFailed = card.card_status === 'failed';
     const isInactive = !isActive; // inactive, failed, or pending are all shown as inactive
+    const showToggle = card.card_status === 'active' || card.card_status === 'inactive';
+
+    // Get current enabled state from local state, fallback to card status
+    const isEnabled = cardEnabledStates[card.card_id] ?? isActive;
 
     return (
       <div
         key={card.card_id}
         className={`flex flex-col p-5 transition-all duration-300 border-b border-slate-100 last:border-b-0 ${
-          isInactive
+          !isEnabled && showToggle
+            ? 'bg-slate-50/30 opacity-60'
+            : isInactive
             ? 'bg-slate-50/30 opacity-60'
             : 'hover:bg-slate-50/50 cursor-pointer group'
         }`}
@@ -275,11 +354,11 @@ const WalletManagement = () => {
               <img
                 src={getCardNetworkIcon(card.card_type)}
                 alt={card.card_type}
-                className={`h-6 w-auto object-contain ${isInactive ? 'grayscale' : ''}`}
+                className={`h-6 w-auto object-contain ${(!isEnabled && showToggle) || isInactive ? 'grayscale' : ''}`}
               />
             ) : (
               <div className={`w-12 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br ${
-                isInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
+                (!isEnabled && showToggle) || isInactive ? 'from-slate-400 to-slate-500' : 'from-slate-600 to-slate-700'
               }`}>
                 <span className="text-white text-xs font-medium">
                   {card.card_type.toUpperCase().slice(0, 4)}
@@ -293,7 +372,7 @@ const WalletManagement = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-2">
-                <h3 className={`font-medium text-base ${isInactive ? 'text-slate-500' : 'text-slate-900'}`}>
+                <h3 className={`font-medium text-base ${(!isEnabled && showToggle) || isInactive ? 'text-slate-500' : 'text-slate-900'}`}>
                   {card.nickname || card.issuer_bank}
                 </h3>
                 {card.nickname && card.issuer_bank && (
@@ -305,7 +384,7 @@ const WalletManagement = () => {
             {/* Details */}
             <div className="space-y-1">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className={`font-mono text-sm ${isInactive ? 'text-slate-400' : 'text-slate-600'}`}>
+                <span className={`font-mono text-sm ${(!isEnabled && showToggle) || isInactive ? 'text-slate-400' : 'text-slate-600'}`}>
                   •••• •••• •••• {card.last_four_digits}
                 </span>
                 <Badge variant="outline" className={`text-xs px-2 py-0.5 ${
@@ -315,9 +394,14 @@ const WalletManagement = () => {
                 }`}>
                   {card.card_category === 'credit' ? 'Credit' : 'Debit'}
                 </Badge>
-                {isActive && (
+                {isEnabled && showToggle && (
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
                     Active
+                  </Badge>
+                )}
+                {!isEnabled && card.card_status === 'inactive' && (
+                  <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
+                    Inactive
                   </Badge>
                 )}
                 {isPending && (
@@ -331,17 +415,32 @@ const WalletManagement = () => {
                     Failed
                   </Badge>
                 )}
-                {card.card_status === 'inactive' && (
-                  <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
-                    Inactive
-                  </Badge>
-                )}
               </div>
-              <div className={`flex items-center gap-2 text-xs ${isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
+              <div className={`flex items-center gap-2 text-xs ${(!isEnabled && showToggle) || isInactive ? 'text-slate-400' : 'text-slate-500'}`}>
                 <span>Expires {card.expiry_month}/{card.expiry_year}</span>
               </div>
             </div>
           </div>
+
+          {/* Toggle Switch for Active/Inactive Cards */}
+          {showToggle && (
+            <div className="ml-6 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor={`card-toggle-${card.card_id}`}
+                  className="text-sm font-medium text-slate-700 cursor-pointer"
+                >
+                  Enabled
+                </Label>
+                <Switch
+                  id={`card-toggle-${card.card_id}`}
+                  checked={isEnabled}
+                  onCheckedChange={(checked) => handleCardToggle(card.card_id, checked)}
+                  className="data-[state=checked]:bg-emerald-600"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Failed Tokenization Notice */}
