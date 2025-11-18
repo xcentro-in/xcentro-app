@@ -1164,7 +1164,7 @@ class ApiService {
   // Wallet endpoints
   wallet = {
     fetch: async (businessId: string) => {
-      return this.request('/wallet/fetch', {
+      return this.request('/wallet', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
