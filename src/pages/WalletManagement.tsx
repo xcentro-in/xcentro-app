@@ -16,10 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
 import { toast } from "sonner";
 import { walletAPI } from "@/services/api";
-<<<<<<< HEAD
-=======
 import { getCardNetworkLogo } from "@/lib/cardNetworks";
->>>>>>> dev
 
 const WalletManagement = () => {
   const navigate = useNavigate();
