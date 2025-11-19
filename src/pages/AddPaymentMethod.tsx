@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CreditCard,
@@ -8,8 +8,9 @@ import {
   PhoneIcon,
   ArrowRight,
   Check,
-  X,
-  ChevronLeft
+  ChevronLeft,
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,14 +30,20 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { canViewFeature } from "@/lib/featureFlags";
+import CardValidator from "@/lib/card-validator";
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
+import { cn } from "@/lib/utils";
 
-const FloatingLabelInput = ({ label, id, ...props }: { label: string; id: string } & React.ComponentProps<typeof Input>) => {
+const FloatingLabelInput = ({ label, id, className, ...props }: { label: string; id: string; className?: string } & React.ComponentProps<typeof Input>) => {
   return (
     <div className="relative">
       <Input
         id={id}
         placeholder=" "
-        className="peer h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors"
+        className={cn(
+          "peer h-12 border-2 border-gray-300 rounded-lg bg-transparent focus-visible:border-primary focus-visible:ring-0 focus-visible:ring-offset-0 hover:border-gray-400 transition-colors",
+          className
+        )}
         {...props}
       />
       <Label
@@ -94,10 +101,53 @@ const AddPaymentMethod = () => {
   const [expiryMonth, setExpiryMonth] = useState("");
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
-  const [cardType, setCardType] = useState("visa");
+  const [detectedCardNetwork, setDetectedCardNetwork] = useState<string>("unknown");
+  const [cardValidation, setCardValidation] = useState<{
+    valid: boolean;
+    luhn_valid: boolean;
+    length_valid: boolean;
+    cvv_length: number[];
+    max_length: number | null;
+  } | null>(null);
   const [cardCategory, setCardCategory] = useState("credit");
   const [cardholderName, setCardholderName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Real-time card validation as user types
+  useEffect(() => {
+    if (cardNumber.length > 0) {
+      try {
+        const cleanNumber = cardNumber.replace(/\s/g, "");
+        const validator = new CardValidator(cleanNumber);
+        const details = validator.getCardDetails();
+
+        setDetectedCardNetwork(details.card_type);
+        setCardValidation(details);
+      } catch (error) {
+        console.error("Card validation error:", error);
+        setDetectedCardNetwork("unknown");
+        setCardValidation(null);
+      }
+    } else {
+      setDetectedCardNetwork("unknown");
+      setCardValidation(null);
+    }
+  }, [cardNumber]);
+
+  // Format card number with spaces for better readability
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\s/g, ""); // Remove existing spaces
+    const numericValue = value.replace(/[^0-9]/g, ""); // Keep only numbers
+
+    // Apply formatting with spaces every 4 digits
+    let formattedValue = "";
+    for (let i = 0; i < numericValue.length; i += 4) {
+      if (i > 0) formattedValue += " ";
+      formattedValue += numericValue.substring(i, Math.min(i + 4, numericValue.length));
+    }
+
+    setCardNumber(formattedValue);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +162,23 @@ const AddPaymentMethod = () => {
       setIsSubmitting(true);
 
       try {
-        // Validate expiry month and year
+        // Remove spaces from card number
+        const cleanCardNumber = cardNumber.replace(/\s/g, "");
+
+        // STEP 1: Validate card number using CardValidator
+        const validator = new CardValidator(cleanCardNumber);
+
+        // Check if card number is valid
+        const isCardValid = validator.validateCard();
+        if (!isCardValid) {
+          toast.error("Invalid card number", {
+            description: "Please check your card number and try again"
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        // STEP 2: Validate expiry date
         if (!expiryMonth || !expiryYear) {
           toast.error("Please enter both expiry month and year");
           setIsSubmitting(false);
@@ -125,9 +191,57 @@ const AddPaymentMethod = () => {
           return;
         }
 
-        // Remove spaces from card number
-        const cleanCardNumber = cardNumber.replace(/\s/g, "");
+        // Convert YY to YYYY format for validation
+        const currentYear = new Date().getFullYear();
+        const currentCentury = Math.floor(currentYear / 100) * 100;
+        const fullYear = currentCentury + parseInt(expiryYear);
+        const expiryString = `${expiryMonth}/${fullYear}`;
 
+        try {
+          const isExpiryValid = validator.validateExpiry(expiryString);
+          if (!isExpiryValid) {
+            toast.error("Card has expired or invalid expiry date");
+            setIsSubmitting(false);
+            return;
+          }
+        } catch (error: any) {
+          toast.error("Invalid expiry date format");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // STEP 3: Validate CVV
+        if (!cvv) {
+          toast.error("Please enter CVV");
+          setIsSubmitting(false);
+          return;
+        }
+
+        try {
+          const isCvvValid = validator.validateCvv(cvv);
+          if (!isCvvValid) {
+            toast.error("Invalid CVV", {
+              description: `Please enter a valid ${cardValidation?.cvv_length?.[0] || 3}-digit CVV`
+            });
+            setIsSubmitting(false);
+            return;
+          }
+        } catch (error: any) {
+          toast.error(error.message || "Invalid CVV");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // STEP 4: Check if card network was detected
+        if (detectedCardNetwork === "unknown") {
+          toast.error("Unable to detect card network", {
+            description: "This card type is not supported"
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        // All validations passed - proceed with tokenization
         // Call tokenize API
         const response = await processPaymentAPI.tokenize(user.businessId, {
           card_number: cleanCardNumber,
@@ -135,9 +249,15 @@ const AddPaymentMethod = () => {
           expiry_year: expiryYear,
           cvv: cvv,
           holder_name: cardholderName,
-          card_type: cardType,
+          card_type: detectedCardNetwork, // Use detected network instead of dropdown value
           card_category: cardCategory,
-        });
+        }) as {
+          status: string;
+          message?: string;
+          data?: {
+            redirect_url?: string;
+          };
+        };
 
         // Handle redirection URL from response
         if (response.status === "success") {
@@ -238,18 +358,62 @@ const AddPaymentMethod = () => {
               <TabsContent value="card">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <FloatingLabelInput
-                      id="cardNumber"
-                      label="Card Number"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={19}
-                      required
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(e.target.value)}
-                    />
+                  <div className="md:col-span-2 space-y-2">
+                    <div className="relative">
+                      <FloatingLabelInput
+                        id="cardNumber"
+                        label="Card Number"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9 ]*"
+                        maxLength={19}
+                        required
+                        value={cardNumber}
+                        onChange={handleCardNumberChange}
+                        className={cn(
+                          "pr-16", // Always add padding for logo/icon space
+                          cardNumber.length > 0 && cardValidation?.valid && "border-green-500 focus-visible:border-green-500",
+                          cardNumber.length > 0 && !cardValidation?.valid && "border-red-500 focus-visible:border-red-500"
+                        )}
+                      />
+                      {/* Card Network Logo Display */}
+                      {cardNumber.length > 0 && detectedCardNetwork !== "unknown" && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                          {getCardNetworkLogo(detectedCardNetwork) ? (
+                            <img
+                              src={getCardNetworkLogo(detectedCardNetwork)!}
+                              alt={detectedCardNetwork}
+                              className="h-6 w-auto object-contain"
+                            />
+                          ) : (
+                            <div className="w-10 h-6 rounded flex items-center justify-center bg-gradient-to-br from-slate-600 to-slate-700">
+                              <span className="text-white text-xs font-medium">
+                                {detectedCardNetwork.toUpperCase().slice(0, 4)}
+                              </span>
+                            </div>
+                          )}
+                          {cardValidation?.valid && (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          )}
+                        </div>
+                      )}
+                      {/* Error Icon when no network detected but has input */}
+                      {cardNumber.length > 0 && detectedCardNetwork === "unknown" && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <AlertCircle className="h-5 w-5 text-red-500" />
+                        </div>
+                      )}
+                    </div>
+                    {cardValidation && !cardValidation.valid && cardNumber.length >= 13 && (
+                      <p className="text-xs text-red-500 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {!cardValidation.luhn_valid
+                          ? "Invalid card number (failed checksum)"
+                          : !cardValidation.length_valid
+                          ? `Invalid length (expected ${cardValidation.max_length} digits)`
+                          : "Invalid card number"}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -311,34 +475,25 @@ const AddPaymentMethod = () => {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="space-y-2">
                     <FloatingLabelInput
                       id="cvv"
                       label="CVV"
                       type="password"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      maxLength={4}
+                      maxLength={cardValidation?.cvv_length?.[cardValidation.cvv_length.length - 1] || 4}
                       required
                       value={cvv}
                       onChange={(e) => setCvv(e.target.value)}
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="cardType" className="text-sm font-medium">Card Type</Label>
-                    <Select value={cardType} onValueChange={setCardType}>
-                      <SelectTrigger id="cardType" className="h-12 border-2 border-gray-300 rounded-lg bg-transparent focus:border-primary focus:ring-0 focus:ring-offset-0 hover:border-gray-400 transition-colors">
-                        <SelectValue placeholder="Select card type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="visa">Visa</SelectItem>
-                        <SelectItem value="mastercard">Mastercard</SelectItem>
-                        <SelectItem value="amex">American Express</SelectItem>
-                        <SelectItem value="diners">Diners Club</SelectItem>
-                        <SelectItem value="rupay">RuPay</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {cardValidation && cardValidation.cvv_length.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {cardValidation.cvv_length.length > 1
+                          ? `${cardValidation.cvv_length.join(" or ")} digits`
+                          : `${cardValidation.cvv_length[0]} digits`}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -367,7 +522,7 @@ const AddPaymentMethod = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4 border-t">
-                  <div className="space-y-4">
+                  {/* <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <Switch id="defaultCard" />
                       <Label htmlFor="defaultCard" className="font-medium">Set as default payment method</Label>
@@ -377,9 +532,9 @@ const AddPaymentMethod = () => {
                       <Switch id="enableRecurring" defaultChecked />
                       <Label htmlFor="enableRecurring" className="font-medium">Enable for recurring payments</Label>
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="flex justify-end">
+                  <div className="flex justify-right">
                     <Button
                       type="submit"
                       size="lg"

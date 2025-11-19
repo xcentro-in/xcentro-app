@@ -16,6 +16,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
 import { toast } from "sonner";
 import { walletAPI } from "@/services/api";
+<<<<<<< HEAD
+=======
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
+>>>>>>> dev
 
 const WalletManagement = () => {
   const navigate = useNavigate();
@@ -161,18 +165,6 @@ const WalletManagement = () => {
     return usageData[methodId] || { level: 'low', transactions: 0, amount: '₹0', lastUsed: 'never' };
   }; */
 
-  const getCardNetworkIcon = (cardType: string) => {
-    switch (cardType.toLowerCase()) {
-      case "visa":
-        return "/lovable-uploads/b9b4153b-9e1f-4d42-bf1a-d9542c830869.png";
-      case "mastercard":
-        return "/lovable-uploads/d410a8cf-777f-48c4-8430-bea8af7a96cc.png";
-      case "amex":
-        return "/lovable-uploads/e5fb902c-794e-4682-8d5a-8acf5a9e0c0d.png";
-      default:
-        return null;
-    }
-  };
 
   // Determine what content to show
   const renderContent = () => {
@@ -354,9 +346,9 @@ const WalletManagement = () => {
         <div className="flex items-center">
           {/* Icon */}
           <div className="w-12 h-8 rounded-lg flex items-center justify-center mr-5 flex-shrink-0">
-            {getCardNetworkIcon(card.card_type) ? (
+            {getCardNetworkLogo(card.card_type) ? (
               <img
-                src={getCardNetworkIcon(card.card_type)}
+                src={getCardNetworkLogo(card.card_type)!}
                 alt={card.card_type}
                 className={`h-6 w-auto object-contain ${isVisuallyInactive ? 'grayscale' : ''}`}
               />
