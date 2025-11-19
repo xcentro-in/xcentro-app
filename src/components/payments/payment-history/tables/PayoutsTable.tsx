@@ -168,26 +168,29 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-4"> {/* New div for top-right positioning */}
-        <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => onItemsPerPageChange(Number(value))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={itemsPerPage} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((pageSize) => (
-                <SelectItem key={pageSize} value={String(pageSize)}>
-                  {pageSize}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Rows per page - only show when total items > 10 */}
+      {totalItems > 10 && (
+        <div className="flex justify-end mb-4">
+          <div className="flex items-center space-x-2">
+            <p className="text-sm font-medium">Rows per page</p>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => onItemsPerPageChange(Number(value))}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={itemsPerPage} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((pageSize) => (
+                  <SelectItem key={pageSize} value={String(pageSize)}>
+                    {pageSize}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="rounded-md border bg-card">
         <Table>
@@ -379,15 +382,18 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
         </Table>
       </div>
 
-      <div className="flex justify-center mt-4">
-        <TablePagination
-          currentPage={page}
-          totalPages={totalPages}
-          totalItems={totalItems}
-          itemsPerPage={itemsPerPage}
-          onPageChange={onPageChange}
-        />
-      </div>
+      {/* Pagination - only show when total items > 10 */}
+      {totalItems > 10 && (
+        <div className="flex justify-center mt-4">
+          <TablePagination
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 };

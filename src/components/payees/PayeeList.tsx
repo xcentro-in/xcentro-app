@@ -209,25 +209,27 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
           </Select>
         </div>
 
-        {/* Page size selector */}
-        <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
-          <Select
-            value={String(pageSize)}
-            onValueChange={(value) => handlePageSizeChange(Number(value))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue placeholder={pageSize} />
-            </SelectTrigger>
-            <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((size) => (
-                <SelectItem key={size} value={String(size)}>
-                  {size}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Page size selector - only show when total count > 10 */}
+        {totalCount > 10 && (
+          <div className="flex items-center space-x-2">
+            <p className="text-sm font-medium">Rows per page</p>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => handlePageSizeChange(Number(value))}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={pageSize} />
+              </SelectTrigger>
+              <SelectContent side="top">
+                {[10, 20, 30, 40, 50].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {payees.length === 0 ? (
@@ -304,8 +306,8 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         </div>
       )}
 
-      {/* Pagination controls */}
-      {payees.length > 0 && (
+      {/* Pagination controls - only show when total count > 10 */}
+      {payees.length > 0 && totalCount > 10 && (
         <div className="flex justify-center mt-4">
           <TablePagination
             currentPage={page}
