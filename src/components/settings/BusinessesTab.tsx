@@ -17,15 +17,15 @@ const BusinessesTab = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-2xl font-semibold">Business Management</h2>
-          <p className="text-muted-foreground mt-1">Manage your business profiles and add new businesses</p>
+          <p className="text-muted-foreground mt-1">Manage your business profiles</p>
         </div>
-        <Button 
+        {/* <Button 
           className="flex items-center gap-2" 
           onClick={handleAddBusiness}
         >
           <Plus className="h-4 w-4" />
           Add New Business
-        </Button>
+        </Button> */}
       </div>
       <BusinessManagement />
     </div>
