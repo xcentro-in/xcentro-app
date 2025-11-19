@@ -265,24 +265,26 @@ const BillsTable = ({
           </div>
         </div>
 
-        {/* Items per page */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(value) => onItemsPerPageChange(Number(value))}
-          >
-            <SelectTrigger className="w-[80px] h-9">
-              <SelectValue placeholder={String(itemsPerPage)} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Items per page - only show when total count > 10 */}
+        {pagination.total > 10 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground whitespace-nowrap">Rows per page:</span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(value) => onItemsPerPageChange(Number(value))}
+            >
+              <SelectTrigger className="w-[80px] h-9">
+                <SelectValue placeholder={String(itemsPerPage)} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
       </div>
       {/* Bills Table */}
@@ -497,8 +499,8 @@ const BillsTable = ({
         </Table>
       </div>
 
-      {/* Pagination */}
-      {pagination.total > 0 && (
+      {/* Pagination - only show when total count > 10 */}
+      {pagination.total > 10 && (
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-muted-foreground">
             Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}

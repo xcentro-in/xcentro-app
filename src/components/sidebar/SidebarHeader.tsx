@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { businessTypeToFrontend } from "@/lib/businessTypeMapping";
 
 export const SidebarHeader = () => {
   const { open } = useSidebar();
@@ -58,7 +59,7 @@ export const SidebarHeader = () => {
               {open && (
                 <div className="flex flex-col items-start">
                   <span className="font-medium">{selectedBusiness.name}</span>
-                  <span className="text-xs text-muted-foreground">{selectedBusiness.businessType}</span>
+                  <span className="text-xs text-muted-foreground">{businessTypeToFrontend[selectedBusiness.businessType]}</span>
                 </div>
               )}
               {open && <ChevronDown className="h-4 w-4 text-muted-foreground ml-1" />}
@@ -99,7 +100,7 @@ export const SidebarHeader = () => {
           {open && (
             <div className="flex flex-col items-start">
               <span className="font-medium">{selectedBusiness.name}</span>
-              <span className="text-xs text-muted-foreground">{selectedBusiness.businessType}</span>
+              <span className="text-xs text-muted-foreground">{businessTypeToFrontend[selectedBusiness.businessType]}</span>
             </div>
           )}
         </div>
