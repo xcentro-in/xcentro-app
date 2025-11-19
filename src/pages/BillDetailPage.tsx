@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -198,15 +198,6 @@ const getActivityDescription = (activity: any): string => {
 
 // Helper function to map API response to BillSummary
 const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
-  const formatDate = (isoDate: string | null): string => {
-    if (!isoDate) return '';
-    try {
-      return format(new Date(isoDate), 'dd/MM/yyyy');
-    } catch {
-      return '';
-    }
-  };
-
   const voucher = response.data;
 
   // Calculate payment status (paid/open/overdue) - deprecated
@@ -258,8 +249,8 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     vendorAddress: '', // Not provided in response
     vendorGstin: voucher.payee.gstin || '',
     amount: voucher.gross_amount / 100, // Convert paise to rupees
-    dueDate: formatDate(voucher.invoice_due_date),
-    billDate: formatDate(voucher.invoice_date),
+    dueDate: voucher.invoice_due_date || '',
+    billDate: voucher.invoice_date || '',
     status: calculatePaymentStatus(), // @deprecated
     voucherStatus: voucher.voucher_status, // Direct from API: 'draft', 'finalized', 'posted', 'synced'
     paymentStatus: voucher.payment_status, // Direct from API
@@ -296,6 +287,10 @@ const BillDetailPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { setTitle } = usePageTitle();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Get active tab from URL query parameter, default to "details"
+  const activeTab = searchParams.get('tab') || 'details';
 
   // Main bill data (loaded on page load)
   const [bill, setBill] = useState<BillSummary | null>(null);
@@ -346,6 +341,13 @@ const BillDetailPage = () => {
   useEffect(() => {
     setTitle(isEditMode ? "Edit Bill" : "Bill Details");
   }, [setTitle, isEditMode]);
+
+  // Load tab data when page loads with specific tab in URL
+  useEffect(() => {
+    if (activeTab === 'activity') loadActivityTab();
+    if (activeTab === 'payment') loadPaymentTab();
+    if (activeTab === 'accounting') loadAccountingTab();
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Initialize edit form data when entering edit mode
   useEffect(() => {
@@ -1517,9 +1519,12 @@ const BillDetailPage = () => {
 
           {/* Tabbed Content */}
           <Tabs
-            defaultValue="details"
+            value={activeTab}
             className="w-full"
             onValueChange={(value) => {
+              // Update URL with new tab
+              setSearchParams({ tab: value });
+
               // Lazy-load tab data when user clicks on it
               if (value === 'activity') loadActivityTab();
               if (value === 'payment') loadPaymentTab();

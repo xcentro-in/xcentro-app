@@ -13,11 +13,16 @@ export interface CalendarEvent {
   title: string;
   amount: number;
   status: TransactionStatus;
-  method: PaymentMethod;
-  type: TransactionType;
+  method?: PaymentMethod;
+  type?: TransactionType;
   time?: string;
   initiatedBy?: string;
   needsApproval?: boolean;
+  // Bill-specific fields
+  invoiceNumber?: string;
+  description?: string;
+  voucherStatus?: 'draft' | 'finalized' | 'posted' | 'synced';
+  paymentStatus?: 'pending' | 'success' | 'failed' | 'cancelled' | null;
 }
 
 export interface CalendarWeek {

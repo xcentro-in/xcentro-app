@@ -15,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { canViewFeature } from "@/lib/featureFlags";
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
 
 export interface PaymentItem {
   id: string;
@@ -214,7 +215,18 @@ const PaymentMethodAndReviewStep = ({
             source.source_type === 'card' ? 'bg-blue-500/10' : 'bg-purple-500/10'
           }`}>
             {source.source_type === 'card' ? (
-              <CreditCard className="h-5 w-5" />
+              (() => {
+                const cardLogo = getCardNetworkLogo(source.card_type);
+                return cardLogo ? (
+                  <img
+                    src={cardLogo}
+                    alt={source.card_type}
+                    className="h-5 w-5 object-contain"
+                  />
+                ) : (
+                  <CreditCard className="h-5 w-5" />
+                );
+              })()
             ) : (
               <Building2 className="h-5 w-5" />
             )}
@@ -228,9 +240,9 @@ const PaymentMethodAndReviewStep = ({
             </div>
             {source.fee_breakdown && (
               <div className="text-sm text-muted-foreground">
-                Processing fee: {formatCurrency(source.fee_breakdown.total_fee)} incl. GST
+                Processing fee:
                 {source.fee_breakdown.convenience_fee_percent > 0 && (
-                  <> ({source.fee_breakdown.convenience_fee_percent}% + {source.fee_breakdown.gst_percent}% GST)</>
+                  <> {source.fee_breakdown.convenience_fee_percent}% </>
                 )}
               </div>
             )}

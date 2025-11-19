@@ -58,7 +58,7 @@ export const mainMenuItems: SidebarMenuItem[] = [
   },
   {
     id: "upcomingpayments",
-    title: "Upcoming Payments",
+    title: "Payment Calendar",
     url: "/payment-calendar",
     icon: CalendarDays,
     requiresAccess: true,

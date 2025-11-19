@@ -21,7 +21,7 @@ const PaymentCalendar = () => {
   const { setTitle } = usePageTitle();
 
   useEffect(() => {
-    setTitle("Upcoming Payments");
+    setTitle("Payment Calendar");
   }, [setTitle]);
 
   // Simplified state - only for view management and calendar
