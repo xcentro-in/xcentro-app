@@ -78,12 +78,46 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     if (current.invoiceReference !== initial.invoiceReference) {
       changes.invoice_number = current.invoiceReference || undefined;
     }
-    if (current.amount !== initial.amount) {
-      changes.gross_amount = parseFloat(current.amount) * 100;
+
+    // If amount or description changed, update all related fields including financial_details
+    const amountChanged = current.amount !== initial.amount;
+    const descriptionChanged = current.description !== initial.description;
+
+    if (amountChanged || descriptionChanged) {
+      const amountInPaise = parseFloat(current.amount) * 100;
+
+      if (amountChanged) {
+        changes.gross_amount = amountInPaise;
+        changes.net_amount = amountInPaise;
+      }
+
+      if (descriptionChanged) {
+        changes.description = current.description || undefined;
+      }
+
+      // Update financial_details if amount or description changed
+      changes.financial_details = {
+        line_items: [{
+          description: current.description || "Quick Payment",
+          quantity: 1,
+          rate: amountInPaise,
+          amount: amountInPaise,
+          gst_rate: 0,
+          gst_amount: 0
+        }],
+        discount: {
+          type: 'percentage',
+          value: 0,
+          amount: 0
+        },
+        round_off: {
+          applied: false,
+          amount: 0
+        },
+        gst_type: 'cgst_sgst'
+      };
     }
-    if (current.description !== initial.description) {
-      changes.description = current.description || undefined;
-    }
+
     if (current.paymentType !== initial.paymentType) {
       changes.payment_type = current.paymentType;
     }
@@ -107,18 +141,48 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         setIsCreatingVoucher(true);
 
         try {
+          // Prepare financial details with single line item for quick payment
+          const amountInPaise = parseFloat(amount) * 100;
+          const financialDetails = {
+            line_items: [{
+              description: description || "Quick Payment",
+              quantity: 1,
+              rate: amountInPaise,
+              amount: amountInPaise,
+              gst_rate: 0,  // No GST assumption - user can edit later if needed
+              gst_amount: 0
+            }],
+            discount: {
+              type: 'percentage',
+              value: 0,
+              amount: 0
+            },
+            round_off: {
+              applied: false,
+              amount: 0
+            },
+            gst_type: 'cgst_sgst'
+          };
+
           const response: GetVoucherDraftResponse = await voucherAPI.createDraft
           (
             user?.businessId,
             {
             relation_id: selectedPayee,
             invoice_number: invoiceReference || undefined,
-            gross_amount: parseFloat(amount) * 100,
-            net_amount: parseFloat(amount) * 100,
+            invoice_date: new Date().toISOString().split('T')[0], // Today's date (YYYY-MM-DD)
+            gross_amount: amountInPaise,
+            net_amount: amountInPaise,
+            cgst_amount: 0,
+            sgst_amount: 0,
+            igst_amount: 0,
+            gst_amount: 0,
+            discount_amount: 0,
             description: description || undefined,
             payment_type: paymentType,
             scheduled_date: scheduledDate?.toISOString(),
             frequency: paymentType === "recurring" ? frequency : undefined,
+            financial_details: financialDetails,
           });
 
           // Store voucher_id and initial form state
