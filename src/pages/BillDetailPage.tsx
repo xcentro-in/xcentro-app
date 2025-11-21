@@ -1055,7 +1055,7 @@ const BillDetailPage = () => {
                 <CardContent className="pt-6">
                   <Label className="text-base font-medium">Payee (Cannot be changed)</Label>
                   <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/30 mt-3">
-                    {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                    {bill.payeeType === 'salary' ? (
                       <User className="h-5 w-5 text-muted-foreground" />
                     ) : (
                       <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -1070,6 +1070,116 @@ const BillDetailPage = () => {
                 </CardContent>
               </Card>
 
+              {/* Conditional rendering based on payeeType */}
+              {bill.payeeType === 'salary' ? (
+                /* Simplified Payroll Edit Form */
+                <>
+                  {/* Payment Details */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-base font-medium mb-4">Salary Payment Details</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <Label htmlFor="description">Description / Notes *</Label>
+                          <Textarea
+                            id="description"
+                            value={editFormData.description}
+                            onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+                            placeholder="e.g., October 2024 Salary, Performance Bonus, etc."
+                            rows={2}
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="amount">Amount (Net Salary Paid) *</Label>
+                            <Input
+                              id="amount"
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={editFormData.netAmount}
+                              onChange={(e) => {
+                                const amount = Number(e.target.value);
+                                setEditFormData({
+                                  ...editFormData,
+                                  netAmount: amount,
+                                  grossAmount: amount,
+                                  subtotal: amount,
+                                  // Update line item to match
+                                  items: [{
+                                    ...editFormData.items[0],
+                                    amount: amount,
+                                    rate: amount
+                                  }]
+                                });
+                              }}
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Enter the net amount paid to employee
+                            </p>
+                          </div>
+                          <div>
+                            <Label htmlFor="billDate">Payment Date *</Label>
+                            <Input
+                              id="billDate"
+                              type="date"
+                              value={editFormData.billDate}
+                              onChange={(e) => setEditFormData({...editFormData, billDate: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <Label htmlFor="expenseCategory">Expense Category</Label>
+                          <Input
+                            id="expenseCategory"
+                            value="Salary"
+                            readOnly
+                            className="bg-muted"
+                          />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Category is fixed for payroll expenses
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Amount Summary */}
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-base font-medium mb-4">Amount Summary</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-lg font-semibold">
+                          <span>Total Amount:</span>
+                          <span>₹ {editFormData.netAmount.toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This is the net salary amount paid to the employee
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditMode(false)}
+                      disabled={isSaving}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveBillChanges}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? "Saving..." : "Save Changes"}
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                /* Existing Complex Vendor Bill Form */
+                <>
               {/* Invoice Details */}
               <Card>
                 <CardContent className="p-6">
@@ -1397,6 +1507,8 @@ const BillDetailPage = () => {
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -1407,7 +1519,7 @@ const BillDetailPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   {/* Conditional rendering based on payee type */}
-                  {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                  {bill.payeeType === 'salary' ? (
                     <>
                       <div className="flex items-center gap-2 mb-2">
                         <User className="h-5 w-5 text-muted-foreground" />
@@ -1574,7 +1686,7 @@ const BillDetailPage = () => {
             {/* Details Tab */}
             <TabsContent value="details" className="space-y-6">
               {/* Conditional rendering based on payee type */}
-              {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+              {bill.payeeType === 'salary' ? (
                 /* Salary Details Card for Employee */
                 <Card>
                   <CardHeader>
@@ -1645,13 +1757,13 @@ const BillDetailPage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {bill.payeeType === 'employee' || bill.payeeType === 'salary'
+                    {bill.payeeType === 'salary'
                       ? 'Salary Breakdown'
                       : 'Financial Breakdown'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {bill.payeeType === 'employee' || bill.payeeType === 'salary' ? (
+                  {bill.payeeType === 'salary' ? (
                     /* Simplified breakdown for employee */
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
