@@ -318,18 +318,20 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
-    // Determine if card can be toggled (only active/inactive cards)
+    // Determine if card can be toggled (only active/inactive cards AND only for owner role)
     const isPending = card.card_status === 'pending';
     const isFailed = card.card_status === 'failed';
-    const showToggle = card.card_status === 'active' || card.card_status === 'inactive';
+    const isOwner = user?.role === 'owner';
+    const isActiveOrInactive = card.card_status === 'active' || card.card_status === 'inactive';
+    const showToggle = isActiveOrInactive && isOwner;
 
     // Get current enabled state from local state for toggleable cards, fallback to card status
-    const isEnabled = showToggle
+    const isEnabled = isActiveOrInactive
       ? (cardEnabledStates[card.card_id] ?? (card.card_status === 'active'))
       : false;
 
     // Determine visual state based on toggle state for toggleable cards, or card status for others
-    const isVisuallyInactive = showToggle ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
+    const isVisuallyInactive = isActiveOrInactive ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
 
     return (
       <div
@@ -387,13 +389,13 @@ const WalletManagement = () => {
                 }`}>
                   {card.card_category === 'credit' ? 'Credit' : 'Debit'}
                 </Badge>
-                {/* Status badges - for toggleable cards, use toggle state */}
-                {showToggle && isEnabled && (
+                {/* Status badges - visible to all users */}
+                {isActiveOrInactive && isEnabled && (
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
                     Active
                   </Badge>
                 )}
-                {showToggle && !isEnabled && (
+                {isActiveOrInactive && !isEnabled && (
                   <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
                     Inactive
                   </Badge>
