@@ -63,6 +63,28 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     frequency
   });
 
+  // Helper to create financial_details structure for quick payment
+  const createFinancialDetails = (amountInPaise: number, desc: string) => ({
+    line_items: [{
+      description: desc || "Quick Payment",
+      quantity: 1,
+      rate: amountInPaise,
+      amount: amountInPaise,
+      gst_rate: 0,  // No GST assumption - user can edit later if needed
+      gst_amount: 0
+    }],
+    discount: {
+      type: 'percentage' as const,
+      value: 0,
+      amount: 0
+    },
+    round_off: {
+      applied: false,
+      amount: 0
+    },
+    gst_type: 'cgst_sgst' as const
+  });
+
   // Helper to detect changes and return only changed fields
   const getChangedFields = (): UpdateVoucherRequest | null => {
     if (!initialFormState.current) return null;
@@ -96,26 +118,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
       }
 
       // Update financial_details if amount or description changed
-      changes.financial_details = {
-        line_items: [{
-          description: current.description || "Quick Payment",
-          quantity: 1,
-          rate: amountInPaise,
-          amount: amountInPaise,
-          gst_rate: 0,
-          gst_amount: 0
-        }],
-        discount: {
-          type: 'percentage',
-          value: 0,
-          amount: 0
-        },
-        round_off: {
-          applied: false,
-          amount: 0
-        },
-        gst_type: 'cgst_sgst'
-      };
+      changes.financial_details = createFinancialDetails(amountInPaise, current.description);
     }
 
     if (current.paymentType !== initial.paymentType) {
@@ -143,26 +146,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         try {
           // Prepare financial details with single line item for quick payment
           const amountInPaise = parseFloat(amount) * 100;
-          const financialDetails = {
-            line_items: [{
-              description: description || "Quick Payment",
-              quantity: 1,
-              rate: amountInPaise,
-              amount: amountInPaise,
-              gst_rate: 0,  // No GST assumption - user can edit later if needed
-              gst_amount: 0
-            }],
-            discount: {
-              type: 'percentage',
-              value: 0,
-              amount: 0
-            },
-            round_off: {
-              applied: false,
-              amount: 0
-            },
-            gst_type: 'cgst_sgst'
-          };
+          const financialDetails = createFinancialDetails(amountInPaise, description);
 
           const response: GetVoucherDraftResponse = await voucherAPI.createDraft
           (
