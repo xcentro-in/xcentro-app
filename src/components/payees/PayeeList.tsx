@@ -45,6 +45,9 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const [activeFilter, setActiveFilter] = useState<boolean>(true); // Default to active
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
+  // Optimistic updates: Track removed payees and their data for rollback
+  const [optimisticallyRemovedPayees, setOptimisticallyRemovedPayees] = useState<Map<string, Payee>>(new Map());
+
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -57,6 +60,14 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     typeFilter: typeFilter === 'all' ? undefined : typeFilter,
     isActive: activeFilter
   });
+
+  // Filter out optimistically removed payees
+  const visiblePayees = payees.filter(payee => !optimisticallyRemovedPayees.has(payee.id));
+
+  // Clear optimistically removed payees when switching tabs or changing filters
+  useEffect(() => {
+    setOptimisticallyRemovedPayees(new Map());
+  }, [activeFilter, typeFilter, searchValue, page]);
 
   // Verification: Check if payees exist while flag is false, then flip flag
   useEffect(() => {
@@ -83,16 +94,42 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   };
 
   const handleStatusChange = async (id: string, isActive: boolean) => {
+    if (!user?.businessId) {
+      toast.error("Business ID not available");
+      return;
+    }
+
+    // Find the payee being changed
+    const payeeToChange = payees.find(p => p.id === id);
+    if (!payeeToChange) {
+      toast.error("Payee not found");
+      return;
+    }
+
+    // Optimistically remove the payee from the list immediately
+    setOptimisticallyRemovedPayees(prev => {
+      const newMap = new Map(prev);
+      newMap.set(id, payeeToChange);
+      return newMap;
+    });
+
+    // Close the drawer immediately
+    setSelectedPayeeForDrawer(null);
+
     try {
-      if (!user?.businessId) {
-        toast.error("Business ID not available");
-        return;
-      }
+      // Make the API call in the background
       await payeesAPI.updateStatus(user.businessId, id, isActive);
+
+      // On success: show success toast, payee stays removed (it's in the other tab now)
       toast.success(isActive ? "Payee marked as active" : "Payee marked as inactive");
-      // Refresh the list
-      window.location.reload();
     } catch (err: any) {
+      // On failure: rollback by removing from optimistically removed list
+      setOptimisticallyRemovedPayees(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+
       toast.error(err.message || "Failed to update payee status");
     }
   };
@@ -144,7 +181,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     }
   };
 
-  const selectedPayee = payees.find(p => p.id === selectedPayeeForDrawer);
+  const selectedPayee = visiblePayees.find(p => p.id === selectedPayeeForDrawer);
 
   // Show loading state
   if (isLoading) {
@@ -255,7 +292,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
       </div>
 
       {/* Info message for inactive payees */}
-      {activeFilter === false && payees.length > 0 && (
+      {activeFilter === false && visiblePayees.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
           <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <p className="text-sm text-blue-800">
@@ -264,7 +301,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         </div>
       )}
 
-      {payees.length === 0 ? (
+      {visiblePayees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No payees found. Try adjusting your search or add a new payee.
         </div>
@@ -280,7 +317,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payees.map((payee) => (
+              {visiblePayees.map((payee) => (
                 <TableRow key={payee.id} className={!payee.isActive ? "opacity-50" : ""}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
@@ -339,7 +376,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
       )}
 
       {/* Pagination controls - only show when total count > 10 */}
-      {payees.length > 0 && totalCount > 10 && (
+      {visiblePayees.length > 0 && totalCount > 10 && (
         <div className="flex justify-center mt-4">
           <TablePagination
             currentPage={page}
