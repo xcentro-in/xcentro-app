@@ -125,23 +125,23 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
 
   const getPayeeIcon = (type: PayeeType) => {
     switch (type) {
-      case "bank":
+      case "vendor":
         return <BanknoteIcon className="h-4 w-4 text-blue-500" />;
       case "biller":
         return <LightbulbIcon className="h-4 w-4 text-yellow-500" />;
-      case "payroll":
+      case "employee":
         return <UsersIcon className="h-4 w-4 text-green-500" />;
     }
   };
 
   const getPayeeTypeBadge = (type: PayeeType) => {
     switch (type) {
-      case "bank":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Bank</Badge>;
+      case "vendor":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Vendor</Badge>;
       case "biller":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Biller</Badge>;
-      case "payroll":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Payroll</Badge>;
+      case "employee":
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Employee</Badge>;
     }
   };
 
@@ -202,9 +202,9 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="bank">Bank</SelectItem>
+              <SelectItem value="vendor">Vendor</SelectItem>
               <SelectItem value="biller">Biller</SelectItem>
-              <SelectItem value="payroll">Payroll</SelectItem>
+              <SelectItem value="employee">Employee</SelectItem>
             </SelectContent>
           </Select>
         </div>
