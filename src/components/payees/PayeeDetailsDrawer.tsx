@@ -5,7 +5,7 @@ import { Payee, VendorPayee, BillerPayee, EmployeePayee } from "@/types/payee"
 import { getPayeeTypeLabel } from "@/utils/payeeUtils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Edit, Eye, History, Trash, Loader2 } from "lucide-react"
+import { Edit, Eye, History, Ban, CheckCircle, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { payeesAPI } from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
@@ -14,14 +14,14 @@ interface PayeeDetailsDrawerProps {
   payee: Payee | null
   isOpen: boolean
   onClose: () => void
-  onDelete: (id: string) => void
+  onStatusChange: (id: string, isActive: boolean) => void
 }
 
 export const PayeeDetailsDrawer = ({
   payee,
   isOpen,
   onClose,
-  onDelete,
+  onStatusChange,
 }: PayeeDetailsDrawerProps) => {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -184,17 +184,26 @@ export const PayeeDetailsDrawer = ({
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-destructive"
+            <Button
+              variant="outline"
+              size="sm"
+              className={payee.isActive ? "text-orange-600" : "text-green-600"}
               onClick={() => {
-                onDelete(payee.id);
+                onStatusChange(payee.id, !payee.isActive);
                 onClose();
               }}
             >
-              <Trash className="h-4 w-4 mr-2" />
-              Delete
+              {payee.isActive ? (
+                <>
+                  <Ban className="h-4 w-4 mr-2" />
+                  Mark Inactive
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Mark Active
+                </>
+              )}
             </Button>
           </div>
         </div>

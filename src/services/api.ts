@@ -796,6 +796,17 @@ class ApiService {
       });
     },
 
+    // Update payee status (mark active/inactive)
+    updateStatus: async (businessId: string, relationId: string, isActive: boolean): Promise<any> => {
+      return this.request(`/payees/${relationId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ is_active: isActive }),
+      });
+    },
+
     // Get vouchers/transactions for a specific payee
     getTransactions: async (businessId: string, payeeId: string, params: {
       status?: string;

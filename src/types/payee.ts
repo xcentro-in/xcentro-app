@@ -10,6 +10,7 @@ export interface BasePayee {
   createdAt: string;
   updatedAt: string;
   isDefault: boolean;
+  isActive: boolean;
 }
 
 export interface VendorPayee extends BasePayee {

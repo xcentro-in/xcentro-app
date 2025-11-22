@@ -20,16 +20,6 @@ import {
   Eye,
   SquareArrowOutUpRight
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +30,7 @@ import { usePayees } from "@/hooks/usePayees";
 import { EmptyPayees } from "./EmptyPayees";
 import { useAuth } from "@/contexts/AuthContext";
 import TablePagination from "@/components/payee-history/TablePagination";
+import { payeesAPI } from "@/services/api";
 
 interface PayeeListProps {
   onAddPayee?: () => void;
@@ -50,7 +41,6 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
-  const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
   // Pagination state
@@ -58,7 +48,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const [pageSize, setPageSize] = useState(10);
 
   // Always fetch payees - verification logic will handle flag updates
-  const { payees, totalCount, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees({
+  const { payees, totalCount, isLoading, error, updatePayee } = usePayees({
     page,
     page_size: pageSize,
     search: searchValue,
@@ -89,12 +79,18 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleStatusChange = async (id: string, isActive: boolean) => {
     try {
-      await deletePayeeFromApi(id);
-      toast.success("Payee deleted successfully");
-    } catch (err) {
-      toast.error("Failed to delete payee");
+      if (!user?.businessId) {
+        toast.error("Business ID not available");
+        return;
+      }
+      await payeesAPI.updateStatus(user.businessId, id, isActive);
+      toast.success(isActive ? "Payee marked as active" : "Payee marked as inactive");
+      // Refresh the list
+      window.location.reload();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update payee status");
     }
   };
 
@@ -328,33 +324,11 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         </div>
       </div>
 
-      <AlertDialog open={!!deletePayeeId} onOpenChange={() => setDeletePayeeId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this payee?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the payee and remove their data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (deletePayeeId) {
-                handleDelete(deletePayeeId);
-                setDeletePayeeId(null);
-              }
-            }}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <PayeeDetailsDrawer 
+      <PayeeDetailsDrawer
         payee={selectedPayee || null}
         isOpen={!!selectedPayeeForDrawer}
         onClose={() => setSelectedPayeeForDrawer(null)}
-        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );
