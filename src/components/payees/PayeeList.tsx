@@ -18,7 +18,8 @@ import {
   Star,
   StarIcon,
   Eye,
-  SquareArrowOutUpRight
+  SquareArrowOutUpRight,
+  Info
 } from "lucide-react";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
+  const [activeFilter, setActiveFilter] = useState<boolean>(true); // Default to active
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
 
   // Pagination state
@@ -52,7 +54,8 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     page,
     page_size: pageSize,
     search: searchValue,
-    typeFilter: typeFilter === 'all' ? undefined : typeFilter
+    typeFilter: typeFilter === 'all' ? undefined : typeFilter,
+    isActive: activeFilter
   });
 
   // Verification: Check if payees exist while flag is false, then flip flag
@@ -175,7 +178,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
-        <div className="flex-1 flex gap-4">
+        <div className="flex-1 flex flex-wrap gap-4">
           <div className="relative w-full sm:w-64">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -203,6 +206,29 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
               <SelectItem value="employee">Employee</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex gap-2">
+            <Button
+              variant={activeFilter === true ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setActiveFilter(true);
+                setPage(1);
+              }}
+            >
+              Active
+            </Button>
+            <Button
+              variant={activeFilter === false ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setActiveFilter(false);
+                setPage(1);
+              }}
+            >
+              Inactive
+            </Button>
+          </div>
         </div>
 
         {/* Page size selector - only show when total count > 10 */}
@@ -228,6 +254,16 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         )}
       </div>
 
+      {/* Info message for inactive payees */}
+      {activeFilter === false && payees.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-800">
+            Inactive payees don't appear while creating bill or making a payment.
+          </p>
+        </div>
+      )}
+
       {payees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No payees found. Try adjusting your search or add a new payee.
@@ -245,7 +281,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
             </TableHeader>
             <TableBody>
               {payees.map((payee) => (
-                <TableRow key={payee.id}>
+                <TableRow key={payee.id} className={!payee.isActive ? "opacity-50" : ""}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {getPayeeIcon(payee.type)}

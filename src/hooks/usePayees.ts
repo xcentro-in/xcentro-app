@@ -18,6 +18,7 @@ export interface UsePayeesParams {
   page_size?: number;
   search?: string;
   typeFilter?: string;
+  isActive?: boolean;
 }
 
 // Helper function to map API response to Payee type
@@ -92,7 +93,8 @@ export const usePayees = (params?: UsePayeesParams) => {
           page: params?.page,
           page_size: params?.page_size,
           search: params?.search,
-          type: params?.typeFilter
+          type: params?.typeFilter,
+          is_active: params?.isActive
         });
 
         // Handle empty data (null)
@@ -131,7 +133,7 @@ export const usePayees = (params?: UsePayeesParams) => {
     };
 
     fetchPayees();
-  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter]);
+  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter, params?.isActive]);
 
   const refetch = () => {
     setData(null);
