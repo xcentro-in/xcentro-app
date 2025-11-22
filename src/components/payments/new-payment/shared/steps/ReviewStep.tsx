@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/utils/formatters";
 import { mockPayees } from "@/data/mockPayees";
 import { PaymentType } from "../../quick-payment/CombinedDetailsStep";
-import { BankPayee, BillerPayee, PayrollPayee } from "@/types/payee";
+import { VendorPayee, BillerPayee, EmployeePayee } from "@/types/payee";
 
 interface ReviewStepProps {
   paymentType: PaymentType;
@@ -101,11 +101,11 @@ const ReviewStep = ({
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Account</span>
-                      <span className="font-medium">****{(payeeDetails as BankPayee).accountNumber.slice(-4)}</span>
+                      <span className="font-medium">****{(payeeDetails as VendorPayee).accountNumber.slice(-4)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Bank</span>
-                      <span className="font-medium">{(payeeDetails as BankPayee).bankName}</span>
+                      <span className="font-medium">{(payeeDetails as VendorPayee).bankName}</span>
                     </div>
                   </>
                 )}
@@ -113,11 +113,11 @@ const ReviewStep = ({
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Account</span>
-                      <span className="font-medium">****{(payeeDetails as PayrollPayee).accountNumber.slice(-4)}</span>
+                      <span className="font-medium">****{(payeeDetails as EmployeePayee).accountNumber.slice(-4)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Bank</span>
-                      <span className="font-medium">{(payeeDetails as PayrollPayee).bankName}</span>
+                      <span className="font-medium">{(payeeDetails as EmployeePayee).bankName}</span>
                     </div>
                   </>
                 )}

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Payee, BankPayee, BillerPayee, PayrollPayee } from '@/types/payee';
+import { Payee, VendorPayee, BillerPayee, EmployeePayee } from '@/types/payee';
 import { payeesAPI } from '@/services/api';
 import {
   GetPayeeDetailsResponse,
@@ -62,7 +62,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
         gstin: vendor.gstin || '',
         defaultPaymentMode: 'bank' as const,
         tags: vendor.tags || [],
-      } as BankPayee;
+      } as VendorPayee;
     }
 
     case 'biller': {
@@ -88,7 +88,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
         salaryAmount: 0, // Not available in API
         salaryType: 'fixed' as const,
         payrollCycle: 'monthly' as const,
-      } as PayrollPayee;
+      } as EmployeePayee;
     }
 
     default:

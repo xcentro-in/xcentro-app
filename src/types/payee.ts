@@ -22,9 +22,6 @@ export interface VendorPayee extends BasePayee {
   tags: string[];
 }
 
-// Legacy alias for backward compatibility
-export type BankPayee = VendorPayee;
-
 export interface BillerPayee extends BasePayee {
   type: "biller";
   billerName: string;
@@ -42,8 +39,5 @@ export interface EmployeePayee extends BasePayee {
   salaryType: "fixed" | "variable";
   payrollCycle: "weekly" | "bi-weekly" | "monthly" | "custom";
 }
-
-// Legacy alias for backward compatibility
-export type PayrollPayee = EmployeePayee;
 
 export type Payee = VendorPayee | BillerPayee | EmployeePayee;

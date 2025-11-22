@@ -9,7 +9,7 @@ interface PayrollPayeeFormProps {
   onSubmit: () => void;
 }
 
-const PayrollPayeeForm = ({ onSubmit }: PayrollPayeeFormProps) => {
+const PayrollPayeeForm = ({ onSubmit }: EmployeePayeeFormProps) => {
   const [step, setStep] = useState<"entry" | "document">("entry");
   const [employeeData, setEmployeeData] = useState<{
     relation_id: string;

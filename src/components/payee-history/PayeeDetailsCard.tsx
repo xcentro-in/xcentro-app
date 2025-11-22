@@ -1,8 +1,8 @@
-import { 
-  BankPayee, 
-  BillerPayee, 
-  Payee, 
-  PayrollPayee 
+import {
+  VendorPayee,
+  BillerPayee,
+  Payee,
+  EmployeePayee
 } from "@/types/payee";
 import { getPayeeIcon } from "@/utils/payeeUtils";
 import { Card } from "@/components/ui/card";
@@ -29,7 +29,7 @@ export const PayeeDetailsCard = ({
 
     switch (payee.type) {
       case "bank": {
-        const bankPayee = payee as BankPayee;
+        const bankPayee = payee as VendorPayee;
         return [
           { label: "Bank Name", value: bankPayee.bankName },
           { label: "Account Number", value: bankPayee.accountNumber },
@@ -56,7 +56,7 @@ export const PayeeDetailsCard = ({
         ];
       }
       case "payroll": {
-        const payrollPayee = payee as PayrollPayee;
+        const payrollPayee = payee as EmployeePayee;
         return [
           { label: "Bank Name", value: payrollPayee.bankName },
           { label: "Account Number", value: payrollPayee.accountNumber },

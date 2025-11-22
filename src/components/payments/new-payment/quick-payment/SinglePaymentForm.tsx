@@ -277,11 +277,11 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
         const vendor = vendors.find(v => v.relation_id === selectedPayee);
         if (!vendor) return undefined;
 
-        // Create a minimal BankPayee object with vendor data
+        // Create a minimal VendorPayee object with vendor data
         return {
           id: vendor.relation_id,
           name: vendor.display_name,
-          type: "bank" as const,
+          type: "vendor" as const,
           email: vendor.contact_email,
           contactNumber: vendor.contact_phone,
           createdAt: new Date().toISOString(),

@@ -1,6 +1,6 @@
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Payee, BankPayee, BillerPayee, PayrollPayee } from "@/types/payee"
+import { Payee, VendorPayee, BillerPayee, EmployeePayee } from "@/types/payee"
 import { getPayeeTypeLabel } from "@/utils/payeeUtils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -32,7 +32,7 @@ export const PayeeDetailsDrawer = ({
   const renderPayeeSpecificDetails = () => {
     switch (payee.type) {
       case "vendor":
-        const bankPayee = payee as BankPayee
+        const bankPayee = payee as VendorPayee
         return (
           <>
             <div className="space-y-1">
@@ -66,7 +66,7 @@ export const PayeeDetailsDrawer = ({
           </div>
         )
       case "employee":
-        const payrollPayee = payee as PayrollPayee
+        const payrollPayee = payee as EmployeePayee
         return (
           <div className="space-y-1">
             <p className="text-sm font-medium">Bank Details</p>
