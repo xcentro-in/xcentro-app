@@ -779,6 +779,23 @@ class ApiService {
       });
     },
 
+    // Get payee account details (for vendor and employee types)
+    getAccountDetails: async (businessId: string, relationId: string): Promise<{
+      status: string;
+      data: {
+        account_number_last_4: string;
+        bank_name: string;
+        ifsc_code: string;
+      };
+    }> => {
+      return this.request(`/payees/${relationId}/acc_details`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     // Get vouchers/transactions for a specific payee
     getTransactions: async (businessId: string, payeeId: string, params: {
       status?: string;
