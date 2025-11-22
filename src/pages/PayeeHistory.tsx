@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +20,7 @@ import AttachmentsTab from "@/components/payee-history/AttachmentsTab";
 const PayeeHistory = () => {
   const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Use server-side hook for payee overview data
   const {
@@ -30,8 +31,18 @@ const PayeeHistory = () => {
     validateIfsc
   } = usePayeeDetails(payeeId || "");
 
+  // Initialize tab from URL parameter, default to "overview"
+  const initialTab = searchParams.get("tab") || "overview";
+
   // Transaction history state for the main TransactionsTable
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Handler to update both state and URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
   const [transactionFilters, setTransactionFilters] = useState({
     status: 'all' as TransactionStatus | 'all',
     paymentMethod: 'all' as PaymentMethod | 'all',
@@ -357,7 +368,7 @@ const PayeeHistory = () => {
       </div>
       
       {/* Tab-based Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="inline-flex bg-transparent p-0 h-auto gap-8">
           <TabsTrigger
             value="overview"

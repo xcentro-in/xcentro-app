@@ -25,7 +25,7 @@ export const PayeeDetailsDrawer = ({
   if (!payee) return null
 
   const handleViewHistory = (payeeId: string) => {
-    navigate(`/payees/${payeeId}`);
+    navigate(`/payees/${payeeId}?tab=history`);
     onClose();
   };
 
