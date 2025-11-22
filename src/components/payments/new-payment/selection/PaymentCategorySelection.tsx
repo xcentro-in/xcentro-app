@@ -72,50 +72,48 @@ const PaymentCategorySelection: React.FC<PaymentCategorySelectionProps> = ({ onS
           // Check if category should be disabled (all except "single" when no first payment)
           const isDisabledByOnboarding = !hasCreatedFirstPayment && category.id !== "single";
 
-          // Render disabled state with tooltip for onboarding-locked categories
-          if (isDisabledByOnboarding) {
-            return (
-              <TooltipProvider key={category.id}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Card
-                      className="opacity-50 cursor-not-allowed relative"
-                    >
-                      <CardContent className="flex flex-col items-center text-center p-6 h-full">
-                        <div className="absolute top-4 right-4 text-muted-foreground">
-                          <Lock className="h-5 w-5" />
-                        </div>
-                        <div className="p-4 rounded-full mb-4 bg-muted">
-                          {category.icon}
-                        </div>
-                        <h3 className="font-medium text-lg mb-2 text-muted-foreground">{category.title}</h3>
-                        <p className="text-muted-foreground text-sm">{category.description}</p>
-                      </CardContent>
-                    </Card>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs">
-                    <p>Complete your first payment to unlock advanced payment options</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          }
-
-          // Render normal clickable category
+          // Wrap everything in FeatureEnabled to respect feature flags first
           return (
             <FeatureEnabled key={category.id} featureFlag={featureFlag}>
-              <Card
-                className="hover:border-primary hover:shadow-md transition-all cursor-pointer"
-                onClick={() => onSelect(category.id as PaymentCategory)}
-              >
-                <CardContent className="flex flex-col items-center text-center p-6 h-full">
-                  <div className="p-4 rounded-full mb-4 bg-primary/10">
-                    {category.icon}
-                  </div>
-                  <h3 className="font-medium text-lg mb-2">{category.title}</h3>
-                  <p className="text-muted-foreground text-sm">{category.description}</p>
-                </CardContent>
-              </Card>
+              {/* Render disabled state with tooltip for onboarding-locked categories */}
+              {isDisabledByOnboarding ? (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Card
+                        className="opacity-50 cursor-not-allowed relative"
+                      >
+                        <CardContent className="flex flex-col items-center text-center p-6 h-full">
+                          <div className="absolute top-4 right-4 text-muted-foreground">
+                            <Lock className="h-5 w-5" />
+                          </div>
+                          <div className="p-4 rounded-full mb-4 bg-muted">
+                            {category.icon}
+                          </div>
+                          <h3 className="font-medium text-lg mb-2 text-muted-foreground">{category.title}</h3>
+                          <p className="text-muted-foreground text-sm">{category.description}</p>
+                        </CardContent>
+                      </Card>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p>Complete your first payment to unlock advanced payment options</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <Card
+                  className="hover:border-primary hover:shadow-md transition-all cursor-pointer"
+                  onClick={() => onSelect(category.id as PaymentCategory)}
+                >
+                  <CardContent className="flex flex-col items-center text-center p-6 h-full">
+                    <div className="p-4 rounded-full mb-4 bg-primary/10">
+                      {category.icon}
+                    </div>
+                    <h3 className="font-medium text-lg mb-2">{category.title}</h3>
+                    <p className="text-muted-foreground text-sm">{category.description}</p>
+                  </CardContent>
+                </Card>
+              )}
             </FeatureEnabled>
           );
         })}
