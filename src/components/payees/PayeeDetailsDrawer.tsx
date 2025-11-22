@@ -180,10 +180,6 @@ export const PayeeDetailsDrawer = ({
               <History className="h-4 w-4 mr-2" />
               View History
             </Button>
-            <Button variant="outline" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
             <Button
               variant="outline"
               size="sm"
