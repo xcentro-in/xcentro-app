@@ -714,6 +714,7 @@ class ApiService {
       page_size?: number;
       search?: string;
       type?: string;
+      is_active?: boolean;
     }): Promise<any> => {
       const queryParams = new URLSearchParams();
       if (params?.page) {
@@ -727,6 +728,9 @@ class ApiService {
       }
       if (params?.type && params.type !== 'all') {
         queryParams.append('type', params.type);
+      }
+      if (params?.is_active !== undefined) {
+        queryParams.append('is_active', params.is_active.toString());
       }
 
       const queryString = queryParams.toString();
