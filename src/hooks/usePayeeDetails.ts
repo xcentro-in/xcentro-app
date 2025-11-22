@@ -47,6 +47,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
     createdAt: new Date().toISOString(), // Not available in API
     updatedAt: new Date().toISOString(), // Not available in API
     isDefault: apiPayee.is_favorite,
+    isActive: apiPayee.is_active,
   };
 
   // Map based on payee_type

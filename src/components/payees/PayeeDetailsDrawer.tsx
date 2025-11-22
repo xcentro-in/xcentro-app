@@ -153,7 +153,7 @@ export const PayeeDetailsDrawer = ({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+      <SheetContent className="w-[500px] sm:w-[700px] overflow-y-auto">
         <SheetHeader className="pb-6">
           <SheetTitle>{payee.name}</SheetTitle>
         </SheetHeader>

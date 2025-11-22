@@ -34,6 +34,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
     createdAt: apiPayee.added_at,
     updatedAt: apiPayee.updated_at === '0001-01-01T00:00:00Z' ? apiPayee.added_at : apiPayee.updated_at,
     isDefault: apiPayee.is_favorite, // Map is_favorite to isDefault
+    isActive: apiPayee.is_active, // Map is_active to isActive
   };
 
   // Return type-specific payee object
