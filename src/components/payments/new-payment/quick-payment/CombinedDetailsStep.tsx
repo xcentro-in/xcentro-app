@@ -47,8 +47,8 @@ const CombinedDetailsStep = ({
   onPayeeSelect,
   onNext,
 }: CombinedDetailsStepProps) => {
-  const isFormValid = amount && selectedPayee && 
-    (paymentType === "now" || 
+  const isFormValid = amount && selectedPayee && invoiceReference &&
+    (paymentType === "now" ||
      (paymentType === "later" && scheduledDate) ||
      (paymentType === "recurring" && scheduledDate && frequency));
 
@@ -90,7 +90,7 @@ const CombinedDetailsStep = ({
             />
 
             <OutlinedInput
-              label="Invoice Reference (Optional)"
+              label="Invoice Reference"
               placeholder="Enter invoice reference"
               value={invoiceReference}
               onChange={(e) => onInvoiceReferenceChange(e.target.value)}
