@@ -396,14 +396,7 @@ const UserOnboarding = () => {
       <div className="container mx-auto py-8 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold">Complete Your Profile</h1>
-              <img
-                src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_name_transaparent.png?updatedAt=1745093647693&tr=w-150,h-150,c-at_max"
-                alt="Xcentro Logo"
-                className="h-20 w-auto object-contain"
-              />
-            </div>
+            
             <p className="text-muted-foreground mt-1">Please complete the following steps to set up your account</p>
           </div>
 
