@@ -31,7 +31,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { formatCurrency } from "@/utils/formatters";
-import { formatPaymentDate } from "@/utils/dateFormatting";
+import { formatPaymentDate, formatBillDate } from "@/utils/dateFormatting";
 import { canViewFeature } from "@/lib/featureFlags";
 import { formatDistanceToNow, format } from "date-fns";
 import { voucherAPI } from "@/services/api";
@@ -1590,12 +1590,12 @@ const BillDetailPage = () => {
                   <div className="space-y-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Bill Date:</span>
-                      <span className="ml-2 font-medium">{formatPaymentDate(bill.billDate)}</span>
+                      <span className="ml-2 font-medium">{formatBillDate(bill.billDate)}</span>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Due Date:</span>
                       <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : ''}`}>
-                        {formatPaymentDate(bill.dueDate)}
+                        {formatBillDate(bill.dueDate)}
                         {isOverdue && bill.overdueDays && (
                           <span className="text-xs ml-1">({bill.overdueDays}d overdue)</span>
                         )}
