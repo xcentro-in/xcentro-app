@@ -31,7 +31,7 @@ export const PayeeDetailsDrawer = ({
 
   const renderPayeeSpecificDetails = () => {
     switch (payee.type) {
-      case "bank":
+      case "vendor":
         const bankPayee = payee as BankPayee
         return (
           <>
@@ -65,7 +65,7 @@ export const PayeeDetailsDrawer = ({
             </p>
           </div>
         )
-      case "payroll":
+      case "employee":
         const payrollPayee = payee as PayrollPayee
         return (
           <div className="space-y-1">

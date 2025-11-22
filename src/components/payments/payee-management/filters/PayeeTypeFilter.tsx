@@ -20,9 +20,9 @@ const PayeeTypeFilter = ({ filterType, setFilterType }: PayeeTypeFilterProps) =>
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">All Types</SelectItem>
-        <SelectItem value="bank">{getPayeeTypeLabel("bank")}</SelectItem>
+        <SelectItem value="vendor">{getPayeeTypeLabel("vendor")}</SelectItem>
         <SelectItem value="biller">{getPayeeTypeLabel("biller")}</SelectItem>
-        <SelectItem value="payroll">{getPayeeTypeLabel("payroll")}</SelectItem>
+        <SelectItem value="employee">{getPayeeTypeLabel("employee")}</SelectItem>
       </SelectContent>
     </Select>
   );

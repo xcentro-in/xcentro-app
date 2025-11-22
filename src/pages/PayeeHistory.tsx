@@ -114,7 +114,7 @@ const PayeeHistory = () => {
       const payee = overview.payee;
 
       // Initialize edit data based on payee type
-      if (payee.type === 'bank') {
+      if (payee.type === 'vendor') {
         const bankPayee = payee as BankPayee;
         setEditData({
           email: bankPayee.email,
@@ -123,7 +123,7 @@ const PayeeHistory = () => {
           ifscCode: bankPayee.ifscCode || "",
           bankName: bankPayee.bankName
         });
-      } else if (payee.type === 'payroll') {
+      } else if (payee.type === 'employee') {
         const payrollPayee = payee as PayrollPayee;
         setEditData({
           email: payrollPayee.email,
@@ -224,7 +224,7 @@ const PayeeHistory = () => {
     // Reset edit data to original values from overview
     if (overview?.payee) {
       const payee = overview.payee;
-      if (payee.type === 'bank') {
+      if (payee.type === 'vendor') {
         const bankPayee = payee as BankPayee;
         setEditData({
           email: bankPayee.email,
@@ -233,7 +233,7 @@ const PayeeHistory = () => {
           ifscCode: bankPayee.ifscCode || "",
           bankName: bankPayee.bankName
         });
-      } else if (payee.type === 'payroll') {
+      } else if (payee.type === 'employee') {
         const payrollPayee = payee as PayrollPayee;
         setEditData({
           email: payrollPayee.email,
@@ -261,7 +261,7 @@ const PayeeHistory = () => {
     const payee = overview.payee;
     
     switch (payee.type) {
-      case 'bank':
+      case 'vendor':
         const bankPayee = payee as BankPayee;
         return [
           { icon: Building2, label: "Company Name", value: bankPayee.name, editable: false },
@@ -278,7 +278,7 @@ const PayeeHistory = () => {
           { icon: Phone, label: "Contact Number", value: isEditingCompany ? editData.contactNumber : billerPayee.contactNumber, editable: true },
           { icon: Mail, label: "Email", value: isEditingCompany ? editData.email : billerPayee.email, editable: true }
         ];
-      case 'payroll':
+      case 'employee':
         const payrollPayee = payee as PayrollPayee;
         return [
           { icon: Building2, label: "Employee Name", value: payrollPayee.name, editable: false },
@@ -295,14 +295,14 @@ const PayeeHistory = () => {
     if (!overview?.payee || overview.payee.type === 'biller') return [];
 
     const payee = overview.payee;
-    if (payee.type === 'bank') {
+    if (payee.type === 'vendor') {
       const bankPayee = payee as BankPayee;
       return [
         { icon: CreditCard, label: "Account Number", value: isEditingBank ? editData.accountNumber : bankPayee.accountNumber, editable: true },
         { icon: CreditCard, label: "IFSC Code", value: isEditingBank ? editData.ifscCode : (bankPayee.ifscCode || "Not provided"), editable: true },
         { icon: Building2, label: "Bank Name", value: isEditingBank ? editData.bankName : bankPayee.bankName, editable: false }
       ];
-    } else if (payee.type === 'payroll') {
+    } else if (payee.type === 'employee') {
       const payrollPayee = payee as PayrollPayee;
       return [
         { icon: CreditCard, label: "Account Number", value: isEditingBank ? editData.accountNumber : payrollPayee.accountNumber, editable: true },
@@ -372,7 +372,7 @@ const PayeeHistory = () => {
             Payment History
           </TabsTrigger>
           {/* Show Attachments tab only for payroll/employee payees */}
-          {overview?.payee?.type === 'payroll' && (
+          {overview?.payee?.type === 'employee' && (
             <TabsTrigger
               value="attachments"
               className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
@@ -590,7 +590,7 @@ const PayeeHistory = () => {
         </TabsContent>
 
         {/* Attachments Tab - Only for payroll payees */}
-        {overview?.payee?.type === 'payroll' && (
+        {overview?.payee?.type === 'employee' && (
           <TabsContent value="attachments" className="mt-6">
             {overview.payee && (
               <AttachmentsTab

@@ -1,5 +1,5 @@
 
-export type PayeeType = "bank" | "biller" | "payroll";
+export type PayeeType = "vendor" | "biller" | "employee";
 
 export interface BasePayee {
   id: string;
@@ -12,8 +12,8 @@ export interface BasePayee {
   isDefault: boolean;
 }
 
-export interface BankPayee extends BasePayee {
-  type: "bank";
+export interface VendorPayee extends BasePayee {
+  type: "vendor";
   accountNumber: string;
   bankName: string;
   ifscCode: string;
@@ -21,6 +21,9 @@ export interface BankPayee extends BasePayee {
   defaultPaymentMode: "credit" | "bank";
   tags: string[];
 }
+
+// Legacy alias for backward compatibility
+export type BankPayee = VendorPayee;
 
 export interface BillerPayee extends BasePayee {
   type: "biller";
@@ -30,8 +33,8 @@ export interface BillerPayee extends BasePayee {
   autoPayment: boolean;
 }
 
-export interface PayrollPayee extends BasePayee {
-  type: "payroll";
+export interface EmployeePayee extends BasePayee {
+  type: "employee";
   accountNumber: string;
   bankName: string;
   ifscCode: string;
@@ -40,4 +43,7 @@ export interface PayrollPayee extends BasePayee {
   payrollCycle: "weekly" | "bi-weekly" | "monthly" | "custom";
 }
 
-export type Payee = BankPayee | BillerPayee | PayrollPayee;
+// Legacy alias for backward compatibility
+export type PayrollPayee = EmployeePayee;
+
+export type Payee = VendorPayee | BillerPayee | EmployeePayee;

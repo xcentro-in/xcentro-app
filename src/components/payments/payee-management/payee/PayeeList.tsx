@@ -26,9 +26,9 @@ const PayeeList = ({
   // Group payees by type
   const groupedPayees = useMemo(() => {
     const groups: Record<PayeeType | 'recent', Payee[]> = {
-      bank: [],
+      vendor: [],
       biller: [],
-      payroll: [],
+      employee: [],
       recent: []
     };
     
@@ -75,10 +75,10 @@ const PayeeList = ({
       )}
       
       {/* Vendors Section */}
-      {groupedPayees.bank.length > 0 && (
-        <PayeeGroup 
-          title={getPayeeTypeLabel("bank")} 
-          payees={groupedPayees.bank}
+      {groupedPayees.vendor.length > 0 && (
+        <PayeeGroup
+          title={getPayeeTypeLabel("vendor")}
+          payees={groupedPayees.vendor}
           selectedPayee={selectedPayee}
           setSelectedPayee={setSelectedPayee}
           favoritePayees={favoritePayees}
@@ -99,10 +99,10 @@ const PayeeList = ({
       )}
       
       {/* Employees Section */}
-      {groupedPayees.payroll.length > 0 && (
-        <PayeeGroup 
-          title={getPayeeTypeLabel("payroll")} 
-          payees={groupedPayees.payroll}
+      {groupedPayees.employee.length > 0 && (
+        <PayeeGroup
+          title={getPayeeTypeLabel("employee")}
+          payees={groupedPayees.employee}
           selectedPayee={selectedPayee}
           setSelectedPayee={setSelectedPayee}
           favoritePayees={favoritePayees}
