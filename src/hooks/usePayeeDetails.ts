@@ -55,7 +55,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
       const vendor = apiPayee as VendorPayeeDetailsAPI;
       return {
         ...basePayee,
-        type: 'bank' as const,
+        type: 'vendor' as const,
         accountNumber: vendor.bank_details?.account_number || '',
         bankName: vendor.bank_details?.bank_name || '',
         ifscCode: vendor.bank_details?.ifsc_code || '',
@@ -81,7 +81,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
       const employee = apiPayee as EmployeePayeeDetailsAPI;
       return {
         ...basePayee,
-        type: 'payroll' as const,
+        type: 'employee' as const,
         accountNumber: employee.bank_details?.account_number || '',
         bankName: employee.bank_details?.bank_name || '',
         ifscCode: employee.bank_details?.ifsc_code || '',

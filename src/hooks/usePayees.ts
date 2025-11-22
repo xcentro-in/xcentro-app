@@ -40,7 +40,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   if (type === 'vendor') {
     return {
       ...basePayee,
-      type: 'bank',
+      type: 'vendor',
       accountNumber: '', // Not available in API
       bankName: '', // Not available in API
       ifscCode: '', // Not available in API
@@ -60,7 +60,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   } else {
     return {
       ...basePayee,
-      type: 'payroll',
+      type: 'employee',
       accountNumber: '', // Not available in API
       bankName: '', // Not available in API
       ifscCode: '', // Not available in API
