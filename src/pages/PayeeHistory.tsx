@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, MapPin, Phone, Mail, Building2, CreditCard, Edit, Save, X, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Payee, BankPayee, BillerPayee, PayrollPayee } from "@/types/payee";
+import { Payee, VendorPayee, BillerPayee, EmployeePayee } from "@/types/payee";
 import { TransactionStatus, PaymentMethod } from "@/types/transaction";
 import { DateRange } from "react-day-picker";
 import { usePayeeDetails } from "@/hooks/usePayeeDetails";
@@ -20,6 +20,7 @@ import AttachmentsTab from "@/components/payee-history/AttachmentsTab";
 const PayeeHistory = () => {
   const {payeeId} = useParams<{payeeId: string;}>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Use server-side hook for payee overview data
   const {
@@ -30,8 +31,18 @@ const PayeeHistory = () => {
     validateIfsc
   } = usePayeeDetails(payeeId || "");
 
+  // Initialize tab from URL parameter, default to "overview"
+  const initialTab = searchParams.get("tab") || "overview";
+
   // Transaction history state for the main TransactionsTable
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // Handler to update both state and URL when tab changes
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
   const [transactionFilters, setTransactionFilters] = useState({
     status: 'all' as TransactionStatus | 'all',
     paymentMethod: 'all' as PaymentMethod | 'all',
@@ -114,8 +125,8 @@ const PayeeHistory = () => {
       const payee = overview.payee;
 
       // Initialize edit data based on payee type
-      if (payee.type === 'bank') {
-        const bankPayee = payee as BankPayee;
+      if (payee.type === 'vendor') {
+        const bankPayee = payee as VendorPayee;
         setEditData({
           email: bankPayee.email,
           contactNumber: bankPayee.contactNumber,
@@ -123,8 +134,8 @@ const PayeeHistory = () => {
           ifscCode: bankPayee.ifscCode || "",
           bankName: bankPayee.bankName
         });
-      } else if (payee.type === 'payroll') {
-        const payrollPayee = payee as PayrollPayee;
+      } else if (payee.type === 'employee') {
+        const payrollPayee = payee as EmployeePayee;
         setEditData({
           email: payrollPayee.email,
           contactNumber: payrollPayee.contactNumber,
@@ -193,7 +204,7 @@ const PayeeHistory = () => {
         updates.email = editData.email;
         updates.contactNumber = editData.contactNumber;
       } else if (section === 'bank') {
-        // Bank-specific fields for BankPayee and PayrollPayee
+        // Bank-specific fields for VendorPayee and EmployeePayee
         updates.accountNumber = editData.accountNumber;
         updates.ifscCode = editData.ifscCode;
         updates.bankName = editData.bankName;
@@ -224,8 +235,8 @@ const PayeeHistory = () => {
     // Reset edit data to original values from overview
     if (overview?.payee) {
       const payee = overview.payee;
-      if (payee.type === 'bank') {
-        const bankPayee = payee as BankPayee;
+      if (payee.type === 'vendor') {
+        const bankPayee = payee as VendorPayee;
         setEditData({
           email: bankPayee.email,
           contactNumber: bankPayee.contactNumber,
@@ -233,8 +244,8 @@ const PayeeHistory = () => {
           ifscCode: bankPayee.ifscCode || "",
           bankName: bankPayee.bankName
         });
-      } else if (payee.type === 'payroll') {
-        const payrollPayee = payee as PayrollPayee;
+      } else if (payee.type === 'employee') {
+        const payrollPayee = payee as EmployeePayee;
         setEditData({
           email: payrollPayee.email,
           contactNumber: payrollPayee.contactNumber,
@@ -261,8 +272,8 @@ const PayeeHistory = () => {
     const payee = overview.payee;
     
     switch (payee.type) {
-      case 'bank':
-        const bankPayee = payee as BankPayee;
+      case 'vendor':
+        const bankPayee = payee as VendorPayee;
         return [
           { icon: Building2, label: "Company Name", value: bankPayee.name, editable: false },
           { icon: CreditCard, label: "GST Number", value: bankPayee.gstin || "Not provided", editable: false },
@@ -278,8 +289,8 @@ const PayeeHistory = () => {
           { icon: Phone, label: "Contact Number", value: isEditingCompany ? editData.contactNumber : billerPayee.contactNumber, editable: true },
           { icon: Mail, label: "Email", value: isEditingCompany ? editData.email : billerPayee.email, editable: true }
         ];
-      case 'payroll':
-        const payrollPayee = payee as PayrollPayee;
+      case 'employee':
+        const payrollPayee = payee as EmployeePayee;
         return [
           { icon: Building2, label: "Employee Name", value: payrollPayee.name, editable: false },
           { icon: Phone, label: "Contact Number", value: isEditingCompany ? editData.contactNumber : payrollPayee.contactNumber, editable: true },
@@ -295,15 +306,15 @@ const PayeeHistory = () => {
     if (!overview?.payee || overview.payee.type === 'biller') return [];
 
     const payee = overview.payee;
-    if (payee.type === 'bank') {
-      const bankPayee = payee as BankPayee;
+    if (payee.type === 'vendor') {
+      const bankPayee = payee as VendorPayee;
       return [
         { icon: CreditCard, label: "Account Number", value: isEditingBank ? editData.accountNumber : bankPayee.accountNumber, editable: true },
         { icon: CreditCard, label: "IFSC Code", value: isEditingBank ? editData.ifscCode : (bankPayee.ifscCode || "Not provided"), editable: true },
         { icon: Building2, label: "Bank Name", value: isEditingBank ? editData.bankName : bankPayee.bankName, editable: false }
       ];
-    } else if (payee.type === 'payroll') {
-      const payrollPayee = payee as PayrollPayee;
+    } else if (payee.type === 'employee') {
+      const payrollPayee = payee as EmployeePayee;
       return [
         { icon: CreditCard, label: "Account Number", value: isEditingBank ? editData.accountNumber : payrollPayee.accountNumber, editable: true },
         { icon: CreditCard, label: "IFSC Code", value: isEditingBank ? editData.ifscCode : (payrollPayee.ifscCode || "Not provided"), editable: true },
@@ -357,7 +368,7 @@ const PayeeHistory = () => {
       </div>
       
       {/* Tab-based Content */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="inline-flex bg-transparent p-0 h-auto gap-8">
           <TabsTrigger
             value="overview"
@@ -372,7 +383,7 @@ const PayeeHistory = () => {
             Payment History
           </TabsTrigger>
           {/* Show Attachments tab only for payroll/employee payees */}
-          {overview?.payee?.type === 'payroll' && (
+          {overview?.payee?.type === 'employee' && (
             <TabsTrigger
               value="attachments"
               className="relative rounded-none border-b-2 border-transparent bg-transparent px-0 pb-3 pt-2 font-medium text-muted-foreground shadow-none transition-none data-[state=active]:border-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
@@ -590,13 +601,13 @@ const PayeeHistory = () => {
         </TabsContent>
 
         {/* Attachments Tab - Only for payroll payees */}
-        {overview?.payee?.type === 'payroll' && (
+        {overview?.payee?.type === 'employee' && (
           <TabsContent value="attachments" className="mt-6">
             {overview.payee && (
               <AttachmentsTab
                 relationId={payeeId || ""}
-                payeeId={(overview.payee as PayrollPayee).id}
-                accountId={(overview.payee as PayrollPayee).accountNumber}
+                payeeId={(overview.payee as EmployeePayee).id}
+                accountId={(overview.payee as EmployeePayee).accountNumber}
                 employeeName={overview.payee.name}
               />
             )}

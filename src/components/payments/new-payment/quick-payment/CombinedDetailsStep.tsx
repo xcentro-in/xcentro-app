@@ -5,6 +5,8 @@ import { OutlinedInput } from "@/components/ui/outlined-input";
 import PayeeAutocompleteInput from "../../payee-management/payee/PayeeAutocompleteInput";
 import PaymentScheduleSelector from "../shared/common/PaymentScheduleSelector";
 import { PaymentType } from "@/types/payments";
+import { Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CombinedDetailsStepProps {
   paymentType: PaymentType;
@@ -47,8 +49,8 @@ const CombinedDetailsStep = ({
   onPayeeSelect,
   onNext,
 }: CombinedDetailsStepProps) => {
-  const isFormValid = amount && selectedPayee && 
-    (paymentType === "now" || 
+  const isFormValid = amount && selectedPayee && invoiceReference &&
+    (paymentType === "now" ||
      (paymentType === "later" && scheduledDate) ||
      (paymentType === "recurring" && scheduledDate && frequency));
 
@@ -89,12 +91,27 @@ const CombinedDetailsStep = ({
               onChange={(e) => onDescriptionChange(e.target.value)}
             />
 
-            <OutlinedInput
-              label="Invoice Reference (Optional)"
-              placeholder="Enter invoice reference"
-              value={invoiceReference}
-              onChange={(e) => onInvoiceReferenceChange(e.target.value)}
-            />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Invoice Reference</label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs">
+                      <p>Helps your vendor identify this payment in their bank statement description.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <OutlinedInput
+                label=""
+                placeholder="Enter invoice reference"
+                value={invoiceReference}
+                onChange={(e) => onInvoiceReferenceChange(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 

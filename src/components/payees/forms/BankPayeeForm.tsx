@@ -12,7 +12,7 @@ interface BankPayeeFormProps {
   onSubmit: () => void;
 }
 
-const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
+const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 

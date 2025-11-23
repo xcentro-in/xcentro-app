@@ -466,14 +466,6 @@ const NewBill = () => {
             Back to Bills
           </Button>
         </div>
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? "Saving..." : "Save & Continue"}
-          </Button>
-        </div>
       </div>
 
       {/* Main Content - Full Width Centered Form */}
@@ -926,6 +918,18 @@ const NewBill = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Save Button */}
+            <div className="flex justify-end">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                size="lg"
+                className="px-8"
+              >
+                {isSaving ? "Saving..." : "Save Bill"}
+              </Button>
+            </div>
 
             {/* Spacer for better scroll */}
             <div className="h-8" />

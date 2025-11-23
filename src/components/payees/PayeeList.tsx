@@ -18,18 +18,9 @@ import {
   Star,
   StarIcon,
   Eye,
-  SquareArrowOutUpRight
+  SquareArrowOutUpRight,
+  Info
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Payee, PayeeType } from "@/types/payee";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +31,7 @@ import { usePayees } from "@/hooks/usePayees";
 import { EmptyPayees } from "./EmptyPayees";
 import { useAuth } from "@/contexts/AuthContext";
 import TablePagination from "@/components/payee-history/TablePagination";
+import { payeesAPI } from "@/services/api";
 
 interface PayeeListProps {
   onAddPayee?: () => void;
@@ -50,20 +42,32 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
-  const [deletePayeeId, setDeletePayeeId] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<boolean>(true); // Default to active
   const [selectedPayeeForDrawer, setSelectedPayeeForDrawer] = useState<string | null>(null);
+
+  // Optimistic updates: Track removed payees and their data for rollback
+  const [optimisticallyRemovedPayees, setOptimisticallyRemovedPayees] = useState<Map<string, Payee>>(new Map());
 
   // Pagination state
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
   // Always fetch payees - verification logic will handle flag updates
-  const { payees, totalCount, isLoading, error, updatePayee, deletePayee: deletePayeeFromApi } = usePayees({
+  const { payees, totalCount, isLoading, error, updatePayee } = usePayees({
     page,
     page_size: pageSize,
     search: searchValue,
-    typeFilter: typeFilter === 'all' ? undefined : typeFilter
+    typeFilter: typeFilter === 'all' ? undefined : typeFilter,
+    isActive: activeFilter
   });
+
+  // Filter out optimistically removed payees
+  const visiblePayees = payees.filter(payee => !optimisticallyRemovedPayees.has(payee.id));
+
+  // Clear optimistically removed payees when switching tabs or changing filters
+  useEffect(() => {
+    setOptimisticallyRemovedPayees(new Map());
+  }, [activeFilter, typeFilter, searchValue, page]);
 
   // Verification: Check if payees exist while flag is false, then flip flag
   useEffect(() => {
@@ -89,12 +93,44 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleStatusChange = async (id: string, isActive: boolean) => {
+    if (!user?.businessId) {
+      toast.error("Business ID not available");
+      return;
+    }
+
+    // Find the payee being changed
+    const payeeToChange = payees.find(p => p.id === id);
+    if (!payeeToChange) {
+      toast.error("Payee not found");
+      return;
+    }
+
+    // Optimistically remove the payee from the list immediately
+    setOptimisticallyRemovedPayees(prev => {
+      const newMap = new Map(prev);
+      newMap.set(id, payeeToChange);
+      return newMap;
+    });
+
+    // Close the drawer immediately
+    setSelectedPayeeForDrawer(null);
+
     try {
-      await deletePayeeFromApi(id);
-      toast.success("Payee deleted successfully");
-    } catch (err) {
-      toast.error("Failed to delete payee");
+      // Make the API call in the background
+      await payeesAPI.updateStatus(user.businessId, id, isActive);
+
+      // On success: show success toast, payee stays removed (it's in the other tab now)
+      toast.success(isActive ? "Payee marked as active" : "Payee marked as inactive");
+    } catch (err: any) {
+      // On failure: rollback by removing from optimistically removed list
+      setOptimisticallyRemovedPayees(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(id);
+        return newMap;
+      });
+
+      toast.error(err.message || "Failed to update payee status");
     }
   };
 
@@ -125,27 +161,27 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
 
   const getPayeeIcon = (type: PayeeType) => {
     switch (type) {
-      case "bank":
+      case "vendor":
         return <BanknoteIcon className="h-4 w-4 text-blue-500" />;
       case "biller":
         return <LightbulbIcon className="h-4 w-4 text-yellow-500" />;
-      case "payroll":
+      case "employee":
         return <UsersIcon className="h-4 w-4 text-green-500" />;
     }
   };
 
   const getPayeeTypeBadge = (type: PayeeType) => {
     switch (type) {
-      case "bank":
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Bank</Badge>;
+      case "vendor":
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Vendor</Badge>;
       case "biller":
         return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">Biller</Badge>;
-      case "payroll":
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Payroll</Badge>;
+      case "employee":
+        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Employee</Badge>;
     }
   };
 
-  const selectedPayee = payees.find(p => p.id === selectedPayeeForDrawer);
+  const selectedPayee = visiblePayees.find(p => p.id === selectedPayeeForDrawer);
 
   // Show loading state
   if (isLoading) {
@@ -179,7 +215,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-end justify-between">
-        <div className="flex-1 flex gap-4">
+        <div className="flex-1 flex flex-wrap gap-4">
           <div className="relative w-full sm:w-64">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -202,11 +238,34 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="bank">Bank</SelectItem>
+              <SelectItem value="vendor">Vendor</SelectItem>
               <SelectItem value="biller">Biller</SelectItem>
-              <SelectItem value="payroll">Payroll</SelectItem>
+              <SelectItem value="employee">Employee</SelectItem>
             </SelectContent>
           </Select>
+
+          <div className="flex gap-2">
+            <Button
+              variant={activeFilter === true ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setActiveFilter(true);
+                setPage(1);
+              }}
+            >
+              Active
+            </Button>
+            <Button
+              variant={activeFilter === false ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setActiveFilter(false);
+                setPage(1);
+              }}
+            >
+              Inactive
+            </Button>
+          </div>
         </div>
 
         {/* Page size selector - only show when total count > 10 */}
@@ -232,7 +291,17 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         )}
       </div>
 
-      {payees.length === 0 ? (
+      {/* Info message for inactive payees */}
+      {activeFilter === false && visiblePayees.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm text-blue-800">
+            Inactive payees don't appear while creating bill or making a payment.
+          </p>
+        </div>
+      )}
+
+      {visiblePayees.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No payees found. Try adjusting your search or add a new payee.
         </div>
@@ -248,8 +317,8 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payees.map((payee) => (
-                <TableRow key={payee.id}>
+              {visiblePayees.map((payee) => (
+                <TableRow key={payee.id} className={!payee.isActive ? "opacity-50" : ""}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       {getPayeeIcon(payee.type)}
@@ -307,7 +376,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
       )}
 
       {/* Pagination controls - only show when total count > 10 */}
-      {payees.length > 0 && totalCount > 10 && (
+      {visiblePayees.length > 0 && totalCount > 10 && (
         <div className="flex justify-center mt-4">
           <TablePagination
             currentPage={page}
@@ -328,33 +397,11 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
         </div>
       </div>
 
-      <AlertDialog open={!!deletePayeeId} onOpenChange={() => setDeletePayeeId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to delete this payee?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the payee and remove their data from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              if (deletePayeeId) {
-                handleDelete(deletePayeeId);
-                setDeletePayeeId(null);
-              }
-            }}>
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <PayeeDetailsDrawer 
+      <PayeeDetailsDrawer
         payee={selectedPayee || null}
         isOpen={!!selectedPayeeForDrawer}
         onClose={() => setSelectedPayeeForDrawer(null)}
-        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
       />
     </div>
   );

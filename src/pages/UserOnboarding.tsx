@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { format, parse, parseISO, isValid } from "date-fns";
+import { parseISO, isValid } from "date-fns";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 // import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
@@ -310,26 +310,19 @@ const UserOnboarding = () => {
       // This ensures we have a valid transaction ID for the current verification session
       console.log("Initializing user onboarding and Aadhaar verification");
 
-      // Convert date format to yyyy-MM-dd for API using date-fns
-      let parsedDate: Date | undefined;
-
-      // Try parsing as ISO format first (from API)
-      if (formData.dateOfBirth.includes('T') || formData.dateOfBirth.match(/^\d{4}-\d{2}-\d{2}/)) {
-        parsedDate = parseISO(formData.dateOfBirth);
-      } else {
-        // Try parsing as dd-MM-yyyy format (from user input)
-        parsedDate = parse(formData.dateOfBirth, 'dd-MM-yyyy', new Date());
-      }
+      // Date is already in yyyy-MM-dd format from native date input
+      // Just validate it's a valid date
+      const parsedDate = parseISO(formData.dateOfBirth);
 
       if (!parsedDate || !isValid(parsedDate)) {
-        toast.error("Invalid date of birth format");
+        toast.error("Invalid date of birth");
         setIsLoading(false);
         return;
       }
 
-      // Format to yyyy-MM-dd for API
-      const apiDateFormat = format(parsedDate, 'yyyy-MM-dd');
-      console.log("Date conversion:", { original: formData.dateOfBirth, converted: apiDateFormat });
+      // Use the date as-is (already in yyyy-MM-dd format)
+      const apiDateFormat = formData.dateOfBirth;
+      console.log("Date of birth:", apiDateFormat);
 
       // Remove dashes from Aadhaar for API
       const aadhaarForApi = formData.aadharNumber.replace(/-/g, '');

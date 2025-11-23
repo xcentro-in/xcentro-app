@@ -18,6 +18,7 @@ export interface UsePayeesParams {
   page_size?: number;
   search?: string;
   typeFilter?: string;
+  isActive?: boolean;
 }
 
 // Helper function to map API response to Payee type
@@ -34,13 +35,14 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
     createdAt: apiPayee.added_at,
     updatedAt: apiPayee.updated_at === '0001-01-01T00:00:00Z' ? apiPayee.added_at : apiPayee.updated_at,
     isDefault: apiPayee.is_favorite, // Map is_favorite to isDefault
+    isActive: apiPayee.is_active, // Map is_active to isActive
   };
 
   // Return type-specific payee object
   if (type === 'vendor') {
     return {
       ...basePayee,
-      type: 'bank',
+      type: 'vendor',
       accountNumber: '', // Not available in API
       bankName: '', // Not available in API
       ifscCode: '', // Not available in API
@@ -60,7 +62,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeAPIResponse): Payee => {
   } else {
     return {
       ...basePayee,
-      type: 'payroll',
+      type: 'employee',
       accountNumber: '', // Not available in API
       bankName: '', // Not available in API
       ifscCode: '', // Not available in API
@@ -91,7 +93,8 @@ export const usePayees = (params?: UsePayeesParams) => {
           page: params?.page,
           page_size: params?.page_size,
           search: params?.search,
-          type: params?.typeFilter
+          type: params?.typeFilter,
+          is_active: params?.isActive
         });
 
         // Handle empty data (null)
@@ -130,7 +133,7 @@ export const usePayees = (params?: UsePayeesParams) => {
     };
 
     fetchPayees();
-  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter]);
+  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter, params?.isActive]);
 
   const refetch = () => {
     setData(null);

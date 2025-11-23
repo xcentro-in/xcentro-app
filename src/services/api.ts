@@ -714,6 +714,7 @@ class ApiService {
       page_size?: number;
       search?: string;
       type?: string;
+      is_active?: boolean;
     }): Promise<any> => {
       const queryParams = new URLSearchParams();
       if (params?.page) {
@@ -727,6 +728,9 @@ class ApiService {
       }
       if (params?.type && params.type !== 'all') {
         queryParams.append('type', params.type);
+      }
+      if (params?.is_active !== undefined) {
+        queryParams.append('is_active', params.is_active.toString());
       }
 
       const queryString = queryParams.toString();
@@ -776,6 +780,34 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
+      });
+    },
+
+    // Get payee account details (for vendor and employee types)
+    getAccountDetails: async (businessId: string, relationId: string): Promise<{
+      status: string;
+      data: {
+        account_number_last_4: string;
+        bank_name: string;
+        ifsc_code: string;
+      };
+    }> => {
+      return this.request(`/payees/${relationId}/acc_details`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Update payee status (mark active/inactive)
+    updateStatus: async (businessId: string, relationId: string, isActive: boolean): Promise<any> => {
+      return this.request(`/payees/${relationId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ is_active: isActive }),
       });
     },
 

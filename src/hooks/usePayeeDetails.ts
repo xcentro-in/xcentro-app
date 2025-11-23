@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Payee, BankPayee, BillerPayee, PayrollPayee } from '@/types/payee';
+import { Payee, VendorPayee, BillerPayee, EmployeePayee } from '@/types/payee';
 import { payeesAPI } from '@/services/api';
 import {
   GetPayeeDetailsResponse,
@@ -47,6 +47,7 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
     createdAt: new Date().toISOString(), // Not available in API
     updatedAt: new Date().toISOString(), // Not available in API
     isDefault: apiPayee.is_favorite,
+    isActive: apiPayee.is_active,
   };
 
   // Map based on payee_type
@@ -55,14 +56,14 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
       const vendor = apiPayee as VendorPayeeDetailsAPI;
       return {
         ...basePayee,
-        type: 'bank' as const,
+        type: 'vendor' as const,
         accountNumber: vendor.bank_details?.account_number || '',
         bankName: vendor.bank_details?.bank_name || '',
         ifscCode: vendor.bank_details?.ifsc_code || '',
         gstin: vendor.gstin || '',
         defaultPaymentMode: 'bank' as const,
         tags: vendor.tags || [],
-      } as BankPayee;
+      } as VendorPayee;
     }
 
     case 'biller': {
@@ -81,14 +82,14 @@ const mapAPIResponseToPayee = (apiPayee: PayeeDetailsDataAPI): Payee => {
       const employee = apiPayee as EmployeePayeeDetailsAPI;
       return {
         ...basePayee,
-        type: 'payroll' as const,
+        type: 'employee' as const,
         accountNumber: employee.bank_details?.account_number || '',
         bankName: employee.bank_details?.bank_name || '',
         ifscCode: employee.bank_details?.ifsc_code || '',
         salaryAmount: 0, // Not available in API
         salaryType: 'fixed' as const,
         payrollCycle: 'monthly' as const,
-      } as PayrollPayee;
+      } as EmployeePayee;
     }
 
     default:

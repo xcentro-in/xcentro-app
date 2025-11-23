@@ -1,5 +1,5 @@
 
-import { BankPayee, BillerPayee, Payee, PayrollPayee } from "@/types/payee";
+import { VendorPayee, BillerPayee, Payee, EmployeePayee } from "@/types/payee";
 
 export const mockPayees: Payee[] = [
   {
@@ -17,7 +17,7 @@ export const mockPayees: Payee[] = [
     createdAt: "2023-10-15",
     updatedAt: "2023-10-15",
     isDefault: true,
-  } as BankPayee,
+  } as VendorPayee,
   {
     id: "2",
     name: "Cloud Services",
@@ -32,7 +32,7 @@ export const mockPayees: Payee[] = [
     createdAt: "2023-11-20",
     updatedAt: "2023-11-20",
     isDefault: false,
-  } as BankPayee,
+  } as VendorPayee,
   {
     id: "3",
     name: "City Electric",
@@ -76,7 +76,7 @@ export const mockPayees: Payee[] = [
     createdAt: "2023-07-01",
     updatedAt: "2023-07-01",
     isDefault: false,
-  } as PayrollPayee,
+  } as EmployeePayee,
   {
     id: "6",
     name: "Jane Doe",
@@ -92,5 +92,5 @@ export const mockPayees: Payee[] = [
     createdAt: "2023-07-15",
     updatedAt: "2023-07-15",
     isDefault: false,
-  } as PayrollPayee,
+  } as EmployeePayee,
 ];

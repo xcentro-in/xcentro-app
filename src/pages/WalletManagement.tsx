@@ -25,7 +25,12 @@ const WalletManagement = () => {
   const { cards, bankAccounts, isLoading, error } = useWallet();
 
   const showEmptyState = cards.length === 0 && bankAccounts.length === 0;
-  const hasPaymentMethods = cards.length > 0 || bankAccounts.length > 0;
+
+  // Only count successfully verified and active payment methods for onboarding flag
+  // This ensures pending/failed cards don't trigger the flag
+  const hasUsablePaymentMethods =
+    cards.some(card => card.card_status === 'active') ||
+    bankAccounts.some(account => account.is_active);
 
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
@@ -131,15 +136,16 @@ const WalletManagement = () => {
     setTitle("Payment Sources");
   }, [setTitle]);
 
-  // Verification: Check if payment methods exist while flag is false, then flip flag
+  // Verification: Check if usable payment methods exist while flag is false, then flip flag
+  // Only active cards and active bank accounts count - not pending/failed
   useEffect(() => {
     if (!isLoading && !error && user) {
-      // If flag is false BUT we have payment methods, optimistically update the flag
-      if (!user.hasAddedPaymentMethod && hasPaymentMethods) {
+      // If flag is false BUT we have usable payment methods, optimistically update the flag
+      if (!user.hasAddedPaymentMethod && hasUsablePaymentMethods) {
         optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
       }
     }
-  }, [isLoading, error, hasPaymentMethods, cards.length, bankAccounts.length, user, optimisticallyUpdateOnboardingFlag]);
+  }, [isLoading, error, hasUsablePaymentMethods, user, optimisticallyUpdateOnboardingFlag]);
 
   // TODO: Usage data not available in current API response
   // The following metadata fields are currently not available from the backend:
@@ -318,18 +324,20 @@ const WalletManagement = () => {
   };
 
   const renderCard = (card: StoredCard) => {
-    // Determine if card can be toggled (only active/inactive cards)
+    // Determine if card can be toggled (only active/inactive cards AND only for owner role)
     const isPending = card.card_status === 'pending';
     const isFailed = card.card_status === 'failed';
-    const showToggle = card.card_status === 'active' || card.card_status === 'inactive';
+    const isOwner = user?.role === 'owner';
+    const isActiveOrInactive = card.card_status === 'active' || card.card_status === 'inactive';
+    const showToggle = isActiveOrInactive && isOwner;
 
     // Get current enabled state from local state for toggleable cards, fallback to card status
-    const isEnabled = showToggle
+    const isEnabled = isActiveOrInactive
       ? (cardEnabledStates[card.card_id] ?? (card.card_status === 'active'))
       : false;
 
     // Determine visual state based on toggle state for toggleable cards, or card status for others
-    const isVisuallyInactive = showToggle ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
+    const isVisuallyInactive = isActiveOrInactive ? !isEnabled : (isPending || isFailed || card.card_status === 'inactive');
 
     return (
       <div
@@ -387,13 +395,13 @@ const WalletManagement = () => {
                 }`}>
                   {card.card_category === 'credit' ? 'Credit' : 'Debit'}
                 </Badge>
-                {/* Status badges - for toggleable cards, use toggle state */}
-                {showToggle && isEnabled && (
+                {/* Status badges - visible to all users */}
+                {isActiveOrInactive && isEnabled && (
                   <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">
                     Active
                   </Badge>
                 )}
-                {showToggle && !isEnabled && (
+                {isActiveOrInactive && !isEnabled && (
                   <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-300 text-xs px-2 py-0.5">
                     Inactive
                   </Badge>

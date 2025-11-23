@@ -157,3 +157,26 @@ export const formatDueDate = (dateString: string | null | undefined): string => 
     return 'Invalid Date';
   }
 };
+
+/**
+ * Format date for bill dates (invoice date, due date) - date only, no time
+ * Examples: "4 Oct 2025", "15 Dec 2024"
+ */
+export const formatBillDate = (dateString: string | null | undefined): string => {
+  if (!dateString) {
+    return 'N/A';
+  }
+
+  try {
+    const date = parseISO(dateString);
+
+    if (isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
+
+    return format(date, 'd MMM yyyy');
+  } catch (error) {
+    console.error('Error formatting bill date:', error);
+    return 'Invalid Date';
+  }
+};
