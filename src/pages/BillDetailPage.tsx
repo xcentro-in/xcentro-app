@@ -606,7 +606,7 @@ const BillDetailPage = () => {
   }
 
   // Show Pay button only if payment is not successful and voucher is not synced
-  const canPay = bill.paymentStatus !== 'success' && bill.voucherStatus !== 'synced';
+  const canPay = bill.paymentStatus !== 'success';
 
   // Bill is overdue if payment not successful and due date has passed
   const isOverdue = () => {
@@ -985,7 +985,7 @@ const BillDetailPage = () => {
                 {canPay && (
                   <DropdownMenuItem onClick={() => {/* TODO: Handle pay now */}}>
                     <CreditCard className="h-4 w-4 mr-2" />
-                    {isOverdue ? "Pay Overdue Bill" : "Pay Now"}
+                    {isOverdue() ? "Pay Overdue Bill" : "Pay Now"}
                   </DropdownMenuItem>
                 )}
 
@@ -1594,9 +1594,9 @@ const BillDetailPage = () => {
                     </div>
                     <div>
                       <span className="text-muted-foreground">Due Date:</span>
-                      <span className={`ml-2 font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                      <span className={`ml-2 font-medium ${isOverdue() ? 'text-red-600' : ''}`}>
                         {formatBillDate(bill.dueDate)}
-                        {isOverdue && bill.overdueDays && (
+                        {isOverdue() && bill.overdueDays && (
                           <span className="text-xs ml-1">({bill.overdueDays}d overdue)</span>
                         )}
                       </span>
