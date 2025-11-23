@@ -25,7 +25,12 @@ const WalletManagement = () => {
   const { cards, bankAccounts, isLoading, error } = useWallet();
 
   const showEmptyState = cards.length === 0 && bankAccounts.length === 0;
-  const hasPaymentMethods = cards.length > 0 || bankAccounts.length > 0;
+
+  // Only count successfully verified and active payment methods for onboarding flag
+  // This ensures pending/failed cards don't trigger the flag
+  const hasUsablePaymentMethods =
+    cards.some(card => card.card_status === 'active') ||
+    bankAccounts.some(account => account.is_active);
 
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
@@ -131,15 +136,16 @@ const WalletManagement = () => {
     setTitle("Payment Sources");
   }, [setTitle]);
 
-  // Verification: Check if payment methods exist while flag is false, then flip flag
+  // Verification: Check if usable payment methods exist while flag is false, then flip flag
+  // Only active cards and active bank accounts count - not pending/failed
   useEffect(() => {
     if (!isLoading && !error && user) {
-      // If flag is false BUT we have payment methods, optimistically update the flag
-      if (!user.hasAddedPaymentMethod && hasPaymentMethods) {
+      // If flag is false BUT we have usable payment methods, optimistically update the flag
+      if (!user.hasAddedPaymentMethod && hasUsablePaymentMethods) {
         optimisticallyUpdateOnboardingFlag('hasAddedPaymentMethod', true);
       }
     }
-  }, [isLoading, error, hasPaymentMethods, cards.length, bankAccounts.length, user, optimisticallyUpdateOnboardingFlag]);
+  }, [isLoading, error, hasUsablePaymentMethods, user, optimisticallyUpdateOnboardingFlag]);
 
   // TODO: Usage data not available in current API response
   // The following metadata fields are currently not available from the backend:
