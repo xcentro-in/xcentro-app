@@ -9,6 +9,16 @@ export interface UserRole {
   kycNeeded: boolean;
 }
 
+export interface OnboardingStatus {
+  kybStatus?: string;
+  kybInitiated?: boolean;
+  kycStatus?: string;
+  hasCompletedOnboarding?: boolean;
+  hasAddedPaymentMethod?: boolean;
+  hasAddedVendor?: boolean;
+  hasCreatedFirstPayment?: boolean;
+}
+
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<LoginResponse>;
   logout: () => Promise<void>;
@@ -22,6 +32,8 @@ interface AuthContextType extends AuthState {
     flag: 'hasAddedPaymentMethod' | 'hasAddedVendor' | 'hasCreatedFirstPayment',
     verified?: boolean
   ) => void;
+  initializeUser: () => Promise<void>;
+  onboardingStatus: OnboardingStatus | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -102,6 +114,7 @@ const initialState: AuthState = {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const [userRoles, setUserRolesState] = React.useState<UserRole[]>([]);
+  const [onboardingStatus, setOnboardingStatus] = React.useState<OnboardingStatus | null>(null);
 
   const login = async (email: string, password: string): Promise<LoginResponse> => {
     dispatch({ type: 'SET_LOADING', payload: true });
@@ -165,53 +178,94 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const fetchUserProfile = async (): Promise<void> => {
+  /**
+   * CENTRALIZED USER INITIALIZATION
+   *
+   * Single method that fetches ALL user data in one go:
+   * - User profile
+   * - User roles
+   * - Onboarding status (KYB + KYC)
+   *
+   * Called by:
+   * - Login (after successful authentication)
+   * - Page reload (via useEffect)
+   * - After completing onboarding steps
+   */
+  const initializeUser = async (): Promise<void> => {
     try {
-      // Fetch user profile and roles
+      console.log('[AuthContext] Initializing user data...');
+
+      // Step 1: Fetch user profile
       const profileResponse = await userAPI.getProfile();
-      const rolesResponse = await userAPI.getRoles();
-
       const profile = profileResponse.data;
-      const roles = rolesResponse.data;
+      console.log('[AuthContext] User profile fetched:', profile.userId);
 
-      // Store roles
+      // Step 2: Fetch user roles
+      const rolesResponse = await userAPI.getRoles();
+      const roles = rolesResponse.data;
+      console.log('[AuthContext] User roles fetched:', roles.length, 'roles');
+
+      // Store roles in state
       setUserRolesState(roles);
 
-      // Get businessId and role from first role (or let user select later)
+      // Step 3: Get primary business info from first role
       const primaryRole = roles[0];
       const businessId = primaryRole?.businessId || '';
       const role = primaryRole?.role || '';
 
-      // TODO: Fetch business name from business API if needed
-      // For now, we'll leave it empty or get it from a business list API later
-      const businessName = ''; // Will be populated when we have business details API
-
-      // Fetch onboarding status
-      let onboardingStatus = {
+      // Step 4: Fetch combined onboarding status (KYB + KYC + app onboarding)
+      let combinedOnboardingStatus: OnboardingStatus = {
+        kybStatus: undefined,
+        kybInitiated: false,
+        kycStatus: undefined,
         hasCompletedOnboarding: false,
         hasAddedPaymentMethod: false,
         hasAddedVendor: false,
         hasCreatedFirstPayment: false,
       };
 
+      // Fetch business onboarding status (KYB)
       try {
-        if (businessId) {
-          const onboardingResponse = await authAPI.getOnboardingStatus(businessId);
-          if (onboardingResponse.data) {
-            onboardingStatus = {
-              hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
-              hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
-              hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
-              hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
-            };
-          }
+        const { businessAPI } = await import('@/services/api');
+        const businessStatusResponse = await businessAPI.getOnboardingStatus();
+        if (businessStatusResponse.data) {
+          combinedOnboardingStatus.kybStatus = businessStatusResponse.data.kybStatus;
+          combinedOnboardingStatus.kybInitiated = businessStatusResponse.data.kybInitiated ?? false;
         }
-      } catch (onboardingError) {
-        console.error('Failed to fetch onboarding status, using defaults:', onboardingError);
-        // Use default values (all false) if API call fails
+      } catch (businessError) {
+        console.log('[AuthContext] No business onboarding found (expected for new users)');
       }
 
-      // Create user object
+      // Fetch user onboarding status (KYC)
+      try {
+        const userStatusResponse = await userAPI.getOnboardingStatus();
+        if (userStatusResponse.data) {
+          combinedOnboardingStatus.kycStatus = userStatusResponse.data.kycStatus;
+        }
+      } catch (userError) {
+        console.log('[AuthContext] No user onboarding found (expected for new users)');
+      }
+
+      // Fetch app onboarding status (payment methods, vendors, etc.)
+      try {
+        if (businessId) {
+          const appOnboardingResponse = await authAPI.getOnboardingStatus(businessId);
+          if (appOnboardingResponse.data) {
+            combinedOnboardingStatus.hasCompletedOnboarding = appOnboardingResponse.data.hasCompletedOnboarding ?? false;
+            combinedOnboardingStatus.hasAddedPaymentMethod = appOnboardingResponse.data.hasAddedPaymentMethod ?? false;
+            combinedOnboardingStatus.hasAddedVendor = appOnboardingResponse.data.hasAddedVendor ?? false;
+            combinedOnboardingStatus.hasCreatedFirstPayment = appOnboardingResponse.data.hasCreatedFirstPayment ?? false;
+          }
+        }
+      } catch (appOnboardingError) {
+        console.log('[AuthContext] App onboarding status not available');
+      }
+
+      // Store combined onboarding status
+      setOnboardingStatus(combinedOnboardingStatus);
+      console.log('[AuthContext] Onboarding status:', combinedOnboardingStatus);
+
+      // Step 5: Create user object
       const user: AuthUser = {
         id: profile.userId,
         name: profile.name,
@@ -221,19 +275,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         maskedNationalId: profile.maskedNationalId,
         role: role,
         businessId: businessId,
-        businessName: businessName,
-        // Optional fields - add defaults or fetch from profile if needed
+        businessName: '', // Will be populated by BusinessContext
         rewardPoints: 0,
-        // Onboarding flags from API
-        ...onboardingStatus,
+        // App onboarding flags
+        hasCompletedOnboarding: combinedOnboardingStatus.hasCompletedOnboarding,
+        hasAddedPaymentMethod: combinedOnboardingStatus.hasAddedPaymentMethod,
+        hasAddedVendor: combinedOnboardingStatus.hasAddedVendor,
+        hasCreatedFirstPayment: combinedOnboardingStatus.hasCreatedFirstPayment,
       };
 
       // Update auth state
       dispatch({ type: 'SET_USER', payload: user });
+      console.log('[AuthContext] User initialization complete');
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      console.error('[AuthContext] Failed to initialize user:', error);
       throw error;
     }
+  };
+
+  /**
+   * DEPRECATED: Use initializeUser() instead
+   * Kept for backward compatibility
+   */
+  const fetchUserProfile = async (): Promise<void> => {
+    console.warn('[AuthContext] fetchUserProfile is deprecated, use initializeUser instead');
+    await initializeUser();
   };
 
   const refreshAuth = async (): Promise<void> => {
@@ -308,8 +374,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Try to fetch user profile - will succeed if user has valid auth cookies
-        await fetchUserProfile();
+        // Try to initialize user data - will succeed if user has valid auth cookies
+        await initializeUser();
       } catch (error: any) {
         // Check if error is MISSING_TOKEN or INVALID_TOKEN (no valid auth cookies)
         if (error?.code === 'MISSING_TOKEN' || error?.code === 'INVALID_TOKEN') {
@@ -362,6 +428,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchUserProfile,
     refreshOnboardingStatus,
     optimisticallyUpdateOnboardingFlag,
+    initializeUser,
+    onboardingStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -579,7 +579,9 @@ class ApiService {
     // Get business onboarding status
     // Returns full details when kyb_in_progress, minimal when completed/verified
     getOnboardingStatus: async (): Promise<{
-      data: { kybStatus: string };
+      data: {
+        kybInitiated: boolean; kybStatus: string 
+};
       message: string;
     }> => {
       return this.request('/business/onboard/status', {

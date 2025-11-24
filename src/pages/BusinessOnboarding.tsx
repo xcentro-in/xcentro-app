@@ -8,13 +8,16 @@ import BusinessBasicInfoForm from "@/components/business/BusinessBasicInfoForm";
 import BusinessTypeForm from "@/components/business/BusinessTypeForm";
 import BusinessDocumentsForm from "@/components/business/BusinessDocumentsForm";
 import BusinessReviewForm from "@/components/business/BusinessReviewForm";
-import { businessAPI, userAPI } from "@/services/api";
+import { businessAPI } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   toBackendBusinessType,
   toFrontendBusinessType,
   requiresCIN as checkRequiresCIN,
   requiresDeedUpload as checkRequiresDeedUpload
 } from "@/lib/businessTypeMapping";
+import { determineUserRoute } from "@/services/onboardingRouter";
+import { validateCIN } from "@/constants/onboarding";
 
 type BusinessFormData = {
   name: string;
@@ -58,6 +61,7 @@ const steps = ["Basic Info", "Business Details", "Documents", "Review"];
 
 const BusinessOnboarding = () => {
   const navigate = useNavigate();
+  const { initializeUser, user, userRoles, onboardingStatus } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
   const [businessId, setBusinessId] = useState<string>("");
@@ -110,7 +114,7 @@ const BusinessOnboarding = () => {
   const canProceedFromStep3 = (): boolean => {
     if (requiresCIN(formData.type)) {
       // For corporate entities, CIN is required (21 characters)
-      return formData.documents.cin !== undefined && formData.documents.cin.length === 21;
+      return formData.documents.cin !== undefined && validateCIN(formData.documents.cin);
     } else if (requiresDeedUpload(formData.type)) {
       // For partnerships, trusts, etc., Business Deed is required
       return formData.documents.deed !== null;
@@ -157,11 +161,10 @@ const BusinessOnboarding = () => {
         } catch (initError: any) {
           // Handle 409 Conflict: Business already exists
           if (initError.status === 409) {
-            console.log("Business already exists, fetching existing business status...");
-            toast.info("Resuming existing business onboarding...");
+            console.log("Business already exists, checking access...");
 
             try {
-              // Fetch the existing business status
+              // Fetch the existing business status to check if user owns it
               const statusResponse = await businessAPI.getOnboardingStatus();
               const existingBusiness = statusResponse.data;
 
@@ -187,12 +190,14 @@ const BusinessOnboarding = () => {
                 }));
 
                 console.log("Resumed existing business:", { bid, status: existingBusiness.kybStatus });
+                toast.info("Resuming existing business onboarding...");
               } else {
                 throw new Error("Could not retrieve business ID from existing business");
               }
             } catch (statusError) {
-              console.error("Failed to fetch existing business status:", statusError);
-              throw new Error("Business already exists but could not retrieve details. Please contact support.");
+              // If status fetch fails, user doesn't own this business - it's unauthorized access
+              console.error("Cannot access business - unauthorized:", statusError);
+              throw new Error("This business is already registered with another account.");
             }
           } else {
             // Other init errors - rethrow
@@ -246,46 +251,22 @@ const BusinessOnboarding = () => {
       console.log("Business onboarding complete response:", completeResponse);
       toast.success("Business onboarding completed successfully!");
 
-      // Step 4: Check business onboarding status
-      console.log("Checking business onboarding status...");
-      const businessStatus = await businessAPI.getOnboardingStatus();
-      const kybStatus = businessStatus.data.kybStatus;
-      console.log("Business onboarding status:", kybStatus);
+      // Re-initialize user data to get fresh roles and onboarding status
+      console.log("Re-initializing user data after KYB completion...");
+      await initializeUser();
 
-      // Step 5: If KYB completed/verified, refresh roles
-      if (kybStatus === "kyc_completed" || kybStatus === "kyc_verified") {
-        console.log("KYB completed, refreshing user roles...");
+      // Use centralized routing logic to determine next step
+      const routingDecision = determineUserRoute(
+        '/business-onboarding',
+        user,
+        userRoles,
+        onboardingStatus
+      );
 
-        try {
-          const rolesResponse = await userAPI.getRoles();
-          const roles = rolesResponse.data;
-          console.log("User roles after KYB complete:", roles);
+      console.log("Routing decision after KYB:", routingDecision);
 
-          // If user now has roles, navigate based on kycNeeded
-          if (roles.length > 0) {
-            const primaryRole = roles[0];
-
-            if (primaryRole.kycNeeded) {
-              console.log("KYC needed, navigating to user onboarding");
-              navigate("/onboarding", { replace: true });
-            } else {
-              // This shouldn't normally happen (KYC should be needed after KYB)
-              console.log("KYC not needed, this is unusual but proceeding to onboarding");
-              navigate("/onboarding", { replace: true });
-            }
-          } else {
-            // No roles yet, proceed to user onboarding
-            console.log("No roles assigned yet, navigating to user onboarding");
-            navigate("/onboarding", { replace: true });
-          }
-        } catch (error) {
-          // If roles fetch fails, still proceed to user onboarding
-          console.error("Failed to fetch roles after KYB, proceeding to user onboarding:", error);
-          navigate("/onboarding", { replace: true });
-        }
-      } else {
-        // KYB not completed yet, navigate to user onboarding anyway
-        navigate("/onboarding", { replace: true });
+      if (routingDecision.shouldNavigate) {
+        navigate(routingDecision.targetRoute, { replace: true });
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete business onboarding. Please try again.";

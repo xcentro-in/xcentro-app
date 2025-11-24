@@ -12,7 +12,7 @@ import { Mail, Lock, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { useAuth } from "@/contexts/AuthContext";
-import { userAPI, businessAPI } from "@/services/api";
+import { determineUserRoute } from "@/services/onboardingRouter";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -24,7 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, logout, isAuthenticated, isLoading, fetchUserProfile } = useAuth();
+  const { login, isAuthenticated, isLoading, initializeUser, user, userRoles, onboardingStatus } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -47,80 +47,23 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      // Step 1: Login
+      // Step 1: Login (authenticate)
+      console.log('[Login] Authenticating user...');
       await login(values.email, values.password);
       toast.success("Login successful! Welcome to Xcentro.");
 
-      // Step 2: Fetch user roles
-      const rolesResponse = await userAPI.getRoles();
-      const roles = rolesResponse.data;
+      // Step 2: Initialize user data (fetch profile, roles, onboarding status)
+      console.log('[Login] Initializing user data...');
+      await initializeUser();
 
-      console.log("User roles after login:", roles);
+      // Step 3: Determine where to route the user using centralized router
+      console.log('[Login] Determining user route...');
+      const routingDecision = determineUserRoute('/login', user, userRoles, onboardingStatus);
 
-      // Step 3: Determine routing based on roles
-      if (roles.length === 0) {
-        // NO ROLES: Check both business and user onboarding status
-        console.log("No roles found - checking onboarding status");
+      console.log('[Login] Routing decision:', routingDecision);
 
-        // Check business onboarding status
-        try {
-          const businessStatus = await businessAPI.getOnboardingStatus();
-          const kybStatus = businessStatus.data.kybStatus;
-          const isKybComplete = kybStatus === "kyc_completed" || kybStatus === "kyc_verified";
-
-          if (isKybComplete) {
-            // KYB complete, now check user onboarding status
-            console.log("KYB complete, checking user KYC status");
-
-            try {
-              const userStatus = await userAPI.getOnboardingStatus();
-              const kycStatus = userStatus.data.kycStatus;
-              const isKycComplete = kycStatus === "kyc_completed" || kycStatus === "kyc_verified";
-
-              if (isKycComplete) {
-                // Both KYB and KYC complete but no roles assigned yet - pending approval
-                console.log("Both KYB and KYC complete but no roles assigned, navigating to pending-approval");
-                toast.success("Onboarding complete! Waiting for role assignment.");
-                navigate("/pending-approval", { replace: true });
-              } else {
-                // KYC not complete - navigate to user onboarding
-                console.log("KYC not complete, navigating to user onboarding");
-                navigate("/onboarding", { replace: true });
-              }
-            } catch (userStatusError) {
-              // No user onboarding found - start user onboarding
-              console.log("No user onboarding found, navigating to user onboarding");
-              navigate("/onboarding", { replace: true });
-            }
-          } else {
-            // KYB not complete - navigate to business onboarding
-            console.log("KYB not complete, navigating to business onboarding");
-            navigate("/business-onboarding", { replace: true });
-          }
-        } catch (businessStatusError) {
-          // No business onboarding found - start business onboarding
-          console.log("No business onboarding found, starting business onboarding");
-          navigate("/business-onboarding", { replace: true });
-        }
-      } else {
-        // HAS ROLES: Check primary role
-        const primaryRole = roles[0];
-        console.log("Primary role:", primaryRole);
-
-        if (primaryRole.role === "none" && !primaryRole.kycNeeded) {
-          // NONE role + KYC not needed = Pending approval
-          console.log("Role is 'none', navigating to pending approval");
-          navigate("/pending-approval", { replace: true });
-        } else if (primaryRole.kycNeeded) {
-          // KYC NEEDED: Go to user onboarding
-          console.log("KYC needed, navigating to user onboarding");
-          navigate("/onboarding", { replace: true });
-        } else {
-          // KYC NOT NEEDED: Load profile and go to dashboard
-          console.log("KYC complete, loading profile and navigating to dashboard");
-          await fetchUserProfile();
-          navigate("/", { replace: true });
-        }
+      if (routingDecision.shouldNavigate) {
+        navigate(routingDecision.targetRoute, { replace: true });
       }
     } catch (error: any) {
       const errorMessage = error?.message || "Login failed. Please check your credentials.";

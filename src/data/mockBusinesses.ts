@@ -61,7 +61,7 @@ export const businessTypes = [
   "Limited Liability Partnership (LLP)",
   "Private Limited Company",
   "One Person Company (OPC)",
-  "Section 8 Company (Non-profit)",
+  "Section 8 (Non-Profit)",
   "Trust",
   "NGO",
   "Society",
@@ -90,7 +90,7 @@ export const businessTypeToEnum: Record<string, BusinessTypeEnum> = {
   "Limited Liability Partnership (LLP)": "limited_liability_partnership",
   "Private Limited Company": "private_limited_company",
   "One Person Company (OPC)": "one_person_company",
-  "Section 8 Company (Non-profit)": "section_8_non_profit",
+  "Section 8 (Non-Profit)": "section_8_non_profit",
   "Trust": "trust",
   "NGO": "ngo",
   "Society": "society",
@@ -102,7 +102,7 @@ export const businessTypeToEnum: Record<string, BusinessTypeEnum> = {
 export const businessTypesRequiringCIN = [
   "Private Limited Company",
   "One Person Company (OPC)",
-  "Section 8 Company (Non-profit)",
+  "Section 8 (Non-Profit)",
   "Limited Liability Partnership (LLP)"
 ];
 

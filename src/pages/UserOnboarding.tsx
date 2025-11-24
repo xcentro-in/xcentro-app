@@ -12,6 +12,8 @@ import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { openAndMonitorPopup } from "@/lib/popupUtils";
+import { determineUserRoute } from "@/services/onboardingRouter";
+import { isKycComplete, validateAadhaar, validatePAN } from "@/constants/onboarding";
 
 type UserFormData = {
   name: string;
@@ -35,7 +37,7 @@ const steps = ["KYC Details", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
-  const { setUserRoles, fetchUserProfile } = useAuth();
+  const { initializeUser, user, userRoles, onboardingStatus } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +63,7 @@ const UserOnboarding = () => {
         const { name, dob, taxId, mobile, kycStatus, nationalId } = statusResponse.data;
 
         // If KYC is already completed or verified, redirect to dashboard
-        if (kycStatus === "kyc_completed" || kycStatus === "kyc_verified") {
+        if (isKycComplete(kycStatus)) {
           console.log("KYC has already been completed, redirecting to dashboard");
           toast.error("KYC has already been completed");
           navigate("/", { replace: true });
@@ -134,15 +136,12 @@ const UserOnboarding = () => {
         return;
       }
 
-      // Validate Aadhaar (12 digits without dashes)
-      const aadhaarDigits = formData.aadharNumber.replace(/-/g, '');
-      if (aadhaarDigits.length !== 12 || !/^\d{12}$/.test(aadhaarDigits)) {
+      if (!validateAadhaar(formData.aadharNumber)) {
         toast.error("Please enter a valid 12-digit Aadhaar number");
         return;
       }
 
-      // Validate PAN (10 characters)
-      if (formData.panNumber.length !== 10 || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)) {
+      if (!validatePAN(formData.panNumber)) {
         toast.error("Please enter a valid PAN number (e.g., ABCDE1234F)");
         return;
       }
@@ -203,20 +202,13 @@ const UserOnboarding = () => {
 
   const handleCompleteOnboarding = async () => {
     try {
-      // Determine flow type
-      // 1. Check if user has roles (invited user flow)
+      // Determine flow type using existing roles from AuthContext
       let isInvitedUser = false;
       let existingRole = "owner"; // Default role for new business flow
 
-      try {
-        const rolesResponse = await userAPI.getRoles();
-        if (rolesResponse.data.length > 0) {
-          isInvitedUser = true;
-          // Use the existing role from the invited user
-          existingRole = rolesResponse.data[0].role;
-        }
-      } catch (error) {
-        // No roles, continue with normal flow
+      if (userRoles && userRoles.length > 0) {
+        isInvitedUser = true;
+        existingRole = userRoles[0].role;
       }
 
       // For invited users: use their existing role
@@ -232,60 +224,37 @@ const UserOnboarding = () => {
       });
 
       // Call complete onboarding API
-      // For invited user flow: pass their existing role (backend needs it for validation)
-      // For new business flow: pass "owner" + businessId
-      // For join existing business flow: would need gstin (not in current form)
       const completeResponse = await userAPI.completeOnboarding(
-        claimedRole, // Always send the role (even for invited users)
+        claimedRole,
         isInvitedUser ? undefined : (businessId || undefined),
         undefined // gstin removed from form
       );
 
       console.log("Complete onboarding response:", completeResponse);
 
-      if (completeResponse.data.status === "kyc_completed" || completeResponse.data.status === "kyc_verified") {
+      if (isKycComplete(completeResponse.data.status)) {
         toast.success("User onboarding completed successfully!");
 
         // Clear business-id from localStorage since onboarding is complete
-        // Business context will now be managed by session/BusinessContext
         localStorage.removeItem('business-id');
         console.log("Cleared business-id from localStorage");
 
-        // Step 1: Check user onboarding status
-        console.log("Checking user onboarding status...");
-        const userStatus = await userAPI.getOnboardingStatus();
-        const kycStatus = userStatus.data.kycStatus;
-        console.log("User onboarding status:", kycStatus);
+        // Re-initialize user data to get fresh roles and onboarding status
+        console.log("Re-initializing user data after KYC completion...");
+        await initializeUser();
 
-        // Step 2: Refresh roles to check assignment
-        console.log("Refreshing user roles...");
-        const rolesResponse = await userAPI.getRoles();
-        const roles = rolesResponse.data;
-        console.log("User roles after KYC complete:", roles);
+        // Use centralized routing logic
+        const routingDecision = determineUserRoute(
+          '/onboarding',
+          user,
+          userRoles,
+          onboardingStatus
+        );
 
-        // Step 3: Determine routing based on role
-        if (roles.length === 0) {
-          // No roles assigned yet - shouldn't happen but handle gracefully
-          toast.error("No roles assigned. Please contact support.");
-          setIsLoading(false);
-          return;
-        }
+        console.log("Routing decision after KYC:", routingDecision);
 
-        const primaryRole = roles[0];
-
-        if (primaryRole.role === "none" && !primaryRole.kycNeeded) {
-          // Role is "none" - pending approval
-          console.log("Role is 'none', navigating to pending approval");
-          navigate("/pending-approval", { replace: true });
-        } else if (primaryRole.kycNeeded) {
-          // KYC still needed - shouldn't happen but handle gracefully
-          toast.error("KYC verification incomplete. Please try again.");
-          setIsLoading(false);
-        } else {
-          // KYC complete with valid role - load profile and go to dashboard
-          console.log("KYC complete with valid role, loading profile and navigating to dashboard");
-          await fetchUserProfile();
-          navigate("/", { replace: true });
+        if (routingDecision.shouldNavigate) {
+          navigate(routingDecision.targetRoute, { replace: true });
         }
       } else {
         toast.error("KYC verification incomplete. Please try again.");
