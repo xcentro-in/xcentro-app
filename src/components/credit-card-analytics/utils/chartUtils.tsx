@@ -29,5 +29,5 @@ export const formatCurrency = (value: unknown): string => {
   // Check if value is a valid number
   if (isNaN(numValue)) return currencyFormatter(0);
   
-  return currencyFormatter(numValue);;
+  return currencyFormatter(numValue);
 };

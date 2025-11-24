@@ -1,11 +1,12 @@
-import { format, formatDistanceToNow } from "date-fns";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ApprovalTransaction } from "@/types/approval";
-import ApprovalStatusBadge from "./ApprovalStatusBadge";
 import ApprovalTransactionActions from "./ApprovalTransactionActions";
-import { TransactionPaymentMethod } from "@/components/transactions/TransactionPaymentMethod";
+import { formatCurrency } from "@/utils/formatters";
+import { formatPaymentDate } from "@/utils/dateFormatting";
+import { CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 interface ApprovalTransactionRowProps {
   transaction: ApprovalTransaction;
@@ -14,8 +15,8 @@ interface ApprovalTransactionRowProps {
   onRowClick: (transaction: ApprovalTransaction) => void;
   onApprove: (id: string) => void;
   onReject: (transaction: ApprovalTransaction) => void;
-  onFlag: (id: string) => void;
   onRequestChanges: (transaction: ApprovalTransaction) => void;
+  showActions?: boolean;
 }
 
 const ApprovalTransactionRow = ({
@@ -25,68 +26,100 @@ const ApprovalTransactionRow = ({
   onRowClick,
   onApprove,
   onReject,
-  onFlag,
-  onRequestChanges
+  onRequestChanges,
+  showActions = true
 }: ApprovalTransactionRowProps) => {
+  // Helper to get approval status badge
+  const getApprovalStatusBadge = () => {
+    switch (transaction.status) {
+      case 'approved':
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Approved
+          </Badge>
+        );
+      case 'pending':
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      case 'request_changes':
+        return (
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Changes Requested
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <TableRow 
-      className={cn(
-        !transaction.isRead && "bg-muted/30 font-medium",
-        transaction.status === "urgent" && "bg-red-50/50",
-        transaction.status === "flagged" && "bg-amber-50/50"
-      )}
+    <TableRow
+      className="hover:bg-muted/50 cursor-pointer transition-colors"
+      onClick={() => onRowClick(transaction)}
     >
-      <TableCell>
-        <Checkbox 
-          checked={isSelected}
-          onCheckedChange={() => onSelectTransaction(transaction.id)}
-          onClick={(e) => e.stopPropagation()}
-        />
-      </TableCell>
-      <TableCell 
-        className="font-medium cursor-pointer hover:text-primary"
-        onClick={() => onRowClick(transaction)}
-      >
-        <div className="flex items-center gap-2">
-          <TransactionPaymentMethod method={transaction.paymentMethod} variant="icon" size="sm" />
-          <span className="capitalize">{transaction.paymentMethod}</span>
-        </div>
-      </TableCell>
-      <TableCell 
-        className="cursor-pointer hover:text-primary"
-        onClick={() => onRowClick(transaction)}
-      >
-        {transaction.payee}
-      </TableCell>
-      <TableCell>
-        <div className="flex flex-col">
-          <span>{transaction.initiatedBy}</span>
-          <span className="text-xs text-muted-foreground">{transaction.initiatorRole}</span>
-        </div>
-      </TableCell>
+      {showActions && (
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={() => onSelectTransaction(transaction.id)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </TableCell>
+      )}
+
+      {/* Vendor */}
       <TableCell className="font-medium">
-        ${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        <div className="font-semibold">{transaction.payee}</div>
       </TableCell>
-      <TableCell><ApprovalStatusBadge status={transaction.status} /></TableCell>
+
+      {/* Invoice # */}
       <TableCell>
-        <div className="flex flex-col">
-          <span>
-            {format(new Date(transaction.requestedDate), "MMM d, yyyy")}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {formatDistanceToNow(new Date(transaction.requestedDate), { addSuffix: true })}
-          </span>
+        <div className="font-mono text-sm">{transaction.invoiceNumber}</div>
+      </TableCell>
+
+      {/* Due Date */}
+      <TableCell>
+        <div className="text-sm">
+          {formatPaymentDate(transaction.dueDate)}
         </div>
       </TableCell>
-      <TableCell className="text-right">
-        <ApprovalTransactionActions 
-          transaction={transaction}
-          onApprove={onApprove}
-          onReject={onReject}
-          onFlag={onFlag}
-          onRequestChanges={onRequestChanges}
-        />
+
+      {/* Amount */}
+      <TableCell className="text-right font-medium">
+        {formatCurrency(transaction.amount)}
       </TableCell>
+
+      {/* Approval Status */}
+      <TableCell>
+        <div className="flex items-center justify-center">
+          {getApprovalStatusBadge()}
+        </div>
+      </TableCell>
+
+      {/* Actions */}
+      {showActions && (
+        <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+          <ApprovalTransactionActions
+            transaction={transaction}
+            onApprove={onApprove}
+            onReject={onReject}
+            onRequestChanges={onRequestChanges}
+          />
+        </TableCell>
+      )}
     </TableRow>
   );
 };

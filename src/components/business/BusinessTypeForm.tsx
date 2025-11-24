@@ -70,8 +70,8 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
               <FormItem>
                 <FormLabel>Business Type</FormLabel>
                 <FormControl>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <SelectTrigger>
@@ -98,8 +98,8 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
               <FormItem>
                 <FormLabel>Business Model</FormLabel>
                 <FormControl>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <SelectTrigger>
@@ -126,8 +126,8 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
               <FormItem>
                 <FormLabel>Annual Turnover</FormLabel>
                 <FormControl>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <SelectTrigger>
@@ -146,6 +146,7 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
               </FormItem>
             )}
           />
+
         </form>
       </Form>
     </div>

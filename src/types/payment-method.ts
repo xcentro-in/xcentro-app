@@ -15,8 +15,7 @@ export interface CardPaymentMethod extends BasePaymentMethod {
   cardholderName: string;
   lastFourDigits: string;
   expiryDate: string;
-  cardType: "visa" | "mastercard" | "amex" | "discover" | "other";
-  billingAddress?: string;
+  cardType: "visa" | "mastercard" | "amex" | "diners" | "rupay";
 }
 
 export interface BankPaymentMethod extends BasePaymentMethod {
@@ -25,7 +24,6 @@ export interface BankPaymentMethod extends BasePaymentMethod {
   bankName: string;
   lastFourDigits: string;
   ifscCode: string;
-  transactionType: "neft" | "rtgs" | "imps";
 }
 
 export interface BnplPaymentMethod extends BasePaymentMethod {

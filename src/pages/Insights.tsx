@@ -1,14 +1,14 @@
-import { 
-  BarChart2, 
-  DollarSign, 
-  CreditCard, 
-  FileText, 
+import {
+  BarChart2,
+  DollarSign,
+  CreditCard,
+  FileText,
   Clock,
   Calendar,
-  Download,
   SlidersHorizontal,
   ChevronUp,
   ChevronDown,
+  ChevronLeft,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 
 // Import refactored components
 
@@ -27,6 +28,9 @@ import {
 } from "@/components/insights/InsightsCharts";
 import CustomizeViewDialog from "@/components/insights/CustomizeViewDialog";
 import StatCard from "@/components/insights/StatCard";
+import PaymentActivityMap from "@/components/insights/PaymentActivityMap";
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
 
 // Mock data for charts
 const spendingData = [
@@ -68,30 +72,45 @@ interface ViewOptions {
   showCategoryBreakdown: boolean;
   showTaxCompliance: boolean;
   showCashFlowForecast: boolean;
-  showCreditCardInsights: boolean;
+  showPaymentActivityMap: boolean;
   timePeriod: string;
 }
 
 const Insights = () => {
+  const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
   const [showInsights, setShowInsights] = useState(true);
   const [customizeDialogOpen, setCustomizeDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setTitle("Financial Insights");
+  }, [setTitle]);
   const [viewOptions, setViewOptions] = useState({
     showSpendingTrend: true,
     showCategoryBreakdown: true,
     showTaxCompliance: true,
     showCashFlowForecast: true,
-    showCreditCardInsights: true,
+    showPaymentActivityMap: true,
     timePeriod: "thisMonth",
   });
-  
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight animate-slide-up">Financial Insights</h1>
-          <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
-            Analytics and insights to optimize your business spending
-          </p>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={() => navigate("/")}
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <p className="text-muted-foreground mt-1 animate-slide-up" style={{ animationDelay: "50ms" }}>
+              Analytics and insights to optimize your business spending
+            </p>
+          </div>
         </div>
         
         <div className="flex items-center gap-2 animate-slide-down" style={{ animationDelay: "100ms" }}>
@@ -108,11 +127,6 @@ const Insights = () => {
               <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button variant="outline" className="h-10 gap-2">
-            <Download className="h-4 w-4" />
-            Export
-          </Button>
           
           <Dialog open={customizeDialogOpen} onOpenChange={setCustomizeDialogOpen}>
             <DialogTrigger asChild>
@@ -145,6 +159,9 @@ const Insights = () => {
           />
         ))}
       </div>
+
+      {/* Payment Activity Section */}
+      {viewOptions.showPaymentActivityMap && <PaymentActivityMap />}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {viewOptions.showSpendingTrend && (

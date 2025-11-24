@@ -17,7 +17,7 @@ interface ViewOptions {
   showCategoryBreakdown: boolean;
   showTaxCompliance: boolean;
   showCashFlowForecast: boolean;
-  showCreditCardInsights: boolean;
+  showPaymentActivityMap: boolean;
   timePeriod: string;
 }
 
@@ -43,6 +43,16 @@ const CustomizeViewDialog: React.FC<CustomizeViewDialogProps> = ({
         <div className="space-y-2">
           <h4 className="text-sm font-medium">Chart Display Options</h4>
           <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2">
+              <Checkbox 
+                checked={viewOptions.showPaymentActivityMap} 
+                onCheckedChange={(checked) => 
+                  setViewOptions({...viewOptions, showPaymentActivityMap: !!checked})
+                }
+                className="rounded text-primary" 
+              />
+              <span>Show Payment Activity Map</span>
+            </label>
             <label className="flex items-center gap-2">
               <Checkbox 
                 checked={viewOptions.showSpendingTrend} 
@@ -71,7 +81,7 @@ const CustomizeViewDialog: React.FC<CustomizeViewDialogProps> = ({
                 }
                 className="rounded text-primary" 
               />
-              <span>Show Tax Compliance</span>
+              <span>Show GST Reports</span>
             </label>
             <label className="flex items-center gap-2">
               <Checkbox 
@@ -82,16 +92,6 @@ const CustomizeViewDialog: React.FC<CustomizeViewDialogProps> = ({
                 className="rounded text-primary" 
               />
               <span>Show Cash Flow Forecast</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <Checkbox 
-                checked={viewOptions.showCreditCardInsights} 
-                onCheckedChange={(checked) => 
-                  setViewOptions({...viewOptions, showCreditCardInsights: !!checked})
-                }
-                className="rounded text-primary" 
-              />
-              <span>Show Credit Card Insights</span>
             </label>
           </div>
         </div>

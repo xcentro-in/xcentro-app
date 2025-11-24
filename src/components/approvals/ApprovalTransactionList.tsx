@@ -15,24 +15,29 @@ import { toast } from "sonner";
 import ApprovalTransactionRow from "./ApprovalTransactionRow";
 import ApprovalTransactionDialog from "./ApprovalTransactionDialog";
 import ApprovalBatchActions from "./ApprovalBatchActions";
+import BillQuickPreview from "./BillQuickPreview";
 
 interface ApprovalTransactionListProps {
   transactions: ApprovalTransaction[];
   onApprove: (id: string) => void;
-  onReject: (id: string) => void;
-  onFlag: (id: string) => void;
-  onRequestChanges: (id: string) => void;
+  onReject: (transaction: ApprovalTransaction, reason: string) => void;
+  onRequestChanges: (transaction: ApprovalTransaction, reason: string) => void;
+  onBatchApprove: (voucherIds: string[]) => void;
+  showActions?: boolean; // Whether to show action buttons and column
 }
 
-const ApprovalTransactionList = ({ 
+const ApprovalTransactionList = ({
   transactions,
   onApprove,
   onReject,
-  onFlag,
-  onRequestChanges
+  onRequestChanges,
+  onBatchApprove,
+  showActions = true
 }: ApprovalTransactionListProps) => {
   const navigate = useNavigate();
   const [selectedTransactions, setSelectedTransactions] = useState<string[]>([]);
+  const [selectedTransaction, setSelectedTransaction] = useState<ApprovalTransaction | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [dialogTransaction, setDialogTransaction] = useState<ApprovalTransaction | null>(null);
   const [rejectReason, setRejectReason] = useState("");
   const [changesRequested, setChangesRequested] = useState("");
@@ -55,8 +60,7 @@ const ApprovalTransactionList = ({
   };
 
   const handleBatchApprove = () => {
-    selectedTransactions.forEach(id => onApprove(id));
-    toast.success(`${selectedTransactions.length} transactions approved`);
+    onBatchApprove(selectedTransactions);
     setSelectedTransactions([]);
   };
 
@@ -72,29 +76,25 @@ const ApprovalTransactionList = ({
     setChangesRequested("");
   };
   
-  const openDetailsDialog = (transaction: ApprovalTransaction) => {
-    setDialogTransaction(transaction);
-    setDialogType("details");
+  const openDetailsSheet = (transaction: ApprovalTransaction) => {
+    setSelectedTransaction(transaction);
+    setSheetOpen(true);
   };
 
   const handleRejectConfirm = () => {
     if (dialogTransaction && rejectReason) {
-      onReject(dialogTransaction.id);
-      toast.success(`Transaction ${dialogTransaction.id} rejected`);
+      onReject(dialogTransaction, rejectReason);
       setDialogTransaction(null);
+      setRejectReason("");
     }
   };
 
   const handleChangesConfirm = () => {
     if (dialogTransaction && changesRequested) {
-      onRequestChanges(dialogTransaction.id);
-      toast.success(`Changes requested for transaction ${dialogTransaction.id}`);
+      onRequestChanges(dialogTransaction, changesRequested);
       setDialogTransaction(null);
+      setChangesRequested("");
     }
-  };
-
-  const navigateToTransactionDetails = (id: string) => {
-    navigate(`/approvals/${id}`);
   };
 
   const handleDialogClose = () => {
@@ -111,50 +111,54 @@ const ApprovalTransactionList = ({
   };
 
   // These wrapper functions ensure we're passing the correct parameter types
-  const handleRowApprove = (id: string) => onApprove(id);
+  const handleRowApprove = (id: string) => {
+    onApprove(id);
+  };
   const handleRowReject = (transaction: ApprovalTransaction) => openRejectDialog(transaction);
-  const handleRowFlag = (id: string) => onFlag(id);
   const handleRowRequestChanges = (transaction: ApprovalTransaction) => openChangesDialog(transaction);
 
   return (
     <>
       {transactions.length > 0 ? (
         <div className="rounded-md border">
-          <ApprovalBatchActions 
-            selectedCount={selectedTransactions.length} 
-            onBatchApprove={handleBatchApprove} 
-          />
-          
+          {showActions && (
+            <ApprovalBatchActions
+              selectedCount={selectedTransactions.length}
+              onBatchApprove={handleBatchApprove}
+            />
+          )}
+
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <Checkbox 
-                    checked={selectedTransactions.length === transactions.length && transactions.length > 0}
-                    onCheckedChange={handleSelectAll}
-                  />
-                </TableHead>
-                <TableHead className="w-[100px]">Payment Method</TableHead>
-                <TableHead>Payee</TableHead>
-                <TableHead>Initiated By</TableHead>
+              <TableRow className="bg-muted/50">
+                {showActions && (
+                  <TableHead className="w-[40px]">
+                    <Checkbox
+                      checked={selectedTransactions.length === transactions.length && transactions.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
+                )}
+                <TableHead>Vendor</TableHead>
+                <TableHead>Invoice #</TableHead>
+                <TableHead>Due Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-center">Approval Status</TableHead>
+                {showActions && <TableHead className="text-center">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {transactions.map((transaction) => (
-                <ApprovalTransactionRow 
+                <ApprovalTransactionRow
                   key={transaction.id}
                   transaction={transaction}
                   isSelected={selectedTransactions.includes(transaction.id)}
                   onSelectTransaction={handleSelectTransaction}
-                  onRowClick={openDetailsDialog}
+                  onRowClick={openDetailsSheet}
                   onApprove={handleRowApprove}
                   onReject={handleRowReject}
-                  onFlag={handleRowFlag}
                   onRequestChanges={handleRowRequestChanges}
+                  showActions={showActions}
                 />
               ))}
             </TableBody>
@@ -166,7 +170,19 @@ const ApprovalTransactionList = ({
         </div>
       )}
 
-      <ApprovalTransactionDialog 
+      {/* Bill Quick Preview Sheet */}
+      <BillQuickPreview
+        transaction={selectedTransaction}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onApprove={handleRowApprove}
+        onReject={handleRowReject}
+        onRequestChanges={handleRowRequestChanges}
+        showActions={showActions}
+      />
+
+      {/* Reject/Request Changes Dialogs */}
+      <ApprovalTransactionDialog
         transaction={dialogTransaction}
         dialogType={dialogType}
         rejectReason={rejectReason}
@@ -178,7 +194,7 @@ const ApprovalTransactionList = ({
         onApprove={onApprove}
         onRejectConfirm={handleRejectConfirm}
         onChangesConfirm={handleChangesConfirm}
-        onViewFullDetails={navigateToTransactionDetails}
+        onViewFullDetails={(id) => navigate(`/bills/${id}`)}
       />
     </>
   );

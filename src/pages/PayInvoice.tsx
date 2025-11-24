@@ -6,7 +6,7 @@ import UploadInvoiceStep from "@/components/invoice/UploadInvoiceStep";
 import ReviewInvoiceStep from "@/components/invoice/ReviewInvoiceStep";
 import PaymentMethodStep from "@/components/invoice/PaymentMethodStep";
 import PaymentConfirmationStep from "@/components/invoice/PaymentConfirmationStep";
-import RewardTopUpStep, { RewardPackage } from "@/components/payments/common/RewardTopUpStep";
+import RewardTopUpStep, { RewardPackage } from "@/components/payments/new-payment/shared/common/RewardTopUpStep";
 
 interface PayInvoiceProps {
   onStepChange?: (step: number) => void;
@@ -18,7 +18,7 @@ const PayInvoice = ({ onStepChange }: PayInvoiceProps) => {
   const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | null>(null);
   const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
-  const [ocrProgress, setOcrProgress] = useState<OCRProgress>({ status: 'idle' });
+  const [ocrProgress, setOcrProgress] = useState<OCRProgress>({ status: 'idle', progress: 0 });
   
   // Update parent component's step state whenever currentStep changes
   useEffect(() => {

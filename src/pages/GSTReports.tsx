@@ -8,11 +8,33 @@ import { PaymentDetailsTable } from '@/components/gst-reports/PaymentDetailsTabl
 import { AlertsAndSuggestions } from '@/components/gst-reports/AlertsAndSuggestions';
 import { ForecastSection } from '@/components/gst-reports/ForecastSection';
 import { IndustryComparison } from '@/components/gst-reports/IndustryComparison';
+import { usePageTitle } from "@/contexts/PageTitleContext";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const GSTReports = () => {
+  const navigate = useNavigate();
+  const { setTitle } = usePageTitle();
+
+  useEffect(() => {
+    setTitle("GST Reports");
+  }, [setTitle]);
+
   return (
     <div className="space-y-6">
-      <PageHeader />
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <PageHeader />
+      </div>
       
       <div className="grid gap-6">
         <GSTHealthMetrics />

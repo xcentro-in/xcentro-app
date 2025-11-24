@@ -3,6 +3,7 @@ import React from "react";
 import { CalendarEvent } from "@/types/calendar";
 import { getStatusColor, getMethodIcon } from "@/utils/calendarUtils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatCurrency } from "@/utils/formatters";
 
 interface CalendarEventsListProps {
   events: CalendarEvent[];
@@ -55,7 +56,7 @@ const CalendarEventsList: React.FC<CalendarEventsListProps> = ({
                 )}
               </div>
               <div className="font-semibold mt-0.5">
-                ${event.amount.toLocaleString()}
+                {formatCurrency(event.amount)}
               </div>
               <div className="flex items-center justify-between mt-0.5 text-[10px]">
                 <span className="capitalize">{event.status.replace('_', ' ')}</span>
@@ -67,7 +68,7 @@ const CalendarEventsList: React.FC<CalendarEventsListProps> = ({
             <div className="font-semibold mb-1">{event.title}</div>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
               <span className="text-muted-foreground">Amount:</span>
-              <span className="font-medium">${event.amount.toLocaleString()}</span>
+              <span className="font-medium">{formatCurrency(event.amount)}</span>
               
               <span className="text-muted-foreground">Method:</span>
               <span className="font-medium">{event.method === 'credit' ? 'Credit Card' : 'Bank Transfer'}</span>

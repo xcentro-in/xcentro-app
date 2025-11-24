@@ -2,19 +2,27 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
+import { ChevronLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import RewardsHeader from "@/components/rewards/RewardsHeader";
 import RewardsSummary from "@/components/rewards/RewardsSummary";
 import MilestoneCards from "@/components/rewards/MilestoneCards";
 import EarningHistory from "@/components/rewards/EarningHistory";
 import SpendingRecommendations from "@/components/rewards/SpendingRecommendations";
 import RedemptionCategoryDialog from "@/components/rewards/dialog/RedemptionCategoryDialog";
+import { usePageTitle } from "@/contexts/PageTitleContext";
 
 const Rewards = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { setTitle } = usePageTitle();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [redeemDialogOpen, setRedeemDialogOpen] = useState<boolean>(false);
   const availablePoints = 24530;
+  
+  useEffect(() => {
+    setTitle("My Rewards");
+  }, [setTitle]);
   
   useEffect(() => {
     // Check if redirected after redemption
@@ -39,10 +47,19 @@ const Rewards = () => {
 
   return (
     <div className="space-y-8">
-      <RewardsHeader 
-        title="My Rewards" 
-        description="Track & redeem your business rewards" 
-      />
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground hover:text-foreground"
+          onClick={() => navigate("/")}
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </Button>
+        <RewardsHeader
+          description="Track & redeem your business rewards"
+        />
+      </div>
       
       {/* Header Stats Bar */}
       <RewardsSummary 

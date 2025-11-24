@@ -9,6 +9,8 @@ import {
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 
 interface SubmenuItem {
   title: string;
@@ -25,6 +27,9 @@ interface SidebarMenuItemProps {
   highlightColor?: "amber" | "green";
   state?: any;
   submenu?: SubmenuItem[];
+  isLocked?: boolean;
+  lockedMessage?: string;
+  unlockHint?: string;
 }
 
 export const SidebarMenuItemComponent = ({ 
@@ -34,10 +39,14 @@ export const SidebarMenuItemComponent = ({
   highlight, 
   highlightColor = "amber",
   state,
-  submenu 
+  submenu,
+  isLocked = false,
+  lockedMessage = "This feature is locked",
+  unlockHint = "Complete the required steps to unlock this feature."
 }: SidebarMenuItemProps) => {
   const { open } = useSidebar();
   const location = useLocation();
+  const { toast } = useToast();
   
   // Check if this item is active based on URL or state
   const isActive = location.pathname === url || 
@@ -54,6 +63,18 @@ export const SidebarMenuItemComponent = ({
       return isTextColor ? "text-green-500" : "bg-green-500";
     }
     return isTextColor ? "text-amber-500" : "bg-amber-500";
+  };
+
+  // Handle click on locked items
+  const handleLockedClick = (e: React.MouseEvent) => {
+    if (isLocked) {
+      e.preventDefault();
+      toast({
+        title: lockedMessage,
+        description: unlockHint,
+        variant: "default",
+      });
+    }
   };
 
   // If this is a menu with submenu items
@@ -144,44 +165,67 @@ export const SidebarMenuItemComponent = ({
   }
 
   // Regular menu item without submenu
-  return (
-    <MenuItem key={title} className="w-full">
-      <SidebarMenuButton
-        isActive={isActive}
-        tooltip={!open ? title : undefined}
-        asChild
+  const menuButton = (
+    <SidebarMenuButton
+      isActive={isActive}
+      tooltip={!open && !isLocked ? title : undefined}
+      asChild
+      className={cn(
+        highlight ? "relative" : "",
+        "w-full",
+        isLocked && "opacity-60"
+      )}
+    >
+      <Link 
+        to={isLocked ? "#" : url}
+        state={state}
+        onClick={handleLockedClick}
         className={cn(
-          highlight ? "relative" : "",
-          "w-full"
+          "flex items-center gap-3 w-full relative",
+          !open && "justify-center",
+          isLocked && "cursor-not-allowed"
         )}
       >
-        <Link 
-          to={url} 
-          state={state}
-          className={cn(
-            "flex items-center gap-3 w-full",
-            !open && "justify-center" // Center align when sidebar is collapsed
-          )}
-        >
-          {highlight && !isActive && (
-            <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full", getHighlightColorClasses())}></span>
-          )}
-          <Icon className={cn(
-            "h-5 w-5",
-            isActive ? 
-              "text-primary" : 
+        {highlight && !isActive && !isLocked && (
+          <span className={cn("absolute -left-1 top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full", getHighlightColorClasses())}></span>
+        )}
+        <Icon className={cn(
+          "h-5 w-5",
+          isActive ? 
+            "text-primary" : 
+            isLocked ?
+              "text-muted-foreground/50" :
               highlight && !isActive ? getHighlightColorClasses(true) : "text-muted-foreground"
-          )} />
-          {open && (
-            <span className={cn(
-              "truncate",
-              highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
-            )}>
-              {title}
-            </span>
-          )}
-        </Link>
-      </SidebarMenuButton>
+        )} />
+        {open && (
+          <span className={cn(
+            "truncate",
+            isLocked ? "text-muted-foreground/70" : highlight && !isActive && getHighlightColorClasses(true) + " font-medium"
+          )}>
+            {title}
+          </span>
+        )}
+      </Link>
+    </SidebarMenuButton>
+  );
+
+  return (
+    <MenuItem key={title} className="w-full">
+      {isLocked ? (
+        <TooltipProvider>
+          <Tooltip delayDuration={200}>
+            <TooltipTrigger asChild>
+              {menuButton}
+            </TooltipTrigger>
+            <TooltipContent side="right" className="max-w-xs">
+              <p className="font-medium">{lockedMessage}</p>
+              <p className="text-xs text-muted-foreground mt-1">{unlockHint}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        menuButton
+      )}
     </MenuItem>
   );
 };

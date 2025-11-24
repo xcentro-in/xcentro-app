@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "@/utils/formatters";
+import { formatCompactDate } from "@/utils/dateFormatting";
 
 interface Transaction {
   id: number;
@@ -68,11 +70,11 @@ const RecentTransactions = () => {
                 </div>
                 <div>
                   <div className="font-medium text-sm truncate max-w-[120px]">{transaction.vendor}</div>
-                  <div className="text-xs text-muted-foreground">{transaction.date}</div>
+                  <div className="text-xs text-muted-foreground">{formatCompactDate(transaction.date)}</div>
                 </div>
               </div>
               <div className="flex flex-col items-end">
-                <div className="font-medium text-sm">${transaction.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div className="font-medium text-sm">{formatCurrency(transaction.amount)}</div>
                 <div className="flex items-center gap-1">
                   {transaction.status === "completed" && (
                     <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-600 text-[10px] px-1 py-0">

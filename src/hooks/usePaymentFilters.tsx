@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { subDays } from "date-fns";
 import { DateRange } from "react-day-picker";
-import { ActiveFilter } from "@/components/payments/AppliedFilters";
+import { ActiveFilter } from "@/components/payments/payee-management/filters/AppliedFilters";
 import { PaymentFiltersState } from "@/types/paymentFilters";
 import { getDateRangeFromFilter } from "@/utils/dateFilterUtils";
 import { updateActiveFilters, handleRemoveFilter } from "@/utils/filterOperations";

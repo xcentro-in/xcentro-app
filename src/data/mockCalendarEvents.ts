@@ -4,6 +4,7 @@ import { addDays, subDays, format } from "date-fns";
 
 // Generate dates relative to today
 const today = new Date();
+// Use ISO format for backend storage - this is appropriate for calendar data
 const formatDate = (date: Date) => format(date, "yyyy-MM-dd'T'HH:mm:ss");
 
 export const mockCalendarTransactions: Transaction[] = [

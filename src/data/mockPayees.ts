@@ -1,5 +1,5 @@
 
-import { BankPayee, BillerPayee, Payee, PayrollPayee } from "@/types/payee";
+import { VendorPayee, BillerPayee, Payee, EmployeePayee } from "@/types/payee";
 
 export const mockPayees: Payee[] = [
   {
@@ -15,8 +15,9 @@ export const mockPayees: Payee[] = [
     defaultPaymentMode: "bank",
     tags: ["vendor", "supplies"],
     createdAt: "2023-10-15",
+    updatedAt: "2023-10-15",
     isDefault: true,
-  } as BankPayee,
+  } as VendorPayee,
   {
     id: "2",
     name: "Cloud Services",
@@ -29,8 +30,9 @@ export const mockPayees: Payee[] = [
     defaultPaymentMode: "credit",
     tags: ["tech", "subscription"],
     createdAt: "2023-11-20",
+    updatedAt: "2023-11-20",
     isDefault: false,
-  } as BankPayee,
+  } as VendorPayee,
   {
     id: "3",
     name: "City Electric",
@@ -42,6 +44,7 @@ export const mockPayees: Payee[] = [
     billingCycle: "monthly",
     autoPayment: true,
     createdAt: "2023-09-05",
+    updatedAt: "2023-09-05",
     isDefault: true,
   } as BillerPayee,
   {
@@ -55,6 +58,7 @@ export const mockPayees: Payee[] = [
     billingCycle: "monthly",
     autoPayment: true,
     createdAt: "2023-08-12",
+    updatedAt: "2023-08-12",
     isDefault: false,
   } as BillerPayee,
   {
@@ -70,8 +74,9 @@ export const mockPayees: Payee[] = [
     salaryType: "fixed",
     payrollCycle: "monthly",
     createdAt: "2023-07-01",
+    updatedAt: "2023-07-01",
     isDefault: false,
-  } as PayrollPayee,
+  } as EmployeePayee,
   {
     id: "6",
     name: "Jane Doe",
@@ -85,6 +90,7 @@ export const mockPayees: Payee[] = [
     salaryType: "variable",
     payrollCycle: "bi-weekly",
     createdAt: "2023-07-15",
+    updatedAt: "2023-07-15",
     isDefault: false,
-  } as PayrollPayee,
+  } as EmployeePayee,
 ];

@@ -1,29 +1,34 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Check, Building, FileText, AlertCircle } from "lucide-react";
+import { Check, Building, FileText, AlertCircle, Building2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { toBackendBusinessType, requiresCIN as checkRequiresCIN } from "@/lib/businessTypeMapping";
 
 interface BusinessReviewFormProps {
   formData: {
     name: string;
-    pan: string;
+    gstin: string;
     type: string;
     model: string;
     turnover: string;
     documents: {
+      cin?: string;
       deed?: File | null;
-      gst?: File | null;
     };
   };
 }
 
 const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
-  const isComplete = formData.name && 
-                     formData.pan && 
-                     formData.type && 
-                     formData.model && 
-                     formData.turnover && 
-                     formData.documents.deed;
+  // Convert frontend type to backend format and check if CIN is needed
+  const backendType = toBackendBusinessType(formData.type);
+  const needsCIN = checkRequiresCIN(backendType);
+
+  const isComplete = formData.name &&
+                     formData.gstin &&
+                     formData.type &&
+                     formData.model &&
+                     formData.turnover &&
+                     (needsCIN ? formData.documents.cin?.length === 21 : formData.documents.deed);
 
   return (
     <div className="space-y-6">
@@ -58,7 +63,9 @@ const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
             </div>
             <div>
               <h3 className="text-lg font-medium">{formData.name || "Business Name"}</h3>
-              <p className="text-sm text-muted-foreground">{formData.pan || "PAN"}</p>
+              <p className="text-sm text-muted-foreground">
+                GSTIN: {formData.gstin || "Not specified"}
+              </p>
             </div>
           </div>
 
@@ -85,41 +92,45 @@ const BusinessReviewForm = ({ formData }: BusinessReviewFormProps) => {
           <Separator />
 
           <div>
-            <h4 className="text-sm font-medium mb-3">Uploaded Documents</h4>
+            <h4 className="text-sm font-medium mb-3">Document Verification</h4>
             <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-primary" />
+              {needsCIN ? (
+                // Show CIN
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Corporate Identification Number (CIN)</p>
+                    <p className="text-xs text-muted-foreground font-mono">
+                      {formData.documents.cin || "Not provided"}
+                    </p>
+                  </div>
+                  {formData.documents.cin && formData.documents.cin.length === 21 ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Business Deed</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formData.documents.deed ? formData.documents.deed.name : "Not uploaded"}
-                  </p>
+              ) : (
+                // Show Business Deed
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
+                    <FileText className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Business Deed/Registration Document</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formData.documents.deed ? formData.documents.deed.name : "Not uploaded"}
+                    </p>
+                  </div>
+                  {formData.documents.deed ? (
+                    <Check className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                  )}
                 </div>
-                {formData.documents.deed ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-amber-600" />
-                )}
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">GST Certificate (Optional)</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formData.documents.gst ? formData.documents.gst.name : "Not uploaded"}
-                  </p>
-                </div>
-                {formData.documents.gst ? (
-                  <Check className="h-4 w-4 text-green-600" />
-                ) : (
-                  <span className="text-xs text-muted-foreground">Optional</span>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </CardContent>

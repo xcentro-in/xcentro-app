@@ -1,5 +1,5 @@
 
-import { ActiveFilter } from "@/components/payments/AppliedFilters";
+import { ActiveFilter } from "@/components/payments/payee-management/filters/AppliedFilters";
 import { PaymentFiltersState } from "@/types/paymentFilters";
 import { 
   dateFilterOptions, 
