@@ -9,6 +9,6 @@ export interface GetVendorsResponse {
   data: {
     vendors: Vendor[];
     count: number;
-  };
+  } | null;
   status: string;
 }

@@ -16,7 +16,12 @@ export const useVendors = (businessId?: string) => {
 
       try {
         const response: GetVendorsResponse = await vendorsAPI.getAll(businessId);
-        setVendors(response.data.vendors);
+        // Handle null or empty data from backend
+        if (!response.data || !response.data.vendors) {
+          setVendors([]);
+        } else {
+          setVendors(response.data.vendors);
+        }
       } catch (err) {
         console.error("Failed to fetch vendors:", err);
         setError(err instanceof Error ? err.message : "Failed to load vendors");
@@ -37,7 +42,12 @@ export const useVendors = (businessId?: string) => {
 
     try {
       const response: GetVendorsResponse = await vendorsAPI.getAll(businessId);
-      setVendors(response.data.vendors);
+      // Handle null or empty data from backend
+      if (!response.data || !response.data.vendors) {
+        setVendors([]);
+      } else {
+        setVendors(response.data.vendors);
+      }
     } catch (err) {
       console.error("Failed to fetch vendors:", err);
       setError(err instanceof Error ? err.message : "Failed to load vendors");
