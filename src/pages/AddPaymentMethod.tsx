@@ -521,6 +521,21 @@ const AddPaymentMethod = () => {
                   </div>
                 </div>
 
+                {/* Card Verification Info */}
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-1">
+                        Card Verification
+                      </p>
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        ₹1 will be debited from your card to verify it's active. This amount will be refunded within 5-7 business days.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4 border-t">
                   {/* <div className="space-y-4">
                     <div className="flex items-center space-x-2">
