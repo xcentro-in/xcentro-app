@@ -227,7 +227,7 @@ const WalletManagement = () => {
 
     // Show onboarding state only if user has never added payment methods AND no payment methods exist
     // If hasAddedPaymentMethod is true, show normal page even if wallet is empty
-    if (showEmptyState && !user?.hasAddedPaymentMethod) {
+    if (!user?.hasAddedPaymentMethod && showEmptyState) {
       return <EmptyWallet />;
     }
 

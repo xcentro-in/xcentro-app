@@ -81,7 +81,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
 
   // Show onboarding state only if user has never added payees AND no payees exist
   // If hasAddedVendor is true, show normal page even if current filter has no results
-  if (!isLoading && !error && totalCount === 0 && !user?.hasAddedVendor) {
+  if (!isLoading && !error && !user?.hasAddedVendor && totalCount === 0) {
     return <EmptyPayees onAddPayee={onAddPayee} />;
   }
 
