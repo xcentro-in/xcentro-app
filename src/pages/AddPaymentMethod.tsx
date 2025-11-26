@@ -530,7 +530,7 @@ const AddPaymentMethod = () => {
                         Card Verification
                       </p>
                       <p className="text-sm text-blue-800 dark:text-blue-200">
-                        ₹1 will be debited from your card to verify it's active. This amount will be refunded within 5-7 business days.
+                        ₹1 will be debited from your card to verify it's active.
                       </p>
                     </div>
                   </div>
