@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { formatCurrency } from "@/utils/formatters";
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
 
 // Soothing, distinct color palette for pie chart
 const COLORS = [
@@ -22,14 +23,43 @@ interface CreditCardExpensePieChartProps {
   }>;
 }
 
+// Helper to extract card network from source_label
+const extractCardNetwork = (label: string): string | null => {
+  // Extract the first word before space or special characters
+  const match = label.match(/^(\w+)/);
+  if (!match) return null;
+
+  const network = match[1].toLowerCase();
+
+  // Map common variations
+  const networkMap: Record<string, string> = {
+    'visa': 'visa',
+    'mastercard': 'mastercard',
+    'amex': 'amex',
+    'rupay': 'rupay',
+    'diners': 'diners',
+  };
+
+  return networkMap[network] || null;
+};
+
 const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => {
   const creditCardData = data;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const network = extractCardNetwork(payload[0].name);
+      const logoUrl = network ? getCardNetworkLogo(network) : null;
+
       return (
         <div className="bg-background border rounded-lg shadow-lg p-3">
-          <p className="text-sm font-semibold">{payload[0].name}</p>
+          <div className="flex items-center gap-2 mb-1">
+            {logoUrl ? (
+              <img src={logoUrl} alt={payload[0].name} className="h-5 w-auto" />
+            ) : (
+              <p className="text-sm font-semibold">{payload[0].name}</p>
+            )}
+          </div>
           <p className="text-sm text-primary">
             {formatCurrency(payload[0].value)}
           </p>
@@ -37,6 +67,82 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
       );
     }
     return null;
+  };
+
+  const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = outerRadius + 25;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    const network = extractCardNetwork(name);
+    const logoUrl = network ? getCardNetworkLogo(network) : null;
+
+    if (logoUrl) {
+      // Position logo outside the pie
+      return (
+        <g>
+          <image
+            x={x - 15}
+            y={y - 10}
+            width="30"
+            height="20"
+            href={logoUrl}
+          />
+          <text
+            x={x}
+            y={y + 15}
+            fill="black"
+            textAnchor={x > cx ? 'start' : 'end'}
+            dominantBaseline="central"
+            className="text-xs font-semibold"
+          >
+            {`${(percent * 100).toFixed(0)}%`}
+          </text>
+        </g>
+      );
+    }
+
+    // Fallback to text label
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="black"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        className="text-xs font-semibold"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  const renderCustomLegend = (props: any) => {
+    const { payload } = props;
+
+    return (
+      <div className="flex flex-wrap justify-center gap-4 mt-4">
+        {payload.map((entry: any, index: number) => {
+          const network = extractCardNetwork(entry.value);
+          const logoUrl = network ? getCardNetworkLogo(network) : null;
+
+          return (
+            <div key={`legend-${index}`} className="flex items-center gap-2">
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: entry.color }}
+              />
+              {logoUrl ? (
+                <img src={logoUrl} alt={entry.value} className="h-4 w-auto" />
+              ) : (
+                <span className="text-sm">{entry.value}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -51,28 +157,24 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
             No credit card expenses this month
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
                 data={creditCardData}
                 cx="50%"
-                cy="50%"
-                labelLine={false}
+                cy="45%"
+                labelLine={true}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
-                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                label={renderCustomLabel}
               >
                 {creditCardData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip content={<CustomTooltip />} />
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                formatter={(value) => <span className="text-sm">{value}</span>}
-              />
+              <Legend content={renderCustomLegend} />
             </PieChart>
           </ResponsiveContainer>
         )}
