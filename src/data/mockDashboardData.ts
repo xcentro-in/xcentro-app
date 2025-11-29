@@ -1,5 +1,6 @@
 import { Transaction } from "@/types/transaction";
 import { mockCalendarTransactions } from "./mockCalendarEvents";
+import { mockInvoices } from "./mockInvoices";
 import { startOfMonth, endOfMonth, subMonths, isWithinInterval, addDays, format } from "date-fns";
 
 const today = new Date();
@@ -31,18 +32,16 @@ export const getLastMonthSpend = () => {
     .reduce((sum, t) => sum + t.amount, 0);
 };
 
-// Get pending settlements (pending + pending_approval)
-export const getPendingSettlements = () => {
-  const pending = mockCalendarTransactions.filter(
-    t => t.status === "pending" || t.status === "pending_approval"
-  );
+// Get overdue bills
+export const getOverdueBills = () => {
+  const overdue = mockInvoices.filter(invoice => invoice.status === "overdue");
 
-  const total = pending.reduce((sum, t) => sum + t.amount, 0);
+  const total = overdue.reduce((sum, invoice) => sum + invoice.amount, 0);
 
   return {
     total,
-    count: pending.length,
-    transactions: pending
+    count: overdue.length,
+    bills: overdue
   };
 };
 

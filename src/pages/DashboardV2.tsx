@@ -8,14 +8,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import EmptyStateDashboard from "@/components/dashboard/EmptyStateDashboard";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
 import SpendMetricsCard from "@/components/dashboard-v2/SpendMetricsCard";
+import OverdueBillsCard from "@/components/dashboard-v2/OverdueBillsCard";
 import UpcomingLargePaymentsCard from "@/components/dashboard-v2/UpcomingLargePaymentsCard";
 import ActivityFeedTable from "@/components/dashboard-v2/ActivityFeedTable";
 import MonthlySpendChart from "@/components/dashboard-v2/MonthlySpendChart";
 import CreditCardExpensePieChart from "@/components/dashboard-v2/CreditCardExpensePieChart";
 import {
   getCurrentMonthSpend,
-  getLastMonthSpend,
-  getPendingSettlements
+  getLastMonthSpend
 } from "@/data/mockDashboardData";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 
@@ -42,7 +42,6 @@ const DashboardV2 = () => {
   // Calculate metrics
   const currentMonthSpend = getCurrentMonthSpend();
   const lastMonthSpend = getLastMonthSpend();
-  const pendingSettlements = getPendingSettlements();
 
   // Calculate percentage change
   const spendChange = lastMonthSpend > 0
@@ -107,7 +106,7 @@ const DashboardV2 = () => {
         <PendingApprovalsBanner pendingCount={pendingCount} urgentCount={urgentCount} />
       )}
 
-      {/* Metrics Row: Total Spent, Pending Settlements */}
+      {/* Metrics Row: Total Spent, Overdue Bills */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <SpendMetricsCard
           title="Total Spent This Month"
@@ -119,13 +118,7 @@ const DashboardV2 = () => {
           delay={0}
         />
 
-        <SpendMetricsCard
-          title="Pending Settlements"
-          value={pendingSettlements.total}
-          subtitle={`${pendingSettlements.count} transaction${pendingSettlements.count !== 1 ? 's' : ''}`}
-          variant="warning"
-          delay={50}
-        />
+        <OverdueBillsCard delay={50} />
       </div>
 
       {/* Recent Activity & Upcoming Large Payments */}
