@@ -30,21 +30,20 @@ interface CreditCardExpensePieChartProps {
 
 // Helper to construct display label
 const getDisplayLabel = (source: PaymentSourceData): string => {
-  const dots = "••••";
   const digits = source.lastFourDigits || "XXXX";
 
   // For cards with network
   if (source.cardNetwork) {
-    return `${dots}${digits}`;
+    return `${digits}`;
   }
 
   // For bank accounts or UPI
   if (source.bankName) {
-    return `${source.bankName} ${dots}${digits}`;
+    return `${source.bankName} ${digits}`;
   }
 
   // Fallback
-  return `${dots}${digits}`;
+  return `${digits}`;
 };
 
 // Helper to get card network for logo display
