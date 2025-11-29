@@ -16,22 +16,42 @@ const COLORS = [
   "#a855f7", // Violet - elegant
 ];
 
-interface CreditCardExpensePieChartProps {
-  data: Array<{
-    name: string;
-    value: number;
-  }>;
+interface PaymentSourceData {
+  cardNetwork: string | null;
+  lastFourDigits: string | null;
+  bankName: string | null;
+  paymentMethod: string;
+  value: number;
 }
 
-// Helper to extract card network from source_label
-const extractCardNetwork = (label: string): string | null => {
-  // Extract the first word before space or special characters
-  const match = label.match(/^(\w+)/);
-  if (!match) return null;
+interface CreditCardExpensePieChartProps {
+  data: PaymentSourceData[];
+}
 
-  const network = match[1].toLowerCase();
+// Helper to construct display label
+const getDisplayLabel = (source: PaymentSourceData): string => {
+  const dots = "••••";
+  const digits = source.lastFourDigits || "XXXX";
 
-  // Map common variations
+  // For cards with network
+  if (source.cardNetwork) {
+    return `${dots}${digits}`;
+  }
+
+  // For bank accounts or UPI
+  if (source.bankName) {
+    return `${source.bankName} ${dots}${digits}`;
+  }
+
+  // Fallback
+  return `${dots}${digits}`;
+};
+
+// Helper to get card network for logo display
+const getNetworkForLogo = (source: PaymentSourceData): string | null => {
+  if (!source.cardNetwork) return null;
+
+  const network = source.cardNetwork.toLowerCase();
   const networkMap: Record<string, string> = {
     'visa': 'visa',
     'mastercard': 'mastercard',
@@ -44,20 +64,25 @@ const extractCardNetwork = (label: string): string | null => {
 };
 
 const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => {
-  const creditCardData = data;
+  // Transform data to include display labels
+  const chartData = data.map((source) => ({
+    ...source,
+    displayLabel: getDisplayLabel(source),
+    network: getNetworkForLogo(source),
+  }));
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
-      const network = extractCardNetwork(payload[0].name);
-      const logoUrl = network ? getCardNetworkLogo(network) : null;
+      const source = payload[0].payload;
+      const logoUrl = source.network ? getCardNetworkLogo(source.network) : null;
 
       return (
         <div className="bg-background border rounded-lg shadow-lg p-3">
           <div className="flex items-center gap-2 mb-1">
             {logoUrl && (
-              <img src={logoUrl} alt={payload[0].name} className="h-5 w-auto" />
+              <img src={logoUrl} alt={source.displayLabel} className="h-5 w-auto" />
             )}
-            <p className="text-sm font-semibold">{payload[0].name}</p>
+            <p className="text-sm font-semibold">{source.displayLabel}</p>
           </div>
           <p className="text-sm text-primary">
             {formatCurrency(payload[0].value)}
@@ -68,17 +93,16 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
     return null;
   };
 
-  const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any) => {
+  const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, payload }: any) => {
     const RADIAN = Math.PI / 180;
     const radius = outerRadius + 30;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-    const network = extractCardNetwork(name);
-    const logoUrl = network ? getCardNetworkLogo(network) : null;
+    const logoUrl = payload.network ? getCardNetworkLogo(payload.network) : null;
 
     if (logoUrl) {
-      // Show logo + text + percentage
+      // Show logo + digits + percentage
       return (
         <g>
           <image
@@ -96,7 +120,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
             dominantBaseline="central"
             className="text-xs font-semibold"
           >
-            {name}
+            {payload.displayLabel}
           </text>
           <text
             x={x}
@@ -112,7 +136,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
       );
     }
 
-    // Text label without logo
+    // Text label without logo (for banks/UPI)
     return (
       <g>
         <text
@@ -123,7 +147,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
           dominantBaseline="central"
           className="text-xs font-semibold"
         >
-          {name}
+          {payload.displayLabel}
         </text>
         <text
           x={x}
@@ -145,8 +169,8 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
     return (
       <div className="flex flex-wrap justify-center gap-4 mt-4">
         {payload.map((entry: any, index: number) => {
-          const network = extractCardNetwork(entry.value);
-          const logoUrl = network ? getCardNetworkLogo(network) : null;
+          const source = chartData[index];
+          const logoUrl = source.network ? getCardNetworkLogo(source.network) : null;
 
           return (
             <div key={`legend-${index}`} className="flex items-center gap-2">
@@ -155,9 +179,9 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
                 style={{ backgroundColor: entry.color }}
               />
               {logoUrl && (
-                <img src={logoUrl} alt={entry.value} className="h-4 w-auto" />
+                <img src={logoUrl} alt={source.displayLabel} className="h-4 w-auto" />
               )}
-              <span className="text-sm">{entry.value}</span>
+              <span className="text-sm">{source.displayLabel}</span>
             </div>
           );
         })}
@@ -172,7 +196,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
         <CardDescription>Spending breakdown by card (This Month)</CardDescription>
       </CardHeader>
       <CardContent>
-        {creditCardData.length === 0 ? (
+        {chartData.length === 0 ? (
           <div className="flex items-center justify-center h-[300px] text-sm text-muted-foreground">
             No credit card expenses this month
           </div>
@@ -180,7 +204,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
-                data={creditCardData}
+                data={chartData}
                 cx="50%"
                 cy="45%"
                 labelLine={true}
@@ -189,7 +213,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
                 dataKey="value"
                 label={renderCustomLabel}
               >
-                {creditCardData.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>

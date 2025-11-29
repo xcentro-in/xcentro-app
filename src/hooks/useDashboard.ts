@@ -31,7 +31,10 @@ export interface DashboardData {
     spent: number;
   }>;
   creditCardExpenses: Array<{
-    name: string;
+    cardNetwork: string | null;
+    lastFourDigits: string | null;
+    bankName: string | null;
+    paymentMethod: string;
     value: number;
   }>;
 }
@@ -96,11 +99,14 @@ export const useDashboard = () => {
             spent: paiseToRupees(month.total_spend),
           })),
 
-          // Credit card expenses (use source_label)
+          // Credit card expenses (pass full data for smart label construction)
           creditCardExpenses: response.payment_source_breakdown
             .filter(source => source.total_amount > 0)
             .map(source => ({
-              name: source.source_label,
+              cardNetwork: source.card_network,
+              lastFourDigits: source.last_four_digits,
+              bankName: source.bank_name,
+              paymentMethod: source.payment_method,
               value: paiseToRupees(source.total_amount),
             })),
         };
