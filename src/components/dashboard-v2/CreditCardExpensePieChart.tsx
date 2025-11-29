@@ -1,7 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { formatCurrency } from "@/utils/formatters";
-import { getCreditCardExpenses } from "@/data/mockDashboardData";
 
 const COLORS = [
   "hsl(var(--primary))",
@@ -11,8 +10,15 @@ const COLORS = [
   "hsl(var(--chart-5))",
 ];
 
-const CreditCardExpensePieChart = () => {
-  const creditCardData = getCreditCardExpenses();
+interface CreditCardExpensePieChartProps {
+  data: Array<{
+    name: string;
+    value: number;
+  }>;
+}
+
+const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => {
+  const creditCardData = data;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

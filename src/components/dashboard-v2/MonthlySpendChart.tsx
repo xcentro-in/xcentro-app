@@ -1,10 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/utils/formatters";
-import { getMonthlySpendData } from "@/data/mockDashboardData";
 
-const MonthlySpendChart = () => {
-  const chartData = getMonthlySpendData();
+interface MonthlySpendChartProps {
+  data: Array<{
+    month: string;
+    spent: number;
+  }>;
+}
+
+const MonthlySpendChart = ({ data }: MonthlySpendChartProps) => {
+  const chartData = data;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

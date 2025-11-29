@@ -1,17 +1,19 @@
 import { CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
-import { getOverdueBills } from "@/data/mockDashboardData";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 interface OverdueBillsCardProps {
+  overdueBills: {
+    count: number;
+    total: number;
+  };
   delay?: number;
 }
 
-const OverdueBillsCard = ({ delay = 50 }: OverdueBillsCardProps) => {
+const OverdueBillsCard = ({ overdueBills, delay = 50 }: OverdueBillsCardProps) => {
   const navigate = useNavigate();
-  const overdueBills = getOverdueBills();
   const hasOverdue = overdueBills.count > 0;
 
   const handleClick = () => {

@@ -1004,30 +1004,50 @@ class ApiService {
     }
   };
 
-  // Dashboard endpoints - TODO: Implement when backend is ready
+  // Dashboard endpoints
   dashboard = {
-    getInsights: async () => {
-      // TODO: Get dashboard insights
-      // return this.request('/dashboard/insights');
-
-      console.log('TODO: Implement dashboard.getInsights API call');
-      throw new Error('API not implemented yet');
-    },
-
-    getRecentTransactions: async (limit: number = 10) => {
-      // TODO: Get recent transactions
-      // return this.request(`/dashboard/transactions/recent?limit=${limit}`);
-
-      console.log('TODO: Implement dashboard.getRecentTransactions API call', { limit });
-      throw new Error('API not implemented yet');
-    },
-
-    getUpcomingPayments: async () => {
-      // TODO: Get upcoming payments
-      // return this.request('/dashboard/payments/upcoming');
-
-      console.log('TODO: Implement dashboard.getUpcomingPayments API call');
-      throw new Error('API not implemented yet');
+    getData: async (businessId: string): Promise<{
+      total_spend_this_month: number;
+      overdue_bills: {
+        count: number;
+        total_amount: number;
+      };
+      recent_payments: Array<{
+        payment_id: string;
+        amount: number;
+        payment_method: string;
+        status: string;
+        created_at: string;
+      }>;
+      upcoming_large_payments: Array<{
+        voucher_id: string;
+        voucher_number: string;
+        payee_id: string;
+        net_amount: number;
+        invoice_due_date: string;
+        invoice_number: string;
+      }>;
+      monthly_spends: Array<{
+        month: string;
+        total_spend: number;
+        txn_count: number;
+      }>;
+      payment_source_breakdown: Array<{
+        payment_method: string;
+        source_label: string;
+        card_network: string | null;
+        last_four_digits: string | null;
+        bank_name: string | null;
+        total_amount: number;
+        txn_count: number;
+      }>;
+    }> => {
+      return this.request('/dashboard', {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
     }
   };
 

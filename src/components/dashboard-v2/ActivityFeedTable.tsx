@@ -4,17 +4,26 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Clock, XCircle, AlertCircle, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
 import { formatCompactDate } from "@/utils/dateFormatting";
-import { getRecentActivity } from "@/data/mockDashboardData";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
-const ActivityFeedTable = () => {
+interface ActivityFeedTableProps {
+  transactions: Array<{
+    id: string;
+    amount: number;
+    status: string;
+    date: string;
+  }>;
+}
+
+const ActivityFeedTable = ({ transactions }: ActivityFeedTableProps) => {
   const navigate = useNavigate();
-  const recentTransactions = getRecentActivity();
+  const recentTransactions = transactions;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
+      case "success":
         return (
           <Badge variant="outline" className="bg-green-500/10 border-green-500/20 text-green-600 text-xs">
             <CheckCircle2 className="h-3 w-3 mr-1" />

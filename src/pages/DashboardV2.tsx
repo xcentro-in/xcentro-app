@@ -13,16 +13,14 @@ import UpcomingLargePaymentsCard from "@/components/dashboard-v2/UpcomingLargePa
 import ActivityFeedTable from "@/components/dashboard-v2/ActivityFeedTable";
 import MonthlySpendChart from "@/components/dashboard-v2/MonthlySpendChart";
 import CreditCardExpensePieChart from "@/components/dashboard-v2/CreditCardExpensePieChart";
-import {
-  getCurrentMonthSpend,
-  getLastMonthSpend
-} from "@/data/mockDashboardData";
+import { useDashboard } from "@/hooks/useDashboard";
 import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 
 const DashboardV2 = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const { user } = useAuth();
+  const { data: dashboardData, isLoading, error } = useDashboard();
 
   // Check if we should show empty state
   const showEmptyState =
@@ -38,15 +36,6 @@ const DashboardV2 = () => {
       setTitle(`Welcome back, ${userName}`);
     }
   }, [setTitle, user, showEmptyState]);
-
-  // Calculate metrics
-  const currentMonthSpend = getCurrentMonthSpend();
-  const lastMonthSpend = getLastMonthSpend();
-
-  // Calculate percentage change
-  const spendChange = lastMonthSpend > 0
-    ? ((currentMonthSpend - lastMonthSpend) / lastMonthSpend) * 100
-    : 0;
 
   // Calculate pending and urgent approval counts
   const pendingCount = mockApprovalTransactions.filter(
@@ -73,6 +62,30 @@ const DashboardV2 = () => {
         </div>
 
         <EmptyStateDashboard />
+      </div>
+    );
+  }
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !dashboardData) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <p className="text-destructive mb-4">{error || 'Failed to load dashboard data'}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
       </div>
     );
   }
@@ -110,27 +123,30 @@ const DashboardV2 = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <SpendMetricsCard
           title="Total Spent This Month"
-          value={currentMonthSpend}
+          value={dashboardData.currentMonthSpend}
           change={{
-            value: spendChange,
-            trend: spendChange >= 0 ? "up" : "down"
+            value: dashboardData.spendChange,
+            trend: dashboardData.spendChange >= 0 ? "up" : "down"
           }}
           delay={0}
         />
 
-        <OverdueBillsCard delay={50} />
+        <OverdueBillsCard
+          overdueBills={dashboardData.overdueBills}
+          delay={50}
+        />
       </div>
 
       {/* Recent Activity & Upcoming Large Payments */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <ActivityFeedTable />
-        <UpcomingLargePaymentsCard />
+        <ActivityFeedTable transactions={dashboardData.recentActivity} />
+        <UpcomingLargePaymentsCard payments={dashboardData.upcomingLargePayments} />
       </div>
 
       {/* Charts Row: Monthly Spend & Credit Card Expenses */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <MonthlySpendChart />
-        <CreditCardExpensePieChart />
+        <MonthlySpendChart data={dashboardData.monthlySpendData} />
+        <CreditCardExpensePieChart data={dashboardData.creditCardExpenses} />
       </div>
     </div>
   );

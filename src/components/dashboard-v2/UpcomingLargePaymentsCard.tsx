@@ -2,11 +2,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Calendar, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
 import { formatCompactDate } from "@/utils/dateFormatting";
-import { getUpcomingLargePayments } from "@/data/mockDashboardData";
 import { cn } from "@/lib/utils";
 
-const UpcomingLargePaymentsCard = () => {
-  const upcomingPayments = getUpcomingLargePayments();
+interface UpcomingLargePaymentsCardProps {
+  payments: Array<{
+    id: string;
+    vendor: string;
+    amount: number;
+    date: string;
+  }>;
+}
+
+const UpcomingLargePaymentsCard = ({ payments }: UpcomingLargePaymentsCardProps) => {
+  const upcomingPayments = payments;
 
   return (
     <Card className="overflow-hidden animate-scale-in" style={{ animationDelay: "100ms" }}>
