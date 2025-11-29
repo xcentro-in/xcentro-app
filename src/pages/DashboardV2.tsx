@@ -14,7 +14,6 @@ import ActivityFeedTable from "@/components/dashboard-v2/ActivityFeedTable";
 import MonthlySpendChart from "@/components/dashboard-v2/MonthlySpendChart";
 import CreditCardExpensePieChart from "@/components/dashboard-v2/CreditCardExpensePieChart";
 import { useDashboard } from "@/hooks/useDashboard";
-import { mockApprovalTransactions } from "@/data/mockApprovalTransactions";
 
 const DashboardV2 = () => {
   const navigate = useNavigate();
@@ -36,15 +35,6 @@ const DashboardV2 = () => {
       setTitle(`Welcome back, ${userName}`);
     }
   }, [setTitle, user, showEmptyState]);
-
-  // Calculate pending and urgent approval counts
-  const pendingCount = mockApprovalTransactions.filter(
-    t => t.status === "pending" || t.status === "urgent" || t.status === "flagged"
-  ).length;
-
-  const urgentCount = mockApprovalTransactions.filter(
-    t => t.status === "urgent"
-  ).length;
 
   // Show empty state for new users
   if (showEmptyState) {
@@ -115,8 +105,8 @@ const DashboardV2 = () => {
       </div>
 
       {/* Pending Approvals Banner */}
-      {pendingCount > 0 && (
-        <PendingApprovalsBanner pendingCount={pendingCount} urgentCount={urgentCount} />
+      {dashboardData.pendingApprovals > 0 && (
+        <PendingApprovalsBanner pendingCount={dashboardData.pendingApprovals} />
       )}
 
       {/* Metrics Row: Total Spent, Overdue Bills */}

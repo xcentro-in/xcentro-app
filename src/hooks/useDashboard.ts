@@ -10,6 +10,7 @@ export interface DashboardData {
   currentMonthSpend: number;
   lastMonthSpend: number;
   spendChange: number;
+  pendingApprovals: number;
   overdueBills: {
     count: number;
     total: number;
@@ -70,6 +71,9 @@ export const useDashboard = () => {
 
           // Calculate percentage change
           spendChange: 0, // Will be calculated in component
+
+          // Pending approvals (voucher approvals)
+          pendingApprovals: response.pending_approvals,
 
           // Overdue bills
           overdueBills: {

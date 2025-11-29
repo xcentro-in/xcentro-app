@@ -1008,6 +1008,7 @@ class ApiService {
   dashboard = {
     getData: async (businessId: string): Promise<{
       total_spend_this_month: number;
+      pending_approvals: number;
       overdue_bills: {
         count: number;
         total_amount: number;
