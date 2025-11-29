@@ -13,7 +13,7 @@ export interface AuthUser {
   avatar?: string;
   
   // Onboarding tracking flags
-  hasCompletedOnboarding?: boolean;
+  showDashboard?: boolean;
   hasAddedPaymentMethod?: boolean;
   hasAddedVendor?: boolean;
   hasCreatedFirstPayment?: boolean;

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, ArrowLeft, ChevronLeft } from "lucide-react";
 import { Invoice } from "@/data/mockInvoices";
 import BillsTable from "@/components/bills/BillsTable";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useBills } from "@/hooks/useBills";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +15,7 @@ const Bills = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [searchValue, setSearchValue] = useState("");
 
   // Payment view state
@@ -22,9 +23,12 @@ const Bills = () => {
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<Invoice | null>(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
 
+  // Get initial status from URL params
+  const initialStatus = searchParams.get('status') as 'all' | 'paid' | 'open' | 'overdue' | null;
+
   // Bills data management
   const [billsFilters, setBillsFilters] = useState({
-    status: 'all' as 'all' | 'paid' | 'open' | 'overdue',
+    status: (initialStatus && ['all', 'paid', 'open', 'overdue'].includes(initialStatus) ? initialStatus : 'all') as 'all' | 'paid' | 'open' | 'overdue',
     page: 1,
     limit: 20,
     sortBy: 'dueDate' as 'dueDate' | 'billDate' | 'amount' | 'vendor' | 'status',
