@@ -106,7 +106,7 @@ const PaymentMethodAndReviewStep = ({
       fetchPaymentSources({
         business_id: user.businessId,
         payment_context: paymentContext,
-        base_amount: totalAmount
+        base_amount: Math.round(totalAmount * 100) // Convert to paise
       });
     }
   }, [user?.businessId, totalAmount, paymentContext, fetchPaymentSources]);
@@ -116,10 +116,10 @@ const PaymentMethodAndReviewStep = ({
     ? getSourceById(selectedPaymentMethod)
     : undefined;
 
-  // Calculate fees from selected source
-  const processingFee = selectedSource?.fee_breakdown?.convenience_fee || 0;
-  const gst = selectedSource?.fee_breakdown?.convenience_fee_gst || 0;
-  const finalAmount = selectedSource?.fee_breakdown?.total_amount || totalAmount;
+  // Calculate fees from selected source (convert from paise to rupees)
+  const processingFee = selectedSource?.fee_breakdown?.convenience_fee ? selectedSource.fee_breakdown.convenience_fee / 100 : 0;
+  const gst = selectedSource?.fee_breakdown?.convenience_fee_gst ? selectedSource.fee_breakdown.convenience_fee_gst / 100 : 0;
+  const finalAmount = selectedSource?.fee_breakdown?.total_amount ? selectedSource.fee_breakdown.total_amount / 100 : totalAmount;
 
   // Detect calling device (web vs mobile)
   const getCallingDevice = (): 'web' | 'mobile' => {
