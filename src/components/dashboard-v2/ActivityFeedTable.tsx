@@ -82,9 +82,6 @@ const ActivityFeedTable = () => {
                 <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
                   Date
                 </th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">
-                  Vendor
-                </th>
                 <th className="text-right py-3 px-4 text-sm font-medium text-muted-foreground">
                   Amount
                 </th>
@@ -104,9 +101,6 @@ const ActivityFeedTable = () => {
                 >
                   <td className="py-3 px-4 text-sm">
                     {formatCompactDate(transaction.date)}
-                  </td>
-                  <td className="py-3 px-4 text-sm font-medium">
-                    {transaction.vendor}
                   </td>
                   <td className="py-3 px-4 text-sm font-semibold text-right">
                     {formatCurrency(transaction.amount)}

@@ -7,11 +7,11 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import EmptyStateDashboard from "@/components/dashboard/EmptyStateDashboard";
 import PendingApprovalsBanner from "@/components/dashboard/PendingApprovalsBanner";
-import QuickActions from "@/components/dashboard/QuickActions";
 import SpendMetricsCard from "@/components/dashboard-v2/SpendMetricsCard";
 import UpcomingLargePaymentsCard from "@/components/dashboard-v2/UpcomingLargePaymentsCard";
 import ActivityFeedTable from "@/components/dashboard-v2/ActivityFeedTable";
 import MonthlySpendChart from "@/components/dashboard-v2/MonthlySpendChart";
+import CreditCardExpensePieChart from "@/components/dashboard-v2/CreditCardExpensePieChart";
 import {
   getCurrentMonthSpend,
   getLastMonthSpend,
@@ -107,8 +107,8 @@ const DashboardV2 = () => {
         <PendingApprovalsBanner pendingCount={pendingCount} urgentCount={urgentCount} />
       )}
 
-      {/* Metrics Row: Total Spent, Pending Settlements, Upcoming Large Payments */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* Metrics Row: Total Spent, Pending Settlements */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <SpendMetricsCard
           title="Total Spent This Month"
           value={currentMonthSpend}
@@ -126,18 +126,19 @@ const DashboardV2 = () => {
           variant="warning"
           delay={50}
         />
+      </div>
 
+      {/* Recent Activity & Upcoming Large Payments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <ActivityFeedTable />
         <UpcomingLargePaymentsCard />
       </div>
 
-      {/* Recent Activity Feed */}
-      <ActivityFeedTable />
-
-      {/* Monthly Spend Chart */}
-      <MonthlySpendChart />
-
-      {/* Quick Actions */}
-      <QuickActions />
+      {/* Charts Row: Monthly Spend & Credit Card Expenses */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <MonthlySpendChart />
+        <CreditCardExpensePieChart />
+      </div>
     </div>
   );
 };

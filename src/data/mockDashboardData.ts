@@ -64,11 +64,11 @@ export const getUpcomingLargePayments = () => {
     .slice(0, 3);
 };
 
-// Get recent activity (last 10 transactions)
+// Get recent activity (last 6 transactions)
 export const getRecentActivity = (): Transaction[] => {
   return [...mockCalendarTransactions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 10);
+    .slice(0, 6);
 };
 
 // Get monthly spend for last 6 months (for chart)
@@ -94,4 +94,36 @@ export const getMonthlySpendData = () => {
   }
 
   return months;
+};
+
+// Get expenses grouped by credit cards (this month)
+export const getCreditCardExpenses = () => {
+  const start = startOfMonth(today);
+  const end = endOfMonth(today);
+
+  // Get this month's completed credit card transactions
+  const creditCardTransactions = mockCalendarTransactions.filter(t => {
+    const txDate = new Date(t.date);
+    return (
+      t.status === "completed" &&
+      t.method === "credit" &&
+      isWithinInterval(txDate, { start, end }) &&
+      t.accountDetails?.cardProvider &&
+      t.accountDetails?.cardLast4
+    );
+  });
+
+  // Group by card
+  const cardGroups: Record<string, number> = {};
+
+  creditCardTransactions.forEach(t => {
+    const cardKey = `${t.accountDetails?.cardProvider} ****${t.accountDetails?.cardLast4}`;
+    cardGroups[cardKey] = (cardGroups[cardKey] || 0) + t.amount;
+  });
+
+  // Convert to array format for pie chart
+  return Object.entries(cardGroups).map(([name, value]) => ({
+    name,
+    value
+  }));
 };
