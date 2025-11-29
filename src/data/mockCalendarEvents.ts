@@ -62,7 +62,11 @@ export const mockCalendarTransactions: Transaction[] = [
     date: formatDate(subDays(today, 2)),
     method: "credit",
     type: "single",
-    description: "Office supplies purchase"
+    description: "Office supplies purchase",
+    accountDetails: {
+      cardLast4: "4532",
+      cardProvider: "Visa"
+    }
   },
   {
     id: "cal-5",
@@ -74,6 +78,96 @@ export const mockCalendarTransactions: Transaction[] = [
     method: "bank",
     type: "single",
     description: "Q3 marketing campaign payment"
+  },
+  {
+    id: "cal-13",
+    transactionId: "COMP-003",
+    vendor: "AWS Services",
+    amount: 4850.00,
+    status: "completed",
+    date: formatDate(subDays(today, 3)),
+    method: "credit",
+    type: "single",
+    description: "Cloud hosting monthly bill",
+    accountDetails: {
+      cardLast4: "8976",
+      cardProvider: "Mastercard"
+    }
+  },
+  {
+    id: "cal-14",
+    transactionId: "COMP-004",
+    vendor: "Adobe Creative Cloud",
+    amount: 3299.00,
+    status: "completed",
+    date: formatDate(subDays(today, 7)),
+    method: "credit",
+    type: "single",
+    description: "Team subscription renewal",
+    accountDetails: {
+      cardLast4: "4532",
+      cardProvider: "Visa"
+    }
+  },
+  {
+    id: "cal-15",
+    transactionId: "COMP-005",
+    vendor: "Google Workspace",
+    amount: 1899.00,
+    status: "completed",
+    date: formatDate(subDays(today, 10)),
+    method: "credit",
+    type: "single",
+    description: "Monthly workspace subscription",
+    accountDetails: {
+      cardLast4: "2341",
+      cardProvider: "American Express"
+    }
+  },
+  {
+    id: "cal-16",
+    transactionId: "COMP-006",
+    vendor: "LinkedIn Ads",
+    amount: 6500.00,
+    status: "completed",
+    date: formatDate(subDays(today, 8)),
+    method: "credit",
+    type: "single",
+    description: "Marketing campaign spend",
+    accountDetails: {
+      cardLast4: "8976",
+      cardProvider: "Mastercard"
+    }
+  },
+  {
+    id: "cal-17",
+    transactionId: "COMP-007",
+    vendor: "Salesforce",
+    amount: 8750.00,
+    status: "completed",
+    date: formatDate(subDays(today, 12)),
+    method: "credit",
+    type: "single",
+    description: "CRM platform monthly fee",
+    accountDetails: {
+      cardLast4: "5678",
+      cardProvider: "Visa"
+    }
+  },
+  {
+    id: "cal-18",
+    transactionId: "COMP-008",
+    vendor: "Slack",
+    amount: 950.00,
+    status: "completed",
+    date: formatDate(subDays(today, 1)),
+    method: "credit",
+    type: "single",
+    description: "Team communication platform",
+    accountDetails: {
+      cardLast4: "2341",
+      cardProvider: "American Express"
+    }
   },
   
   // Pending approval
