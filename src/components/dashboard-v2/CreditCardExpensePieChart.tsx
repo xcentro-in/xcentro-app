@@ -2,12 +2,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { formatCurrency } from "@/utils/formatters";
 
+// Soothing, distinct color palette for pie chart
 const COLORS = [
-  "hsl(var(--primary))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+  "#6366f1", // Indigo - calm and professional
+  "#8b5cf6", // Purple - creative and distinct
+  "#06b6d4", // Cyan - fresh and modern
+  "#10b981", // Emerald - positive and balanced
+  "#f59e0b", // Amber - warm and attention-grabbing
+  "#ec4899", // Pink - vibrant yet soft
+  "#14b8a6", // Teal - sophisticated
+  "#f97316", // Orange - energetic
+  "#a855f7", // Violet - elegant
 ];
 
 interface CreditCardExpensePieChartProps {
