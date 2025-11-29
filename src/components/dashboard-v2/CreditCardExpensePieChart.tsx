@@ -54,11 +54,10 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
       return (
         <div className="bg-background border rounded-lg shadow-lg p-3">
           <div className="flex items-center gap-2 mb-1">
-            {logoUrl ? (
+            {logoUrl && (
               <img src={logoUrl} alt={payload[0].name} className="h-5 w-auto" />
-            ) : (
-              <p className="text-sm font-semibold">{payload[0].name}</p>
             )}
+            <p className="text-sm font-semibold">{payload[0].name}</p>
           </div>
           <p className="text-sm text-primary">
             {formatCurrency(payload[0].value)}
@@ -71,7 +70,7 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
 
   const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }: any) => {
     const RADIAN = Math.PI / 180;
-    const radius = outerRadius + 25;
+    const radius = outerRadius + 30;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -79,23 +78,33 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
     const logoUrl = network ? getCardNetworkLogo(network) : null;
 
     if (logoUrl) {
-      // Position logo outside the pie
+      // Show logo + text + percentage
       return (
         <g>
           <image
             x={x - 15}
-            y={y - 10}
+            y={y - 18}
             width="30"
             height="20"
             href={logoUrl}
           />
           <text
             x={x}
-            y={y + 15}
+            y={y + 5}
             fill="black"
             textAnchor={x > cx ? 'start' : 'end'}
             dominantBaseline="central"
             className="text-xs font-semibold"
+          >
+            {name}
+          </text>
+          <text
+            x={x}
+            y={y + 18}
+            fill="black"
+            textAnchor={x > cx ? 'start' : 'end'}
+            dominantBaseline="central"
+            className="text-xs"
           >
             {`${(percent * 100).toFixed(0)}%`}
           </text>
@@ -103,18 +112,30 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
       );
     }
 
-    // Fallback to text label
+    // Text label without logo
     return (
-      <text
-        x={x}
-        y={y}
-        fill="black"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="text-xs font-semibold"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
+      <g>
+        <text
+          x={x}
+          y={y - 5}
+          fill="black"
+          textAnchor={x > cx ? 'start' : 'end'}
+          dominantBaseline="central"
+          className="text-xs font-semibold"
+        >
+          {name}
+        </text>
+        <text
+          x={x}
+          y={y + 8}
+          fill="black"
+          textAnchor={x > cx ? 'start' : 'end'}
+          dominantBaseline="central"
+          className="text-xs"
+        >
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+      </g>
     );
   };
 
@@ -133,11 +154,10 @@ const CreditCardExpensePieChart = ({ data }: CreditCardExpensePieChartProps) => 
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: entry.color }}
               />
-              {logoUrl ? (
+              {logoUrl && (
                 <img src={logoUrl} alt={entry.value} className="h-4 w-auto" />
-              ) : (
-                <span className="text-sm">{entry.value}</span>
               )}
+              <span className="text-sm">{entry.value}</span>
             </div>
           );
         })}
