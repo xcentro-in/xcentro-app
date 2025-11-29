@@ -24,7 +24,7 @@ const DashboardV2 = () => {
 
   // Check if we should show empty state
   const showEmptyState =
-    user?.hasCompletedOnboarding === false ||
+    user?.showDashboard === false ||
     (!user?.hasAddedPaymentMethod && !user?.hasAddedVendor && !user?.hasCreatedFirstPayment);
 
   useEffect(() => {
