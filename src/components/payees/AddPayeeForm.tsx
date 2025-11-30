@@ -8,17 +8,20 @@ import {
 
 import { Button } from "@/components/ui/button";
 
-import { 
-  BanknoteIcon, 
-  LightbulbIcon, 
+import {
+  BanknoteIcon,
+  LightbulbIcon,
   UsersIcon,
-  ArrowLeft
+  ArrowLeft,
+  Lock
 } from "lucide-react";
 import { PayeeType } from "@/types/payee";
 import BankPayeeForm from "./forms/BankPayeeForm";
 import BillerPayeeForm from "./forms/BillerPayeeForm";
 import PayrollPayeeForm from "./forms/PayrollPayeeForm";
 import { FeatureEnabled } from "../FeatureEnabled";
+import { useAuth } from "@/contexts/AuthContext";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface AddPayeeFormProps {
   onPayeeAdded: () => void;
@@ -27,7 +30,9 @@ interface AddPayeeFormProps {
 const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
   const [step, setStep] = useState(1);
   const [payeeType, setPayeeType] = useState<PayeeType | null>(null);
-  
+  const { user } = useAuth();
+  const hasOnboardedVendor = user?.hasOnboardedVendor ?? false;
+
   const handleTypeSelect = (type: PayeeType) => {
     setPayeeType(type);
     setStep(2);
@@ -73,18 +78,43 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
               </Card>
             </FeatureEnabled>
             
-            <Card 
-              className={`cursor-pointer transition-all hover:border-primary hover:shadow-md ${payeeType === 'payroll' ? 'border-primary' : ''}`}
-              onClick={() => handleTypeSelect('payroll')}
-            >
-              <CardContent className="p-6 flex flex-col items-center text-center">
-                <UsersIcon className="h-8 w-8 text-green-500 mb-4" />
-                <h3 className="text-lg font-medium mb-1">Payroll Payee</h3>
-                <p className="text-sm text-muted-foreground">
-                  For employee salary disbursements
-                </p>
-              </CardContent>
-            </Card>
+            {/* Payroll payee - locked if vendor not onboarded */}
+            {!hasOnboardedVendor ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Card className="opacity-50 cursor-not-allowed relative">
+                      <CardContent className="p-6 flex flex-col items-center text-center">
+                        <div className="absolute top-4 right-4 text-muted-foreground">
+                          <Lock className="h-5 w-5" />
+                        </div>
+                        <UsersIcon className="h-8 w-8 text-green-500 mb-4" />
+                        <h3 className="text-lg font-medium mb-1 text-muted-foreground">Payroll Payee</h3>
+                        <p className="text-sm text-muted-foreground">
+                          For employee salary disbursements
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p>First add vendor to understand flow</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Card
+                className={`cursor-pointer transition-all hover:border-primary hover:shadow-md ${payeeType === 'payroll' ? 'border-primary' : ''}`}
+                onClick={() => handleTypeSelect('payroll')}
+              >
+                <CardContent className="p-6 flex flex-col items-center text-center">
+                  <UsersIcon className="h-8 w-8 text-green-500 mb-4" />
+                  <h3 className="text-lg font-medium mb-1">Payroll Payee</h3>
+                  <p className="text-sm text-muted-foreground">
+                    For employee salary disbursements
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       )}

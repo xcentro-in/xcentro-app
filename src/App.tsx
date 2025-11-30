@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-import Dashboard from "./pages/Dashboard";
+import DashboardV2 from "./pages/DashboardV2";
 import Payments from "./pages/Payments";
 import Settings from "./pages/Settings";
 import PayeeManagement from "./pages/PayeeManagement";
@@ -114,7 +114,7 @@ function App() {
                   </BusinessProvider>
                 </ProtectedRoute>
               }>
-                <Route index element={<Dashboard />} />
+                <Route index element={<DashboardV2 />} />
                 <Route path="payments" element={<Payments />} />
                 <Route path="payment-calendar" element={<PaymentCalendar />} />
                 <Route path="payees" element={<PayeeManagement />} />

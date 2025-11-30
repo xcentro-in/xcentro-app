@@ -13,7 +13,7 @@ export interface OnboardingStatus {
   kybStatus?: string;
   kybInitiated?: boolean;
   kycStatus?: string;
-  hasCompletedOnboarding?: boolean;
+  showDashboard?: boolean;
   hasAddedPaymentMethod?: boolean;
   hasAddedVendor?: boolean;
   hasCreatedFirstPayment?: boolean;
@@ -99,7 +99,7 @@ const MOCK_USER_DATA: AuthUser = {
   rewardPoints: 24530,
   
   // Onboarding tracking - set to false to see empty state
-  hasCompletedOnboarding: false,
+  showDashboard: false,
   hasAddedPaymentMethod: true,
   hasAddedVendor: true,
   hasCreatedFirstPayment: false,
@@ -218,7 +218,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         kybStatus: undefined,
         kybInitiated: false,
         kycStatus: undefined,
-        hasCompletedOnboarding: false,
+        showDashboard: false,
         hasAddedPaymentMethod: false,
         hasAddedVendor: false,
         hasCreatedFirstPayment: false,
@@ -251,7 +251,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (businessId) {
           const appOnboardingResponse = await authAPI.getOnboardingStatus(businessId);
           if (appOnboardingResponse.data) {
-            combinedOnboardingStatus.hasCompletedOnboarding = appOnboardingResponse.data.hasCompletedOnboarding ?? false;
+            combinedOnboardingStatus.showDashboard = appOnboardingResponse.data.showDashboard ?? false;
             combinedOnboardingStatus.hasAddedPaymentMethod = appOnboardingResponse.data.hasAddedPaymentMethod ?? false;
             combinedOnboardingStatus.hasAddedVendor = appOnboardingResponse.data.hasAddedVendor ?? false;
             combinedOnboardingStatus.hasCreatedFirstPayment = appOnboardingResponse.data.hasCreatedFirstPayment ?? false;
@@ -278,7 +278,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         businessName: '', // Will be populated by BusinessContext
         rewardPoints: 0,
         // App onboarding flags
-        hasCompletedOnboarding: combinedOnboardingStatus.hasCompletedOnboarding,
+        showDashboard: combinedOnboardingStatus.showDashboard,
         hasAddedPaymentMethod: combinedOnboardingStatus.hasAddedPaymentMethod,
         hasAddedVendor: combinedOnboardingStatus.hasAddedVendor,
         hasCreatedFirstPayment: combinedOnboardingStatus.hasCreatedFirstPayment,
@@ -336,7 +336,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (onboardingResponse.data) {
         // Update only the onboarding flags
         updateUser({
-          hasCompletedOnboarding: onboardingResponse.data.hasCompletedOnboarding ?? false,
+          showDashboard: onboardingResponse.data.showDashboard ?? false,
           hasAddedPaymentMethod: onboardingResponse.data.hasAddedPaymentMethod ?? false,
           hasAddedVendor: onboardingResponse.data.hasAddedVendor ?? false,
           hasCreatedFirstPayment: onboardingResponse.data.hasCreatedFirstPayment ?? false,
