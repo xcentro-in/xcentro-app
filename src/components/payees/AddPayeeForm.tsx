@@ -31,7 +31,6 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
   const [step, setStep] = useState(1);
   const [payeeType, setPayeeType] = useState<PayeeType | null>(null);
   const { user } = useAuth();
-  const hasOnboardedVendor = user?.hasOnboardedVendor ?? false;
 
   const handleTypeSelect = (type: PayeeType) => {
     setPayeeType(type);
@@ -78,8 +77,8 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
               </Card>
             </FeatureEnabled>
             
-            {/* Payroll payee - locked if vendor not onboarded */}
-            {!hasOnboardedVendor ? (
+            {/* Payroll payee - locked during onboarding if vendor not added */}
+            {!user?.hasAddedVendor ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
