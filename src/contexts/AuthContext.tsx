@@ -367,6 +367,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Initialize auth state on mount - check for existing session
   useEffect(() => {
     const initAuth = async () => {
+      // Don't try to initialize if we're on login/signup/public pages
+      // This prevents infinite loops when refresh tokens fail
+      const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
+      if (publicPaths.includes(window.location.pathname)) {
+        console.log('[AuthContext] On public page, skipping auth initialization');
+        dispatch({ type: 'LOGOUT' });
+        return;
+      }
+
       try {
         // Try to initialize user data - will succeed if user has valid auth cookies
         await initializeUser();

@@ -26,6 +26,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { getCardNetworkLogo } from "@/lib/cardNetworks";
 
 interface PayoutsTableProps {
   payouts: Payout[];
@@ -235,29 +236,47 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {payout.paymentMethod.type === "credit" ? (
-                          <CreditCard className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                        ) : payout.paymentMethod.type === "upi" ? (
-                          <BanknoteIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                        {payout.paymentMethod.type === "credit" && payout.paymentMethod.cardProvider ? (
+                          <>
+                            {(() => {
+                              const logoUrl = getCardNetworkLogo(payout.paymentMethod.cardProvider);
+                              return logoUrl ? (
+                                <img
+                                  src={logoUrl}
+                                  alt={payout.paymentMethod.cardProvider}
+                                  className="h-6 w-auto object-contain"
+                                />
+                              ) : (
+                                <CreditCard className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                              );
+                            })()}
+                            <span className="text-xs text-muted-foreground">
+                              {payout.paymentMethod.last4}
+                            </span>
+                          </>
                         ) : (
-                          <BanknoteIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                          <>
+                            {payout.paymentMethod.type === "upi" ? (
+                              <BanknoteIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <BanknoteIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            )}
+                            <div className="flex flex-col">
+                              <span>
+                                {payout.paymentMethod.type === "bank" && payout.paymentMethod.bank
+                                  ? payout.paymentMethod.bank
+                                  : payout.paymentMethod.type === "upi"
+                                  ? "UPI"
+                                  : payout.paymentMethod.type === "bnpl"
+                                  ? "Buy Now Pay Later"
+                                  : "Other"}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {payout.paymentMethod.last4}
+                              </span>
+                            </div>
+                          </>
                         )}
-                        <div className="flex flex-col">
-                          <span>
-                            {payout.paymentMethod.type === "credit" && payout.paymentMethod.cardProvider
-                              ? payout.paymentMethod.cardProvider
-                              : payout.paymentMethod.type === "bank" && payout.paymentMethod.bank
-                              ? payout.paymentMethod.bank
-                              : payout.paymentMethod.type === "upi"
-                              ? "UPI"
-                              : payout.paymentMethod.type === "bnpl"
-                              ? "Buy Now Pay Later"
-                              : "Other"}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            .... {payout.paymentMethod.last4}
-                          </span>
-                        </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-semibold">

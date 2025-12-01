@@ -16,7 +16,7 @@ import {
   Lock
 } from "lucide-react";
 import { PayeeType } from "@/types/payee";
-import BankPayeeForm from "./forms/BankPayeeForm";
+import BankPayeeForm from "./forms/VendorPayeeForm";
 import BillerPayeeForm from "./forms/BillerPayeeForm";
 import PayrollPayeeForm from "./forms/PayrollPayeeForm";
 import { FeatureEnabled } from "../FeatureEnabled";

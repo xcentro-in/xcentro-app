@@ -266,7 +266,7 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     // Additional fields for employee type
     description: voucher.description,
     expenseCategory: voucher.expense_category,
-    tdsAmount: voucher.tds_amount / 100,
+    tdsAmount: voucher.tds_amount ? voucher.tds_amount / 100 : 0,
     items: hasFinancialDetails
       ? voucher.financial_details.line_items.map(item => ({
           description: item.description,
@@ -1055,7 +1055,7 @@ const BillDetailPage = () => {
                 <CardContent className="pt-6">
                   <Label className="text-base font-medium">Payee (Cannot be changed)</Label>
                   <div className="flex items-center gap-3 p-3 border rounded-md bg-muted/30 mt-3">
-                    {bill.payeeType === 'salary' ? (
+                    {(bill.payeeType === 'employee') ? (
                       <User className="h-5 w-5 text-muted-foreground" />
                     ) : (
                       <Building2 className="h-5 w-5 text-muted-foreground" />
@@ -1071,7 +1071,7 @@ const BillDetailPage = () => {
               </Card>
 
               {/* Conditional rendering based on payeeType */}
-              {bill.payeeType === 'salary' ? (
+              {(bill.payeeType === 'salary' || bill.payeeType === 'employee') ? (
                 /* Simplified Payroll Edit Form */
                 <>
                   {/* Payment Details */}
@@ -1519,7 +1519,7 @@ const BillDetailPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   {/* Conditional rendering based on payee type */}
-                  {bill.payeeType === 'salary' ? (
+                  {(bill.payeeType === 'employee') ? (
                     <>
                       <div className="flex items-center gap-2 mb-2">
                         <User className="h-5 w-5 text-muted-foreground" />
@@ -1686,7 +1686,7 @@ const BillDetailPage = () => {
             {/* Details Tab */}
             <TabsContent value="details" className="space-y-6">
               {/* Conditional rendering based on payee type */}
-              {bill.payeeType === 'salary' ? (
+              {(bill.payeeType === 'employee') ? (
                 /* Salary Details Card for Employee */
                 <Card>
                   <CardHeader>
@@ -1757,20 +1757,20 @@ const BillDetailPage = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {bill.payeeType === 'salary'
+                    {(bill.payeeType === 'employee')
                       ? 'Salary Breakdown'
                       : 'Financial Breakdown'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {bill.payeeType === 'salary' ? (
+                  {(bill.payeeType === 'employee') ? (
                     /* Simplified breakdown for employee */
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Gross Salary</span>
                         <span className="font-medium">{formatCurrency(bill.amount)}</span>
                       </div>
-                      {bill.tdsAmount && bill.tdsAmount > 0 && (
+                      {bill.tdsAmount > 0 && (
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">TDS Deduction</span>
                           <span className="font-medium text-red-600">- {formatCurrency(bill.tdsAmount)}</span>

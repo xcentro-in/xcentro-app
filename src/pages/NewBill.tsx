@@ -18,7 +18,7 @@ import { EXPENSE_CATEGORIES } from "@/constants/expenseCategories";
 import { PAYMENT_TERMS } from "@/constants/paymentTerms";
 import { GST_RATES, GST_TYPES, GSTType } from "@/constants/gstRates";
 import PayeeAutocompleteInput from "@/components/payments/payee-management/payee/PayeeAutocompleteInput";
-import BankPayeeForm from "@/components/payees/forms/BankPayeeForm";
+import BankPayeeForm from "@/components/payees/forms/VendorPayeeForm";
 import { useVendors } from "@/hooks/useVendors";
 import { GetVoucherDraftResponse } from "@/types/voucher";
 

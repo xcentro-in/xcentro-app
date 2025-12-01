@@ -87,22 +87,30 @@ class ApiService {
                 // Retry the original request with the new token (cookies are automatically updated)
                 return this.request<T>(endpoint, options, true);
               } else {
-                // If refresh fails, clear tokens and redirect to login
+                // If refresh fails, clear tokens
                 localStorage.removeItem('auth-token');
                 localStorage.removeItem('business-id');
                 localStorage.removeItem('user-data');
                 this.authToken = null;
-                window.location.href = '/login';
+
+                // Only redirect if not already on login page (avoid infinite loop)
+                if (window.location.pathname !== '/login') {
+                  window.location.href = '/login';
+                }
                 return Promise.reject(new Error('Session expired. Please login again.'));
               }
             } catch (refreshError) {
               console.error('Token refresh failed:', refreshError);
-              // Clear tokens and redirect to login
+              // Clear tokens
               localStorage.removeItem('auth-token');
               localStorage.removeItem('business-id');
               localStorage.removeItem('user-data');
               this.authToken = null;
-              window.location.href = '/login';
+
+              // Only redirect if not already on login page (avoid infinite loop)
+              if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+              }
               return Promise.reject(new Error('Session expired. Please login again.'));
             }
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {

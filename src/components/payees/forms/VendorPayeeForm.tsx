@@ -1,20 +1,22 @@
 
 import { useState } from "react";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { payeesAPI } from "@/services/api";
+import { toast } from "sonner";
 import PayeeTags from "./components/PayeeTags";
 import BankDetailsSection from "./components/BankDetailsSection";
-import SubmitButton from "./components/SubmitButton";
 
 interface BankPayeeFormProps {
   onSubmit: () => void;
 }
 
-const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
+const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Form fields
   const [payeeName, setPayeeName] = useState("");
@@ -126,17 +128,21 @@ const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
 
       // Check response status
       if (response.status === 'success') {
-        setApiResponse({
-          status: 'success',
-          message: response.message || 'Payee onboarded successfully',
-          isFullyVerified: response.data?.is_fully_verified
+        // Show success state on button
+        setIsSuccess(true);
+
+        // Show success toast
+        toast.success("Vendor added successfully", {
+          description: response.data?.is_fully_verified
+            ? "Vendor verified successfully"
+            : "Vendor details saved"
         });
 
-        // Call onSubmit callback after 2 seconds
+        // Call onSubmit callback after 1.5 seconds
         // Flag will be updated automatically when PayeeList renders and detects vendors exist
         setTimeout(() => {
           onSubmit();
-        }, 2000);
+        }, 1500);
       } else {
         throw new Error(response.message || 'Failed to onboard payee');
       }
@@ -150,7 +156,6 @@ const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
         status: 'error',
         message: errorMessage
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -182,22 +187,7 @@ const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
         handleIfscChange={handleIfscChange}
       />
 
-      {/* Success/Error Feedback */}
-      {apiResponse.status === 'success' && (
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle className="h-5 w-5 text-green-600" />
-          <AlertDescription className="flex flex-col gap-2">
-            <span className="font-medium text-green-900">{apiResponse.message}</span>
-            {apiResponse.isFullyVerified && (
-              <span className="text-sm text-green-700 flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Payee fully verified (GST, Bank, Cross-verification successful)
-              </span>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
-
+      {/* Error Feedback */}
       {apiResponse.status === 'error' && (
         <Alert variant="destructive">
           <XCircle className="h-5 w-5" />
@@ -207,7 +197,28 @@ const BankPayeeForm = ({ onSubmit }: VendorPayeeFormProps) => {
         </Alert>
       )}
 
-      <SubmitButton isSubmitting={isSubmitting} />
+      {/* Submit Button */}
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={isSubmitting || isSuccess}
+          className={`h-11 px-6 ${isSuccess ? 'bg-green-600 hover:bg-green-600' : ''}`}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving Vendor...
+            </>
+          ) : isSuccess ? (
+            <>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Added Successfully
+            </>
+          ) : (
+            <>Save Vendor</>
+          )}
+        </Button>
+      </div>
     </form>
   );
 };
