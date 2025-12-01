@@ -724,9 +724,8 @@ class ApiService {
       }
 
       const queryString = queryParams.toString();
-      const url = `/payees${queryString ? `?${queryString}` : ''}`;
 
-      return this.request(url, {
+      return this.request(`/v1/payees${queryString ? `?${queryString}` : ''}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -822,9 +821,8 @@ class ApiService {
       }
 
       const queryString = queryParams.toString();
-      const url = `/vouchers/payee/${payeeId}${queryString ? `?${queryString}` : ''}`;
 
-      return this.request(url, {
+      return this.request(`/v1/vouchers/payee/${payeeId}${queryString ? `?${queryString}` : ''}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
