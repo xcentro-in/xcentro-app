@@ -115,7 +115,6 @@ const PayeeHistory = () => {
 
   const handleDateRangeChange = (range: 'last7days' | 'last30days' | 'last3months' | 'custom') => {
     // TODO: Convert range to DateRange format
-    console.log('Date range changed:', range);
     setTransactionFilters(prev => ({ ...prev, page: 1 }));
   };
 

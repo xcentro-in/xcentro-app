@@ -64,7 +64,6 @@ const UserOnboarding = () => {
 
         // If KYC is already completed or verified, redirect to dashboard
         if (isKycComplete(kycStatus)) {
-          console.log("KYC has already been completed, redirecting to dashboard");
           toast.error("KYC has already been completed");
           navigate("/", { replace: true });
           return;
@@ -80,8 +79,6 @@ const UserOnboarding = () => {
             panNumber: taxId || "",
             aadharNumber: "", // Always let user fill Aadhaar again
           }));
-
-          console.log("Pre-filled user data from status:", { name, dob, taxId, kycStatus });
         }
       } catch (error: any) {
         // If status endpoint returns 404 or error, start fresh (no pre-fill)
@@ -105,7 +102,7 @@ const UserOnboarding = () => {
       const trustedOrigins = [
         window.location.origin,
         apiBaseUrl,
-        'http://localhost:8888',
+        'http://localhost:8888',  // TODO: remove this in production -- read from .env
         'https://api.xcentro.in',
         'https://api-staging.xcentro.in',
         'https://api-dev.xcentro.in',
@@ -117,11 +114,6 @@ const UserOnboarding = () => {
       }
 
       const message = event.data;
-
-      // Log KYC completion message (actual completion happens on popup close)
-      if (message?.type === 'KYC_COMPLETE') {
-        console.log('KYC completion message received:', message);
-      }
     };
 
     window.addEventListener('message', handleMessage);
@@ -172,8 +164,6 @@ const UserOnboarding = () => {
         setIsPopupBlocked(false);
         popupCheckIntervalRef.current = null;
 
-        console.log('Aadhaar verification popup closed, completing onboarding...');
-
         // Automatically complete onboarding when popup closes
         await handleCompleteOnboarding();
       },
@@ -215,14 +205,6 @@ const UserOnboarding = () => {
       // For new business: use "owner"
       const claimedRole = existingRole;
 
-      console.log("Completing user onboarding:", {
-        claimedRole,
-        businessId,
-        isJoinFlow,
-        isInvitedUser,
-        existingRole
-      });
-
       // Call complete onboarding API
       const completeResponse = await userAPI.completeOnboarding(
         claimedRole,
@@ -230,17 +212,13 @@ const UserOnboarding = () => {
         undefined // gstin removed from form
       );
 
-      console.log("Complete onboarding response:", completeResponse);
-
       if (isKycComplete(completeResponse.data.status)) {
         toast.success("User onboarding completed successfully!");
 
         // Clear business-id from localStorage since onboarding is complete
         localStorage.removeItem('business-id');
-        console.log("Cleared business-id from localStorage");
 
         // Re-initialize user data to get fresh roles and onboarding status
-        console.log("Re-initializing user data after KYC completion...");
         await initializeUser();
 
         // Use centralized routing logic
@@ -250,8 +228,6 @@ const UserOnboarding = () => {
           userRoles,
           onboardingStatus
         );
-
-        console.log("Routing decision after KYC:", routingDecision);
 
         if (routingDecision.shouldNavigate) {
           navigate(routingDecision.targetRoute, { replace: true });
@@ -277,8 +253,6 @@ const UserOnboarding = () => {
     try {
       // Always initialize the KYC flow, even if KYC was previously in progress
       // This ensures we have a valid transaction ID for the current verification session
-      console.log("Initializing user onboarding and Aadhaar verification");
-
       // Date is already in yyyy-MM-dd format from native date input
       // Just validate it's a valid date
       const parsedDate = parseISO(formData.dateOfBirth);
@@ -291,7 +265,6 @@ const UserOnboarding = () => {
 
       // Use the date as-is (already in yyyy-MM-dd format)
       const apiDateFormat = formData.dateOfBirth;
-      console.log("Date of birth:", apiDateFormat);
 
       // Remove dashes from Aadhaar for API
       const aadhaarForApi = formData.aadharNumber.replace(/-/g, '');

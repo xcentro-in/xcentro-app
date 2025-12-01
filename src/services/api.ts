@@ -54,12 +54,6 @@ class ApiService {
           const scope = errorData.scope || 'unknown';
           const policyGroup = errorData.policy_group || 'default';
 
-          console.log('[API] Rate limit hit:', {
-            retryAfterSecs,
-            scope,
-            policyGroup,
-          });
-
           // Add to rate limit manager (will handle popup queue)
           rateLimitManager.addError({
             retryAfterSecs,
@@ -90,14 +84,10 @@ class ApiService {
               });
 
               if (refreshResponse.ok) {
-                const refreshData = await refreshResponse.json();
-                console.log('Token refreshed successfully:', refreshData.message);
-
                 // Retry the original request with the new token (cookies are automatically updated)
                 return this.request<T>(endpoint, options, true);
               } else {
                 // If refresh fails, clear tokens and redirect to login
-                console.log('Token refresh failed, redirecting to login');
                 localStorage.removeItem('auth-token');
                 localStorage.removeItem('business-id');
                 localStorage.removeItem('user-data');
@@ -119,8 +109,6 @@ class ApiService {
             // For MISSING_TOKEN or INVALID_TOKEN, emit event and throw error
             // The AuthContext will listen for this event and handle logout
             // This prevents infinite loops during page load
-            console.log(`[API] Authentication error (${errorData.error}), emitting unauthorized event`);
-
             // Emit custom event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
               detail: { code: errorData.error, message: errorData.message }

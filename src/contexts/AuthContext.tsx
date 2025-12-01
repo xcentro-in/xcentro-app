@@ -193,17 +193,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
    */
   const initializeUser = async (): Promise<void> => {
     try {
-      console.log('[AuthContext] Initializing user data...');
-
       // Step 1: Fetch user profile
       const profileResponse = await userAPI.getProfile();
       const profile = profileResponse.data;
-      console.log('[AuthContext] User profile fetched:', profile.userId);
 
       // Step 2: Fetch user roles
       const rolesResponse = await userAPI.getRoles();
       const roles = rolesResponse.data;
-      console.log('[AuthContext] User roles fetched:', roles.length, 'roles');
 
       // Store roles in state
       setUserRolesState(roles);
@@ -263,7 +259,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Store combined onboarding status
       setOnboardingStatus(combinedOnboardingStatus);
-      console.log('[AuthContext] Onboarding status:', combinedOnboardingStatus);
 
       // Step 5: Create user object
       const user: AuthUser = {
@@ -286,7 +281,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Update auth state
       dispatch({ type: 'SET_USER', payload: user });
-      console.log('[AuthContext] User initialization complete');
     } catch (error) {
       console.error('[AuthContext] Failed to initialize user:', error);
       throw error;
@@ -398,7 +392,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handleUnauthorized = (event: CustomEvent) => {
       // Only handle if user was previously authenticated
       if (state.isAuthenticated) {
-        console.log('[AuthContext] Session expired during app usage, logging out');
         // Clear local state immediately
         localStorage.removeItem('business-id');
         localStorage.removeItem('user-data');

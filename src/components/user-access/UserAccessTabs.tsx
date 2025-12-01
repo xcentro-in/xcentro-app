@@ -161,7 +161,6 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
 
         // Refresh the user list to show the new pending invite
         refetch();
-        console.log("User invited successfully:", response.data);
       }
     } catch (error: any) {
       console.error("Failed to process request:", error);
@@ -225,7 +224,6 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
 
   const handleResendInvitation = (inviteId: string) => {
     // TODO: Implement resend invite functionality
-    console.log("Resending invitation:", inviteId);
     toast.success("Invitation has been resent");
   };
 

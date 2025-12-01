@@ -108,9 +108,6 @@ const WalletManagement = () => {
       try {
         // Call API to update card status
         await walletAPI.updateCardStatus(user.businessId, cardId, newEnabledState);
-
-        console.log(`API call: Updated card ${cardId} to ${newEnabledState ? 'active' : 'inactive'}`);
-
         // Show success toast
         toast.success(
           newEnabledState ? 'Card enabled successfully' : 'Card disabled successfully'

@@ -50,9 +50,6 @@ const PaymentProcessing = () => {
         setPaymentPopup(null);
         popupCheckIntervalRef.current = null;
 
-        const action = flowType === 'tokenization' ? 'Card verification' : 'Payment processing';
-        console.log(`${action} popup closed, redirecting to ${redirectTarget}...`);
-
         // Redirect to the appropriate page based on flow type
         const successMessage = flowType === 'tokenization'
           ? "Card verification complete! Redirecting to wallet..."
