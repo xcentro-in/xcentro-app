@@ -17,7 +17,7 @@ COPY . .
 
 # Build argument for backend API URL
 ARG VITE_API_URL
-ENV VITE_API_URL=https://staging-api.xcentro.in/v1
+ENV VITE_API_URL=https://staging-api.xcentro.in
 
 # Build the application for production
 RUN npm run build
