@@ -1,13 +1,9 @@
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Employee, PayrollReviewStepProps } from "./types";
 import { TransactionSummary } from "../shared/common/TransactionSummary";
 import { useMemo } from "react";
 import { PaymentMethod } from "@/types/payment-method";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
-import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
-import { formatCurrency } from "@/utils/formatters";
 
 const PayrollReviewStep = ({
   selectedEmployees,
@@ -67,7 +63,7 @@ const PayrollReviewStep = ({
 
   return (
     <TransactionSummary
-      paymentType={paymentType as PaymentScheduleType}
+      paymentType={paymentType}
       scheduledDate={scheduledDate}
       amount={totalSalary}
       description="Payroll Payment"

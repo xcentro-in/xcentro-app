@@ -9,7 +9,7 @@ import { Upload, Info } from "lucide-react";
 import { mockPaymentMethods } from "@/data/mockPaymentMethods";
 import { TransactionDetailCard } from "@/components/transactions/TransactionDetailCard";
 import { Separator } from "@/components/ui/separator";
-import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 import PaymentMethodSelectionStep from "../batch-payment/PaymentMethodSelectionStep";
 import RewardTopUpStep, { RewardPackage } from "../shared/common/RewardTopUpStep";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,9 +30,9 @@ const GSTPaymentForm = ({ onStepChange }: GSTPaymentFormProps) => {
   const [description, setDescription] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
   const [selectedRewardPackage, setSelectedRewardPackage] = useState<RewardPackage | null>(null);
-  
+
   // Payment schedule states
-  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
+  const [paymentType, setPaymentType] = useState<PaymentType>("tomorrow");
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [frequency, setFrequency] = useState<string>("monthly");
   

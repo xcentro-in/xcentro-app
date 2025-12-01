@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { PaymentScheduleType } from "./common/PaymentScheduleSelector";
 import PayrollEmployeeSelectionStep from "./PayrollEmployeeSelectionStep";
 import PayrollPaymentMethodAndReviewStep from "./PayrollPaymentMethodAndReviewStep";
 import { Employee } from "./types";
@@ -21,11 +20,6 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [voucherIds, setVoucherIds] = useState<string[]>([]);
-
-  // Payment schedule states
-  const [paymentType, setPaymentType] = useState<PaymentScheduleType>("now");
-  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
-  const [frequency, setFrequency] = useState<string>("monthly");
 
   // Fetch employees on component mount
   useEffect(() => {
@@ -98,27 +92,18 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
       <PayrollEmployeeSelectionStep
         employees={employees}
         selectedEmployees={selectedEmployees}
-        paymentType={paymentType}
-        scheduledDate={scheduledDate}
-        frequency={frequency}
         onEmployeesSelect={handleEmployeesSelect}
-        onPaymentTypeChange={setPaymentType}
-        onScheduledDateChange={setScheduledDate}
-        onFrequencyChange={setFrequency}
         onVouchersCreated={handleVouchersCreated}
         onNext={handleNext}
       />
     );
   }
-  
+
   if (currentStep === 'payment-review') {
     return (
       <PayrollPaymentMethodAndReviewStep
         selectedEmployees={selectedEmployees}
         selectedPaymentMethod={selectedPaymentMethod}
-        paymentType={paymentType}
-        scheduledDate={scheduledDate}
-        frequency={frequency}
         voucherIds={voucherIds}
         onPaymentMethodChange={handlePaymentMethodSelected}
         onBack={handleBack}

@@ -1,23 +1,24 @@
 
 import { Button } from "@/components/ui/button";
 import PaymentMethodSelector from "../shared/payment-methods/PaymentMethodSelector";
-import PaymentScheduleSelector, { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
+import PaymentScheduleSelector from "../shared/common/PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 
 interface PaymentMethodSelectionStepProps {
   selectedPaymentMethod?: string;
   onSelect: (id: string) => void;
   onBack: () => void;
   onNext: () => void;
-  paymentType: PaymentScheduleType;
+  paymentType: PaymentType;
   scheduledDate?: Date;
   frequency: string;
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
+  onPaymentTypeChange: (value: PaymentType) => void;
   onScheduledDateChange: (date?: Date) => void;
   onFrequencyChange: (value: string) => void;
 }
 
-const PaymentMethodSelectionStep = ({ 
-  selectedPaymentMethod, 
+const PaymentMethodSelectionStep = ({
+  selectedPaymentMethod,
   onSelect,
   onBack,
   onNext,
@@ -31,8 +32,8 @@ const PaymentMethodSelectionStep = ({
   return (
     <div className="space-y-4">
       <h3 className="font-medium mb-2">Select Payment Method</h3>
-      
-      <PaymentMethodSelector 
+
+      <PaymentMethodSelector
         onSelect={onSelect}
         selectedMethodId={selectedPaymentMethod}
       />
@@ -48,10 +49,10 @@ const PaymentMethodSelectionStep = ({
 
       <div className="flex justify-between gap-3 mt-6">
         <Button variant="outline" onClick={onBack} className="w-auto">Back</Button>
-        <Button 
-          onClick={onNext} 
+        <Button
+          onClick={onNext}
           className="w-auto"
-          disabled={!selectedPaymentMethod || (paymentType === "later" && !scheduledDate) || (paymentType === "recurring" && (!scheduledDate || !frequency))}
+          disabled={!selectedPaymentMethod}
         >
           Review Payment
         </Button>

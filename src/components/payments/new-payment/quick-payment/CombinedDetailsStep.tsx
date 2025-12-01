@@ -1,58 +1,40 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { convertToIndianCurrencyWords } from "@/utils/numberToWords";
 import { OutlinedInput } from "@/components/ui/outlined-input";
 import PayeeAutocompleteInput from "../../payee-management/payee/PayeeAutocompleteInput";
-import PaymentScheduleSelector from "../shared/common/PaymentScheduleSelector";
-import { PaymentType } from "@/types/payments";
 import { Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CombinedDetailsStepProps {
-  paymentType: PaymentType;
-  scheduledDate?: Date;
   amount: string;
   description: string;
   invoiceReference: string;
-  frequency: string;
   selectedPayee?: string;
   favoritePayees: string[];
   isCreatingVoucher?: boolean;
   isUpdating?: boolean;
-  onPaymentTypeChange: (value: PaymentType) => void;
-  onScheduledDateChange: (date?: Date) => void;
   onAmountChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onInvoiceReferenceChange: (value: string) => void;
-  onFrequencyChange: (value: string) => void;
   onPayeeSelect: (payeeId: string) => void;
   onNext: () => void;
 }
 
 const CombinedDetailsStep = ({
-  paymentType,
-  scheduledDate,
   amount,
   description,
   invoiceReference,
-  frequency,
   selectedPayee,
   favoritePayees,
   isCreatingVoucher = false,
   isUpdating = false,
-  onPaymentTypeChange,
-  onScheduledDateChange,
   onAmountChange,
   onDescriptionChange,
   onInvoiceReferenceChange,
-  onFrequencyChange,
   onPayeeSelect,
   onNext,
 }: CombinedDetailsStepProps) => {
-  const isFormValid = amount && selectedPayee && invoiceReference &&
-    (paymentType === "now" ||
-     (paymentType === "later" && scheduledDate) ||
-     (paymentType === "recurring" && scheduledDate && frequency));
+  const isFormValid = amount && selectedPayee && invoiceReference;
 
   return (
     <div className="space-y-8">
@@ -126,23 +108,6 @@ const CombinedDetailsStep = ({
           />
         </div>
       </div>
-
-      {/* Payment Schedule */}
-      <Card>
-        <CardHeader>
-          <CardTitle>When to Schedule Payment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PaymentScheduleSelector
-            paymentType={paymentType}
-            scheduledDate={scheduledDate}
-            frequency={frequency}
-            onPaymentTypeChange={onPaymentTypeChange}
-            onScheduledDateChange={onScheduledDateChange}
-            onFrequencyChange={onFrequencyChange}
-          />
-        </CardContent>
-      </Card>
 
       <div className="flex justify-end pt-6">
         <Button

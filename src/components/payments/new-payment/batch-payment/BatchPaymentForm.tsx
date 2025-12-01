@@ -4,7 +4,6 @@ import { BatchPaymentState, BatchUploadResponse, VoucherCreationResponse, Matche
 import UploadStep from "./UploadStep";
 import ValidationStep from "./ValidationStep";
 import BatchPaymentMethodAndReviewStep from "./BatchPaymentMethodAndReviewStep";
-import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
 
 interface BatchPaymentFormComponentProps {
   onStepChange: (step: number) => void;
@@ -19,10 +18,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
   }, [step, onStepChange]);
   const [state, setState] = useState<BatchPaymentState>({
     selectedRows: [],
-    selectedPaymentMethod: undefined,
-    paymentType: "now" as PaymentScheduleType,
-    scheduledDate: undefined,
-    frequency: "monthly"
+    selectedPaymentMethod: undefined
   });
 
   const [uploadResponse, setUploadResponse] = useState<BatchUploadResponse | null>(null);
@@ -63,18 +59,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
 
   const handleSelectPaymentMethod = (id: string) => {
     setState({ ...state, selectedPaymentMethod: id });
-  };
-
-  const handlePaymentTypeChange = (type: PaymentScheduleType) => {
-    setState({ ...state, paymentType: type });
-  };
-
-  const handleScheduledDateChange = (date?: Date) => {
-    setState({ ...state, scheduledDate: date });
-  };
-
-  const handleFrequencyChange = (frequency: string) => {
-    setState({ ...state, frequency: frequency });
   };
 
   const handleVouchersCreated = (voucherResponse: VoucherCreationResponse, newPayments: MatchedPayment[]) => {
@@ -174,9 +158,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
           paymentRows={mapVouchersToPaymentRows()}
           setStep={setStep}
           onSubmit={handleSubmit}
-          paymentType={state.paymentType}
-          scheduledDate={state.scheduledDate}
-          frequency={state.frequency}
           selectedPaymentMethod={state.selectedPaymentMethod}
           onPaymentMethodChange={handleSelectPaymentMethod}
         />

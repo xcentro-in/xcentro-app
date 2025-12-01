@@ -3,41 +3,42 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { InvoiceDetails } from "@/types/invoice";
 import PaymentMethodSelector from "@/components/payments/new-payment/shared/payment-methods/PaymentMethodSelector";
-import PaymentScheduleSelector, { PaymentScheduleType } from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
+import PaymentScheduleSelector from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 
 interface PaymentMethodStepProps {
   invoiceDetails: InvoiceDetails;
   onSelect: (methodId: string) => void;
   onBack: () => void;
-  paymentType?: PaymentScheduleType;
+  paymentType?: PaymentType;
   scheduledDate?: Date;
   frequency?: string;
-  onPaymentTypeChange?: (value: PaymentScheduleType) => void;
+  onPaymentTypeChange?: (value: PaymentType) => void;
   onScheduledDateChange?: (date?: Date) => void;
   onFrequencyChange?: (value: string) => void;
 }
 
-const PaymentMethodStep = ({ 
-  invoiceDetails, 
-  onSelect, 
+const PaymentMethodStep = ({
+  invoiceDetails,
+  onSelect,
   onBack,
-  paymentType = "now",
+  paymentType = "tomorrow",
   scheduledDate,
   frequency = "monthly",
   onPaymentTypeChange,
   onScheduledDateChange,
-  onFrequencyChange 
+  onFrequencyChange
 }: PaymentMethodStepProps) => {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [localPaymentType, setLocalPaymentType] = useState<PaymentScheduleType>(paymentType);
+  const [localPaymentType, setLocalPaymentType] = useState<PaymentType>(paymentType);
   const [localScheduledDate, setLocalScheduledDate] = useState<Date | undefined>(scheduledDate);
   const [localFrequency, setLocalFrequency] = useState<string>(frequency);
-  
+
   const handleMethodSelect = (methodId: string) => {
     setSelectedMethod(methodId);
   };
 
-  const handlePaymentTypeChange = (type: PaymentScheduleType) => {
+  const handlePaymentTypeChange = (type: PaymentType) => {
     setLocalPaymentType(type);
     if (onPaymentTypeChange) onPaymentTypeChange(type);
   };
@@ -75,7 +76,6 @@ const PaymentMethodStep = ({
         </div>
 
         <div className="space-y-4">
-          <h3 className="font-medium text-lg">Payment Schedule</h3>
           <div className="border rounded-lg p-4">
             <PaymentScheduleSelector
               paymentType={localPaymentType}

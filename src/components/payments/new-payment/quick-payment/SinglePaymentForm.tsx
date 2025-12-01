@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import CombinedDetailsStep from "./CombinedDetailsStep";
 import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
 import { toast } from "@/hooks/use-toast";
-import { PaymentType } from "@/types/payments";
 import { voucherAPI } from "@/services/api";
 import { GetVoucherDraftResponse, UpdateVoucherRequest } from "@/types/voucher";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,21 +17,15 @@ interface FormState {
   description: string;
   invoiceReference: string;
   selectedPayee?: string;
-  paymentType: PaymentType;
-  scheduledDate?: Date;
-  frequency: string;
 }
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const { user } = useAuth();
   const { vendors } = useVendors(user?.businessId);
   const [step, setStep] = useState(1);
-  const [paymentType, setPaymentType] = useState<PaymentType>("now");
-  const [scheduledDate, setScheduledDate] = useState<Date>();
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [invoiceReference, setInvoiceReference] = useState<string>("");
-  const [frequency, setFrequency] = useState<string>("monthly");
   const [selectedPayee, setSelectedPayee] = useState<string>();
   const [favoritePayees, setFavoritePayees] = useState<string[]>(["1", "3"]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>();
@@ -57,10 +50,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     amount,
     description,
     invoiceReference,
-    selectedPayee,
-    paymentType,
-    scheduledDate,
-    frequency
+    selectedPayee
   });
 
   // Helper to create financial_details structure for quick payment
@@ -121,16 +111,6 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
       changes.financial_details = createFinancialDetails(amountInPaise, current.description);
     }
 
-    if (current.paymentType !== initial.paymentType) {
-      changes.payment_type = current.paymentType;
-    }
-    if (current.scheduledDate?.toISOString() !== initial.scheduledDate?.toISOString()) {
-      changes.scheduled_date = current.scheduledDate?.toISOString();
-    }
-    if (current.frequency !== initial.frequency && current.paymentType === "recurring") {
-      changes.frequency = current.frequency;
-    }
-
     // Return null if no changes
     return Object.keys(changes).length > 0 ? changes : null;
   };
@@ -163,9 +143,6 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
             gst_amount: 0,
             discount_amount: 0,
             description: description || undefined,
-            payment_type: paymentType,
-            scheduled_date: scheduledDate?.toISOString(),
-            frequency: paymentType === "recurring" ? frequency : undefined,
             financial_details: financialDetails,
           });
 
@@ -300,20 +277,14 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
     <div className="space-y-6">
       {step === 1 && (
         <CombinedDetailsStep
-          paymentType={paymentType}
-          scheduledDate={scheduledDate}
           amount={amount}
           description={description}
           invoiceReference={invoiceReference}
-          frequency={frequency}
           selectedPayee={selectedPayee}
           favoritePayees={favoritePayees}
-          onPaymentTypeChange={setPaymentType}
-          onScheduledDateChange={setScheduledDate}
           onAmountChange={setAmount}
           onDescriptionChange={setDescription}
           onInvoiceReferenceChange={setInvoiceReference}
-          onFrequencyChange={setFrequency}
           onPayeeSelect={setSelectedPayee}
           onNext={handleNext}
           isCreatingVoucher={isCreatingVoucher}
@@ -323,12 +294,9 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
 
       {step === 2 && payeeDetails && (
         <PaymentMethodAndReviewStep
-          paymentType={paymentType}
-          scheduledDate={scheduledDate}
           amount={parseFloat(amount) || 0}
           description={description}
           invoiceReference={invoiceReference}
-          frequency={frequency}
           payee={payeeDetails}
           voucherId={voucherId}
           onBack={handleBack}

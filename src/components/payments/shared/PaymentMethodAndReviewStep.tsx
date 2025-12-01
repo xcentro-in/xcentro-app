@@ -16,6 +16,8 @@ import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { canViewFeature } from "@/lib/featureFlags";
 import { getCardNetworkLogo } from "@/lib/cardNetworks";
+import PaymentScheduleSelector from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
+import { PaymentType } from "@/types/payments";
 
 export interface PaymentItem {
   id: string;
@@ -30,7 +32,6 @@ interface PaymentMethodAndReviewStepProps {
   totalAmount: number;
   paymentItems: PaymentItem[];
   summaryType: SummaryType;
-  scheduleText: string;
   selectedPaymentMethod?: string;
   onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
@@ -45,7 +46,6 @@ const PaymentMethodAndReviewStep = ({
   totalAmount,
   paymentItems,
   summaryType,
-  scheduleText,
   selectedPaymentMethod,
   onPaymentMethodChange,
   onBack,
@@ -57,6 +57,9 @@ const PaymentMethodAndReviewStep = ({
 }: PaymentMethodAndReviewStepProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Internal state for payment scheduling - fully self-contained
+  const [paymentType, setPaymentType] = useState<PaymentType>("tomorrow");
   const {
     sources,
     cardSources,
@@ -120,6 +123,31 @@ const PaymentMethodAndReviewStep = ({
   const processingFee = selectedSource?.fee_breakdown?.convenience_fee ? selectedSource.fee_breakdown.convenience_fee / 100 : 0;
   const gst = selectedSource?.fee_breakdown?.convenience_fee_gst ? selectedSource.fee_breakdown.convenience_fee_gst / 100 : 0;
   const finalAmount = selectedSource?.fee_breakdown?.total_amount ? selectedSource.fee_breakdown.total_amount / 100 : totalAmount;
+
+  // Format schedule text based on payment type
+  const formatScheduleText = () => {
+    const now = new Date();
+
+    if (paymentType === "instantly") {
+      return "Within few minutes";
+    }
+
+    if (paymentType === "today") {
+      const fourHoursLater = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+      const elevenThirtyPM = new Date(now);
+      elevenThirtyPM.setHours(23, 30, 0, 0);
+
+      const settlementTime = fourHoursLater < elevenThirtyPM ? fourHoursLater : elevenThirtyPM;
+      return `Today, ${settlementTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    }
+
+    if (paymentType === "tomorrow") {
+      const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      return `Tomorrow, ${twentyFourHoursLater.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    }
+
+    return "Not specified";
+  };
 
   // Detect calling device (web vs mobile)
   const getCallingDevice = (): 'web' | 'mobile' => {
@@ -288,7 +316,7 @@ const PaymentMethodAndReviewStep = ({
       )}
       <div className="flex justify-between">
         <span className="text-muted-foreground">Settlement Date</span>
-        <span className="text-sm">{scheduleText}</span>
+        <span className="text-sm">{formatScheduleText()}</span>
       </div>
       {additionalSummaryData?.invoiceReference && (
         <div className="flex justify-between">
@@ -309,7 +337,7 @@ const PaymentMethodAndReviewStep = ({
       </div>
       <div className="flex justify-between">
         <span className="text-muted-foreground">Settlement Date</span>
-        <span className="text-sm">{scheduleText}</span>
+        <span className="text-sm">{formatScheduleText()}</span>
       </div>
     </div>
   );
@@ -510,6 +538,23 @@ const PaymentMethodAndReviewStep = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Schedule Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Schedule your payment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaymentScheduleSelector
+            paymentType={paymentType}
+            scheduledDate={undefined}
+            frequency=""
+            onPaymentTypeChange={setPaymentType}
+            onScheduledDateChange={() => {}}
+            onFrequencyChange={() => {}}
+          />
+        </CardContent>
+      </Card>
 
       <div className="flex justify-between gap-4">
         <Button

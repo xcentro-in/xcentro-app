@@ -19,7 +19,6 @@ import AddPaymentMethod from "./pages/AddPaymentMethod";
 import PayeeHistory from "./pages/PayeeHistory";
 import TransactionDetails from "./pages/TransactionDetails";
 import NewPayment from "./pages/NewPayment";
-import PayInvoice from "./pages/PayInvoice";
 import BusinessOnboarding from "./pages/BusinessOnboarding";
 import RedemptionFlow from "./pages/RedemptionFlow";
 import Network from "./pages/Network";
@@ -133,7 +132,6 @@ function App() {
                   </>
                 )}
                 <Route path="new-payment" element={<NewPayment />} />
-                <Route path="pay-invoice" element={<PayInvoice />} />
                 <Route path="payments/:id" element={<TransactionDetails />} />
                 {RewardsEnabled && (
                   <>
