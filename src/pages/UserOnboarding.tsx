@@ -95,25 +95,17 @@ const UserOnboarding = () => {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       // Extract base URL from VITE_API_URL
-      const apiBaseUrl = import.meta.env.VITE_API_URL
-        ? new URL(import.meta.env.VITE_API_URL).origin
-        : null;
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
 
       const trustedOrigins = [
         window.location.origin,
         apiBaseUrl,
-        'http://localhost:8888',  // TODO: remove this in production -- read from .env
-        'https://api.xcentro.in',
-        'https://api-staging.xcentro.in',
-        'https://api-dev.xcentro.in',
       ].filter(Boolean) as string[];
 
       // Security check: Verify message origin
       if (!trustedOrigins.includes(event.origin)) {
         return;
       }
-
-      const message = event.data;
     };
 
     window.addEventListener('message', handleMessage);
