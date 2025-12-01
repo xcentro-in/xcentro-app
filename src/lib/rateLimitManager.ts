@@ -38,13 +38,11 @@ class RateLimitManager {
     );
 
     if (isDuplicate) {
-      console.log('[RateLimitManager] Duplicate error ignored:', newError);
       return;
     }
 
     // Add to queue
     this.queue.push(newError);
-    console.log('[RateLimitManager] Error added to queue. Queue length:', this.queue.length);
 
     // Show if not currently showing
     if (!this.isShowing) {
@@ -65,7 +63,6 @@ class RateLimitManager {
 
     this.isShowing = true;
     this.currentError = this.queue.shift() || null;
-    console.log('[RateLimitManager] Showing error:', this.currentError);
     this.notifyListeners(this.currentError);
   }
 
@@ -73,7 +70,6 @@ class RateLimitManager {
    * Close the current popup and show next if available
    */
   closeCurrentAndShowNext(): void {
-    console.log('[RateLimitManager] Closing current popup. Remaining in queue:', this.queue.length);
     this.showNext();
   }
 

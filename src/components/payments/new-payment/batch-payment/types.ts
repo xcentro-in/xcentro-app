@@ -1,5 +1,4 @@
 
-import { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
 import { RewardPackage } from "../shared/common/RewardTopUpStep";
 
 export interface PaymentRow {
@@ -14,9 +13,6 @@ export interface PaymentRow {
 export interface BatchPaymentState {
   selectedRows: string[];
   selectedPaymentMethod?: string;
-  paymentType: PaymentScheduleType;
-  scheduledDate?: Date;
-  frequency: string;
   rewardPackage?: RewardPackage | null;
 }
 

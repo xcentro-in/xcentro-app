@@ -1,7 +1,7 @@
 import { rateLimitManager } from '@/lib/rateLimitManager';
 
 // Vite uses import.meta.env instead of process.env
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8888/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL
 
 class ApiService {
   private baseUrl: string;
@@ -54,12 +54,6 @@ class ApiService {
           const scope = errorData.scope || 'unknown';
           const policyGroup = errorData.policy_group || 'default';
 
-          console.log('[API] Rate limit hit:', {
-            retryAfterSecs,
-            scope,
-            policyGroup,
-          });
-
           // Add to rate limit manager (will handle popup queue)
           rateLimitManager.addError({
             retryAfterSecs,
@@ -90,37 +84,39 @@ class ApiService {
               });
 
               if (refreshResponse.ok) {
-                const refreshData = await refreshResponse.json();
-                console.log('Token refreshed successfully:', refreshData.message);
-
                 // Retry the original request with the new token (cookies are automatically updated)
                 return this.request<T>(endpoint, options, true);
               } else {
-                // If refresh fails, clear tokens and redirect to login
-                console.log('Token refresh failed, redirecting to login');
+                // If refresh fails, clear tokens
                 localStorage.removeItem('auth-token');
                 localStorage.removeItem('business-id');
                 localStorage.removeItem('user-data');
                 this.authToken = null;
-                window.location.href = '/login';
+
+                // Only redirect if not already on login page (avoid infinite loop)
+                if (window.location.pathname !== '/login') {
+                  window.location.href = '/login';
+                }
                 return Promise.reject(new Error('Session expired. Please login again.'));
               }
             } catch (refreshError) {
               console.error('Token refresh failed:', refreshError);
-              // Clear tokens and redirect to login
+              // Clear tokens
               localStorage.removeItem('auth-token');
               localStorage.removeItem('business-id');
               localStorage.removeItem('user-data');
               this.authToken = null;
-              window.location.href = '/login';
+
+              // Only redirect if not already on login page (avoid infinite loop)
+              if (window.location.pathname !== '/login') {
+                window.location.href = '/login';
+              }
               return Promise.reject(new Error('Session expired. Please login again.'));
             }
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
             // For MISSING_TOKEN or INVALID_TOKEN, emit event and throw error
             // The AuthContext will listen for this event and handle logout
             // This prevents infinite loops during page load
-            console.log(`[API] Authentication error (${errorData.error}), emitting unauthorized event`);
-
             // Emit custom event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
               detail: { code: errorData.error, message: errorData.message }
@@ -159,28 +155,28 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/auth/login', {
+      return this.request('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
     },
 
     signup: async (email: string, password: string): Promise<{ data: { userId: string }, message: string }> => {
-      return this.request('/auth/signup', {
+      return this.request('/v1/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
     },
 
     logout: async (): Promise<{ message: string }> => {
-      return this.request('/auth/logout', {
+      return this.request('/v1/auth/logout', {
         method: 'POST',
       });
     },
 
     refreshToken: async (refreshToken: string) => {
       // TODO: Implement token refresh
-      // return this.request('/auth/refresh', {
+      // return this.request('/v1/auth/refresh', {
       //   method: 'POST',
       //   body: JSON.stringify({ refreshToken }),
       // });
@@ -190,20 +186,20 @@ class ApiService {
     },
 
     forgotPassword: async (email: string): Promise<{ message: string }> => {
-      return this.request(`/auth/forgot-password?email=${email}`, {
+      return this.request(`/v1/auth/forgot-password?email=${email}`, {
         method: 'GET',
       });
     },
 
     resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
-      return this.request('/auth/reset-password', {
+      return this.request('/v1/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ token, newPassword }),
       });
     },
 
     getOnboardingStatus: async (businessId: string): Promise<any> => {
-      return this.request('/auth/onboarding-status', {
+      return this.request('/v1/auth/onboarding-status', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -215,7 +211,7 @@ class ApiService {
       data: null;
       message: string;
     }> => {
-      return this.request('/auth/change-password', {
+      return this.request('/v1/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({ oldPassword, newPassword }),
       });
@@ -225,7 +221,7 @@ class ApiService {
       data: null;
       message: string;
     }> => {
-      return this.request('/auth/verify-email', {
+      return this.request('/v1/auth/verify-email', {
         method: 'POST',
         body: JSON.stringify({ token }),
       });
@@ -256,7 +252,7 @@ class ApiService {
         headers['X-Business-ID'] = businessId;
       }
 
-      return this.request('/user/onboard/init', {
+      return this.request('/v1/user/onboard/init', {
         method: 'POST',
         headers,
         body: JSON.stringify({ name, dob, taxId, nationalId }),
@@ -293,7 +289,7 @@ class ApiService {
         body.gstin = gstin;
       }
 
-      return this.request('/user/onboard/complete', {
+      return this.request('/v1/user/onboard/complete', {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -310,7 +306,7 @@ class ApiService {
       }>;
       message: string;
     }> => {
-      return this.request('/user/roles', {
+      return this.request('/v1/user/roles', {
         method: 'GET',
       });
     },
@@ -327,14 +323,14 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/user/profile', {
+      return this.request('/v1/user/profile', {
         method: 'GET',
       });
     },
 
     updateProfile: async (data: any) => {
       // TODO: Update user profile
-      // return this.request('/user/profile', {
+      // return this.request('/v1/user/profile', {
       //   method: 'PUT',
       //   body: JSON.stringify(data),
       // });
@@ -345,7 +341,7 @@ class ApiService {
 
     getBusinesses: async () => {
       // TODO: Get user's businesses
-      // return this.request('/user/businesses');
+      // return this.request('/v1/user/businesses');
 
       console.log('TODO: Implement user.getBusinesses API call');
       throw new Error('API not implemented yet');
@@ -368,7 +364,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/user/onboard/status', {
+      return this.request('/v1/user/onboard/status', {
         method: 'GET',
       });
     },
@@ -387,7 +383,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/business/invite-user', {
+      return this.request('/v1/business/invite-user', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -404,7 +400,7 @@ class ApiService {
     ): Promise<{
       message: string;
     }> => {
-      return this.request('/business/users/update', {
+      return this.request('/v1/business/users/update', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -420,7 +416,7 @@ class ApiService {
     ): Promise<{
       message: string;
     }> => {
-      return this.request('/business/users', {
+      return this.request('/v1/business/users', {
         method: 'DELETE',
         headers: {
           'X-Business-ID': businessId,
@@ -431,7 +427,7 @@ class ApiService {
 
     // Get user permissions for current business
     getPermissions: async (businessId: string) => {
-      return this.request(`/users/permissions`, {
+      return this.request(`/v1/users/permissions`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -456,7 +452,7 @@ class ApiService {
       }>;
       message: string;
     }> => {
-      return this.request('/business/users', {
+      return this.request('/v1/business/users', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -475,7 +471,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/business/onboard/init', {
+      return this.request('/v1/business/onboard/init', {
         method: 'POST',
         body: JSON.stringify({ name, gstin }),
       });
@@ -488,7 +484,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/business/onboard/upload', {
+      return this.request('/v1/business/onboard/upload', {
         method: 'GET',
         headers: {
           'X-Business-ID': bid,
@@ -518,7 +514,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/business/onboard/confirm-upload', {
+      return this.request('/v1/business/onboard/confirm-upload', {
         method: 'POST',
         headers: {
           'X-Business-ID': bid,
@@ -567,7 +563,7 @@ class ApiService {
         body.businessTurnover = businessTurnover;
       }
 
-      return this.request('/business/onboard/complete', {
+      return this.request('/v1/business/onboard/complete', {
         method: 'POST',
         headers: {
           'X-Business-ID': bid,
@@ -584,7 +580,7 @@ class ApiService {
 };
       message: string;
     }> => {
-      return this.request('/business/onboard/status', {
+      return this.request('/v1/business/onboard/status', {
         method: 'GET',
       });
     },
@@ -600,7 +596,7 @@ class ApiService {
       };
       message: string;
     }> => {
-      return this.request('/business', {
+      return this.request('/v1/business', {
         method: 'GET',
         headers: {
           'X-Business-ID': bid,
@@ -614,7 +610,7 @@ class ApiService {
     getAll: async (params?: any) => {
       // TODO: Get all payments with filtering
       // const query = new URLSearchParams(params).toString();
-      // return this.request(`/payments?${query}`);
+      // return this.request(`/v1/payments?${query}`);
 
       console.log('TODO: Implement payments.getAll API call', params);
       throw new Error('API not implemented yet');
@@ -622,7 +618,7 @@ class ApiService {
 
     create: async (paymentData: any) => {
       // TODO: Create new payment
-      // return this.request('/payments', {
+      // return this.request('/v1/payments', {
       //   method: 'POST',
       //   body: JSON.stringify(paymentData),
       // });
@@ -633,7 +629,7 @@ class ApiService {
 
     getById: async (id: string) => {
       // TODO: Get payment by ID
-      // return this.request(`/payments/${id}`);
+      // return this.request(`/v1/payments/${id}`);
 
       console.log('TODO: Implement payments.getById API call', id);
       throw new Error('API not implemented yet');
@@ -641,7 +637,7 @@ class ApiService {
 
     update: async (id: string, data: any) => {
       // TODO: Update payment
-      // return this.request(`/payments/${id}`, {
+      // return this.request(`/v1/payments/${id}`, {
       //   method: 'PUT',
       //   body: JSON.stringify(data),
       // });
@@ -652,7 +648,7 @@ class ApiService {
 
     cancel: async (id: string) => {
       // TODO: Cancel payment
-      // return this.request(`/payments/${id}/cancel`, { method: 'POST' });
+      // return this.request(`/v1/payments/${id}/cancel`, { method: 'POST' });
 
       console.log('TODO: Implement payments.cancel API call', id);
       throw new Error('API not implemented yet');
@@ -736,9 +732,8 @@ class ApiService {
       }
 
       const queryString = queryParams.toString();
-      const url = `/payees${queryString ? `?${queryString}` : ''}`;
 
-      return this.request(url, {
+      return this.request(`/v1/payees${queryString ? `?${queryString}` : ''}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -747,7 +742,7 @@ class ApiService {
     },
 
     create: async (businessId: string, payeeData: any): Promise<any> => {
-      return this.request('/payees', {
+      return this.request('/v1/payees', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -758,7 +753,7 @@ class ApiService {
 
     update: async (id: string, updates: any) => {
       // TODO: Update payee
-      // return this.request(`/payees/${id}`, {
+      // return this.request(`/v1/payees/${id}`, {
       //   method: 'PUT',
       //   body: JSON.stringify(updates),
       // });
@@ -769,7 +764,7 @@ class ApiService {
 
     delete: async (id: string) => {
       // TODO: Delete payee
-      // return this.request(`/payees/${id}`, { method: 'DELETE' });
+      // return this.request(`/v1/payees/${id}`, { method: 'DELETE' });
 
       console.log('TODO: Implement payees.delete API call', { id });
       throw new Error('API not implemented yet');
@@ -777,7 +772,7 @@ class ApiService {
 
     // Get detailed payee information
     getDetails: async (businessId: string, payeeId: string): Promise<any> => {
-      return this.request(`/payees/details/${payeeId}`, {
+      return this.request(`/v1/payees/details/${payeeId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -794,7 +789,7 @@ class ApiService {
         ifsc_code: string;
       };
     }> => {
-      return this.request(`/payees/${relationId}/acc_details`, {
+      return this.request(`/v1/payees/${relationId}/acc_details`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -804,7 +799,7 @@ class ApiService {
 
     // Update payee status (mark active/inactive)
     updateStatus: async (businessId: string, relationId: string, isActive: boolean): Promise<any> => {
-      return this.request(`/payees/${relationId}/status`, {
+      return this.request(`/v1/payees/${relationId}/status`, {
         method: 'PATCH',
         headers: {
           'X-Business-ID': businessId,
@@ -834,9 +829,8 @@ class ApiService {
       }
 
       const queryString = queryParams.toString();
-      const url = `/vouchers/payee/${payeeId}${queryString ? `?${queryString}` : ''}`;
 
-      return this.request(url, {
+      return this.request(`/v1/vouchers/payee/${payeeId}${queryString ? `?${queryString}` : ''}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -847,7 +841,7 @@ class ApiService {
     // Update payee details (for edit functionality)
     updateDetails: async (businessId: string, payeeId: string, updates: any) => {
       // TODO: Update payee details
-      // return this.request(`/payees/${payeeId}/details`, {
+      // return this.request(`/v1/payees/${payeeId}/details`, {
       //   method: 'PUT',
       //   body: JSON.stringify({ businessId, ...updates }),
       // });
@@ -867,7 +861,7 @@ class ApiService {
       };
       status: string;
     }> => {
-      return this.request(`/payees/remuneration/upload-url?relation_id=${relationId}`, {
+      return this.request(`/v1/payees/remuneration/upload-url?relation_id=${relationId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -895,7 +889,7 @@ class ApiService {
       relationId: string,
       businessId: string
     ): Promise<any> => {
-      return this.request(`/payees/remuneration/confirm-upload?relation_id=${relationId}`, {
+      return this.request(`/v1/payees/remuneration/confirm-upload?relation_id=${relationId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -915,7 +909,7 @@ class ApiService {
       };
       status: string;
     }> => {
-      return this.request(`/payees/remuneration/download-url?relation_id=${relationId}`, {
+      return this.request(`/v1/payees/remuneration/download-url?relation_id=${relationId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -927,7 +921,7 @@ class ApiService {
   // Employees endpoints
   employees = {
     getAll: async (businessId: string): Promise<any> => {
-      return this.request('/employees', {
+      return this.request('/v1/employees', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -940,7 +934,7 @@ class ApiService {
   banks = {
     validateIfsc: async (ifscCode: string) => {
       // TODO: Validate IFSC code and get bank details
-      // return this.request(`/banks/validate-ifsc?ifsc=${ifscCode}`);
+      // return this.request(`/v1/banks/validate-ifsc?ifsc=${ifscCode}`);
 
       console.log('TODO: Implement banks.validateIfsc API call', { ifscCode });
       throw new Error('API not implemented yet');
@@ -975,7 +969,7 @@ class ApiService {
       //     }
       //   }
       // });
-      // return this.request(`/payments/history?${query}`);
+      // return this.request(`/v1/payments/history?${query}`);
 
       console.log('TODO: Implement paymentHistory.getAll API call', params);
       throw new Error('API not implemented yet');
@@ -997,7 +991,7 @@ class ApiService {
       // const query = new URLSearchParams(
       //   Object.entries(params).filter(([_, v]) => v !== undefined).map(([k, v]) => [k, String(v)])
       // ).toString();
-      // return this.request(`/payments/upcoming?${query}`);
+      // return this.request(`/v1/payments/upcoming?${query}`);
 
       console.log('TODO: Implement upcomingPayments.getAll API call', params);
       throw new Error('API not implemented yet');
@@ -1043,7 +1037,7 @@ class ApiService {
         txn_count: number;
       }>;
     }> => {
-      return this.request('/dashboard', {
+      return this.request('/v1/dashboard', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1056,7 +1050,7 @@ class ApiService {
   paymentInsights = {
     getAll: async (businessId: string) => {
       // TODO: Get all payment insights from cache
-      // return this.request(`/payments/insights?businessId=${businessId}`);
+      // return this.request(`/v1/payments/insights?businessId=${businessId}`);
 
       console.log('TODO: Implement paymentInsights.getAll API call', { businessId });
       throw new Error('API not implemented yet');
@@ -1064,7 +1058,7 @@ class ApiService {
 
     refresh: async (businessId: string) => {
       // TODO: Trigger insights recalculation
-      // return this.request(`/payments/insights/refresh`, {
+      // return this.request(`/v1/payments/insights/refresh`, {
       //   method: 'POST',
       //   body: JSON.stringify({ businessId }),
       // });
@@ -1083,24 +1077,24 @@ class ApiService {
       if (params?.offset) queryParams.append('offset', params.offset.toString());
 
       const query = queryParams.toString();
-      return this.request(`/notifications${query ? `?${query}` : ''}`);
+      return this.request(`/v1/notifications${query ? `?${query}` : ''}`);
     },
 
     // Get unread count only
     getUnreadCount: async () => {
-      return this.request('/notifications/unread/count');
+      return this.request('/v1/notifications/unread/count');
     },
 
     // Mark single notification as read
     markAsRead: async (id: number) => {
-      return this.request(`/notifications/${id}/read`, {
+      return this.request(`/v1/notifications/${id}/read`, {
         method: 'POST'
       });
     },
 
     // Mark multiple notifications as read
     markMultipleAsRead: async (notification_ids: number[]) => {
-      return this.request('/notifications/read', {
+      return this.request('/v1/notifications/read', {
         method: 'POST',
         body: JSON.stringify({ notification_ids }),
       });
@@ -1108,7 +1102,7 @@ class ApiService {
 
     // Get notification preferences
     getPreferences: async () => {
-      return this.request('/notifications/preferences');
+      return this.request('/v1/notifications/preferences');
     },
 
     // Update notification preferences
@@ -1127,7 +1121,7 @@ class ApiService {
         others?: boolean;
       };
     }) => {
-      return this.request('/notifications/preferences', {
+      return this.request('/v1/notifications/preferences', {
         method: 'PUT',
         body: JSON.stringify(preferences),
       });
@@ -1137,7 +1131,7 @@ class ApiService {
   // Process Payment endpoints
   processPayment = {
     getDetails: async (businessId: string, paymentId: string) => {
-      return this.request(`/process_payment/${paymentId}`, {
+      return this.request(`/v1/process_payment/${paymentId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1149,7 +1143,7 @@ class ApiService {
       payment_context: string;
       base_amount: number;
     }) => {
-      return this.request('/process_payment/get_payment_sources_with_fees', {
+      return this.request('/v1/process_payment/get_payment_sources_with_fees', {
         method: 'POST',
         body: JSON.stringify(params),
       });
@@ -1163,7 +1157,7 @@ class ApiService {
       card_type: string;
       card_category: string;
     }) => {
-      return this.request('/process_payment/tokenize', {
+      return this.request('/v1/process_payment/tokenize', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1176,7 +1170,7 @@ class ApiService {
       queryParams.append('limit', params.limit.toString());
       queryParams.append('offset', params.offset.toString());
 
-      return this.request(`/process_payment/list?${queryParams}`, {
+      return this.request(`/v1/process_payment/list?${queryParams}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1195,7 +1189,7 @@ class ApiService {
         // bank_account_id?: string; // for token-bank
       };
     }) => {
-      return this.request('/process_payment/make_payment', {
+      return this.request('/v1/process_payment/make_payment', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1206,7 +1200,7 @@ class ApiService {
     retryPayment: async (businessId: string, params: {
       original_payment_id: string;
     }) => {
-      return this.request('/process_payment/retry', {
+      return this.request('/v1/process_payment/retry', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1219,7 +1213,7 @@ class ApiService {
   // Wallet endpoints
   wallet = {
     fetch: async (businessId: string) => {
-      return this.request('/wallet', {
+      return this.request('/v1/wallet', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1227,7 +1221,7 @@ class ApiService {
       });
     },
     updateCardStatus: async (businessId: string, cardId: string, isActive: boolean) => {
-      return this.request(`/wallet/cards/${cardId}/status`, {
+      return this.request(`/v1/wallet/cards/${cardId}/status`, {
         method: 'PATCH',
         headers: {
           'X-Business-ID': businessId,
@@ -1251,7 +1245,7 @@ class ApiService {
         queryParams.append('status', params.status);
       }
 
-      return this.request(`/vouchers/list?${queryParams}`, {
+      return this.request(`/v1/vouchers/list?${queryParams}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1260,7 +1254,7 @@ class ApiService {
     },
 
     getVoucherCounts: async (businessId: string) => {
-      return this.request('/vouchers/counts', {
+      return this.request('/v1/vouchers/counts', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1279,7 +1273,7 @@ class ApiService {
       scheduled_date?: string;
       frequency?: string;
     }) => {
-      return this.request('/vouchers/draft', {
+      return this.request('/v1/vouchers/draft', {
         method: 'POST',
         headers : {
           'X-Business-ID': businessId,
@@ -1300,7 +1294,7 @@ class ApiService {
       description?: string;                   // OPTIONAL
       financial_details?: Record<string, any>; // OPTIONAL
     }>) => {
-      return this.request('/vouchers/multi', {
+      return this.request('/v1/vouchers/multi', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1318,7 +1312,7 @@ class ApiService {
       scheduled_date?: string;
       frequency?: string;
     }) => {
-      return this.request(`/vouchers/${voucherId}`, {
+      return this.request(`/v1/vouchers/${voucherId}`, {
         method: 'PUT',
         body: JSON.stringify(params),
       });
@@ -1326,7 +1320,7 @@ class ApiService {
 
     // Get voucher details (includes header + details tab data)
     getDetails: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}`, {
+      return this.request(`/v1/vouchers/${voucherId}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1336,7 +1330,7 @@ class ApiService {
 
     // Get activity timeline (lazy-loaded)
     getActivity: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}/activity`, {
+      return this.request(`/v1/vouchers/${voucherId}/activity`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1346,7 +1340,7 @@ class ApiService {
 
     // Get payment details (lazy-loaded)
     getPayment: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}/payment`, {
+      return this.request(`/v1/vouchers/${voucherId}/payment`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1356,7 +1350,7 @@ class ApiService {
 
     // Get accounting details (lazy-loaded)
     getAccounting: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}/accounting`, {
+      return this.request(`/v1/vouchers/${voucherId}/accounting`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1366,7 +1360,7 @@ class ApiService {
 
     // Get attachments (lazy-loaded)
     getAttachments: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}/attachments`, {
+      return this.request(`/v1/vouchers/${voucherId}/attachments`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1376,7 +1370,7 @@ class ApiService {
 
     // Delete voucher (only for unpaid bills)
     deleteVoucher: async (businessId: string, voucherId: string) => {
-      return this.request(`/vouchers/${voucherId}`, {
+      return this.request(`/v1/vouchers/${voucherId}`, {
         method: 'DELETE',
         headers: {
           'X-Business-ID': businessId,
@@ -1386,7 +1380,7 @@ class ApiService {
 
     // Update voucher (only changed fields)
     updateVoucher: async (businessId: string, voucherId: string, payload: any) => {
-      return this.request(`/vouchers/${voucherId}`, {
+      return this.request(`/v1/vouchers/${voucherId}`, {
         method: 'PUT',
         headers: {
           'X-Business-ID': businessId,
@@ -1401,7 +1395,7 @@ class ApiService {
       approverUserId: string,
       remarks?: string
     ) => {
-      return this.request(`/vouchers/${voucherId}/request-approval`, {
+      return this.request(`/v1/vouchers/${voucherId}/request-approval`, {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1421,7 +1415,7 @@ class ApiService {
       approverUserId: string,
       remarks?: string
     ) => {
-      return this.request(`/vouchers/${voucherId}/request-approval`, {
+      return this.request(`/v1/vouchers/${voucherId}/request-approval`, {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1441,7 +1435,7 @@ class ApiService {
       approverUserId: string,
       remarks: string
     ) => {
-      return this.request(`/vouchers/${voucherId}/request-approval`, {
+      return this.request(`/v1/vouchers/${voucherId}/request-approval`, {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1461,7 +1455,7 @@ class ApiService {
       approverUserId: string,
       remarks: string
     ) => {
-      return this.request(`/vouchers/${voucherId}/request-approval`, {
+      return this.request(`/v1/vouchers/${voucherId}/request-approval`, {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1481,7 +1475,7 @@ class ApiService {
       approvedById: string,
       remarks?: string
     ) => {
-      return this.request('/vouchers/batch-approve', {
+      return this.request('/v1/vouchers/batch-approve', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1499,7 +1493,7 @@ class ApiService {
       businessId: string,
       status: 'pending' | 'approved' | 'rejected' | 'request_changes'
     ) => {
-      return this.request(`/vouchers/approval-inbox?status=${status}`, {
+      return this.request(`/v1/vouchers/approval-inbox?status=${status}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1509,7 +1503,7 @@ class ApiService {
 
     // Get approval inbox counts for all statuses
     getApprovalCounts: async (businessId: string) => {
-      return this.request('/vouchers/approval-inbox/counts', {
+      return this.request('/v1/vouchers/approval-inbox/counts', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1519,7 +1513,7 @@ class ApiService {
 
     // Get unpaid vouchers for invoice payment
     getUnpaidVouchers: async (businessId: string, limit: number = 50, offset: number = 0) => {
-      return this.request(`/vouchers/unpaid?limit=${limit}&offset=${offset}`, {
+      return this.request(`/v1/vouchers/unpaid?limit=${limit}&offset=${offset}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1529,7 +1523,7 @@ class ApiService {
 
     // Create new voucher (bill)
     createVoucher: async (businessId: string, voucherData: any) => {
-      return this.request('/vouchers', {
+      return this.request('/v1/vouchers', {
         method: 'POST',
         headers: {
           'X-Business-ID': businessId,
@@ -1540,7 +1534,7 @@ class ApiService {
 
     // Get calendar data for upcoming payments
     getCalendar: async (businessId: string, year: number, month: number) => {
-      return this.request(`/vouchers/calendar?year=${year}&month=${month}`, {
+      return this.request(`/v1/vouchers/calendar?year=${year}&month=${month}`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1552,7 +1546,7 @@ class ApiService {
   // Vendors endpoints
   vendors = {
     getAll: async (businessId: string) => {
-      return this.request(`/vendors`, {
+      return this.request(`/v1/vendors`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,

@@ -7,32 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, FileText, AlertCircle, RefreshCw, Plus, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
-import PaymentScheduleSelector from "../shared/common/PaymentScheduleSelector";
 import { Invoice } from "@/data/mockInvoices";
 import { PaymentType } from "@/types/payments";
 import { useUnpaidVouchers } from "@/hooks/useUnpaidVouchers";
 
 interface InvoiceSelectionStepProps {
   selectedInvoices: Invoice[];
-  paymentType: PaymentType;
-  scheduledDate?: Date;
-  frequency: string;
   onInvoicesSelect: (invoices: Invoice[]) => void;
-  onPaymentTypeChange: (value: PaymentType) => void;
-  onScheduledDateChange: (date?: Date) => void;
-  onFrequencyChange: (value: string) => void;
   onNext: () => void;
 }
 
 const InvoiceSelectionStep = ({
   selectedInvoices,
-  paymentType,
-  scheduledDate,
-  frequency,
   onInvoicesSelect,
-  onPaymentTypeChange,
-  onScheduledDateChange,
-  onFrequencyChange,
   onNext,
 }: InvoiceSelectionStepProps) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -234,24 +221,6 @@ const InvoiceSelectionStep = ({
           </CardContent>
         </Card>
       </div>
-
-      {localSelectedInvoices.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>When to schedule this payment?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PaymentScheduleSelector
-              paymentType={paymentType}
-              scheduledDate={scheduledDate}
-              frequency={frequency}
-              onPaymentTypeChange={onPaymentTypeChange}
-              onScheduledDateChange={onScheduledDateChange}
-              onFrequencyChange={onFrequencyChange}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       {localSelectedInvoices.length > 0 && (
         <div className="flex justify-end">

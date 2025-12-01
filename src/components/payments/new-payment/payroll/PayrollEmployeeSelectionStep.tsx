@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ExistingEmployeesPayment from "./ExistingEmployeesPayment";
-import PaymentScheduleSelector, { PaymentScheduleType } from "../shared/common/PaymentScheduleSelector";
 import { Employee } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
 import { voucherAPI } from "@/services/api";
@@ -11,13 +10,7 @@ import { toast } from "sonner";
 interface PayrollEmployeeSelectionStepProps {
   employees: Employee[];
   selectedEmployees: Employee[];
-  paymentType: PaymentScheduleType;
-  scheduledDate?: Date;
-  frequency: string;
   onEmployeesSelect: (employees: Employee[]) => void;
-  onPaymentTypeChange: (value: PaymentScheduleType) => void;
-  onScheduledDateChange: (date?: Date) => void;
-  onFrequencyChange: (value: string) => void;
   onVouchersCreated: (voucherIds: string[]) => void;
   onNext: () => void;
 }
@@ -25,13 +18,7 @@ interface PayrollEmployeeSelectionStepProps {
 const PayrollEmployeeSelectionStep = ({
   employees,
   selectedEmployees,
-  paymentType,
-  scheduledDate,
-  frequency,
   onEmployeesSelect,
-  onPaymentTypeChange,
-  onScheduledDateChange,
-  onFrequencyChange,
   onVouchersCreated,
   onNext,
 }: PayrollEmployeeSelectionStepProps) => {
@@ -120,24 +107,6 @@ const PayrollEmployeeSelectionStep = ({
           onSelectionChange={handleEmployeeToggle}
         />
       </div>
-
-      {localSelectedEmployees.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>When to schedule this payment?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PaymentScheduleSelector
-              paymentType={paymentType}
-              scheduledDate={scheduledDate}
-              frequency={frequency}
-              onPaymentTypeChange={onPaymentTypeChange}
-              onScheduledDateChange={onScheduledDateChange}
-              onFrequencyChange={onFrequencyChange}
-            />
-          </CardContent>
-        </Card>
-      )}
 
       {localSelectedEmployees.length > 0 && (
         <div className="flex justify-end">

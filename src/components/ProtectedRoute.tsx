@@ -11,29 +11,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading, user, userRoles, onboardingStatus } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const [isCheckingOnboarding, setIsCheckingOnboarding] = useState(true);
+  const [shouldRender, setShouldRender] = useState(false);
 
   // Check onboarding status when authenticated and user data is loaded
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       // Wait for auth to finish loading
       if (isLoading) {
+        setShouldRender(false);
         return;
       }
 
       // If not authenticated, we'll redirect to login (handled below)
       if (!isAuthenticated) {
-        setIsCheckingOnboarding(false);
+        setShouldRender(true);
         return;
       }
-
-      // Use centralized routing logic
-      console.log('[ProtectedRoute] Checking user route...', {
-        path: location.pathname,
-        hasUser: !!user,
-        rolesCount: userRoles?.length || 0,
-        onboardingStatus
-      });
 
       const routingDecision = determineUserRoute(
         location.pathname,
@@ -42,21 +35,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         onboardingStatus
       );
 
-      console.log('[ProtectedRoute] Routing decision:', routingDecision);
 
       if (routingDecision.shouldNavigate) {
-        console.log(`[ProtectedRoute] Navigating to ${routingDecision.targetRoute}: ${routingDecision.reason}`);
+        // Don't render children when redirecting
+        setShouldRender(false);
         navigate(routingDecision.targetRoute, { replace: true });
+      } else {
+        // Safe to render children
+        setShouldRender(true);
       }
-
-      setIsCheckingOnboarding(false);
     };
 
     checkOnboardingStatus();
   }, [isAuthenticated, isLoading, location.pathname, navigate, user, userRoles, onboardingStatus]);
 
-  // Show loading state while checking authentication
-  if (isLoading || isCheckingOnboarding) {
+  // Show loading state while checking authentication or determining route
+  if (isLoading || !shouldRender) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
         <div className="text-center">

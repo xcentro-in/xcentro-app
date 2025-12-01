@@ -1,1 +1,1 @@
-export type PaymentType = "now" | "later" | "recurring";
+export type PaymentType = "instantly" | "today" | "tomorrow";

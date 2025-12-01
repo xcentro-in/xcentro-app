@@ -97,8 +97,6 @@ const BusinessOnboarding = () => {
               cin: cid || prev.documents.cin,
             },
           }));
-
-          console.log("Pre-filled business data from status:", { bid, name, gstin, kybStatus, businessType, cid });
         }
       } catch (error: any) {
         // If status endpoint returns 404 or error, start fresh (no pre-fill)
@@ -161,8 +159,6 @@ const BusinessOnboarding = () => {
         } catch (initError: any) {
           // Handle 409 Conflict: Business already exists
           if (initError.status === 409) {
-            console.log("Business already exists, checking access...");
-
             try {
               // Fetch the existing business status to check if user owns it
               const statusResponse = await businessAPI.getOnboardingStatus();
@@ -189,14 +185,12 @@ const BusinessOnboarding = () => {
                   },
                 }));
 
-                console.log("Resumed existing business:", { bid, status: existingBusiness.kybStatus });
                 toast.info("Resuming existing business onboarding...");
               } else {
                 throw new Error("Could not retrieve business ID from existing business");
               }
             } catch (statusError) {
               // If status fetch fails, user doesn't own this business - it's unauthorized access
-              console.error("Cannot access business - unauthorized:", statusError);
               throw new Error("This business is already registered with another account.");
             }
           } else {
@@ -204,26 +198,18 @@ const BusinessOnboarding = () => {
             throw initError;
           }
         }
-      } else {
-        console.log("Using existing business ID:", bid);
       }
 
       // Step 2: Handle document upload if deed is required
       if (requiresDeedUpload(formData.type) && formData.documents.deed) {
-        console.log("Uploading business deed for", formData.type);
-
         // Get presigned URL
         const uploadUrlResponse = await businessAPI.getUploadUrl(bid);
         const uploadUrl = uploadUrlResponse.data.url;
-        console.log("Got presigned URL:", uploadUrl);
-
         // Upload file to S3
         await businessAPI.uploadToS3(uploadUrl, formData.documents.deed);
-        console.log("File uploaded to S3 successfully");
 
         // Confirm upload
         await businessAPI.confirmUpload(bid);
-        console.log("Upload confirmed");
       }
 
       // If deed is required, verify it has been uploaded before proceeding
@@ -248,11 +234,9 @@ const BusinessOnboarding = () => {
         formData.turnover // Business turnover
       );
 
-      console.log("Business onboarding complete response:", completeResponse);
       toast.success("Business onboarding completed successfully!");
 
       // Re-initialize user data to get fresh roles and onboarding status
-      console.log("Re-initializing user data after KYB completion...");
       await initializeUser();
 
       // Use centralized routing logic to determine next step
@@ -262,8 +246,6 @@ const BusinessOnboarding = () => {
         userRoles,
         onboardingStatus
       );
-
-      console.log("Routing decision after KYB:", routingDecision);
 
       if (routingDecision.shouldNavigate) {
         navigate(routingDecision.targetRoute, { replace: true });

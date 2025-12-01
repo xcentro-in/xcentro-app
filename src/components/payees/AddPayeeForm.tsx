@@ -16,7 +16,7 @@ import {
   Lock
 } from "lucide-react";
 import { PayeeType } from "@/types/payee";
-import BankPayeeForm from "./forms/BankPayeeForm";
+import BankPayeeForm from "./forms/VendorPayeeForm";
 import BillerPayeeForm from "./forms/BillerPayeeForm";
 import PayrollPayeeForm from "./forms/PayrollPayeeForm";
 import { FeatureEnabled } from "../FeatureEnabled";
@@ -31,7 +31,6 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
   const [step, setStep] = useState(1);
   const [payeeType, setPayeeType] = useState<PayeeType | null>(null);
   const { user } = useAuth();
-  const hasOnboardedVendor = user?.hasOnboardedVendor ?? false;
 
   const handleTypeSelect = (type: PayeeType) => {
     setPayeeType(type);
@@ -78,8 +77,8 @@ const AddPayeeForm = ({ onPayeeAdded }: AddPayeeFormProps) => {
               </Card>
             </FeatureEnabled>
             
-            {/* Payroll payee - locked if vendor not onboarded */}
-            {!hasOnboardedVendor ? (
+            {/* Payroll payee - locked during onboarding if vendor not added */}
+            {!user?.hasAddedVendor ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

@@ -29,7 +29,7 @@ const CARD_NETWORKS: Record<string, CardNetworkConfig> = {
   amex: {
     name: "amex",
     displayName: "American Express",
-    logoUrl: "https://ik.imagekit.io/mddzdzy9m/Xcentro/CardNetworks/amex.png?updatedAt=1763497581720",
+    logoUrl: "https://ik.imagekit.io/mddzdzy9m/Xcentro/CardNetworks/amex.png?updatedAt=1764524668395",
     color: "#006FCF",
   },
   diners: {

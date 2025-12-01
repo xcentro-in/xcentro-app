@@ -48,19 +48,14 @@ const Login = () => {
 
     try {
       // Step 1: Login (authenticate)
-      console.log('[Login] Authenticating user...');
       await login(values.email, values.password);
       toast.success("Login successful! Welcome to Xcentro.");
 
       // Step 2: Initialize user data (fetch profile, roles, onboarding status)
-      console.log('[Login] Initializing user data...');
       await initializeUser();
 
       // Step 3: Determine where to route the user using centralized router
-      console.log('[Login] Determining user route...');
       const routingDecision = determineUserRoute('/login', user, userRoles, onboardingStatus);
-
-      console.log('[Login] Routing decision:', routingDecision);
 
       if (routingDecision.shouldNavigate) {
         navigate(routingDecision.targetRoute, { replace: true });

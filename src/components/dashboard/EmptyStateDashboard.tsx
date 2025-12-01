@@ -185,6 +185,7 @@ const EmptyStateDashboard = () => {
         <Card className="p-6 bg-primary/5 border-primary animate-fade-in text-center">
           <p className="text-lg font-medium">
             🎉 Congratulations! You've completed all the setup steps. Your dashboard is now active!
+            <br></br> Make 4 more succesfull payments and see your dashboard come to life!
           </p>
         </Card>
       )}
