@@ -15,7 +15,6 @@ interface PayrollPaymentFormProps {
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<'employees' | 'payment-review'>('employees');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,16 +59,11 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   };
 
   const handleBack = () => {
-    // Clear voucher and payment method state when going back
+    // Clear voucher state when going back
     // This ensures fresh voucher creation if user changes employee selection
     setVoucherIds([]);
-    setSelectedPaymentMethod(undefined);
     setCurrentStep('employees');
     onStepChange(0);
-  };
-
-  const handlePaymentMethodSelected = (methodId: string) => {
-    setSelectedPaymentMethod(methodId);
   };
 
   const handleSubmit = () => {
@@ -103,9 +97,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     return (
       <PayrollPaymentMethodAndReviewStep
         selectedEmployees={selectedEmployees}
-        selectedPaymentMethod={selectedPaymentMethod}
         voucherIds={voucherIds}
-        onPaymentMethodChange={handlePaymentMethodSelected}
         onBack={handleBack}
         onSubmit={handleSubmit}
       />

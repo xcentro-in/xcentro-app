@@ -12,7 +12,6 @@ export interface PaymentRow {
 
 export interface BatchPaymentState {
   selectedRows: string[];
-  selectedPaymentMethod?: string;
   rewardPackage?: RewardPackage | null;
 }
 

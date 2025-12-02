@@ -10,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
@@ -132,17 +133,10 @@ const TransactionDetails = () => {
   return (
     <div className="space-y-6 pb-12 print:p-6">
       <div className="flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" className="gap-1" onClick={() => navigate(-1)}>
-            <ArrowLeft className="h-4 w-4" />
-            Back to Transactions
-          </Button>
-          {payment.status === "success" && (
-            <Button variant="default" onClick={handleGenerateInvoice}>
-              Generate Invoice to Claim ITC
-            </Button>
-          )}
-        </div>
+        <Button variant="ghost" className="gap-1" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" />
+          Back to Transactions
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="h-9 w-9">
@@ -159,6 +153,15 @@ const TransactionDetails = () => {
               <Printer className="mr-2 h-4 w-4" />
               <span>Print</span>
             </DropdownMenuItem>
+            {payment.status === "success" && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleGenerateInvoice}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Generate ITC Invoice</span>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -10,7 +10,6 @@ interface InvoicePaymentFormProps {
 
 const InvoicePaymentForm = ({ onStepChange }: InvoicePaymentFormProps) => {
   const [currentStep, setCurrentStep] = useState<'invoices' | 'payment-review'>('invoices');
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string | undefined>(undefined);
   const [selectedInvoices, setSelectedInvoices] = useState<Invoice[]>([]);
 
   const handleInvoicesSelect = (invoices: Invoice[]) => {
@@ -27,15 +26,10 @@ const InvoicePaymentForm = ({ onStepChange }: InvoicePaymentFormProps) => {
     onStepChange(0);
   };
 
-  const handlePaymentMethodSelected = (methodId: string) => {
-    setSelectedPaymentMethod(methodId);
-  };
-
   const handleSubmit = () => {
     toast.success("Invoice payment initiated successfully!");
     console.log("Invoice payment submitted", {
-      invoices: selectedInvoices,
-      paymentMethod: selectedPaymentMethod
+      invoices: selectedInvoices
     });
   };
 
@@ -53,8 +47,6 @@ const InvoicePaymentForm = ({ onStepChange }: InvoicePaymentFormProps) => {
     return (
       <InvoicePaymentMethodAndReviewStep
         selectedInvoices={selectedInvoices}
-        selectedPaymentMethod={selectedPaymentMethod}
-        onPaymentMethodChange={handlePaymentMethodSelected}
         onBack={handleBack}
         onSubmit={handleSubmit}
       />

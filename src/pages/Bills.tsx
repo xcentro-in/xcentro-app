@@ -21,7 +21,6 @@ const Bills = () => {
   // Payment view state
   const [isPaymentView, setIsPaymentView] = useState(false);
   const [selectedBillForPayment, setSelectedBillForPayment] = useState<Invoice | null>(null);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
 
   // Get initial status from URL params
   const initialStatus = searchParams.get('status') as 'all' | 'paid' | 'open' | 'overdue' | null;
@@ -95,7 +94,6 @@ const Bills = () => {
   const handleBackToBills = () => {
     setIsPaymentView(false);
     setSelectedBillForPayment(null);
-    setSelectedPaymentMethod("");
   };
 
   const handlePaymentSubmit = async () => {
@@ -178,9 +176,6 @@ const Bills = () => {
             totalAmount={selectedBillForPayment.amount}
             paymentItems={paymentItems}
             summaryType="list"
-            scheduleText="Immediate"
-            selectedPaymentMethod={selectedPaymentMethod}
-            onPaymentMethodChange={setSelectedPaymentMethod}
             onBack={handleBackToBills}
             onSubmit={handlePaymentSubmit}
             additionalSummaryData={{

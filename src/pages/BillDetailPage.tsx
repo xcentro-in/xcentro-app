@@ -147,54 +147,60 @@ interface EditFormData {
 
 // Helper function to get event display properties based on action
 const getEventDisplay = (action: string) => {
-  switch (action) {
-    case 'created':
-      return { icon: FilePlus, color: 'text-blue-600', label: 'Voucher Created' };
-    case 'updated':
-      return { icon: FileText, color: 'text-gray-600', label: 'Voucher Updated' };
-    case 'approved':
-      return { icon: CheckCircle, color: 'text-green-600', label: 'Approved' };
-    case 'rejected':
-      return { icon: X, color: 'text-red-600', label: 'Rejected' };
-    case 'request_changes':
-      return { icon: AlertCircle, color: 'text-blue-600', label: 'Requested Changes' };
-    case 'pending':
-      return { icon: Clock, color: 'text-yellow-600', label: 'Pending Approval' };
-    case 'paid':
-      return { icon: CheckCircle, color: 'text-green-600', label: 'Payment Completed' };
-    case 'status_changed':
-      return { icon: AlertCircle, color: 'text-gray-600', label: 'Status Changed' };
-    case 'submitted':
-      return { icon: FileText, color: 'text-blue-600', label: 'Submitted for Approval' };
-    case 'finalized':
-      return { icon: CheckCircle, color: 'text-green-600', label: 'Finalized' };
-    default:
-      return { icon: Clock, color: 'text-gray-600', label: action.charAt(0).toUpperCase() + action.slice(1) };
+  // Normalize action for comparison (case-insensitive)
+  const normalizedAction = action.toLowerCase();
+
+  // Match common action patterns
+  if (normalizedAction.includes('created') || normalizedAction.includes('voucher created')) {
+    return { icon: FilePlus, color: 'text-blue-600', label: action };
   }
+  if (normalizedAction.includes('updated') || normalizedAction.includes('voucher updated')) {
+    return { icon: FileText, color: 'text-gray-600', label: action };
+  }
+  if (normalizedAction.includes('approved')) {
+    return { icon: CheckCircle, color: 'text-green-600', label: action };
+  }
+  if (normalizedAction.includes('rejected')) {
+    return { icon: X, color: 'text-red-600', label: action };
+  }
+  if (normalizedAction.includes('request') && normalizedAction.includes('change')) {
+    return { icon: AlertCircle, color: 'text-blue-600', label: action };
+  }
+  if (normalizedAction.includes('pending')) {
+    return { icon: Clock, color: 'text-yellow-600', label: action };
+  }
+  if (normalizedAction.includes('payment') && normalizedAction.includes('successful')) {
+    return { icon: CheckCircle, color: 'text-green-600', label: action };
+  }
+  if (normalizedAction.includes('payment') && normalizedAction.includes('initiated')) {
+    return { icon: Clock, color: 'text-blue-600', label: action };
+  }
+  if (normalizedAction.includes('payment') && (normalizedAction.includes('completed') || normalizedAction.includes('paid'))) {
+    return { icon: CheckCircle, color: 'text-green-600', label: action };
+  }
+  if (normalizedAction.includes('payment') && normalizedAction.includes('failed')) {
+    return { icon: AlertCircle, color: 'text-red-600', label: action };
+  }
+  if (normalizedAction.includes('payout') && normalizedAction.includes('failed')) {
+    return { icon: AlertTriangle, color: 'text-red-600', label: action };
+  }
+  if (normalizedAction.includes('payout') && normalizedAction.includes('successful')) {
+    return { icon: CheckCircle, color: 'text-green-600', label: action };
+  }
+  if (normalizedAction.includes('submitted')) {
+    return { icon: FileText, color: 'text-blue-600', label: action };
+  }
+  if (normalizedAction.includes('finalized')) {
+    return { icon: CheckCircle, color: 'text-green-600', label: action };
+  }
+  if (normalizedAction.includes('status') && normalizedAction.includes('changed')) {
+    return { icon: AlertCircle, color: 'text-gray-600', label: action };
+  }
+
+  // Default case - use the action as-is
+  return { icon: Clock, color: 'text-gray-600', label: action };
 };
 
-// Helper function to generate description from activity
-const getActivityDescription = (activity: any): string => {
-  // If remarks exist, use them
-  if (activity.remarks && activity.remarks.trim()) {
-    return activity.remarks;
-  }
-
-  // Otherwise generate description from activity_type and action
-  const activityTypeMap: { [key: string]: string } = {
-    'voucher_created': 'created the voucher',
-    'voucher_updated': 'updated the voucher',
-    'voucher_submitted': 'submitted the voucher for approval',
-    'voucher_approved': 'approved the voucher',
-    'voucher_rejected': 'rejected the voucher',
-    'voucher_finalized': 'finalized the voucher',
-    'status_changed': 'changed the status',
-    'payment_initiated': 'initiated payment',
-    'payment_completed': 'completed payment',
-  };
-
-  return activityTypeMap[activity.activity_type] || activity.activity_type.replace(/_/g, ' ');
-};
 
 // Helper function to map API response to BillSummary
 const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
@@ -933,10 +939,10 @@ const BillDetailPage = () => {
                     {getPaymentStatusLabel(bill.paymentStatus)}
                   </span>
                 </Badge>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {/* <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Eye className="h-3 w-3" />
                   <span>OCR Parsed</span>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -1565,12 +1571,6 @@ const BillDetailPage = () => {
                       </div>
                       <div className="flex items-center gap-2 mb-1">
                         <h2 className="text-xl font-bold">{bill.vendorName}</h2>
-                        <div className="flex items-center gap-1">
-                          {getConfidenceIcon(getOcrConfidence('vendorName'))}
-                          <span className={`text-xs ${getConfidenceColor(getOcrConfidence('vendorName'))}`}>
-                            {Math.round(getOcrConfidence('vendorName') * 100)}%
-                          </span>
-                        </div>
                       </div>
                       {bill.vendorGstin && (
                         <p className="text-sm text-muted-foreground">GSTIN: {bill.vendorGstin}</p>
@@ -1617,12 +1617,6 @@ const BillDetailPage = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="text-3xl font-bold text-primary">{formatCurrency(bill.amount)}</div>
-                    <div className="flex items-center gap-1">
-                      {getConfidenceIcon(getOcrConfidence('amount'))}
-                      <span className={`text-xs ${getConfidenceColor(getOcrConfidence('amount'))}`}>
-                        {Math.round(getOcrConfidence('amount') * 100)}%
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -1718,12 +1712,6 @@ const BillDetailPage = () => {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle>Line Items</CardTitle>
-                      <div className="flex items-center gap-1">
-                        {getConfidenceIcon(getOcrConfidence('items'))}
-                        <span className={`text-xs ${getConfidenceColor(getOcrConfidence('items'))}`}>
-                          OCR {Math.round(getOcrConfidence('items') * 100)}%
-                        </span>
-                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -1836,7 +1824,6 @@ const BillDetailPage = () => {
                       {activityData.activities.map((activity, index) => {
                         const eventDisplay = getEventDisplay(activity.action);
                         const EventIcon = eventDisplay.icon;
-                        const description = getActivityDescription(activity);
 
                         return (
                           <div key={activity.activity_id} className="flex gap-3">
@@ -1855,15 +1842,16 @@ const BillDetailPage = () => {
                               <div className="flex items-start justify-between mb-1">
                                 <div>
                                   <p className="text-sm font-medium">{eventDisplay.label}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    by {activity.user_name}
-                                  </p>
+                                  {activity.user_name && (
+                                    <p className="text-xs text-muted-foreground">
+                                      by {activity.user_name}
+                                    </p>
+                                  )}
                                 </div>
                                 <p className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                                   {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
                                 </p>
                               </div>
-                              <p className="text-sm text-muted-foreground">{description}</p>
                             </div>
                           </div>
                         );

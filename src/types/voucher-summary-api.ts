@@ -87,13 +87,10 @@ export interface VoucherActivityResponseAPI {
   voucher_number: string;
   activities: {
     activity_id: string;
-    activity_type: string; // 'voucher_created', 'voucher_updated', 'status_changed', etc.
-    user_id: string;
-    user_name: string;
-    action: string; // 'created', 'updated', 'approved', 'rejected', etc.
-    remarks: string;
+    user_id: string; // Can be empty for system actors
+    user_name: string; // e.g., "Shubhankar Bhadra", "mockpg_webhook", "payout_service"
+    action: string; // Human-readable action text: 'Voucher Created', 'Payment Initiated', 'Payment Successful', 'Payout Failed', etc.
     timestamp: string; // ISO 8601
-    metadata: string;
   }[];
   total_count: number;
 }
