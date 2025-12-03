@@ -17,8 +17,7 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
     onStepChange(step);
   }, [step, onStepChange]);
   const [state, setState] = useState<BatchPaymentState>({
-    selectedRows: [],
-    selectedPaymentMethod: undefined
+    selectedRows: []
   });
 
   const [uploadResponse, setUploadResponse] = useState<BatchUploadResponse | null>(null);
@@ -55,10 +54,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
     setCreatedVouchers(null);
     setSelectedPayments([]);
     setProcessedRowNumbers(new Set()); // Clear processed rows on re-upload
-  };
-
-  const handleSelectPaymentMethod = (id: string) => {
-    setState({ ...state, selectedPaymentMethod: id });
   };
 
   const handleVouchersCreated = (voucherResponse: VoucherCreationResponse, newPayments: MatchedPayment[]) => {
@@ -158,8 +153,6 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
           paymentRows={mapVouchersToPaymentRows()}
           setStep={setStep}
           onSubmit={handleSubmit}
-          selectedPaymentMethod={state.selectedPaymentMethod}
-          onPaymentMethodChange={handleSelectPaymentMethod}
         />
       )}
     </div>

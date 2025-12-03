@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatCurrency } from "@/utils/formatters";
-import { CreditCard, Building2, Info, AlertCircle } from "lucide-react";
+import { CreditCard, Building2, Info, AlertCircle, Loader2 } from "lucide-react";
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePaymentSources } from "@/hooks/usePaymentSources";
@@ -32,8 +33,6 @@ interface PaymentMethodAndReviewStepProps {
   totalAmount: number;
   paymentItems: PaymentItem[];
   summaryType: SummaryType;
-  selectedPaymentMethod?: string;
-  onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
   additionalSummaryData?: Record<string, any>;
@@ -46,8 +45,6 @@ const PaymentMethodAndReviewStep = ({
   totalAmount,
   paymentItems,
   summaryType,
-  selectedPaymentMethod,
-  onPaymentMethodChange,
   onBack,
   onSubmit,
   additionalSummaryData,
@@ -58,7 +55,8 @@ const PaymentMethodAndReviewStep = ({
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Internal state for payment scheduling - fully self-contained
+  // Internal state - fully self-contained
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [paymentType, setPaymentType] = useState<PaymentType>("tomorrow");
   const {
     sources,
@@ -71,6 +69,7 @@ const PaymentMethodAndReviewStep = ({
   } = usePaymentSources();
 
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Support backward compatibility: if voucherId is provided, convert to array
   const vouchers = voucherIds || (voucherId ? [voucherId] : []);
@@ -236,7 +235,7 @@ const PaymentMethodAndReviewStep = ({
             ? 'border-border'
             : 'border-border hover:border-primary/50'
         }`}
-        onClick={() => !isDisabled && onPaymentMethodChange(source.source_id)}
+        onClick={() => !isDisabled && setSelectedPaymentMethod(source.source_id)}
       >
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-full ${
@@ -423,7 +422,7 @@ const PaymentMethodAndReviewStep = ({
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <h4 className="font-medium">Cards</h4>
-                    <Badge variant="secondary" className="text-xs">Higher rewards</Badge>
+                    {/* <Badge variant="secondary" className="text-xs">Higher rewards</Badge> */}
                   </div>
                   <div className="space-y-3">
                     {isLoading ? (
@@ -539,22 +538,59 @@ const PaymentMethodAndReviewStep = ({
         </Card>
       </div>
 
-      {/* Payment Schedule Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Schedule your payment</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <PaymentScheduleSelector
-            paymentType={paymentType}
-            scheduledDate={undefined}
-            frequency=""
-            onPaymentTypeChange={setPaymentType}
-            onScheduledDateChange={() => {}}
-            onFrequencyChange={() => {}}
-          />
-        </CardContent>
-      </Card>
+      {/* Payment Schedule Section - Behind feature flag */}
+      <FeatureEnabled featureFlag="PAYMENT_SCHEDULING">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Schedule your payment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PaymentScheduleSelector
+              paymentType={paymentType}
+              scheduledDate={undefined}
+              frequency=""
+              onPaymentTypeChange={setPaymentType}
+              onScheduledDateChange={() => {}}
+              onFrequencyChange={() => {}}
+            />
+          </CardContent>
+        </Card>
+      </FeatureEnabled>
+
+      {/* Terms and Conditions Checkbox */}
+      <div className="flex items-start gap-3 p-4 border rounded-lg bg-muted/30">
+        <Checkbox
+          id="terms"
+          checked={termsAccepted}
+          onCheckedChange={(checked) => setTermsAccepted(checked === true)}
+          disabled={isProcessingPayment}
+          className="mt-1"
+        />
+        <label
+          htmlFor="terms"
+          className="text-sm leading-relaxed cursor-pointer select-none"
+        >
+          I agree to and accept the{" "}
+          <a
+            href="https://www.xcentro.in/terms-and-conditions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            terms and conditions
+          </a>{" "}
+          and also have read and accepted the{" "}
+          <a
+            href="https://www.xcentro.in/refund-policy"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:underline font-medium"
+          >
+            refund policy
+          </a>
+          .
+        </label>
+      </div>
 
       <div className="flex justify-between gap-4">
         <Button
@@ -567,10 +603,17 @@ const PaymentMethodAndReviewStep = ({
         </Button>
         <Button
           onClick={handleConfirmPayment}
-          disabled={!selectedPaymentMethod || isProcessingPayment}
-          className="w-auto"
+          disabled={!selectedPaymentMethod || !termsAccepted || isProcessingPayment}
+          className="w-auto gap-2"
         >
-          {isProcessingPayment ? "Processing..." : "Confirm Payment"}
+          {isProcessingPayment ? (
+            <>
+              Processing...
+              <Loader2 className="h-4 w-4 animate-spin" />
+            </>
+          ) : (
+            "Confirm Payment"
+          )}
         </Button>
       </div>
     </div>

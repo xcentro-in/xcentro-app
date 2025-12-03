@@ -3,18 +3,14 @@ import { Employee } from "./types";
 
 interface PayrollPaymentMethodAndReviewStepProps {
   selectedEmployees: Employee[];
-  selectedPaymentMethod: string | undefined;
   voucherIds: string[];
-  onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
 }
 
 const PayrollPaymentMethodAndReviewStep = ({
   selectedEmployees,
-  selectedPaymentMethod,
   voucherIds,
-  onPaymentMethodChange,
   onBack,
   onSubmit,
 }: PayrollPaymentMethodAndReviewStepProps) => {
@@ -31,8 +27,6 @@ const PayrollPaymentMethodAndReviewStep = ({
       totalAmount={totalSalary}
       paymentItems={paymentItems}
       summaryType="list"
-      selectedPaymentMethod={selectedPaymentMethod}
-      onPaymentMethodChange={onPaymentMethodChange}
       onBack={onBack}
       onSubmit={onSubmit}
       voucherIds={voucherIds}

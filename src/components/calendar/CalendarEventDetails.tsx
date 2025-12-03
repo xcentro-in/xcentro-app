@@ -16,12 +16,14 @@ interface CalendarEventDetailsProps {
   open: boolean;
   selectedDay: CalendarDay | null;
   onClose: () => void;
+  onPayBill?: (billId: string) => void;
 }
 
 const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
   open,
   selectedDay,
-  onClose
+  onClose,
+  onPayBill
 }) => {
   const navigate = useNavigate();
   
@@ -55,8 +57,13 @@ const CalendarEventDetails: React.FC<CalendarEventDetailsProps> = ({
   };
 
   const handlePayBill = (event: CalendarEvent) => {
-    // Navigate to bill details page with payment tab
-    navigate(`/bills/${event.id}?tab=payment`);
+    if (onPayBill) {
+      // Use parent callback to handle payment flow
+      onPayBill(String(event.id));
+    } else {
+      // Fallback: Navigate to bill details page with payment tab
+      navigate(`/bills/${event.id}?tab=payment`);
+    }
   };
   
   return (

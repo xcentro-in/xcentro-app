@@ -3,16 +3,12 @@ import { Invoice } from "@/data/mockInvoices";
 
 interface InvoicePaymentMethodAndReviewStepProps {
   selectedInvoices: Invoice[];
-  selectedPaymentMethod?: string;
-  onPaymentMethodChange: (methodId: string) => void;
   onBack: () => void;
   onSubmit: () => void;
 }
 
 const InvoicePaymentMethodAndReviewStep = ({
   selectedInvoices,
-  selectedPaymentMethod,
-  onPaymentMethodChange,
   onBack,
   onSubmit,
 }: InvoicePaymentMethodAndReviewStepProps) => {
@@ -33,8 +29,6 @@ const InvoicePaymentMethodAndReviewStep = ({
       totalAmount={totalAmount}
       paymentItems={paymentItems}
       summaryType="list"
-      selectedPaymentMethod={selectedPaymentMethod}
-      onPaymentMethodChange={onPaymentMethodChange}
       onBack={onBack}
       onSubmit={onSubmit}
       voucherIds={voucherIds}

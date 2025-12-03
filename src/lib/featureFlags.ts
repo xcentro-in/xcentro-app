@@ -29,6 +29,7 @@ export const FEATURE_FLAGS = {
   PAYMENT_METHOD_BANK: false,
   PAYMENT_METHOD_BNPL: false,
   PAYMENT_METHOD_UPI: false,
+  PAYMENT_SCHEDULING: false,
   MULTIPLE_ALLOWANCES: [
     { userRoles: ["developer", "owner"] },
   ],

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import PaymentMethodAndReviewStep from "../../shared/PaymentMethodAndReviewStep";
 import { PaymentRow } from "./types";
 
@@ -6,22 +5,13 @@ interface BatchPaymentMethodAndReviewStepProps {
   paymentRows: PaymentRow[]; // Already filtered list from created vouchers
   setStep: (step: number) => void;
   onSubmit: () => void;
-  selectedPaymentMethod?: string;
-  onPaymentMethodChange?: (methodId: string) => void;
 }
 
 const BatchPaymentMethodAndReviewStep = ({
   paymentRows,
   setStep,
   onSubmit,
-  selectedPaymentMethod: externalSelectedPaymentMethod,
-  onPaymentMethodChange: externalOnPaymentMethodChange
 }: BatchPaymentMethodAndReviewStepProps) => {
-  const [internalSelectedPaymentMethod, setInternalSelectedPaymentMethod] = useState<string>("");
-
-  // Use external state if provided, otherwise use internal
-  const selectedPaymentMethod = externalSelectedPaymentMethod ?? internalSelectedPaymentMethod;
-  const onPaymentMethodChange = externalOnPaymentMethodChange ?? setInternalSelectedPaymentMethod;
 
   // paymentRows is already filtered - contains only created vouchers
   const totalAmount = paymentRows.reduce((sum, row) => sum + row.amount, 0);
@@ -41,8 +31,6 @@ const BatchPaymentMethodAndReviewStep = ({
       totalAmount={totalAmount}
       paymentItems={paymentItems}
       summaryType="list"
-      selectedPaymentMethod={selectedPaymentMethod}
-      onPaymentMethodChange={onPaymentMethodChange}
       onBack={() => setStep(2)}
       onSubmit={onSubmit}
       voucherIds={voucherIds}

@@ -94,10 +94,10 @@ const InvoiceDetails = ({ invoice, onClose, onPayBill }: InvoiceDetailsProps) =>
             {invoice.status.toUpperCase()}
           </Badge>
           {/* OCR Quality Indicator */}
-          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+          {/* <div className="flex items-center space-x-1 text-xs text-muted-foreground">
             <Eye className="h-3 w-3" />
             <span>OCR Parsed</span>
-          </div>
+          </div> */}
         </div>
         <div className="flex items-center space-x-2">
           {canPay && onPayBill && (

@@ -10,7 +10,8 @@ import {
   Check,
   ChevronLeft,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -536,7 +537,7 @@ const AddPaymentMethod = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row sm:justify-between gap-4 pt-4 border-t">
+                <div className="flex flex-col sm:flex-row sm:justify-end gap-4 pt-4 border-t">
                   {/* <div className="space-y-4">
                     <div className="flex items-center space-x-2">
                       <Switch id="defaultCard" />
@@ -549,15 +550,24 @@ const AddPaymentMethod = () => {
                     </div>
                   </div> */}
 
-                  <div className="flex justify-right">
+                  <div className="flex justify-end">
                     <Button
                       type="submit"
                       size="lg"
                       disabled={isSubmitting}
                       className="gap-2 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary"
                     >
-                      {isSubmitting ? "Processing..." : "Add Card"}
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      {isSubmitting ? (
+                        <>
+                          Processing...
+                          <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        <>
+                          Add Card
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>
