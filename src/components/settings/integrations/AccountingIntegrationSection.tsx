@@ -12,19 +12,19 @@ const accountingSoftwareOptions: AccountingSoftware[] = [
     id: "zoho",
     name: "Zoho Books",
     description: "Complete accounting solution for growing businesses",
-    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/zohobooks_icon.png?updatedAt=1745244401455"
+    icon: "https://ik.imagekit.io/mddzdzy9m/Xcentro/zohobooks_icon.png?updatedAt=1745244401455"
   },
   {
     id: "tally",
     name: "Tally",
     description: "Widely used in India for business accounting",
-    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/tally_logo.png?updatedAt=1745244442312"
+    icon: "https://ik.imagekit.io/mddzdzy9m/Xcentro/tally_logo.png?updatedAt=1745244442312"
   },
   {
     id: "busy",
     name: "Busy",
     description: "Popular business accounting software",
-    icon: "https://ik.imagekit.io/mddzdzy9m/PaySphere/busy_logo.png?updatedAt=1745245079718"
+    icon: "https://ik.imagekit.io/mddzdzy9m/Xcentro/busy_logo.png?updatedAt=1745245079718"
   }
 ];
 

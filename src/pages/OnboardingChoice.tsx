@@ -24,8 +24,8 @@ const OnboardingChoice = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img
-              src="https://ik.imagekit.io/mddzdzy9m/PaySphere/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max"
-              alt="PaySphere Logo"
+              src="https://ik.imagekit.io/mddzdzy9m/Xcentro/logo_dark_transparent.png?updatedAt=1745093381726&tr=w-200,h-200,c-at_max"
+              alt="Xcentro Logo"
               className="h-24 w-auto object-contain"
             />
           </div>
@@ -48,7 +48,7 @@ const OnboardingChoice = () => {
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold">Join Existing Business</h3>
                   <p className="text-sm text-muted-foreground">
-                    Connect with a business that's already on PaySphere using their GSTIN
+                    Connect with a business that's already on Xcentro using their GSTIN
                   </p>
                 </div>
                 <Button
@@ -75,7 +75,7 @@ const OnboardingChoice = () => {
                 <div className="text-center space-y-2">
                   <h3 className="text-lg font-semibold">Create New Business</h3>
                   <p className="text-sm text-muted-foreground">
-                    Onboard your business to PaySphere and start managing payments
+                    Onboard your business to Xcentro and start managing payments
                   </p>
                 </div>
                 <Button
@@ -100,7 +100,7 @@ const OnboardingChoice = () => {
                 <li className="flex items-start">
                   <span className="mr-2">•</span>
                   <span>
-                    <strong>Join Existing:</strong> If your business is already registered on PaySphere,
+                    <strong>Join Existing:</strong> If your business is already registered on Xcentro,
                     join using the GSTIN. Complete your user profile and wait for approval.
                   </span>
                 </li>

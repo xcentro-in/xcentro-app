@@ -53,7 +53,7 @@ npm run preview
 ## Architecture Overview
 
 ### Application Structure
-PaySphere is a comprehensive payment management platform with the following core modules:
+Xcentro is a comprehensive payment management platform with the following core modules:
 
 - **Payment Processing**: New payments, upcoming payments, payment history
 - **Payee Management**: Contact management and payee relationships

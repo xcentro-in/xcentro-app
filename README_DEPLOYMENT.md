@@ -12,15 +12,15 @@ Add these secrets:
 
 | Secret Name | Description | Example |
 |-------------|-------------|---------|
-| `PROD_BACKEND_URL` | Production API URL (for main branch) | `https://api.paysphere.com/v1` |
-| `STAGING_BACKEND_URL` | Staging API URL (for staging branch) | `https://api-staging.paysphere.com/v1` |
-| `DEV_BACKEND_URL` | Development API URL (for dev branch) | `https://api-dev.paysphere.com/v1` |
+| `PROD_BACKEND_URL` | Production API URL (for main branch) | `https://api.xcentro.in/v1` |
+| `STAGING_BACKEND_URL` | Staging API URL (for staging branch) | `https://api-staging.xcentro.in/v1` |
+| `DEV_BACKEND_URL` | Development API URL (for dev branch) | `https://api-dev.xcentro.in/v1` |
 
 ### How It Works
 
 1. You push code to `main`, `dev`, or `staging` branch
 2. GitHub Actions builds Docker image with the correct backend URL
-3. Image is pushed to `ghcr.io/YOUR_ORG/paysphere-app:TAG`
+3. Image is pushed to `ghcr.io/YOUR_ORG/xcentro-app:TAG`
    - `main` branch → `latest` tag
    - `staging` branch → `staging` tag
    - `dev` branch → `dev` tag
@@ -54,23 +54,23 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u $GITHUB_USERNAME --password-stdin
 ### 3. Pull and Run the Image
 
 ```bash
-# Pull the image (replace YOUR_ORG/paysphere-app with your repo)
-docker pull ghcr.io/YOUR_ORG/paysphere-app:latest
+# Pull the image (replace YOUR_ORG/xcentro-app with your repo)
+docker pull ghcr.io/YOUR_ORG/xcentro-app:latest
 
 # Stop old container (if exists)
-docker stop paysphere-frontend 2>/dev/null || true
-docker rm paysphere-frontend 2>/dev/null || true
+docker stop xcentro-app 2>/dev/null || true
+docker rm xcentro-app 2>/dev/null || true
 
 # Run new container
 docker run -d \
-  --name paysphere-frontend \
+  --name xcentro-app \
   --restart unless-stopped \
   -p 80:80 \
-  ghcr.io/YOUR_ORG/paysphere-app:latest
+  ghcr.io/YOUR_ORG/xcentro-app:latest
 
 # Check it's running
 docker ps
-docker logs paysphere-frontend
+docker logs xcentro-app
 ```
 
 ### 4. Access Your App
@@ -88,8 +88,8 @@ version: '3.8'
 
 services:
   frontend:
-    image: ghcr.io/YOUR_ORG/paysphere-app:latest
-    container_name: paysphere-frontend
+    image: ghcr.io/YOUR_ORG/xcentro-app:latest
+    container_name: xcentro-app
     restart: unless-stopped
     ports:
       - "80:80"
@@ -110,15 +110,15 @@ docker compose up -d
 
 ```bash
 # Pull latest image
-docker pull ghcr.io/YOUR_ORG/paysphere-app:latest
+docker pull ghcr.io/YOUR_ORG/xcentro-app:latest
 
 # Restart
 docker compose restart
 
 # Or manually:
-docker stop paysphere-frontend
-docker rm paysphere-frontend
-docker run -d --name paysphere-frontend --restart unless-stopped -p 80:80 ghcr.io/YOUR_ORG/paysphere-app:latest
+docker stop xcentro-app
+docker rm xcentro-app
+docker run -d --name xcentro-app --restart unless-stopped -p 80:80 ghcr.io/YOUR_ORG/xcentro-app:latest
 ```
 
 ---
@@ -127,13 +127,13 @@ docker run -d --name paysphere-frontend --restart unless-stopped -p 80:80 ghcr.i
 
 ```bash
 # View logs
-docker logs -f paysphere-frontend
+docker logs -f xcentro-app
 
 # Restart
-docker restart paysphere-frontend
+docker restart xcentro-app
 
 # Stop
-docker stop paysphere-frontend
+docker stop xcentro-app
 
 # Check status
 docker ps
