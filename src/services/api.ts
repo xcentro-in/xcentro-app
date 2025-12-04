@@ -1,11 +1,23 @@
+/**
+ * API Service Layer
+ *
+ * Features:
+ * - Automatic access token refresh with promise caching (prevents race conditions)
+ * - Session expiration handling
+ * - Rate limiting detection
+ * - Cookie-based authentication (httpOnly cookies)
+ * - Custom event emission for auth state changes
+ */
+
 import { rateLimitManager } from '@/lib/rateLimitManager';
 
-// Vite uses import.meta.env instead of process.env
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
 class ApiService {
   private baseUrl: string;
   private authToken?: string;
+  private refreshPromise: Promise<boolean> | null = null;
+  private isSessionExpired: boolean = false;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -16,16 +28,91 @@ class ApiService {
     this.authToken = token;
   }
 
+  /**
+   * Refresh access token using refresh token stored in httpOnly cookie
+   * Uses promise caching to prevent multiple simultaneous refresh attempts
+   */
+  private async refreshAccessToken(): Promise<boolean> {
+    // If refresh is already in progress, wait for it
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    // Start new refresh and cache the promise
+    this.refreshPromise = (async () => {
+      try {
+        const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include', // Include cookies for refresh
+        });
+
+        if (refreshResponse.ok) {
+          // Success - new access token cookie set by backend
+          return true;
+        } else {
+          // Refresh failed - session expired
+          return false;
+        }
+      } catch (error) {
+        console.error('[ApiService] Token refresh failed:', error);
+        return false;
+      } finally {
+        // Clear the promise cache after completion
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Handle session expiration - clear local state and emit event
+   * Uses guard flag to prevent multiple emissions
+   */
+  private handleSessionExpired(): void {
+    // Guard: Only emit event once per session
+    if (this.isSessionExpired) {
+      console.log('[ApiService] Session already marked as expired, skipping duplicate event');
+      return;
+    }
+
+    console.log('[ApiService] Session expired, clearing state');
+    this.isSessionExpired = true;
+
+    // Clear local storage
+    localStorage.removeItem('auth-token');
+    localStorage.removeItem('business-id');
+    localStorage.removeItem('user-data');
+    this.authToken = null;
+
+    // Emit event for AuthContext to handle cleanup (only once)
+    window.dispatchEvent(new CustomEvent('api:session-expired'));
+  }
+
+  /**
+   * Reset session expired flag (called after successful login)
+   */
+  resetSessionState(): void {
+    this.isSessionExpired = false;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
     isRetry: boolean = false
   ): Promise<T> {
+    // Guard: If session already expired, reject immediately
+    if (this.isSessionExpired) {
+      const error: any = new Error('Session expired. Please login again.');
+      error.code = 'SESSION_EXPIRED';
+      error.status = 401;
+      throw error;
+    }
+
     // Use instance token if available, fallback to localStorage
     const token = this.authToken || localStorage.getItem('auth-token');
 
     // Build headers: start with defaults, then merge caller's headers
-    // This ensures custom headers from the caller are preserved
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -37,9 +124,9 @@ class ApiService {
     }
 
     const config: RequestInit = {
-      ...options, // Spread all caller's options first (method, body, etc.)
-      headers,    // Then set the merged headers (this preserves custom headers)
-      credentials: 'include', // Important: Include cookies in requests
+      ...options,
+      headers,
+      credentials: 'include', // Include cookies in requests
     };
 
     try {
@@ -54,14 +141,12 @@ class ApiService {
           const scope = errorData.scope || 'unknown';
           const policyGroup = errorData.policy_group || 'default';
 
-          // Add to rate limit manager (will handle popup queue)
           rateLimitManager.addError({
             retryAfterSecs,
             scope,
             policyGroup,
           });
 
-          // Still throw error so the calling code can handle it
           const error: any = new Error(
             `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
           );
@@ -73,51 +158,23 @@ class ApiService {
 
         // Handle 401 errors - authentication failures
         if (response.status === 401) {
-          // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
-          // This prevents infinite loops when user is not authenticated
+          // TOKEN_EXPIRED: Access token expired, try refresh
           if (!isRetry && errorData.error === 'TOKEN_EXPIRED') {
-            try {
-              // Call refresh token endpoint
-              const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
-                method: 'POST',
-                credentials: 'include', // Include cookies for refresh
-              });
+            const refreshSucceeded = await this.refreshAccessToken();
 
-              if (refreshResponse.ok) {
-                // Retry the original request with the new token (cookies are automatically updated)
-                return this.request<T>(endpoint, options, true);
-              } else {
-                // If refresh fails, clear tokens
-                localStorage.removeItem('auth-token');
-                localStorage.removeItem('business-id');
-                localStorage.removeItem('user-data');
-                this.authToken = null;
-
-                // Only redirect if not already on login page (avoid infinite loop)
-                if (window.location.pathname !== '/login') {
-                  window.location.href = '/login';
-                }
-                return Promise.reject(new Error('Session expired. Please login again.'));
-              }
-            } catch (refreshError) {
-              console.error('Token refresh failed:', refreshError);
-              // Clear tokens
-              localStorage.removeItem('auth-token');
-              localStorage.removeItem('business-id');
-              localStorage.removeItem('user-data');
-              this.authToken = null;
-
-              // Only redirect if not already on login page (avoid infinite loop)
-              if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-              }
-              return Promise.reject(new Error('Session expired. Please login again.'));
+            if (refreshSucceeded) {
+              // Retry original request with new token
+              return this.request<T>(endpoint, options, true);
+            } else {
+              // Refresh failed - session expired
+              this.handleSessionExpired();
+              const error: any = new Error('Session expired. Please login again.');
+              error.code = 'SESSION_EXPIRED';
+              error.status = 401;
+              throw error;
             }
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
-            // For MISSING_TOKEN or INVALID_TOKEN, emit event and throw error
-            // The AuthContext will listen for this event and handle logout
-            // This prevents infinite loops during page load
-            // Emit custom event for AuthContext to handle
+            // No valid auth - emit event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
               detail: { code: errorData.error, message: errorData.message }
             }));
@@ -131,7 +188,7 @@ class ApiService {
 
         // For all other errors, just throw the error
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
-        error.code = errorData.error; // Preserve error code
+        error.code = errorData.error;
         error.status = response.status;
         throw error;
       }
@@ -140,7 +197,7 @@ class ApiService {
     } catch (error) {
       // Only log non-auth errors
       if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
-        console.error('API Request failed:', error);
+        console.error('[ApiService] Request failed:', error);
       }
       throw error;
     }
@@ -155,6 +212,9 @@ class ApiService {
       };
       message: string;
     }> => {
+      // Reset session expired flag on login attempt
+      this.resetSessionState();
+
       return this.request('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),

@@ -3,6 +3,17 @@
  *
  * Single source of truth for determining user routing based on onboarding status.
  * Eliminates race conditions and duplicate API calls by using data from AuthContext.
+ *
+ * Flow:
+ * 1. Not authenticated → /login
+ * 2. No roles:
+ *    - KYB incomplete → /business-onboarding
+ *    - KYC incomplete → /onboarding
+ *    - Both complete → /pending-approval (waiting for role assignment)
+ * 3. Has roles:
+ *    - KYC needed → /onboarding
+ *    - Role = "none" → /pending-approval
+ *    - Fully onboarded → /dashboard (or any app page)
  */
 
 import { UserRole } from '@/contexts/AuthContext';
@@ -30,6 +41,7 @@ const ROUTES = {
   PENDING_APPROVAL: '/pending-approval',
 } as const;
 
+// Pages that don't require full app access (onboarding/auth flows)
 const AUTH_PAGES = [
   '/login',
   '/signup',
