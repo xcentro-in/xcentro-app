@@ -9,6 +9,7 @@ interface NotificationsListProps {
   onMarkAsRead: (id: string) => void;
   onDismiss: (id: string) => void;
   handleNavigate: (notification: NotificationItemType) => void;
+  onClose?: () => void;
 }
 
 const NotificationsList = ({
@@ -16,6 +17,7 @@ const NotificationsList = ({
   onMarkAsRead,
   onDismiss,
   handleNavigate,
+  onClose,
 }: NotificationsListProps) => {
   return (
     <ScrollArea className="h-full pr-4">
@@ -35,6 +37,7 @@ const NotificationsList = ({
               onMarkAsRead={onMarkAsRead}
               onDismiss={onDismiss}
               handleNavigate={handleNavigate}
+              onClose={onClose}
             />
           ))}
         </div>

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 interface NotificationActionsProps {
   notification: NotificationItem;
+  onClose?: () => void;
 }
 
 const getButtonClasses = (buttonType: ActionButton['type']): string => {
@@ -26,7 +27,8 @@ const getButtonClasses = (buttonType: ActionButton['type']): string => {
 };
 
 export const NotificationActions = ({
-  notification
+  notification,
+  onClose
 }: NotificationActionsProps) => {
   const navigate = useNavigate();
 
@@ -38,6 +40,11 @@ export const NotificationActions = ({
 
   const handleActionClick = (action: ActionButton, e: React.MouseEvent) => {
     e.stopPropagation();
+
+    // Close modal before navigation for better UX
+    if (onClose) {
+      onClose();
+    }
 
     // Construct full URL with current hostname
     const fullUrl = `${window.location.origin}${action.href}`;

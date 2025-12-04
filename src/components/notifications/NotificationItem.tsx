@@ -10,6 +10,7 @@ interface NotificationItemProps {
   onMarkAsRead: (id: string) => void;
   onDismiss: (id:string) => void;
   handleNavigate: (notification: NotificationItemType) => void;
+  onClose?: () => void;
 }
 
 const NotificationItem = ({
@@ -17,6 +18,7 @@ const NotificationItem = ({
   onMarkAsRead,
   onDismiss,
   handleNavigate,
+  onClose,
 }: NotificationItemProps) => {
   const { container } = notificationStyles;
 
@@ -53,7 +55,7 @@ const NotificationItem = ({
           {notification.message}
         </p>
 
-        <NotificationActions notification={notification} />
+        <NotificationActions notification={notification} onClose={onClose} />
       </div>
     </div>
   );

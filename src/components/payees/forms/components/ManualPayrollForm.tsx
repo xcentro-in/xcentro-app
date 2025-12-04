@@ -81,6 +81,15 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
     }
   };
 
+  // Check if all required fields are filled
+  const isFormValid =
+    employeeName.trim() !== "" &&
+    email.trim() !== "" &&
+    contactNumber.trim() !== "" &&
+    accountNumber.trim() !== "" &&
+    ifscCode.trim() !== "" &&
+    ifscValid === true;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -212,7 +221,7 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
         <Button
           type="submit"
           className="w-auto h-11"
-          disabled={isSubmitting || !ifscValid}
+          disabled={!isFormValid || isSubmitting}
         >
           {isSubmitting ? "Adding Employee..." : "Continue"}
         </Button>

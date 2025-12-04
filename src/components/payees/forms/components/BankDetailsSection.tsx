@@ -134,12 +134,13 @@ const BankDetailsSection = ({
           </div>
 
           <div className="space-y-2.5">
-            <Label htmlFor="contactNumber" className="text-sm font-medium">Contact Number (Optional)</Label>
+            <Label htmlFor="contactNumber" className="text-sm font-medium">Contact Number</Label>
             <Input
               id="contactNumber"
               placeholder="For payment notifications"
               value={contactNumber}
               onChange={e => setContactNumber(e.target.value)}
+              required
               className="h-11"
             />
           </div>

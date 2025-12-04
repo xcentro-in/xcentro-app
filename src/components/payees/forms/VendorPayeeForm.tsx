@@ -89,6 +89,14 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
     }
   };
   
+  // Check if all required fields are filled
+  const isFormValid =
+    payeeName.trim() !== "" &&
+    accountNumber.trim() !== "" &&
+    ifscCode.trim() !== "" &&
+    contactNumber.trim() !== "" &&
+    ifscValid === true;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -201,7 +209,7 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
       <div className="flex justify-end">
         <Button
           type="submit"
-          disabled={isSubmitting || isSuccess}
+          disabled={!isFormValid || isSubmitting || isSuccess}
           className={`h-11 px-6 ${isSuccess ? 'bg-green-600 hover:bg-green-600' : ''}`}
         >
           {isSubmitting ? (
