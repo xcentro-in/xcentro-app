@@ -159,6 +159,7 @@ const NotificationPopup = ({
                     onMarkAsRead={onMarkAsRead}
                     onDismiss={onDismiss}
                     handleNavigate={handleNavigate}
+                    onClose={onClose}
                   />
                 </div>
               </div>

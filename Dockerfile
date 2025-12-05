@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for PaySphere Frontend
+# Multi-stage Dockerfile for Xcentro Frontend
 
 # Stage 1: Build the application
 FROM node:18-alpine AS builder

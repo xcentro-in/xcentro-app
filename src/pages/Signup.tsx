@@ -240,9 +240,14 @@ const Signup = () => {
                 />
                 <div className="text-xs text-muted-foreground">
                   By signing up, you agree to our{" "}
-                  <Link to="#" className="underline text-primary">
+                  <a
+                    href="https://www.xcentro.in/terms-and-conditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
                     Terms and Conditions
-                  </Link>
+                  </a>
                 </div>
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
                   {isSubmitting ? (

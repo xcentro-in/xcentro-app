@@ -184,8 +184,11 @@ const EmptyStateDashboard = () => {
       {completedSteps === steps.length && (
         <Card className="p-6 bg-primary/5 border-primary animate-fade-in text-center">
           <p className="text-lg font-medium">
-            🎉 Congratulations! You've completed all the setup steps. Your dashboard is now active!
-            <br></br> Make 4 more succesfull payments and see your dashboard come to life!
+            🎉 Setup complete! Your account is now active.
+            <br />
+            <span className="font-normal text-gray-600">
+              Note: Detailed analytics will appear after you complete a total of 5 transactions.
+            </span>
           </p>
         </Card>
       )}
