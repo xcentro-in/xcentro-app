@@ -41,7 +41,7 @@ class ApiService {
     // Start new refresh and cache the promise
     this.refreshPromise = (async () => {
       try {
-        const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
+        const refreshResponse = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
           method: 'POST',
           credentials: 'include', // Include cookies for refresh
         });
