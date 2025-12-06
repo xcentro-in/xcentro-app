@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Xcentro Frontend
 
 # Stage 1: Build the application
-FROM node:18-alpine AS builder
+FROM node:lts-alpine AS builder
 
 # Set working directory
 WORKDIR /app
