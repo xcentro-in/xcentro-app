@@ -17,6 +17,19 @@ export interface OnboardingStatus {
   hasAddedPaymentMethod?: boolean;
   hasAddedVendor?: boolean;
   hasCreatedFirstPayment?: boolean;
+  
+  // Business details for pre-filling onboarding
+  bid?: string;
+  businessName?: string;
+  gstin?: string;
+  businessType?: string;
+  cin?: string;
+
+  // User KYC details for pre-filling onboarding
+  userName?: string;
+  dob?: string;
+  pan?: string;
+  aadhaar?: string;
 }
 
 interface AuthContextType extends AuthState {
@@ -57,7 +70,9 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
         user: action.payload.user,
         token: action.payload.token,
         isAuthenticated: true,
-        isLoading: false,
+        // Keep isLoading true until user profile/roles are fully fetched
+        // This prevents ProtectedRoute from making premature routing decisions
+        isLoading: true,
       };
 
     case 'LOGOUT':
@@ -112,9 +127,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           id: '', // Will be populated from user profile API later
           name: '',
           email: email,
-          role: '',
-          businessId: '',
-          businessName: '',
         },
         token: apiResponse.data.accessToken, // Not stored, just returned for context
         refreshToken: apiResponse.data.refreshToken, // Not stored, just returned for context
@@ -223,13 +235,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       // Extract business status
       if (businessStatusResult.status === 'fulfilled' && businessStatusResult.value?.data) {
-        combinedOnboardingStatus.kybStatus = businessStatusResult.value.data.kybStatus;
-        combinedOnboardingStatus.kybInitiated = businessStatusResult.value.data.kybInitiated ?? false;
+        const data = businessStatusResult.value.data;
+        combinedOnboardingStatus.kybStatus = data.kybStatus;
+        combinedOnboardingStatus.kybInitiated = data.kybInitiated ?? false;
+        
+        // Store business details
+        combinedOnboardingStatus.bid = data.bid;
+        combinedOnboardingStatus.businessName = data.name;
+        combinedOnboardingStatus.gstin = data.gstin;
+        combinedOnboardingStatus.businessType = data.businessType;
+        combinedOnboardingStatus.cin = data.cid;
       }
 
       // Extract user KYC status
       if (userStatusResult.status === 'fulfilled' && userStatusResult.value?.data) {
-        combinedOnboardingStatus.kycStatus = userStatusResult.value.data.kycStatus;
+        const data = userStatusResult.value.data;
+        combinedOnboardingStatus.kycStatus = data.kycStatus;
+        
+        // Store user details
+        combinedOnboardingStatus.userName = data.name;
+        combinedOnboardingStatus.dob = data.dob;
+        combinedOnboardingStatus.pan = data.taxId;
+        combinedOnboardingStatus.aadhaar = data.nationalId;
       }
 
       // Extract app onboarding status (for dashboard milestones)
@@ -242,8 +269,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       // Step 3: Create user object with all data
-      const role = primaryRole?.role || '';
-
+      // Note: businessId and role are NOT stored in user object
+      // Use userRoles array to get business associations and roles
       const user: AuthUser = {
         id: profile.userId,
         name: profile.name,
@@ -251,9 +278,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         mobile: profile.mobile,
         taxId: profile.taxId,
         maskedNationalId: profile.maskedNationalId,
-        role: role,
-        businessId: businessId,
-        businessName: '', // Will be populated by BusinessContext
         rewardPoints: 0,
         // App onboarding flags
         showDashboard: combinedOnboardingStatus.showDashboard,
@@ -274,11 +298,28 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Clear any partial state on failure
       setUserRolesState([]);
       setOnboardingStatus(null);
+      
+      // Stop loading even if initialization failed so UI doesn't hang indefinitely
+      // Depending on error type, we might want to logout or show error
+      dispatch({ type: 'SET_LOADING', payload: false });
 
       // Re-throw to let caller handle
       throw error;
     }
   };
+
+  // Effect to trigger initialization after successful login
+  useEffect(() => {
+    // If authenticated but user ID is missing (dummy user from login), trigger initialization
+    if (state.isAuthenticated && state.user && !state.user.id) {
+      console.log('[AuthContext] Authenticated but incomplete profile, initializing user...');
+      initializeUser().catch(err => {
+        console.error('[AuthContext] Auto-initialization failed:', err);
+        // If init fails after login, we probably should logout to reset state
+        dispatch({ type: 'LOGOUT' });
+      });
+    }
+  }, [state.isAuthenticated, state.user]);
 
   /**
    * DEPRECATED: Use initializeUser() instead
@@ -298,15 +339,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     await initializeUser();
   };
 
-  const refreshOnboardingStatus = async (): Promise<void> => {
-    // Don't call if no user or no businessId
-    if (!state.user?.businessId) {
-      console.warn('Cannot refresh onboarding status: no user or businessId');
+  const refreshOnboardingStatus = React.useCallback(async (): Promise<void> => {
+    // Don't call if no user or no roles
+    if (!state.user || !userRoles || userRoles.length === 0) {
+      console.warn('Cannot refresh onboarding status: no user or roles');
       return;
     }
 
     try {
-      const onboardingResponse = await authAPI.getOnboardingStatus(state.user.businessId);
+      const primaryBusinessId = userRoles[0].businessId;
+      const onboardingResponse = await authAPI.getOnboardingStatus(primaryBusinessId);
 
       if (onboardingResponse.data) {
         // Update only the onboarding flags
@@ -321,7 +363,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Failed to refresh onboarding status:', error);
       // Don't throw - this is a non-critical update
     }
-  };
+  }, [state.user, userRoles, updateUser]);
 
   /**
    * Optimistically update onboarding flag without waiting for backend

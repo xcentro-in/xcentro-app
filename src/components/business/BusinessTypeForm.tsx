@@ -42,6 +42,17 @@ const BusinessTypeForm = ({ formData, updateFormData }: BusinessTypeFormProps) =
     // This will be handled by the parent component
   };
 
+  // Sync form values when formData prop changes (e.g., from pre-fill)
+  useEffect(() => {
+    if (formData.type || formData.model || formData.turnover) {
+      form.reset({
+        type: formData.type || "",
+        model: formData.model || "",
+        turnover: formData.turnover || "",
+      });
+    }
+  }, [formData.type, formData.model, formData.turnover, form]);
+
   // Update parent form data when this form changes
   useEffect(() => {
     const subscription = form.watch((value) => {

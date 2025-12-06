@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import CombinedDetailsStep from "./CombinedDetailsStep";
 import PaymentMethodAndReviewStep from "./PaymentMethodAndReviewStep";
 import { toast } from "@/hooks/use-toast";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { voucherAPI } from "@/services/api";
 import { GetVoucherDraftResponse, UpdateVoucherRequest } from "@/types/voucher";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,7 +22,8 @@ interface FormState {
 
 const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
   const { user } = useAuth();
-  const { vendors } = useVendors(user?.businessId);
+  const { businessId, businessName } = useCurrentBusiness();
+  const { vendors } = useVendors(businessId);
   const [step, setStep] = useState(1);
   const [amount, setAmount] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -130,7 +132,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
 
           const response: GetVoucherDraftResponse = await voucherAPI.createDraft
           (
-            user?.businessId,
+            businessId,
             {
             relation_id: selectedPayee,
             invoice_number: invoiceReference || undefined,

@@ -20,6 +20,7 @@ import { GST_RATES, GST_TYPES, GSTType } from "@/constants/gstRates";
 import PayeeAutocompleteInput from "@/components/payments/payee-management/payee/PayeeAutocompleteInput";
 import BankPayeeForm from "@/components/payees/forms/VendorPayeeForm";
 import { useVendors } from "@/hooks/useVendors";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { GetVoucherDraftResponse } from "@/types/voucher";
 
 /*
@@ -117,7 +118,8 @@ const NewBill = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
   const { user } = useAuth();
-  const { vendors, isLoading: vendorsLoading, refetch: refetchVendors } = useVendors(user?.businessId);
+  const { businessId, businessName } = useCurrentBusiness();
+  const { vendors, isLoading: vendorsLoading, refetch: refetchVendors } = useVendors(businessId);
   const [isSaving, setIsSaving] = useState(false);
   const [showAddVendor, setShowAddVendor] = useState(false);
 
@@ -358,7 +360,7 @@ const NewBill = () => {
       return;
     }
 
-    if (!user?.businessId || !user?.id) {
+    if (!businessId || !user?.id) {
       toast.error("User information not available");
       return;
     }
@@ -414,7 +416,7 @@ const NewBill = () => {
 
       // Call API to create voucher
       const response: GetVoucherDraftResponse = await voucherAPI.createDraft(
-        user?.businessId,
+        businessId,
         { ...voucherPayload }
         );
 

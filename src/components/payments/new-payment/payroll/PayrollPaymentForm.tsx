@@ -6,6 +6,7 @@ import { Employee } from "./types";
 import { toast } from "sonner";
 import { employeesAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { Loader2 } from "lucide-react";
 
 interface PayrollPaymentFormProps {
@@ -14,6 +15,7 @@ interface PayrollPaymentFormProps {
 
 const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [currentStep, setCurrentStep] = useState<'employees' | 'payment-review'>('employees');
   const [selectedEmployees, setSelectedEmployees] = useState<Employee[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -23,11 +25,11 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
   // Fetch employees on component mount
   useEffect(() => {
     const fetchEmployees = async () => {
-      if (!user?.businessId) return;
+      if (!businessId) return;
 
       try {
         setIsLoading(true);
-        const response = await employeesAPI.getAll(user.businessId);
+        const response = await employeesAPI.getAll(businessId);
 
         if (response.status === 'success' && response.data?.employees) {
           setEmployees(response.data.employees);
@@ -43,7 +45,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
     };
 
     fetchEmployees();
-  }, [user?.businessId]);
+  }, [businessId]);
 
   const handleEmployeesSelect = (employees: Employee[]) => {
     setSelectedEmployees(employees);

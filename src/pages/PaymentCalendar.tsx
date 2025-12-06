@@ -24,7 +24,14 @@ type ViewType = "list" | "calendar";
 
 const PaymentCalendar = () => {
   const { setTitle } = usePageTitle();
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
+
+  // Get user's role for the current business - Note: PaymentCalendar doesn't use businessId directly
+  // but we need role for feature flags. Using first role as fallback.
+  const currentUserRole = userRoles[0]?.role || '';
+
+  // Create feature flag compatible user object
+  const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
 
   useEffect(() => {
     setTitle("Payment Calendar");
@@ -43,7 +50,7 @@ const PaymentCalendar = () => {
   const [selectedEventForPayment, setSelectedEventForPayment] = useState<CalendarEvent | null>(null);
 
   // Check if user has access to advanced calendar features (list view, insights)
-  const showAdvancedViews = canViewFeature('PAYMENT_CALENDAR_ADVANCED', user);
+  const showAdvancedViews = canViewFeature('PAYMENT_CALENDAR_ADVANCED', featureFlagUser);
 
   // Get payBill function from useBills hook
   const { payBill } = useBills({ status: 'all', page: 1, limit: 10, sortBy: 'dueDate', sortOrder: 'asc' });

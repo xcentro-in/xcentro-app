@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { voucherAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 
 interface ValidationStepProps {
   uploadResponse: BatchUploadResponse;
@@ -31,6 +32,7 @@ const ValidationStep = ({
   onNext,
 }: ValidationStepProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const { matched, ambiguous, not_found } = uploadResponse.data;
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,7 +45,7 @@ const ValidationStep = ({
   const allMatchedSelected = matched.length > 0 && selectedRows.length === matched.length;
 
   const handleContinue = async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       toast.error("Business ID not found");
       return;
     }
@@ -94,7 +96,7 @@ const ValidationStep = ({
       });
 
       // Call API to create multiple vouchers (only for new payments)
-      const response = await voucherAPI.createMultiple(user.businessId, vouchers) as VoucherCreationResponse;
+      const response = await voucherAPI.createMultiple(businessId, vouchers) as VoucherCreationResponse;
 
       // Check response status
       if (response.status === 'success' && response.data.vouchers) {

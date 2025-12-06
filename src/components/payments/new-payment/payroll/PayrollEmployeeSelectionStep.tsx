@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ExistingEmployeesPayment from "./ExistingEmployeesPayment";
 import { Employee } from "./types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
 
@@ -23,6 +24,7 @@ const PayrollEmployeeSelectionStep = ({
   onNext,
 }: PayrollEmployeeSelectionStepProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [localSelectedEmployees, setLocalSelectedEmployees] = useState<Employee[]>(selectedEmployees);
   const [isCreatingVouchers, setIsCreatingVouchers] = useState(false);
 
@@ -50,7 +52,7 @@ const PayrollEmployeeSelectionStep = ({
       return;
     }
 
-    if (!user?.businessId) {
+    if (!businessId) {
       toast.error("User information not available");
       return;
     }
@@ -71,7 +73,7 @@ const PayrollEmployeeSelectionStep = ({
       }));
 
       // Call bulk voucher creation API
-      const response = await voucherAPI.createMultiple(user.businessId, vouchers);
+      const response = await voucherAPI.createMultiple(businessId, vouchers);
 
       if (response.status === "success" && response.data.vouchers) {
         // Extract voucher IDs from response

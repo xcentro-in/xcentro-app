@@ -23,6 +23,7 @@ import { formatCurrency } from "@/utils/formatters";
 import { Payout } from "@/types/payout";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -63,6 +64,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
   const [expandedRowId, setExpandedRowId] = React.useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
 
   // Pre-compute set of payment IDs that have been retried (client-side check)
   // This is needed because backend's retryCount on original payment doesn't reflect retry existence
@@ -133,14 +135,14 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
     // Prevent row expansion when clicking retry button
     event.stopPropagation();
 
-    if (!user?.businessId) {
+    if (!businessId) {
       toast.error("Unable to process payment. Please try logging in again.");
       return;
     }
 
     try {
       // Make retry payment API call
-      const response = await processPaymentAPI.retryPayment(user.businessId, {
+      const response = await processPaymentAPI.retryPayment(businessId, {
         original_payment_id: payoutId
       });
 

@@ -16,8 +16,7 @@ import {
   requiresCIN as checkRequiresCIN,
   requiresDeedUpload as checkRequiresDeedUpload
 } from "@/lib/businessTypeMapping";
-import { determineUserRoute } from "@/services/onboardingRouter";
-import { validateCIN } from "@/constants/onboarding";
+import { validateCIN, isKybComplete } from "@/constants/onboarding";
 
 type BusinessFormData = {
   name: string;
@@ -61,53 +60,47 @@ const steps = ["Basic Info", "Business Details", "Documents", "Review"];
 
 const BusinessOnboarding = () => {
   const navigate = useNavigate();
-  const { initializeUser, user, userRoles, onboardingStatus } = useAuth();
+  const { initializeUser, onboardingStatus } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
   const [businessId, setBusinessId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
+  // We rely on context now, so local fetching state is initially false
+  const [isFetchingStatus, setIsFetchingStatus] = useState(false);
 
   const progress = (currentStep / steps.length) * 100;
 
-  // Fetch business onboarding status on mount - ProtectedRoute handles access control
+  // Pre-fill form from AuthContext data (no API call needed)
   useEffect(() => {
-    const fetchOnboardingStatus = async () => {
-      try {
-        const statusResponse = await businessAPI.getOnboardingStatus();
-        const { bid, name, gstin, kybStatus, kybInitiated, businessType, cid } = statusResponse.data;
+    if (onboardingStatus) {
+      const { bid, businessName, gstin, kybStatus, kybInitiated, businessType, cin } = onboardingStatus;
 
-        // If KYB is not in "not_started" state, pre-fill the form
-        if (kybStatus !== "kyc_not_started" && kybInitiated) {
-          setBusinessId(bid || "");
-          if (bid) {
-            localStorage.setItem('business-id', bid);
-          }
-
-          // Auto-fill Step 1: Basic Info
-          setFormData((prev) => ({
-            ...prev,
-            name: name || "",
-            gstin: gstin || "",
-            // Auto-fill Step 2: Business Type (if backend sends it - convert to frontend format)
-            type: businessType ? toFrontendBusinessType(businessType) : prev.type,
-            // Auto-fill CIN if available
-            documents: {
-              ...prev.documents,
-              cin: cid || prev.documents.cin,
-            },
-          }));
+      // Pre-fill form if KYB has been initiated but NOT completed/verified
+      // This includes: initiated, failed, rejected, or any other in-progress state
+      // Only skip pre-filling if status is completed/verified (user shouldn't be here)
+      if (kybInitiated && !isKybComplete(kybStatus)) {
+        console.log('[BusinessOnboarding] Pre-filling form from onboarding status:', kybStatus);
+        setBusinessId(bid || "");
+        if (bid) {
+          localStorage.setItem('business-id', bid);
         }
-      } catch (error: any) {
-        // If status endpoint returns 404 or error, start fresh (no pre-fill)
-        console.log("No existing business onboarding found, starting fresh");
-      } finally {
-        setIsFetchingStatus(false);
-      }
-    };
 
-    fetchOnboardingStatus();
-  }, []);
+        // Auto-fill Step 1: Basic Info
+        setFormData((prev) => ({
+          ...prev,
+          name: businessName || "",
+          gstin: gstin || "",
+          // Auto-fill Step 2: Business Type (if available)
+          type: businessType ? toFrontendBusinessType(businessType) : prev.type,
+          // Auto-fill CIN if available
+          documents: {
+            ...prev.documents,
+            cin: cin || prev.documents.cin,
+          },
+        }));
+      }
+    }
+  }, [onboardingStatus]);
 
   const canProceedFromStep3 = (): boolean => {
     if (requiresCIN(formData.type)) {
@@ -239,17 +232,9 @@ const BusinessOnboarding = () => {
       // Re-initialize user data to get fresh roles and onboarding status
       await initializeUser();
 
-      // Use centralized routing logic to determine next step
-      const routingDecision = determineUserRoute(
-        '/business-onboarding',
-        user,
-        userRoles,
-        onboardingStatus
-      );
-
-      if (routingDecision.shouldNavigate) {
-        navigate(routingDecision.targetRoute, { replace: true });
-      }
+      // Navigate to root - ProtectedRoute will handle routing based on onboarding status
+      // ProtectedRoute will immediately redirect to the correct route (KYC/Dashboard)
+      navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete business onboarding. Please try again.";
       toast.error(errorMessage);

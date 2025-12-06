@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -291,7 +292,14 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
 const BillDetailPage = () => {
   const { billId } = useParams<{ billId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
+
+  // Get user's role for the current business
+  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+
+  // Create feature flag compatible user object
+  const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
   const { setTitle } = usePageTitle();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -398,14 +406,14 @@ const BillDetailPage = () => {
   // Fetch voucher details on page load (includes header + details tab)
   useEffect(() => {
     const fetchVoucherDetails = async () => {
-      if (!billId || !user?.businessId) return;
+      if (!billId || !businessId) return;
 
       try {
         setIsLoading(true);
         setError(null);
 
         // Fetch voucher details (includes header + details tab)
-        const response = await voucherAPI.getDetails(user.businessId, billId);
+        const response = await voucherAPI.getDetails(businessId, billId);
         const voucherResponse = response as VoucherDetailsResponseAPI;
 
         // Map to BillSummary
@@ -434,15 +442,15 @@ const BillDetailPage = () => {
     };
 
     fetchVoucherDetails();
-  }, [billId, user?.businessId]);
+  }, [billId, businessId]);
 
   // Lazy-load activity tab
   const loadActivityTab = async () => {
-    if (!billId || !user?.businessId || loadedTabs.activity) return;
+    if (!billId || !businessId || loadedTabs.activity) return;
 
     try {
       setLoadingTabs(prev => ({ ...prev, activity: true }));
-      const response = await voucherAPI.getActivity(user.businessId, billId);
+      const response = await voucherAPI.getActivity(businessId, billId);
       setActivityData(response as VoucherActivityResponseAPI);
       setLoadedTabs(prev => ({ ...prev, activity: true }));
     } catch (err) {
@@ -454,11 +462,11 @@ const BillDetailPage = () => {
 
   // Lazy-load payment tab
   const loadPaymentTab = async () => {
-    if (!billId || !user?.businessId || loadedTabs.payment) return;
+    if (!billId || !businessId || loadedTabs.payment) return;
 
     try {
       setLoadingTabs(prev => ({ ...prev, payment: true }));
-      const response = await voucherAPI.getPayment(user.businessId, billId);
+      const response = await voucherAPI.getPayment(businessId, billId);
       setPaymentData(response as VoucherPaymentResponseAPI);
       setLoadedTabs(prev => ({ ...prev, payment: true }));
     } catch (err) {
@@ -470,11 +478,11 @@ const BillDetailPage = () => {
 
   // Lazy-load accounting tab
   const loadAccountingTab = async () => {
-    if (!billId || !user?.businessId || loadedTabs.accounting) return;
+    if (!billId || !businessId || loadedTabs.accounting) return;
 
     try {
       setLoadingTabs(prev => ({ ...prev, accounting: true }));
-      const response = await voucherAPI.getAccounting(user.businessId, billId);
+      const response = await voucherAPI.getAccounting(businessId, billId);
       setAccountingData(response as VoucherAccountingResponseAPI);
       setLoadedTabs(prev => ({ ...prev, accounting: true }));
     } catch (err) {
@@ -633,11 +641,11 @@ const BillDetailPage = () => {
 
   // Handle delete bill
   const handleDeleteBill = async () => {
-    if (!billId || !user?.businessId) return;
+    if (!billId || !businessId) return;
 
     try {
       setIsDeleting(true);
-      await voucherAPI.deleteVoucher(user.businessId, billId);
+      await voucherAPI.deleteVoucher(businessId, billId);
       toast.success("Bill deleted successfully");
       // Navigate back to bills list
       navigate('/bills');
@@ -653,11 +661,11 @@ const BillDetailPage = () => {
 
   // Handle approval request
   const handleRequestApproval = async () => {
-    if (!billId || !user?.businessId || !user?.id) return;
+    if (!billId || !businessId || !user?.id) return;
 
     try {
       setIsRequestingApproval(true);
-      await voucherAPI.requestApproval(user.businessId, billId, user.id);
+      await voucherAPI.requestApproval(businessId, billId, user.id);
       toast.success("Approval request sent successfully");
 
       // Update local bill state to reflect pending approval
@@ -673,7 +681,7 @@ const BillDetailPage = () => {
 
   // Save edited bill changes
   const handleSaveBillChanges = async () => {
-    if (!editFormData || !originalEditData || !billId || !user?.businessId) return;
+    if (!editFormData || !originalEditData || !billId || !businessId) return;
 
     setIsSaving(true);
 
@@ -769,12 +777,12 @@ const BillDetailPage = () => {
       }
 
       // Call API to update voucher
-      await voucherAPI.updateVoucher(user.businessId, billId, payload);
+      await voucherAPI.updateVoucher(businessId, billId, payload);
 
       toast.success("Bill updated successfully");
 
       // Reload bill data to show updated values
-      const response = await voucherAPI.getDetails(user.businessId, billId);
+      const response = await voucherAPI.getDetails(businessId, billId);
       const voucherResponse = response as VoucherDetailsResponseAPI;
       const mappedBill = mapVoucherToBill(voucherResponse);
       setBill(mappedBill);
@@ -949,7 +957,7 @@ const BillDetailPage = () => {
 
           <div className="flex items-center gap-2">
             {/* Approval Button - Only shown for non-owner roles */}
-            {user?.role !== 'owner' && (
+            {currentUserRole !== 'owner' && (
               <Button
                 variant="default"
                 className={
@@ -1638,7 +1646,7 @@ const BillDetailPage = () => {
             }}
           >
             <TabsList className={`grid w-full ${(() => {
-              const showERP = canViewFeature('ERP_INTEGRATION', user);
+              const showERP = canViewFeature('ERP_INTEGRATION', featureFlagUser);
               const showPayment = voucherPaymentStatus === 'success'; // Only show Payment tab if paid
               const showAttachments = attachments.length > 0;
 
@@ -1663,7 +1671,7 @@ const BillDetailPage = () => {
                   Payment
                 </TabsTrigger>
               )}
-              {canViewFeature('ERP_INTEGRATION', user) && (
+              {canViewFeature('ERP_INTEGRATION', featureFlagUser) && (
                 <TabsTrigger value="accounting">
                   <BarChart3 className="h-4 w-4 mr-2" />
                   Accounting
@@ -2071,7 +2079,7 @@ const BillDetailPage = () => {
             )}
 
             {/* Accounting Tab - Feature Flagged */}
-            {canViewFeature('ERP_INTEGRATION', user) && (
+            {canViewFeature('ERP_INTEGRATION', featureFlagUser) && (
               <TabsContent value="accounting" className="space-y-6">
                 <Card>
                   <CardHeader>

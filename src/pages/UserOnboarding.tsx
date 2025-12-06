@@ -12,8 +12,7 @@ import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
 import { userAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { openAndMonitorPopup } from "@/lib/popupUtils";
-import { determineUserRoute } from "@/services/onboardingRouter";
-import { isKycComplete, validateAadhaar, validatePAN } from "@/constants/onboarding";
+import { isKycComplete, validateAadhaar, validatePAN, ONBOARDING_STATUS } from "@/constants/onboarding";
 
 type UserFormData = {
   name: string;
@@ -37,11 +36,12 @@ const steps = ["KYC Details", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
-  const { initializeUser, user, userRoles, onboardingStatus } = useAuth();
+  const { initializeUser, onboardingStatus, userRoles } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingStatus, setIsFetchingStatus] = useState(true);
+  // Rely on context, no local fetch state needed
+  const [isFetchingStatus, setIsFetchingStatus] = useState(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
   const [aadhaarLink, setAadhaarLink] = useState("");
   const [isPopupBlocked, setIsPopupBlocked] = useState(false);
@@ -55,41 +55,44 @@ const UserOnboarding = () => {
 
   const progress = (currentStep / steps.length) * 100;
 
-  // Fetch user onboarding status on mount - ProtectedRoute handles access control
+  // Debug: Log formData changes
   useEffect(() => {
-    const fetchOnboardingStatus = async () => {
-      try {
-        const statusResponse = await userAPI.getOnboardingStatus();
-        const { name, dob, taxId, mobile, kycStatus, nationalId } = statusResponse.data;
+    console.log('[UserOnboarding] formData changed:', formData);
+  }, [formData]);
 
-        // If KYC is already completed or verified, redirect to dashboard
-        if (isKycComplete(kycStatus)) {
-          toast.error("KYC has already been completed");
-          navigate("/", { replace: true });
-          return;
-        }
+  // Pre-fill form from AuthContext data (no API call needed)
+  useEffect(() => {
+    if (onboardingStatus) {
+      const { userName, dob, pan, kycStatus } = onboardingStatus;
 
-        // If KYC is not in "not_started" state, pre-fill available data
-        if (kycStatus !== "kyc_not_started") {
-          // Auto-fill available fields (don't fill Aadhaar for security)
-          setFormData((prev) => ({
-            ...prev,
-            name: name || "",
-            dateOfBirth: dob || "",
-            panNumber: taxId || "",
-            aadharNumber: "", // Always let user fill Aadhaar again
-          }));
-        }
-      } catch (error: any) {
-        // If status endpoint returns 404 or error, start fresh (no pre-fill)
-        console.log("No existing user onboarding found, starting fresh");
-      } finally {
-        setIsFetchingStatus(false);
+      // If KYC is already completed or verified, redirect to dashboard
+      if (kycStatus && isKycComplete(kycStatus)) {
+        toast.error("KYC has already been completed");
+        navigate("/", { replace: true });
+        return;
       }
-    };
 
-    fetchOnboardingStatus();
-  }, [navigate]);
+      // Pre-fill form if KYC exists but is NOT completed/verified AND not in fresh "not_started" state
+      // This includes: initiated, failed, rejected, or any other in-progress state
+      // Skip pre-filling if: undefined, not_started, completed, or verified
+      if (kycStatus && kycStatus !== ONBOARDING_STATUS.NOT_STARTED && !isKycComplete(kycStatus)) {
+        console.log('[UserOnboarding] Pre-filling form from onboarding status:', kycStatus);
+        console.log('[UserOnboarding] Data to pre-fill:', { userName, dob, pan });
+        // Auto-fill available fields (don't fill Aadhaar for security)
+        setFormData((prev) => {
+          const newData = {
+            ...prev,
+            name: userName || "",
+            dateOfBirth: dob || "",
+            panNumber: pan || "",
+            aadharNumber: "", // Always let user fill Aadhaar again
+          };
+          console.log('[UserOnboarding] Updated formData:', newData);
+          return newData;
+        });
+      }
+    }
+  }, [onboardingStatus, navigate]);
 
   // Listen for postMessage from KYC callback page (optional, just for logging)
   useEffect(() => {
@@ -213,17 +216,9 @@ const UserOnboarding = () => {
         // Re-initialize user data to get fresh roles and onboarding status
         await initializeUser();
 
-        // Use centralized routing logic
-        const routingDecision = determineUserRoute(
-          '/onboarding',
-          user,
-          userRoles,
-          onboardingStatus
-        );
-
-        if (routingDecision.shouldNavigate) {
-          navigate(routingDecision.targetRoute, { replace: true });
-        }
+        // Navigate to root - ProtectedRoute will handle routing based on onboarding status
+        // ProtectedRoute will immediately redirect to the correct route (Dashboard/Pending)
+        navigate("/", { replace: true });
       } else {
         toast.error("KYC verification incomplete. Please try again.");
         setIsLoading(false);
@@ -383,12 +378,7 @@ const UserOnboarding = () => {
 
           {currentStep === 1 && (
             <KYCDetailsForm
-              formData={{
-                name: formData.name,
-                aadharNumber: formData.aadharNumber,
-                panNumber: formData.panNumber,
-                dateOfBirth: formData.dateOfBirth,
-              }}
+              formData={formData}
               updateFormData={(data) => {
                 setFormData((prev) => ({ ...prev, ...data }));
               }}

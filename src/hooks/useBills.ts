@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { Invoice } from '@/data/mockInvoices';
 import { DateRange } from 'react-day-picker';
 import { voucherAPI } from '@/services/api';
@@ -139,6 +140,7 @@ export const useBills = (filters: BillsFilters = {}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   // Server-side parameters that trigger API calls
   const {
@@ -148,7 +150,7 @@ export const useBills = (filters: BillsFilters = {}) => {
   } = filters;
 
   const fetchBills = async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setError('Missing business ID');
       setIsLoading(false);
       return;
@@ -162,7 +164,7 @@ export const useBills = (filters: BillsFilters = {}) => {
       const offset = (page - 1) * limit;
 
       // Call real API
-      const response = await voucherAPI.list(user.businessId, {
+      const response = await voucherAPI.list(businessId, {
         status: status !== 'all' ? status : undefined,
         limit,
         offset,
@@ -212,7 +214,7 @@ export const useBills = (filters: BillsFilters = {}) => {
   const payBill = async (billId: string, paymentData?: any) => {
     try {
       // TODO: Replace with actual API call
-      // const response = await api.bills.pay(user.businessId, billId, paymentData);
+      // const response = await api.bills.pay(businessId, billId, paymentData);
 
       console.log('TODO: Pay bill via API:', { billId, paymentData });
 
@@ -231,13 +233,13 @@ export const useBills = (filters: BillsFilters = {}) => {
 
   // Get bill details (for detailed view)
   const getBillDetails = async (billId: string) => {
-    if (!user?.businessId) {
+    if (!businessId) {
       throw new Error('Missing business ID');
     }
 
     try {
       // Call actual API to get voucher details
-      const response = await voucherAPI.getDetails(user.businessId, billId);
+      const response = await voucherAPI.getDetails(businessId, billId);
 
       // Extract data from response wrapper
       const voucherDetail = (response as any).data as VoucherDetailResponseAPI;
@@ -254,13 +256,13 @@ export const useBills = (filters: BillsFilters = {}) => {
 
   // Request approval for a bill
   const requestApproval = async (billId: string, approverUserId: string) => {
-    if (!user?.businessId) {
+    if (!businessId) {
       throw new Error('Missing business ID');
     }
 
     try {
       const response = await voucherAPI.requestApproval(
-        user.businessId,
+        businessId,
         billId,
         approverUserId,
         '' // Empty remarks for now
@@ -291,11 +293,11 @@ export const useBills = (filters: BillsFilters = {}) => {
   };
 
   useEffect(() => {
-    if (user?.businessId) {
+    if (businessId) {
       fetchBills();
     }
   }, [
-    user?.businessId,
+    businessId,
     status,
     page,
     limit,

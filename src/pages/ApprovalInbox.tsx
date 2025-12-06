@@ -12,6 +12,7 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { isWithinInterval, subDays } from "date-fns";
 import { useApprovalInbox } from "@/hooks/useApprovalInbox";
 import { useApprovalCounts } from "@/hooks/useApprovalCounts";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { useAuth } from "@/contexts/AuthContext";
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ const ApprovalInbox = () => {
   const { setTitle } = usePageTitle();
   const [searchTerm, setSearchTerm] = useState("");
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
@@ -82,14 +84,14 @@ const ApprovalInbox = () => {
 
   // Handle approve action
   const handleApprove = async (id: string) => {
-    if (!user?.businessId || !user?.id) {
+    if (!businessId || !user?.id) {
       toast.error("Missing user information");
       return;
     }
 
     try {
       setActionLoading(true);
-      await voucherAPI.approveVoucher(user.businessId, id, user.id, "Approved");
+      await voucherAPI.approveVoucher(businessId, id, user.id, "Approved");
       toast.success("Bill approved successfully");
 
       // Refetch data
@@ -105,7 +107,7 @@ const ApprovalInbox = () => {
 
   // Handle reject action
   const handleReject = async (transaction: ApprovalTransaction, reason: string) => {
-    if (!user?.businessId || !user?.id) {
+    if (!businessId || !user?.id) {
       toast.error("Missing user information");
       return;
     }
@@ -117,7 +119,7 @@ const ApprovalInbox = () => {
 
     try {
       setActionLoading(true);
-      await voucherAPI.rejectVoucher(user.businessId, transaction.id, user.id, reason);
+      await voucherAPI.rejectVoucher(businessId, transaction.id, user.id, reason);
       toast.success("Bill rejected");
 
       // Refetch data
@@ -133,7 +135,7 @@ const ApprovalInbox = () => {
 
   // Handle request changes action
   const handleRequestChanges = async (transaction: ApprovalTransaction, reason: string) => {
-    if (!user?.businessId || !user?.id) {
+    if (!businessId || !user?.id) {
       toast.error("Missing user information");
       return;
     }
@@ -145,7 +147,7 @@ const ApprovalInbox = () => {
 
     try {
       setActionLoading(true);
-      await voucherAPI.requestChanges(user.businessId, transaction.id, user.id, reason);
+      await voucherAPI.requestChanges(businessId, transaction.id, user.id, reason);
       toast.success("Changes requested");
 
       // Refetch data
@@ -161,7 +163,7 @@ const ApprovalInbox = () => {
 
   // Handle batch approve action
   const handleBatchApprove = async (voucherIds: string[]) => {
-    if (!user?.businessId || !user?.id) {
+    if (!businessId || !user?.id) {
       toast.error("Missing user information");
       return;
     }
@@ -174,7 +176,7 @@ const ApprovalInbox = () => {
     try {
       setActionLoading(true);
       const response = await voucherAPI.batchApprove(
-        user.businessId,
+        businessId,
         voucherIds,
         user.id,
         'Batch Approved'

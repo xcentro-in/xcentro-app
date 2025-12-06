@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { Payee } from '@/types/payee';
 import { payeesAPI } from '@/services/api';
 import { GetPayeesResponse, PayeeAPIResponse } from '@/types/payees-api';
+import { useCurrentBusiness } from './useCurrentBusiness';
 
 export interface PayeesResponse {
   payees: Payee[];
@@ -78,18 +78,18 @@ export const usePayees = (params?: UsePayeesParams) => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   useEffect(() => {
     const fetchPayees = async () => {
-      if (!user?.businessId) return;
+      if (!businessId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
         // Call real API with pagination params
-        const response: GetPayeesResponse = await payeesAPI.getAll(user.businessId, {
+        const response: GetPayeesResponse = await payeesAPI.getAll(businessId, {
           page: params?.page,
           page_size: params?.page_size,
           search: params?.search,
@@ -104,7 +104,7 @@ export const usePayees = (params?: UsePayeesParams) => {
             metadata: {
               total: 0,
               lastUpdated: new Date().toISOString(),
-              businessId: user.businessId
+              businessId: businessId
             }
           });
           setTotalCount(0);
@@ -117,7 +117,7 @@ export const usePayees = (params?: UsePayeesParams) => {
             metadata: {
               total: response.total_count,
               lastUpdated: new Date().toISOString(),
-              businessId: user.businessId
+              businessId: businessId
             }
           };
 
@@ -133,7 +133,7 @@ export const usePayees = (params?: UsePayeesParams) => {
     };
 
     fetchPayees();
-  }, [user?.businessId, params?.page, params?.page_size, params?.search, params?.typeFilter, params?.isActive]);
+  }, [businessId, params?.page, params?.page_size, params?.search, params?.typeFilter, params?.isActive]);
 
   const refetch = () => {
     setData(null);

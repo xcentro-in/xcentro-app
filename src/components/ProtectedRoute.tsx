@@ -53,8 +53,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     checkOnboardingStatus();
   }, [isAuthenticated, isLoading, location.pathname, user, userRoles, onboardingStatus]);
 
+  // Redirect if needed (React Router navigation)
+  if (redirectTarget) {
+    return <Navigate to={redirectTarget} state={{ from: location }} replace />;
+  }
+
   // Show loading state while checking authentication or determining route
-  if (isLoading || (!shouldRender && !redirectTarget)) {
+  if (isLoading || !shouldRender) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center z-50">
         <div className="text-center">
@@ -63,11 +68,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         </div>
       </div>
     );
-  }
-
-  // Redirect if needed (React Router navigation)
-  if (redirectTarget) {
-    return <Navigate to={redirectTarget} state={{ from: location }} replace />;
   }
 
   // Render protected content

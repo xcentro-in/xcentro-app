@@ -36,7 +36,7 @@ export const SidebarHeader = () => {
   if (isLoading || !selectedBusiness) {
     return (
       <Header className="flex flex-col gap-2 px-4 py-3 border-b border-border">
-        <div className="flex items-center gap-2 w-full text-sm">
+        <div className={cn("flex items-center gap-2 w-full text-sm", !open && "justify-center")}>
           <div className="flex h-5 w-5 items-center justify-center">
             <Loader2 className="h-3 w-3 animate-spin" />
           </div>
@@ -52,7 +52,7 @@ export const SidebarHeader = () => {
       {hasMultipleBusinesses ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 text-sm outline-none">
+            <button className={cn("flex items-center gap-2 text-sm outline-none w-full", !open && "justify-center")}>
               <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10">
                 <Building className="h-3 w-3 text-primary" />
               </div>
@@ -93,7 +93,7 @@ export const SidebarHeader = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <div className="flex items-center gap-2 w-full text-sm">
+        <div className={cn("flex items-center gap-2 w-full text-sm", !open && "justify-center")}>
           <div className="flex h-5 w-5 items-center justify-center rounded-md bg-primary/10">
             <Building className="h-3 w-3 text-primary" />
           </div>

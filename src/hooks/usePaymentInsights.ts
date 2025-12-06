@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 
 export interface PaymentInsights {
   dueNext7Days: {
@@ -41,18 +41,18 @@ export const usePaymentInsights = () => {
   const [insights, setInsights] = useState<PaymentInsights | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   useEffect(() => {
     const fetchInsights = async () => {
-      if (!user?.businessId) return;
+      if (!businessId) return;
 
       setIsLoading(true);
       setError(null);
 
       try {
         // TODO: Replace with actual API call
-        // const response = await fetch(`/api/payments/insights?businessId=${user.businessId}`, {
+        // const response = await fetch(`/api/payments/insights?businessId=${businessId}`, {
         //   headers: {
         //     'Authorization': `Bearer ${localStorage.getItem('auth-token')}`,
         //   },
@@ -92,7 +92,7 @@ export const usePaymentInsights = () => {
           },
           metadata: {
             lastUpdated: new Date().toISOString(),
-            businessId: user.businessId,
+            businessId: businessId,
             periodCovered: {
               from: '2024-01-01',
               to: '2024-01-31'
@@ -122,7 +122,7 @@ export const usePaymentInsights = () => {
     };
 
     fetchInsights();
-  }, [user?.businessId]);
+  }, [businessId]);
 
   const refetchInsights = () => {
     // Allow manual refresh of insights

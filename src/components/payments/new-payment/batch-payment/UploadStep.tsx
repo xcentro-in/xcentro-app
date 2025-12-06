@@ -4,6 +4,7 @@ import { batchPaymentsAPI } from "@/services/api";
 
 import { BatchUploadResponse } from "./types";
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { Button } from "@/components/ui/button";
 
 interface UploadStepProps {
@@ -17,6 +18,7 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
   const [isDownloading, setIsDownloading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -25,12 +27,12 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
   };
 
   const handleProcessFile = async () => {
-    if (!selectedFile || !user?.businessId) return;
+    if (!selectedFile || !businessId) return;
 
     setIsProcessing(true);
 
     try {
-      const response = await batchPaymentsAPI.upload(user.businessId, selectedFile);
+      const response = await batchPaymentsAPI.upload(businessId, selectedFile);
       setUploadResponse(response as BatchUploadResponse);
       toast.success(`File processed: ${response.data.matched_count} matched, ${response.data.ambiguous_count} ambiguous, ${response.data.not_found_count} not found`);
       setStep(2); // Move to validation step
@@ -45,7 +47,7 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
   const handleDownloadTemplate = async () => {
     setIsDownloading(true);
     try {
-      const blob = await batchPaymentsAPI.downloadTemplate(user?.businessId);
+      const blob = await batchPaymentsAPI.downloadTemplate(businessId);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

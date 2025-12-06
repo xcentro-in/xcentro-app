@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, Info, Loader2, ExternalLink, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import { toast } from "sonner";
 
@@ -16,6 +17,7 @@ interface AttachmentsTabProps {
 
 const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: AttachmentsTabProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [isLoading, setIsLoading] = useState(true);
   const [documentUrl, setDocumentUrl] = useState<string | null>(null);
   const [uploadedAt, setUploadedAt] = useState<string | null>(null);
@@ -30,11 +32,11 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
   // Fetch existing document
   useEffect(() => {
     const fetchDocument = async () => {
-      if (!user?.businessId) return;
+      if (!businessId) return;
 
       setIsLoading(true);
       try {
-        const response = await payeesAPI.getEmployeeDocument(user.businessId, relationId);
+        const response = await payeesAPI.getEmployeeDocument(businessId, relationId);
 
         if (response.data.has_document && response.data.download_url) {
           setDocumentUrl(response.data.download_url);
@@ -49,7 +51,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
     };
 
     fetchDocument();
-  }, [user?.businessId, relationId]);
+  }, [businessId, relationId]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,7 +67,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !user?.businessId) return;
+    if (!selectedFile || !businessId) return;
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -75,7 +77,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
       setUploadStatus({ status: 'getting_url', message: 'Getting upload URL...' });
       const presignedResponse = await payeesAPI.getEmployeeDocPresignedUrl(
         relationId,
-        user.businessId
+        businessId
       );
 
       if (!presignedResponse.data.upload_url) {
@@ -96,7 +98,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
 
       const confirmResponse = await payeesAPI.confirmEmployeeDocUpload(
         relationId,
-        user.businessId
+        businessId
       );
 
       if (confirmResponse.status === 'success') {
@@ -109,7 +111,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
         toast.success("Remuneration document uploaded successfully");
 
         // Refresh document data
-        const response = await payeesAPI.getEmployeeDocument(user.businessId, relationId);
+        const response = await payeesAPI.getEmployeeDocument(businessId, relationId);
         if (response.data.has_document && response.data.download_url) {
           setDocumentUrl(response.data.download_url);
         }
