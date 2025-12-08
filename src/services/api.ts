@@ -203,6 +203,116 @@ class ApiService {
     }
   }
 
+  /**
+   * Request method for blob responses (PDFs, images, etc.)
+   * Inherits all authentication, token refresh, and error handling from base request
+   */
+  private async requestBlob(
+    endpoint: string,
+    options: RequestInit = {},
+    isRetry: boolean = false
+  ): Promise<Blob> {
+    // Guard: If session already expired, reject immediately
+    if (this.isSessionExpired) {
+      const error: any = new Error('Session expired. Please login again.');
+      error.code = 'SESSION_EXPIRED';
+      error.status = 401;
+      throw error;
+    }
+
+    // Use instance token if available, fallback to localStorage
+    const token = this.authToken || localStorage.getItem('auth-token');
+
+    // Build headers (no Content-Type for blob downloads)
+    const headers: Record<string, string> = {
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+
+    // Merge caller's headers AFTER defaults
+    if (options.headers) {
+      Object.assign(headers, options.headers);
+    }
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+      credentials: 'include',
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, config);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        // Handle 429 errors - rate limiting
+        if (response.status === 429) {
+          const retryAfterSecs = errorData.retry_after_secs || 60;
+          const scope = errorData.scope || 'unknown';
+          const policyGroup = errorData.policy_group || 'default';
+
+          rateLimitManager.addError({
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          const error: any = new Error(
+            `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
+          );
+          error.code = 'rate_limited';
+          error.status = 429;
+          error.retryAfter = retryAfterSecs;
+          throw error;
+        }
+
+        // Handle 401 errors - authentication failures
+        if (response.status === 401) {
+          // TOKEN_EXPIRED: Access token expired, try refresh
+          if (!isRetry && errorData.error === 'TOKEN_EXPIRED') {
+            const refreshSucceeded = await this.refreshAccessToken();
+
+            if (refreshSucceeded) {
+              // Retry original request with new token
+              return this.requestBlob(endpoint, options, true);
+            } else {
+              // Refresh failed - session expired
+              this.handleSessionExpired();
+              const error: any = new Error('Session expired. Please login again.');
+              error.code = 'SESSION_EXPIRED';
+              error.status = 401;
+              throw error;
+            }
+          } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
+            // No valid auth - emit event for AuthContext to handle
+            window.dispatchEvent(new CustomEvent('api:unauthorized', {
+              detail: { code: errorData.error, message: errorData.message }
+            }));
+
+            const error: any = new Error(errorData.message || 'Authentication required');
+            error.code = errorData.error;
+            error.status = response.status;
+            throw error;
+          }
+        }
+
+        // For all other errors, just throw the error
+        const error: any = new Error(errorData.message || `HTTP ${response.status}`);
+        error.code = errorData.error;
+        error.status = response.status;
+        throw error;
+      }
+
+      return response.blob();
+    } catch (error) {
+      // Only log non-auth errors
+      if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
+        console.error('[ApiService] Blob request failed:', error);
+      }
+      throw error;
+    }
+  }
+
   // Auth endpoints - TODO: Implement when backend is ready
   auth = {
     login: async (email: string, password: string): Promise<{
@@ -1615,6 +1725,55 @@ class ApiService {
     }
   };
 
+  // Invoice endpoints
+  invoices = {
+    // Download invoice by payment ID (PDF format)
+    downloadByPaymentId: async (paymentId: string): Promise<Blob> => {
+      // Use the centralized request method with blob response handling
+      return this.requestBlob(
+        `/v1/invoices/download?payment_id=${paymentId}&format=pdf`,
+        { method: 'GET' }
+      );
+    },
+
+    // Get invoice details by payment ID (JSON format)
+    getByPaymentId: async (paymentId: string): Promise<{
+      invoice_id: number;
+      payment_id: string;
+      invoice_number: string;
+      gstin_supplier: string;
+      gstin_recipient: string;
+      invoice_date: string;
+      irn?: string;
+      irn_ack_no?: string;
+      irn_ack_date?: string;
+      irn_status: 'pending' | 'irn_generated' | 'failed' | 'cancelled';
+      qr_code?: string;
+      filing_status: 'not_filed' | 'filed' | 'failed';
+      description: string;
+      sac_code: string;
+      taxable_value: number;
+      gst_rate: number;
+      gst_amount: number;
+      total_amount: number;
+      created_at: string;
+      updated_at: string;
+    }> => {
+      return this.request(`/v1/invoices/download?payment_id=${paymentId}&format=json`, {
+        method: 'GET',
+      });
+    },
+
+    // Download invoice by invoice ID (PDF format)
+    downloadByInvoiceId: async (invoiceId: number): Promise<Blob> => {
+      // Use the centralized request method with blob response handling
+      return this.requestBlob(
+        `/v1/invoices/download?invoice_id=${invoiceId}&format=pdf`,
+        { method: 'GET' }
+      );
+    },
+  };
+
 }
 
 export const apiService = new ApiService();
@@ -1637,5 +1796,6 @@ export const {
   wallet: walletAPI,
   voucher: voucherAPI,
   vendors: vendorsAPI,
-  batchPayments: batchPaymentsAPI
+  batchPayments: batchPaymentsAPI,
+  invoices: invoicesAPI
 } = apiService;

@@ -46,3 +46,30 @@ export interface PaymentDetailsResponse {
   message: string;
   status: string;
 }
+
+// Invoice types for GST-compliant invoice generation
+export type InvoiceIRNStatus = 'pending' | 'irn_generated' | 'failed' | 'cancelled';
+export type InvoiceFilingStatus = 'not_filed' | 'filed' | 'failed';
+
+export interface Invoice {
+  invoice_id: number;
+  payment_id: string;
+  invoice_number: string;
+  gstin_supplier: string;
+  gstin_recipient: string;
+  invoice_date: string;
+  irn?: string;
+  irn_ack_no?: string;
+  irn_ack_date?: string;
+  irn_status: InvoiceIRNStatus;
+  qr_code?: string;
+  filing_status: InvoiceFilingStatus;
+  description: string;
+  sac_code: string;
+  taxable_value: number;
+  gst_rate: number;
+  gst_amount: number;
+  total_amount: number;
+  created_at: string;
+  updated_at: string;
+}
