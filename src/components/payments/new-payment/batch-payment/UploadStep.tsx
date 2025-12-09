@@ -45,18 +45,40 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
   };
   
   const handleDownloadTemplate = async () => {
+    if (!businessId) {
+      toast.error("Business ID not found");
+      return;
+    }
+
     setIsDownloading(true);
     try {
-      const blob = await batchPaymentsAPI.downloadTemplate(businessId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'batch_payment_template.xlsx'; // Or .csv
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      toast.success("Template downloaded successfully!");
+      // Get presigned S3 URL from backend
+      const response = await batchPaymentsAPI.downloadTemplate(businessId);
+
+      if (response.status === "success" && response.data.download_url) {
+        // Fetch the file from S3 URL as blob
+        const fileResponse = await fetch(response.data.download_url);
+        if (!fileResponse.ok) {
+          throw new Error("Failed to fetch file from S3");
+        }
+
+        const blob = await fileResponse.blob();
+
+        // Create blob URL and trigger download
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = response.data.filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+
+        // Show success message from server
+        toast.success(response.message || "Template downloaded successfully!");
+      } else {
+        throw new Error("Download URL not received from server");
+      }
     } catch (error) {
       console.error("Failed to download template:", error);
       toast.error("Failed to download template. Please try again.");

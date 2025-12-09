@@ -457,7 +457,7 @@ const WalletManagement = () => {
           <div className="mt-3 pl-[4.25rem]">
             <div className="bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
               <p className="text-xs text-amber-700">
-                <span className="font-medium">Verification failed.</span> This card will be displayed for 7 days only.
+                <span className="font-medium">Verification failed.</span> This card will be displayed for 2 days only.
                 {card.failure_reason && (
                   <span className="block mt-1 text-amber-600">
                     Reason: {card.failure_reason}
