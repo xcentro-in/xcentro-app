@@ -657,51 +657,35 @@ class ApiService {
 
   // Batch Payments endpoints
   batchPayments = {
-    downloadTemplate: async (businessId: string): Promise<Blob> => {
-      const response = await fetch(`${this.baseUrl}/batch-payments/template`, {
+    downloadTemplate: async (businessId: string): 
+    Promise<{
+      data: {
+        download_url?: string;
+        expires_in?: number;
+        filename?: string
+      };
+      message: string;
+      status: string;}> => {
+      return this.request('/v1/batch_payments/template', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
         },
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to download batch payment template');
-      }
-
-      return response.blob();
     },
 
     upload: async (businessId: string, file: File): Promise<any> => {
       const formData = new FormData();
       formData.append('csv_file', file);
 
-      // Get auth token from localStorage or instance
-      const token = this.authToken || localStorage.getItem('auth-token');
-
-      // For FormData, do NOT set Content-Type - browser will set it automatically with boundary
-      const headers: Record<string, string> = {
-        'X-Business-ID': businessId,
-      };
-
-      // Add Authorization header if token exists
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const response = await fetch(`${this.baseUrl}/batch_payments/upload`, {
+      return this.request('/v1/batch_payments/upload', {
         method: 'POST',
-        headers,
+        headers : {
+          'X-Business-ID': businessId,
+        },
         body: formData,
         credentials: 'include', // Include cookies for authentication
       });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to upload batch payment file');
-      }
-
-      return response.json();
     },
   };
 
@@ -921,7 +905,7 @@ class ApiService {
   // Employees endpoints
   employees = {
     getAll: async (businessId: string): Promise<any> => {
-      return this.request('/v1/employees', {
+      return this.request('/v1/payees/employees', {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
@@ -1546,7 +1530,7 @@ class ApiService {
   // Vendors endpoints
   vendors = {
     getAll: async (businessId: string) => {
-      return this.request(`/v1/vendors`, {
+      return this.request(`/v1/payees/vendors`, {
         method: 'GET',
         headers: {
           'X-Business-ID': businessId,
