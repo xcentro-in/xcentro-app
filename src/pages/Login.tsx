@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import { Mail, Lock, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { useAuth } from "@/contexts/AuthContext";
-import { determineUserRoute } from "@/services/onboardingRouter";
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -23,8 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, isAuthenticated, isLoading, initializeUser, user, userRoles, onboardingStatus } = useAuth();
+  const { login, isAuthenticated, isLoading, initializeUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -48,18 +46,14 @@ const Login = () => {
 
     try {
       // Step 1: Login (authenticate)
+      // AuthContext will automatically trigger initializeUser() upon success
       await login(values.email, values.password);
       toast.success("Login successful! Welcome to Xcentro.");
 
-      // Step 2: Initialize user data (fetch profile, roles, onboarding status)
-      await initializeUser();
-
-      // Step 3: Determine where to route the user using centralized router
-      const routingDecision = determineUserRoute('/login', user, userRoles, onboardingStatus);
-
-      if (routingDecision.shouldNavigate) {
-        navigate(routingDecision.targetRoute, { replace: true });
-      }
+      // Step 2: Navigate to root
+      // ProtectedRoute will hold the loading state until initialization is complete
+      // then redirect to the correct onboarding/dashboard route
+      navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Login failed. Please check your credentials.";
       toast.error(errorMessage);

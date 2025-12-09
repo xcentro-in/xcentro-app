@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { determineUserRoute } from '@/services/onboardingRouter';
 
@@ -10,24 +10,27 @@ interface ProtectedRouteProps {
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading, user, userRoles, onboardingStatus } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
   const [shouldRender, setShouldRender] = useState(false);
+  const [redirectTarget, setRedirectTarget] = useState<string | null>(null);
 
   // Check onboarding status when authenticated and user data is loaded
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const checkOnboardingStatus = () => {
       // Wait for auth to finish loading
       if (isLoading) {
         setShouldRender(false);
+        setRedirectTarget(null);
         return;
       }
 
-      // If not authenticated, we'll redirect to login (handled below)
+      // If not authenticated, redirect to login (handled by Navigate below)
       if (!isAuthenticated) {
-        setShouldRender(true);
+        setShouldRender(false);
+        setRedirectTarget('/login');
         return;
       }
 
+      // Determine where user should be based on onboarding status
       const routingDecision = determineUserRoute(
         location.pathname,
         user,
@@ -35,19 +38,25 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
         onboardingStatus
       );
 
-
       if (routingDecision.shouldNavigate) {
-        // Don't render children when redirecting
+        // Need to redirect to different route
+        console.log('[ProtectedRoute]', routingDecision.reason, '→', routingDecision.targetRoute);
         setShouldRender(false);
-        navigate(routingDecision.targetRoute, { replace: true });
+        setRedirectTarget(routingDecision.targetRoute);
       } else {
-        // Safe to render children
+        // User is on correct route, safe to render
         setShouldRender(true);
+        setRedirectTarget(null);
       }
     };
 
     checkOnboardingStatus();
-  }, [isAuthenticated, isLoading, location.pathname, navigate, user, userRoles, onboardingStatus]);
+  }, [isAuthenticated, isLoading, location.pathname, user, userRoles, onboardingStatus]);
+
+  // Redirect if needed (React Router navigation)
+  if (redirectTarget) {
+    return <Navigate to={redirectTarget} state={{ from: location }} replace />;
+  }
 
   // Show loading state while checking authentication or determining route
   if (isLoading || !shouldRender) {
@@ -61,11 +70,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
+  // Render protected content
   return <>{children}</>;
 };
 

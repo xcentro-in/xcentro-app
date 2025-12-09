@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { Transaction, TransactionStatus } from '@/types/transaction';
 import { apiService } from '@/services/api';
 
@@ -71,6 +72,7 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   // Default parameters
   const {
@@ -84,7 +86,7 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
 
   useEffect(() => {
     const fetchUpcomingPayments = async () => {
-      if (!user?.businessId) return;
+      if (!businessId) return;
 
       setIsLoading(true);
       setError(null);
@@ -94,7 +96,7 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
         if (month) {
           const [year, monthNum] = month.split('-').map(Number);
           const response = await apiService.voucher.getCalendar(
-            user.businessId,
+            businessId,
             year,
             monthNum
           );
@@ -228,7 +230,7 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
     };
 
     fetchUpcomingPayments();
-  }, [user?.businessId, page, limit, month, search, sortBy, sortOrder]);
+  }, [businessId, page, limit, month, search, sortBy, sortOrder]);
 
   const refetch = () => {
     setData(null);

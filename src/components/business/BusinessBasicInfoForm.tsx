@@ -35,6 +35,16 @@ const BusinessBasicInfoForm = ({ formData, updateFormData }: BusinessBasicInfoFo
     // This will be handled by the parent component
   };
 
+  // Sync form values when formData prop changes (e.g., from pre-fill)
+  useEffect(() => {
+    if (formData.name || formData.gstin) {
+      form.reset({
+        name: formData.name || "",
+        gstin: formData.gstin || "",
+      });
+    }
+  }, [formData.name, formData.gstin, form]);
+
   // Update parent form data when this form changes
   useEffect(() => {
     const subscription = form.watch((value) => {

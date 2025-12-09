@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { Transaction, TransactionStatus, PaymentMethod } from '@/types/transaction';
 import { DateRange } from 'react-day-picker';
 import { payeesAPI } from '@/services/api';
@@ -132,7 +132,7 @@ export const usePayeeTransactions = (
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   // Server-side parameters that trigger API calls
   const {
@@ -146,7 +146,7 @@ export const usePayeeTransactions = (
   } = filters;
 
   const fetchTransactions = async () => {
-    if (!user?.businessId || !payeeId || page === 0 || limit === 0) {
+    if (!businessId || !payeeId || page === 0 || limit === 0) {
       // Don't fetch if page=0 or limit=0 (indicates tab not active)
       setIsLoading(false);
       return;
@@ -158,7 +158,7 @@ export const usePayeeTransactions = (
 
       // Call real API
       const response: GetPayeeVouchersResponse = await payeesAPI.getTransactions(
-        user.businessId,
+        businessId,
         payeeId,
         {
           status: status !== 'all' ? status : undefined,
@@ -225,12 +225,12 @@ export const usePayeeTransactions = (
   };
 
   useEffect(() => {
-    if (payeeId && user?.businessId) {
+    if (payeeId && businessId) {
       fetchTransactions();
     }
   }, [
     payeeId,
-    user?.businessId,
+    businessId,
     status,
     paymentMethod,
     dateRange?.from,

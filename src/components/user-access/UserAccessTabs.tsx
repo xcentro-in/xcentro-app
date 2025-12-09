@@ -153,6 +153,7 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
           selectedBusinessId,
           data.email,
           data.name,
+          data.mobile,
           data.role
         );
 

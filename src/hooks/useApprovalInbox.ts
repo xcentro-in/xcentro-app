@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { voucherAPI } from '@/services/api';
 import { ApprovalInboxResponse, ApprovalInboxVoucher, ApprovalAction } from '@/types/approval-inbox-api';
 import { ApprovalTransaction } from '@/types/approval';
@@ -48,9 +49,10 @@ export const useApprovalInbox = (status: ApprovalAction) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const fetchApprovalInbox = async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setError('Missing business ID');
       setIsLoading(false);
       return;
@@ -60,7 +62,7 @@ export const useApprovalInbox = (status: ApprovalAction) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getApprovalInbox(user.businessId, status);
+      const response = await voucherAPI.getApprovalInbox(businessId, status);
 
       // Validate response structure
       if (
@@ -90,10 +92,10 @@ export const useApprovalInbox = (status: ApprovalAction) => {
   };
 
   useEffect(() => {
-    if (user?.businessId) {
+    if (businessId) {
       fetchApprovalInbox();
     }
-  }, [user?.businessId, status]);
+  }, [businessId, status]);
 
   return {
     transactions,

@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { PayeeDetailsDrawer } from "./PayeeDetailsDrawer";
 import { usePayees } from "@/hooks/usePayees";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { EmptyPayees } from "./EmptyPayees";
 import { useAuth } from "@/contexts/AuthContext";
 import TablePagination from "@/components/payee-history/TablePagination";
@@ -40,6 +41,7 @@ interface PayeeListProps {
 const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   const navigate = useNavigate();
   const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [searchValue, setSearchValue] = useState("");
   const [typeFilter, setTypeFilter] = useState<PayeeType | "all">("all");
   const [activeFilter, setActiveFilter] = useState<boolean>(true); // Default to active
@@ -95,7 +97,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
   };
 
   const handleStatusChange = async (id: string, isActive: boolean) => {
-    if (!user?.businessId) {
+    if (!businessId) {
       toast.error("Business ID not available");
       return;
     }
@@ -119,7 +121,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
 
     try {
       // Make the API call in the background
-      await payeesAPI.updateStatus(user.businessId, id, isActive);
+      await payeesAPI.updateStatus(businessId, id, isActive);
 
       // On success: show success toast, payee stays removed (it's in the other tab now)
       toast.success(isActive ? "Payee marked as active" : "Payee marked as inactive");

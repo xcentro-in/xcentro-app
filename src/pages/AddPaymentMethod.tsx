@@ -29,6 +29,7 @@ import {
 import { PaymentMethodType } from "@/types/payment-method";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { processPaymentAPI } from "@/services/api";
 import { canViewFeature } from "@/lib/featureFlags";
 import CardValidator from "@/lib/card-validator";
@@ -59,17 +60,24 @@ const FloatingLabelInput = ({ label, id, className, ...props }: { label: string;
 
 const AddPaymentMethod = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
+
+  // Get user's role for the current business
+  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+
+  // Create feature flag compatible user object
+  const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
 
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
     return {
-      card: canViewFeature('PAYMENT_METHOD_CARD', user),
-      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
-      bnpl: canViewFeature('PAYMENT_METHOD_BNPL', user),
-      upi: canViewFeature('PAYMENT_METHOD_UPI', user),
+      card: canViewFeature('PAYMENT_METHOD_CARD', featureFlagUser),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', featureFlagUser),
+      bnpl: canViewFeature('PAYMENT_METHOD_BNPL', featureFlagUser),
+      upi: canViewFeature('PAYMENT_METHOD_UPI', featureFlagUser),
     };
-  }, [user]);
+  }, [featureFlagUser.id, featureFlagUser.role]);
 
   // Get the first available payment method as default
   const defaultPaymentMethod = useMemo(() => {
@@ -155,7 +163,7 @@ const AddPaymentMethod = () => {
 
     // Only handle card tokenization for card tab
     if (currentTab === "card") {
-      if (!user?.businessId) {
+      if (!businessId) {
         toast.error("Business ID not found. Please log in again.");
         return;
       }
@@ -244,7 +252,7 @@ const AddPaymentMethod = () => {
 
         // All validations passed - proceed with tokenization
         // Call tokenize API
-        const response = await processPaymentAPI.tokenize(user.businessId, {
+        const response = await processPaymentAPI.tokenize(businessId, {
           card_number: cleanCardNumber,
           expiry_month: expiryMonth,
           expiry_year: expiryYear,

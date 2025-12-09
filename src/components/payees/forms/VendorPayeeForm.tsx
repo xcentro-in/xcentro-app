@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import { toast } from "sonner";
 import PayeeTags from "./components/PayeeTags";
@@ -15,6 +16,7 @@ interface BankPayeeFormProps {
 
 const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -101,7 +103,7 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
     e.preventDefault();
 
     // Validate business ID exists
-    if (!user?.businessId) {
+    if (!businessId) {
       setApiResponse({
         status: 'error',
         message: 'Business ID not found. Please log in again.'
@@ -132,7 +134,7 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
       };
 
       // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(user.businessId, requestBody);
+      const response = await payeesAPI.create(businessId, requestBody);
 
       // Check response status
       if (response.status === 'success') {

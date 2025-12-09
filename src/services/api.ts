@@ -1,11 +1,23 @@
+/**
+ * API Service Layer
+ *
+ * Features:
+ * - Automatic access token refresh with promise caching (prevents race conditions)
+ * - Session expiration handling
+ * - Rate limiting detection
+ * - Cookie-based authentication (httpOnly cookies)
+ * - Custom event emission for auth state changes
+ */
+
 import { rateLimitManager } from '@/lib/rateLimitManager';
 
-// Vite uses import.meta.env instead of process.env
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
 class ApiService {
   private baseUrl: string;
   private authToken?: string;
+  private refreshPromise: Promise<boolean> | null = null;
+  private isSessionExpired: boolean = false;
 
   constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
@@ -16,16 +28,91 @@ class ApiService {
     this.authToken = token;
   }
 
+  /**
+   * Refresh access token using refresh token stored in httpOnly cookie
+   * Uses promise caching to prevent multiple simultaneous refresh attempts
+   */
+  private async refreshAccessToken(): Promise<boolean> {
+    // If refresh is already in progress, wait for it
+    if (this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    // Start new refresh and cache the promise
+    this.refreshPromise = (async () => {
+      try {
+        const refreshResponse = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include', // Include cookies for refresh
+        });
+
+        if (refreshResponse.ok) {
+          // Success - new access token cookie set by backend
+          return true;
+        } else {
+          // Refresh failed - session expired
+          return false;
+        }
+      } catch (error) {
+        console.error('[ApiService] Token refresh failed:', error);
+        return false;
+      } finally {
+        // Clear the promise cache after completion
+        this.refreshPromise = null;
+      }
+    })();
+
+    return this.refreshPromise;
+  }
+
+  /**
+   * Handle session expiration - clear local state and emit event
+   * Uses guard flag to prevent multiple emissions
+   */
+  private handleSessionExpired(): void {
+    // Guard: Only emit event once per session
+    if (this.isSessionExpired) {
+      console.log('[ApiService] Session already marked as expired, skipping duplicate event');
+      return;
+    }
+
+    console.log('[ApiService] Session expired, clearing state');
+    this.isSessionExpired = true;
+
+    // Clear local storage
+    localStorage.removeItem('auth-token');
+    localStorage.removeItem('business-id');
+    localStorage.removeItem('user-data');
+    this.authToken = null;
+
+    // Emit event for AuthContext to handle cleanup (only once)
+    window.dispatchEvent(new CustomEvent('api:session-expired'));
+  }
+
+  /**
+   * Reset session expired flag (called after successful login)
+   */
+  resetSessionState(): void {
+    this.isSessionExpired = false;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit = {},
     isRetry: boolean = false
   ): Promise<T> {
+    // Guard: If session already expired, reject immediately
+    if (this.isSessionExpired) {
+      const error: any = new Error('Session expired. Please login again.');
+      error.code = 'SESSION_EXPIRED';
+      error.status = 401;
+      throw error;
+    }
+
     // Use instance token if available, fallback to localStorage
     const token = this.authToken || localStorage.getItem('auth-token');
 
     // Build headers: start with defaults, then merge caller's headers
-    // This ensures custom headers from the caller are preserved
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -37,9 +124,9 @@ class ApiService {
     }
 
     const config: RequestInit = {
-      ...options, // Spread all caller's options first (method, body, etc.)
-      headers,    // Then set the merged headers (this preserves custom headers)
-      credentials: 'include', // Important: Include cookies in requests
+      ...options,
+      headers,
+      credentials: 'include', // Include cookies in requests
     };
 
     try {
@@ -54,14 +141,12 @@ class ApiService {
           const scope = errorData.scope || 'unknown';
           const policyGroup = errorData.policy_group || 'default';
 
-          // Add to rate limit manager (will handle popup queue)
           rateLimitManager.addError({
             retryAfterSecs,
             scope,
             policyGroup,
           });
 
-          // Still throw error so the calling code can handle it
           const error: any = new Error(
             `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
           );
@@ -73,51 +158,23 @@ class ApiService {
 
         // Handle 401 errors - authentication failures
         if (response.status === 401) {
-          // ONLY trigger refresh if it's specifically TOKEN_EXPIRED (not MISSING_TOKEN or INVALID_TOKEN)
-          // This prevents infinite loops when user is not authenticated
+          // TOKEN_EXPIRED: Access token expired, try refresh
           if (!isRetry && errorData.error === 'TOKEN_EXPIRED') {
-            try {
-              // Call refresh token endpoint
-              const refreshResponse = await fetch(`${this.baseUrl}/auth/refresh`, {
-                method: 'POST',
-                credentials: 'include', // Include cookies for refresh
-              });
+            const refreshSucceeded = await this.refreshAccessToken();
 
-              if (refreshResponse.ok) {
-                // Retry the original request with the new token (cookies are automatically updated)
-                return this.request<T>(endpoint, options, true);
-              } else {
-                // If refresh fails, clear tokens
-                localStorage.removeItem('auth-token');
-                localStorage.removeItem('business-id');
-                localStorage.removeItem('user-data');
-                this.authToken = null;
-
-                // Only redirect if not already on login page (avoid infinite loop)
-                if (window.location.pathname !== '/login') {
-                  window.location.href = '/login';
-                }
-                return Promise.reject(new Error('Session expired. Please login again.'));
-              }
-            } catch (refreshError) {
-              console.error('Token refresh failed:', refreshError);
-              // Clear tokens
-              localStorage.removeItem('auth-token');
-              localStorage.removeItem('business-id');
-              localStorage.removeItem('user-data');
-              this.authToken = null;
-
-              // Only redirect if not already on login page (avoid infinite loop)
-              if (window.location.pathname !== '/login') {
-                window.location.href = '/login';
-              }
-              return Promise.reject(new Error('Session expired. Please login again.'));
+            if (refreshSucceeded) {
+              // Retry original request with new token
+              return this.request<T>(endpoint, options, true);
+            } else {
+              // Refresh failed - session expired
+              this.handleSessionExpired();
+              const error: any = new Error('Session expired. Please login again.');
+              error.code = 'SESSION_EXPIRED';
+              error.status = 401;
+              throw error;
             }
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
-            // For MISSING_TOKEN or INVALID_TOKEN, emit event and throw error
-            // The AuthContext will listen for this event and handle logout
-            // This prevents infinite loops during page load
-            // Emit custom event for AuthContext to handle
+            // No valid auth - emit event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
               detail: { code: errorData.error, message: errorData.message }
             }));
@@ -131,7 +188,7 @@ class ApiService {
 
         // For all other errors, just throw the error
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
-        error.code = errorData.error; // Preserve error code
+        error.code = errorData.error;
         error.status = response.status;
         throw error;
       }
@@ -140,7 +197,117 @@ class ApiService {
     } catch (error) {
       // Only log non-auth errors
       if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
-        console.error('API Request failed:', error);
+        console.error('[ApiService] Request failed:', error);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Request method for blob responses (PDFs, images, etc.)
+   * Inherits all authentication, token refresh, and error handling from base request
+   */
+  private async requestBlob(
+    endpoint: string,
+    options: RequestInit = {},
+    isRetry: boolean = false
+  ): Promise<Blob> {
+    // Guard: If session already expired, reject immediately
+    if (this.isSessionExpired) {
+      const error: any = new Error('Session expired. Please login again.');
+      error.code = 'SESSION_EXPIRED';
+      error.status = 401;
+      throw error;
+    }
+
+    // Use instance token if available, fallback to localStorage
+    const token = this.authToken || localStorage.getItem('auth-token');
+
+    // Build headers (no Content-Type for blob downloads)
+    const headers: Record<string, string> = {
+      ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+
+    // Merge caller's headers AFTER defaults
+    if (options.headers) {
+      Object.assign(headers, options.headers);
+    }
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+      credentials: 'include',
+    };
+
+    try {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, config);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+
+        // Handle 429 errors - rate limiting
+        if (response.status === 429) {
+          const retryAfterSecs = errorData.retry_after_secs || 60;
+          const scope = errorData.scope || 'unknown';
+          const policyGroup = errorData.policy_group || 'default';
+
+          rateLimitManager.addError({
+            retryAfterSecs,
+            scope,
+            policyGroup,
+          });
+
+          const error: any = new Error(
+            `Too many requests. Please wait ${retryAfterSecs} seconds before trying again.`
+          );
+          error.code = 'rate_limited';
+          error.status = 429;
+          error.retryAfter = retryAfterSecs;
+          throw error;
+        }
+
+        // Handle 401 errors - authentication failures
+        if (response.status === 401) {
+          // TOKEN_EXPIRED: Access token expired, try refresh
+          if (!isRetry && errorData.error === 'TOKEN_EXPIRED') {
+            const refreshSucceeded = await this.refreshAccessToken();
+
+            if (refreshSucceeded) {
+              // Retry original request with new token
+              return this.requestBlob(endpoint, options, true);
+            } else {
+              // Refresh failed - session expired
+              this.handleSessionExpired();
+              const error: any = new Error('Session expired. Please login again.');
+              error.code = 'SESSION_EXPIRED';
+              error.status = 401;
+              throw error;
+            }
+          } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
+            // No valid auth - emit event for AuthContext to handle
+            window.dispatchEvent(new CustomEvent('api:unauthorized', {
+              detail: { code: errorData.error, message: errorData.message }
+            }));
+
+            const error: any = new Error(errorData.message || 'Authentication required');
+            error.code = errorData.error;
+            error.status = response.status;
+            throw error;
+          }
+        }
+
+        // For all other errors, just throw the error
+        const error: any = new Error(errorData.message || `HTTP ${response.status}`);
+        error.code = errorData.error;
+        error.status = response.status;
+        throw error;
+      }
+
+      return response.blob();
+    } catch (error) {
+      // Only log non-auth errors
+      if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
+        console.error('[ApiService] Blob request failed:', error);
       }
       throw error;
     }
@@ -155,6 +322,9 @@ class ApiService {
       };
       message: string;
     }> => {
+      // Reset session expired flag on login attempt
+      this.resetSessionState();
+
       return this.request('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
@@ -224,6 +394,116 @@ class ApiService {
       return this.request('/v1/auth/verify-email', {
         method: 'POST',
         body: JSON.stringify({ token }),
+      });
+    },
+
+    // Mobile verification endpoints
+    verifyEmailWithMobile: async (
+      uid: string,
+      token: string,
+      sig: string,
+      mobileNumber: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-email-with-mobile', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig, mobileNumber }),
+      });
+    },
+
+    verifyMobileOtp: async (
+      uid: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-mobile-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, otp }),
+      });
+    },
+
+    // Invite flow OTP endpoints
+    sendInviteOtp: async (
+      uid: string,
+      token: string,
+      sig: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/send-invite-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig }),
+      });
+    },
+
+    resetPasswordWithOtp: async (
+      uid: string,
+      token: string,
+      sig: string,
+      otp: string,
+      newPassword: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/reset-password-with-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig, otp, newPassword }),
+      });
+    },
+
+    // Change password with OTP (protected endpoint)
+    generateMobileOtp: async (): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/generate-mobile-otp', {
+        method: 'POST',
+      });
+    },
+
+    changePasswordWithOtp: async (
+      oldPassword: string,
+      newPassword: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword, otp }),
+      });
+    },
+
+    // Mobile number update endpoints
+    sendMobileUpdateOtp: async (
+      mobileNumber: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/send-mobile-update-otp', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber }),
+      });
+    },
+
+    verifyMobileUpdate: async (
+      mobileNumber: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-mobile-update', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber, otp }),
       });
     }
   };
@@ -374,6 +654,7 @@ class ApiService {
       businessId: string,
       email: string,
       name: string,
+      mobile: string,
       role: string
     ): Promise<{
       data: {
@@ -388,7 +669,7 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ email, name, role }),
+        body: JSON.stringify({ email, name, mobile, role }),
       });
     },
 
@@ -1539,6 +1820,55 @@ class ApiService {
     }
   };
 
+  // Invoice endpoints
+  invoices = {
+    // Download invoice by payment ID (PDF format)
+    downloadByPaymentId: async (paymentId: string): Promise<Blob> => {
+      // Use the centralized request method with blob response handling
+      return this.requestBlob(
+        `/v1/invoices/download?payment_id=${paymentId}&format=pdf`,
+        { method: 'GET' }
+      );
+    },
+
+    // Get invoice details by payment ID (JSON format)
+    getByPaymentId: async (paymentId: string): Promise<{
+      invoice_id: number;
+      payment_id: string;
+      invoice_number: string;
+      gstin_supplier: string;
+      gstin_recipient: string;
+      invoice_date: string;
+      irn?: string;
+      irn_ack_no?: string;
+      irn_ack_date?: string;
+      irn_status: 'pending' | 'irn_generated' | 'failed' | 'cancelled';
+      qr_code?: string;
+      filing_status: 'not_filed' | 'filed' | 'failed';
+      description: string;
+      sac_code: string;
+      taxable_value: number;
+      gst_rate: number;
+      gst_amount: number;
+      total_amount: number;
+      created_at: string;
+      updated_at: string;
+    }> => {
+      return this.request(`/v1/invoices/download?payment_id=${paymentId}&format=json`, {
+        method: 'GET',
+      });
+    },
+
+    // Download invoice by invoice ID (PDF format)
+    downloadByInvoiceId: async (invoiceId: number): Promise<Blob> => {
+      // Use the centralized request method with blob response handling
+      return this.requestBlob(
+        `/v1/invoices/download?invoice_id=${invoiceId}&format=pdf`,
+        { method: 'GET' }
+      );
+    },
+  };
+
 }
 
 export const apiService = new ApiService();
@@ -1561,5 +1891,6 @@ export const {
   wallet: walletAPI,
   voucher: voucherAPI,
   vendors: vendorsAPI,
-  batchPayments: batchPaymentsAPI
+  batchPayments: batchPaymentsAPI,
+  invoices: invoicesAPI
 } = apiService;

@@ -5,13 +5,13 @@ export interface AuthUser {
   mobile?: string;
   taxId?: string;
   maskedNationalId?: string;
-  role: string;
+  // Note: Use AuthContext.userRoles to get user's role(s) and business associations
+  // For single-business users, userRoles[0] is the primary role
+  // For multi-business users, use BusinessContext.selectedBusiness for current context
   department?: string;
-  businessId: string;
-  businessName: string;
   rewardPoints?: number;
   avatar?: string;
-  
+
   // Onboarding tracking flags
   showDashboard?: boolean;
   hasAddedPaymentMethod?: boolean;

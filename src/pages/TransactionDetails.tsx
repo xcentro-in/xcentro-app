@@ -1,10 +1,10 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Download, Printer, FileText, CheckCircle2, XCircle, CreditCard, Copy, MoreVertical } from "lucide-react";
 import { PaymentDetails, PaymentStatus } from "@/types/payment";
-import { processPaymentAPI } from "@/services/api";
+import { processPaymentAPI, invoicesAPI } from "@/services/api";
 import { format } from "date-fns";
 import {
   DropdownMenu,
@@ -40,7 +40,7 @@ const PaymentStatusBadge = ({ status }: { status: PaymentStatus }) => {
 
 const TransactionDetails = () => {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const navigate = useNavigate();
   const [payment, setPayment] = useState<PaymentDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,14 +54,14 @@ const TransactionDetails = () => {
         return;
       }
 
-      if (!user?.businessId) {
+      if (!businessId) {
         setError('Missing business ID');
         setLoading(false);
         return;
       }
 
       try {
-        const response = await processPaymentAPI.getDetails(user.businessId, id);
+        const response = await processPaymentAPI.getDetails(businessId, id);
         setPayment(response.data);
       } catch (err) {
         console.error("Error fetching payment details:", err);
@@ -72,7 +72,7 @@ const TransactionDetails = () => {
     };
 
     loadPaymentDetails();
-  }, [id]);
+  }, [id, businessId]);
 
   const handlePrint = () => {
     window.print();
@@ -82,8 +82,40 @@ const TransactionDetails = () => {
     toast.success("Payment summary downloaded successfully");
   };
 
-  const handleGenerateInvoice = () => {
-    toast.success("Invoice generation initiated for ITC claim");
+  const handleGenerateInvoice = async () => {
+    if (!payment?.payment_id) {
+      toast.error("Payment ID not found");
+      return;
+    }
+
+    try {
+      toast.loading("Generating ITC invoice...", { id: 'invoice-download' });
+
+      // Download invoice PDF by payment ID
+      // API service handles authentication, token refresh, and session expiration
+      const blob = await invoicesAPI.downloadByPaymentId(payment.payment_id);
+
+      // Create blob URL and trigger download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ITC_Invoice_${payment.payment_id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast.success("ITC invoice downloaded successfully", { id: 'invoice-download' });
+    } catch (error) {
+      console.error("Error downloading invoice:", error);
+
+      // Handle errors - authentication and session expiration handled by api.ts
+      if (error instanceof Error) {
+        toast.error(error.message || "Failed to download invoice", { id: 'invoice-download' });
+      } else {
+        toast.error("Failed to download invoice. Please try again.", { id: 'invoice-download' });
+      }
+    }
   };
 
   const formatAmount = (amount: number, currency: string = "INR") => {

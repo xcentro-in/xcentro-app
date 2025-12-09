@@ -27,6 +27,8 @@ import { toast } from "sonner";
 const inviteFormSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  mobile: z.string()
+    .regex(/^\d{10}$/, { message: "Mobile number must be exactly 10 digits" }),
   role: z.string().min(1, { message: "Please select a role" }),
   // department: z.string().optional(), // TODO: Implement department feature later
 });
@@ -54,6 +56,7 @@ const InviteUserForm = ({ onInviteSubmit, onCancel, isSubmitting = false, editMo
     defaultValues: {
       email: editUser?.email || "",
       name: editUser?.name || "",
+      mobile: "",
       role: editUser?.role || "",
       // department: "", // TODO: Implement department feature later
     },
@@ -108,7 +111,29 @@ const InviteUserForm = ({ onInviteSubmit, onCancel, isSubmitting = false, editMo
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={form.control}
+              name="mobile"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      placeholder="9876543210"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      maxLength={10}
+                      disabled={editMode}
+                    />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">10-digit mobile number</p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="role"

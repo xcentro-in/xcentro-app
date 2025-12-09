@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useVendors } from "@/hooks/useVendors";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { useAuth } from "@/contexts/AuthContext";
 
 interface PayeeAutocompleteInputProps {
@@ -22,7 +23,8 @@ const PayeeAutocompleteInput = ({
   onAddNewVendor
 }: PayeeAutocompleteInputProps) => {
   const { user } = useAuth();
-  const { vendors, isLoading, error: vendorsError } = useVendors(user?.businessId);
+  const { businessId, businessName } = useCurrentBusiness();
+  const { vendors, isLoading, error: vendorsError } = useVendors(businessId);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [focusedIndex, setFocusedIndex] = useState(-1);

@@ -11,6 +11,7 @@ import { CreditCard, Building2, Info, AlertCircle, Loader2 } from "lucide-react"
 import { FeatureEnabled } from "@/components/FeatureEnabled";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePaymentSources } from "@/hooks/usePaymentSources";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { PaymentSource } from "@/types/payment-source";
 import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
@@ -53,7 +54,14 @@ const PaymentMethodAndReviewStep = ({
   voucherId
 }: PaymentMethodAndReviewStepProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRoles } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
+
+  // Get user's role for the current business
+  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+
+  // Create feature flag compatible user object
+  const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
 
   // Internal state - fully self-contained
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
@@ -77,10 +85,10 @@ const PaymentMethodAndReviewStep = ({
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
     return {
-      card: canViewFeature('PAYMENT_METHOD_CARD', user),
-      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+      card: canViewFeature('PAYMENT_METHOD_CARD', featureFlagUser),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', featureFlagUser),
     };
-  }, [user]);
+  }, [featureFlagUser.id, featureFlagUser.role]);
 
   // Get the first available payment method as default
   const defaultPaymentMethod = useMemo(() => {
@@ -104,14 +112,14 @@ const PaymentMethodAndReviewStep = ({
 
   // Fetch payment sources when component mounts
   useEffect(() => {
-    if (user?.businessId && totalAmount > 0) {
+    if (businessId && totalAmount > 0) {
       fetchPaymentSources({
-        business_id: user.businessId,
+        business_id: businessId,
         payment_context: paymentContext,
         base_amount: Math.round(totalAmount * 100) // Convert to paise
       });
     }
-  }, [user?.businessId, totalAmount, paymentContext, fetchPaymentSources]);
+  }, [businessId, totalAmount, paymentContext, fetchPaymentSources]);
 
   // Get selected payment source details
   const selectedSource = selectedPaymentMethod
@@ -160,7 +168,7 @@ const PaymentMethodAndReviewStep = ({
 
   // Handle payment confirmation
   const handleConfirmPayment = async () => {
-    if (!selectedSource || !user?.businessId) {
+    if (!selectedSource || !businessId) {
       toast.error("Please select a payment method");
       return;
     }
@@ -193,7 +201,7 @@ const PaymentMethodAndReviewStep = ({
       };
 
       // Make payment API call
-      const response = await processPaymentAPI.makeCardPayment(user.businessId, paymentPayload);
+      const response = await processPaymentAPI.makeCardPayment(businessId, paymentPayload);
 
       // Extract redirect URL from response
       if (response.data?.redirect_url) {

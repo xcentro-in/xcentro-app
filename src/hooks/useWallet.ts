@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
 import { walletAPI } from '@/services/api';
 import { GetWalletResponse, WalletData } from '@/types/wallet';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 
 export const useWallet = () => {
   const [data, setData] = useState<WalletData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const fetchWallet = useCallback(async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setIsLoading(false);
       return;
     }
@@ -19,7 +19,7 @@ export const useWallet = () => {
     setError(null);
 
     try {
-      const response = await walletAPI.fetch(user.businessId);
+      const response = await walletAPI.fetch(businessId);
       // Ensure the response matches GetWalletResponse structure
       if (
         response &&
@@ -40,7 +40,7 @@ export const useWallet = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.businessId]);
+  }, [businessId]);
 
   useEffect(() => {
     fetchWallet();

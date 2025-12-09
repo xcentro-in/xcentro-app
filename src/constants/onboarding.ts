@@ -12,6 +12,7 @@ export const ONBOARDING_STATUS = {
   COMPLETED: 'kyc_completed',
   VERIFIED: 'kyc_verified',
   FAILED: 'kyc_failed',
+  REJECTED: 'kyc_rejected',
 } as const;
 
 // Completed status values array

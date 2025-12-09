@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { EmptyWallet } from "@/components/wallet/EmptyWallet";
 import { useWallet } from "@/hooks/useWallet";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { StoredCard, BankAccount } from "@/types/wallet";
 import { useAuth } from "@/contexts/AuthContext";
 import { canViewFeature } from "@/lib/featureFlags";
@@ -21,8 +22,15 @@ import { getCardNetworkLogo } from "@/lib/cardNetworks";
 const WalletManagement = () => {
   const navigate = useNavigate();
   const { setTitle } = usePageTitle();
-  const { user, optimisticallyUpdateOnboardingFlag } = useAuth();
+  const { user, optimisticallyUpdateOnboardingFlag, userRoles } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const { cards, bankAccounts, isLoading, error } = useWallet();
+
+  // Get user's role for the current business
+  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+
+  // Create feature flag compatible user object
+  const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
 
   const showEmptyState = cards.length === 0 && bankAccounts.length === 0;
 
@@ -35,10 +43,10 @@ const WalletManagement = () => {
   // Check which payment methods are enabled via feature flags
   const enabledPaymentMethods = useMemo(() => {
     return {
-      card: canViewFeature('PAYMENT_METHOD_CARD', user),
-      bank: canViewFeature('PAYMENT_METHOD_BANK', user),
+      card: canViewFeature('PAYMENT_METHOD_CARD', featureFlagUser),
+      bank: canViewFeature('PAYMENT_METHOD_BANK', featureFlagUser),
     };
-  }, [user]);
+  }, [featureFlagUser.id, featureFlagUser.role]);
 
   // Get the first available payment method as default
   const defaultPaymentMethod = useMemo(() => {
@@ -87,7 +95,7 @@ const WalletManagement = () => {
 
   // Handle card toggle with debouncing
   const handleCardToggle = useCallback((cardId: string, newEnabledState: boolean) => {
-    if (!user?.businessId) {
+    if (!businessId) {
       toast.error('Business ID not found. Please log in again.');
       return;
     }
@@ -107,7 +115,7 @@ const WalletManagement = () => {
     debounceTimersRef.current[cardId] = setTimeout(async () => {
       try {
         // Call API to update card status
-        await walletAPI.updateCardStatus(user.businessId, cardId, newEnabledState);
+        await walletAPI.updateCardStatus(businessId, cardId, newEnabledState);
         // Show success toast
         toast.success(
           newEnabledState ? 'Card enabled successfully' : 'Card disabled successfully'
@@ -127,7 +135,7 @@ const WalletManagement = () => {
         delete debounceTimersRef.current[cardId];
       }
     }, 500);
-  }, [user?.businessId]);
+  }, [businessId]);
 
   useEffect(() => {
     setTitle("Payment Sources");
@@ -325,7 +333,7 @@ const WalletManagement = () => {
     // Determine if card can be toggled (only active/inactive cards AND only for owner role)
     const isPending = card.card_status === 'pending';
     const isFailed = card.card_status === 'failed';
-    const isOwner = user?.role === 'owner';
+    const isOwner = currentUserRole === 'owner';
     const isActiveOrInactive = card.card_status === 'active' || card.card_status === 'inactive';
     const showToggle = isActiveOrInactive && isOwner;
 

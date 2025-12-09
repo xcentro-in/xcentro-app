@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { Payee, VendorPayee, BillerPayee, EmployeePayee } from '@/types/payee';
 import { payeesAPI } from '@/services/api';
 import {
@@ -103,9 +104,10 @@ export const usePayeeDetails = (payeeId: string) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const fetchPayeeDetails = async () => {
-    if (!user?.businessId || !payeeId) {
+    if (!businessId || !payeeId) {
       setError('Missing required parameters');
       setIsLoading(false);
       return;
@@ -116,7 +118,7 @@ export const usePayeeDetails = (payeeId: string) => {
       setError(null);
 
       // Call real API
-      const response: GetPayeeDetailsResponse = await payeesAPI.getDetails(user.businessId, payeeId);
+      const response: GetPayeeDetailsResponse = await payeesAPI.getDetails(businessId, payeeId);
 
       if (response.status !== 'success' || !response.data) {
         throw new Error(response.message || 'Failed to fetch payee details');
@@ -202,13 +204,13 @@ export const usePayeeDetails = (payeeId: string) => {
 
   // Update payee details (for edit functionality)
   const updatePayeeDetails = async (updates: Partial<Payee>) => {
-    if (!user?.businessId || !payeeId) {
+    if (!businessId || !payeeId) {
       throw new Error('Missing required parameters');
     }
 
     try {
       // TODO: Replace with actual API call
-      // const response = await api.payees.update(user.businessId, payeeId, updates);
+      // const response = await api.payees.update(businessId, payeeId, updates);
 
       console.log('TODO: Update payee details via API:', updates);
 
@@ -254,7 +256,7 @@ export const usePayeeDetails = (payeeId: string) => {
     if (payeeId) {
       fetchPayeeDetails();
     }
-  }, [payeeId, user?.businessId]);
+  }, [payeeId, businessId]);
 
   return {
     overview,

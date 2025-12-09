@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { voucherAPI } from '@/services/api';
 
 interface ApprovalCounts {
@@ -18,10 +18,10 @@ export const useApprovalCounts = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const fetchCounts = useCallback(async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setError('Missing business ID');
       setIsLoading(false);
       return;
@@ -31,7 +31,7 @@ export const useApprovalCounts = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getApprovalCounts(user.businessId);
+      const response = await voucherAPI.getApprovalCounts(businessId);
 
       // Validate response structure
       if (
@@ -54,13 +54,13 @@ export const useApprovalCounts = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.businessId]);
+  }, [businessId]);
 
   useEffect(() => {
-    if (user?.businessId) {
+    if (businessId) {
       fetchCounts();
     }
-  }, [user?.businessId, fetchCounts]);
+  }, [businessId, fetchCounts]);
 
   return {
     counts,

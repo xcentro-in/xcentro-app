@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Xcentro Frontend
 
 # Stage 1: Build the application
-FROM node:18-alpine AS builder
+FROM node:lts-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 
 # Build argument for backend API URL
 ARG VITE_API_URL
-ENV VITE_API_URL=https://staging-api.xcentro.in/v1
+ENV VITE_API_URL=https://staging-api.xcentro.in
 
 # Build the application for production
 RUN npm run build

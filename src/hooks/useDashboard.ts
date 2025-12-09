@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { format } from 'date-fns';
 
 // Helper to convert paise to rupees
@@ -42,13 +43,14 @@ export interface DashboardData {
 
 export const useDashboard = () => {
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user?.businessId) {
+      if (!businessId) {
         setIsLoading(false);
         return;
       }
@@ -57,7 +59,7 @@ export const useDashboard = () => {
         setIsLoading(true);
         setError(null);
 
-        const response = await apiService.dashboard.getData(user.businessId);
+        const response = await apiService.dashboard.getData(businessId);
 
         // Transform API response to component-friendly format with null checks
         const transformed: DashboardData = {
@@ -139,7 +141,7 @@ export const useDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [user?.businessId]);
+  }, [businessId]);
 
   return { data, isLoading, error };
 };

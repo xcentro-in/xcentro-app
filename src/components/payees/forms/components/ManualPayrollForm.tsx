@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import ManualPayrollBankDetails from "./ManualPayrollBankDetails";
 
@@ -21,6 +22,7 @@ interface ManualPayrollFormProps {
 
 const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form fields
@@ -94,7 +96,7 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
     e.preventDefault();
 
     // Validate business ID exists
-    if (!user?.businessId) {
+    if (!businessId) {
       setErrorMessage('Business ID not found. Please log in again.');
       return;
     }
@@ -126,7 +128,7 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
       };
 
       // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(user.businessId, requestBody);
+      const response = await payeesAPI.create(businessId, requestBody);
 
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;

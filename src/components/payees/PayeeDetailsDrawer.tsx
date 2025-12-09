@@ -9,6 +9,7 @@ import { Edit, Eye, History, Ban, CheckCircle, Loader2 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { payeesAPI } from "@/services/api"
 import { useAuth } from "@/contexts/AuthContext"
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 
 interface PayeeDetailsDrawerProps {
   payee: Payee | null
@@ -25,6 +26,7 @@ export const PayeeDetailsDrawer = ({
 }: PayeeDetailsDrawerProps) => {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { businessId, businessName } = useCurrentBusiness();
 
   // State for account details
   const [accountDetails, setAccountDetails] = useState<{
@@ -43,7 +45,7 @@ export const PayeeDetailsDrawer = ({
         return;
       }
 
-      if (!user?.businessId) {
+      if (!businessId) {
         setAccDetailsError("Business ID not available");
         return;
       }
@@ -52,7 +54,7 @@ export const PayeeDetailsDrawer = ({
       setAccDetailsError(null);
 
       try {
-        const response = await payeesAPI.getAccountDetails(user.businessId, payee.id);
+        const response = await payeesAPI.getAccountDetails(businessId, payee.id);
         setAccountDetails(response.data);
       } catch (error: any) {
         console.error("Failed to fetch account details:", error);
@@ -69,7 +71,7 @@ export const PayeeDetailsDrawer = ({
       setAccountDetails(null);
       setAccDetailsError(null);
     }
-  }, [payee?.id, isOpen, payee?.type, user?.businessId]);
+  }, [payee?.id, isOpen, payee?.type, businessId]);
 
   if (!payee) return null
 

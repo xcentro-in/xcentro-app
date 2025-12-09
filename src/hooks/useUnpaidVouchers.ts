@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 import { voucherAPI } from '@/services/api';
 import { UnpaidVouchersResponse, UnpaidVoucherBill } from '@/types/unpaid-vouchers-api';
 import { Invoice } from '@/data/mockInvoices';
@@ -11,6 +12,7 @@ export const useUnpaidVouchers = () => {
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const calculateOverdueDays = (dueDate: string | null): number | undefined => {
     if (!dueDate) return undefined;
@@ -65,7 +67,7 @@ export const useUnpaidVouchers = () => {
   };
 
   const fetchUnpaidVouchers = useCallback(async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setError('Missing business ID');
       setIsLoading(false);
       return;
@@ -75,7 +77,7 @@ export const useUnpaidVouchers = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getUnpaidVouchers(user.businessId) as UnpaidVouchersResponse;
+      const response = await voucherAPI.getUnpaidVouchers(businessId) as UnpaidVouchersResponse;
 
       const mappedInvoices = response.bills.map(mapVoucherToInvoice);
       setInvoices(mappedInvoices);
@@ -87,13 +89,13 @@ export const useUnpaidVouchers = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.businessId]);
+  }, [businessId]);
 
   useEffect(() => {
-    if (user?.businessId) {
+    if (businessId) {
       fetchUnpaidVouchers();
     }
-  }, [user?.businessId, fetchUnpaidVouchers]);
+  }, [businessId, fetchUnpaidVouchers]);
 
   return {
     invoices,

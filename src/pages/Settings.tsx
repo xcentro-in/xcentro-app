@@ -61,13 +61,13 @@ const Settings = () => {
   } as const;
 
   return (
-    <div className="h-full flex w-full flex-grow">
+    <div className="h-full flex w-full flex-grow overflow-visible">
       {/* Left sidebar with tabs */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 border-r border-border bg-muted/10 transition-all duration-300`}>
-        <nav className="sticky top-0 p-4 space-y-2 relative">
+      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} shrink-0 border-r border-border bg-muted/10 transition-all duration-300 relative overflow-visible`}>
+        <nav className="sticky top-0 p-4 space-y-2 relative overflow-visible">
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="absolute -right-3 top-4 bg-background rounded-full p-1 border border-border shadow-sm hover:bg-accent transition-colors"
+            className="absolute -right-3 top-4 bg-background rounded-full p-1 border border-border shadow-sm hover:bg-accent transition-colors z-10"
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>

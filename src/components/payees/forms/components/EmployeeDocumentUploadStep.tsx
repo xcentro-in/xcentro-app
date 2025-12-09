@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileText, CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import { toast } from "sonner";
 
@@ -20,6 +21,7 @@ interface EmployeeDocumentUploadStepProps {
 
 const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: EmployeeDocumentUploadStepProps) => {
   const { user } = useAuth();
+  const { businessId, businessName } = useCurrentBusiness();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -42,7 +44,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !user?.businessId) return;
+    if (!selectedFile || !businessId) return;
 
     setIsUploading(true);
     setUploadProgress(0);
@@ -52,7 +54,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       setUploadStatus({ status: 'getting_url', message: 'Getting upload URL...' });
       const presignedResponse = await payeesAPI.getEmployeeDocPresignedUrl(
         employeeData.relation_id,
-        user.businessId
+        businessId
       );
 
       if (!presignedResponse.data.upload_url) {
@@ -73,7 +75,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
 
       const confirmResponse = await payeesAPI.confirmEmployeeDocUpload(
         employeeData.relation_id,
-        user.businessId
+        businessId
       );
 
       if (confirmResponse.status === 'success') {

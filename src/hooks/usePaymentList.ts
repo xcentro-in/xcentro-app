@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { processPaymentAPI } from '@/services/api';
 import { PaymentListResponseAPI, PaymentListItemAPI } from '@/types/payment-list-api';
 import { Payout } from '@/types/payout';
-import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentBusiness } from './useCurrentBusiness';
 
 // Helper function to map API status to frontend status
 const mapStatus = (apiStatus: string): 'Completed' | 'In Progress' | 'Failed' | 'Pending' => {
@@ -68,10 +68,10 @@ export const usePaymentList = ({ limit, offset }: UsePaymentListParams) => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { businessId } = useCurrentBusiness();
 
   const fetchPayments = useCallback(async () => {
-    if (!user?.businessId) {
+    if (!businessId) {
       setIsLoading(false);
       return;
     }
@@ -80,7 +80,7 @@ export const usePaymentList = ({ limit, offset }: UsePaymentListParams) => {
     setError(null);
 
     try {
-      const response = await processPaymentAPI.list(user.businessId, { limit, offset });
+      const response = await processPaymentAPI.list(businessId, { limit, offset });
 
       // The API returns the data directly (not wrapped in a "data" field)
       if (
@@ -108,7 +108,7 @@ export const usePaymentList = ({ limit, offset }: UsePaymentListParams) => {
     } finally {
       setIsLoading(false);
     }
-  }, [user?.businessId, limit, offset]);
+  }, [businessId, limit, offset]);
 
   useEffect(() => {
     fetchPayments();
