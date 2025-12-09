@@ -11,15 +11,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { AuroraBackground } from "@/components/ui/aurora-background";
-import { Mail, Lock, KeyRound } from 'lucide-react';
+import { Mail, Lock, KeyRound, Smartphone, Loader2 } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
 });
 
 const resetPasswordSchema = z.object({
-  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter" })
+    .regex(/[a-z]/, { message: "Password must contain at least one lowercase letter" })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, { message: "Password must contain at least one special character" }),
   confirmPassword: z.string(),
+  otp: z.string().length(6, { message: "OTP must be exactly 6 digits" }).regex(/^\d+$/, { message: "OTP must be numeric" }),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -32,9 +38,13 @@ const ForgotPassword = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(0);
 
   const query = new URLSearchParams(location.search);
-  const token = query.get("token");
+  const uid = query.get("uid") || "";
+  const token = query.get("token") || "";
+  const sig = query.get("sig") || "";
 
   const forgotPasswordForm = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -43,7 +53,23 @@ const ForgotPassword = () => {
 
   const resetPasswordForm = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { password: "", confirmPassword: "" },
+    defaultValues: { password: "", confirmPassword: "", otp: "" },
+  });
+
+  // Countdown timer for OTP expiry
+  useState(() => {
+    if (otpTimer > 0) {
+      const timer = setInterval(() => {
+        setOtpTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
   });
 
   const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
@@ -58,18 +84,52 @@ const ForgotPassword = () => {
     }
   };
 
-  const handleResetPassword = async (values: ResetPasswordFormValues) => {
-    if (!token) {
+  const handleGenerateOtp = async () => {
+    if (!uid || !token || !sig) {
       toast.error("Invalid or missing reset token.");
       return;
     }
+
     setIsSubmitting(true);
     try {
-      const response = await authAPI.resetPassword(token, values.password);
-      toast.success(response.message);
+      const response = await authAPI.sendInviteOtp(uid, token, sig);
+      toast.success(response.message || "OTP sent to your registered mobile number");
+      setOtpSent(true);
+      setOtpTimer(600); // 10 minutes = 600 seconds
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send OTP. Please ensure you have a mobile number registered.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.sendInviteOtp(uid, token, sig);
+      toast.success(response.message || "OTP resent successfully");
+      setOtpTimer(600);
+      resetPasswordForm.setValue('otp', ''); // Clear previous OTP
+    } catch (err: any) {
+      toast.error(err.message || "Failed to resend OTP");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async (values: ResetPasswordFormValues) => {
+    if (!uid || !token || !sig) {
+      toast.error("Invalid or missing reset token.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await authAPI.resetPasswordWithOtp(uid, token, sig, values.otp, values.password);
+      toast.success(response.message || "Password reset successfully. All sessions have been invalidated.");
       setTimeout(() => {
         navigate("/login");
-      }, 3000);
+      }, 2000);
     } catch (err: any) {
       toast.error(err.message || "Failed to reset password.");
     } finally {
@@ -77,10 +137,16 @@ const ForgotPassword = () => {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <AuroraBackground>
       <Card className="w-full max-w-md shadow-lg transition-all duration-500 px-4 sm:px-6 bg-white/80 backdrop-blur-sm border-white/20">
-        {token ? (
+        {uid && token && sig ? (
           <>
             <CardHeader className="space-y-1 text-center">
               <div className="flex justify-center mb-4">
@@ -88,49 +154,136 @@ const ForgotPassword = () => {
               </div>
               <h1 className="text-2xl font-bold">Reset Password</h1>
               <p className="text-sm text-muted-foreground">
-                Enter your new password below.
+                {otpSent ? "Enter OTP and your new password" : "Click below to receive an OTP"}
               </p>
             </CardHeader>
             <CardContent>
-              <Form {...resetPasswordForm}>
-                <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4">
-                  <FormField
-                    control={resetPasswordForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>New Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+              {!otpSent ? (
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-start gap-3">
+                      <Smartphone className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div className="text-sm text-blue-900">
+                        <p className="font-medium mb-1">Mobile verification required</p>
+                        <p>We'll send an OTP to your registered mobile number for security verification.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleGenerateOtp}
+                    className="w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending OTP...
+                      </>
+                    ) : (
+                      <>
+                        <Smartphone className="mr-2 h-4 w-4" />
+                        Generate OTP
+                      </>
                     )}
-                  />
-                  <FormField
-                    control={resetPasswordForm.control}
-                    name="confirmPassword"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Confirm New Password</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Resetting..." : "Reset Password"}
                   </Button>
-                </form>
-              </Form>
+                </div>
+              ) : (
+                <Form {...resetPasswordForm}>
+                  <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4">
+                    <FormField
+                      control={resetPasswordForm.control}
+                      name="otp"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>OTP</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="text"
+                              placeholder="123456"
+                              className="text-center text-2xl tracking-widest"
+                              maxLength={6}
+                              {...field}
+                              onChange={(e) => field.onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                            />
+                          </FormControl>
+                          <div className="flex justify-between items-center text-xs">
+                            <span className="text-muted-foreground">
+                              {otpTimer > 0 ? `OTP expires in ${formatTime(otpTimer)}` : 'OTP expired'}
+                            </span>
+                            {otpTimer === 0 && (
+                              <button
+                                type="button"
+                                onClick={handleResendOtp}
+                                disabled={isSubmitting}
+                                className="text-primary hover:underline"
+                              >
+                                Resend OTP
+                              </button>
+                            )}
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={resetPasswordForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>New Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                            </div>
+                          </FormControl>
+                          <p className="text-xs text-muted-foreground">
+                            At least 8 characters with uppercase, lowercase, number, and special character
+                          </p>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={resetPasswordForm.control}
+                      name="confirmPassword"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Confirm New Password</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                              <Input type="password" placeholder="••••••••" className="pl-10" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Resetting...
+                        </>
+                      ) : (
+                        "Reset Password"
+                      )}
+                    </Button>
+                    {otpTimer > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={handleResendOtp}
+                        disabled={isSubmitting}
+                        className="w-full"
+                      >
+                        Resend OTP
+                      </Button>
+                    )}
+                  </form>
+                </Form>
+              )}
             </CardContent>
           </>
         ) : (
@@ -164,7 +317,14 @@ const ForgotPassword = () => {
                     )}
                   />
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Reset Link"}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Reset Link"
+                    )}
                   </Button>
                 </form>
               </Form>

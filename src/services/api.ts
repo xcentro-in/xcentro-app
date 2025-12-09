@@ -395,6 +395,116 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify({ token }),
       });
+    },
+
+    // Mobile verification endpoints
+    verifyEmailWithMobile: async (
+      uid: string,
+      token: string,
+      sig: string,
+      mobileNumber: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-email-with-mobile', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig, mobileNumber }),
+      });
+    },
+
+    verifyMobileOtp: async (
+      uid: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-mobile-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, otp }),
+      });
+    },
+
+    // Invite flow OTP endpoints
+    sendInviteOtp: async (
+      uid: string,
+      token: string,
+      sig: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/send-invite-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig }),
+      });
+    },
+
+    resetPasswordWithOtp: async (
+      uid: string,
+      token: string,
+      sig: string,
+      otp: string,
+      newPassword: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/reset-password-with-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig, otp, newPassword }),
+      });
+    },
+
+    // Change password with OTP (protected endpoint)
+    generateMobileOtp: async (): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/generate-mobile-otp', {
+        method: 'POST',
+      });
+    },
+
+    changePasswordWithOtp: async (
+      oldPassword: string,
+      newPassword: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/change-password', {
+        method: 'POST',
+        body: JSON.stringify({ oldPassword, newPassword, otp }),
+      });
+    },
+
+    // Mobile number update endpoints
+    sendMobileUpdateOtp: async (
+      mobileNumber: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/send-mobile-update-otp', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber }),
+      });
+    },
+
+    verifyMobileUpdate: async (
+      mobileNumber: string,
+      otp: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/verify-mobile-update', {
+        method: 'POST',
+        body: JSON.stringify({ mobileNumber, otp }),
+      });
     }
   };
 
@@ -544,6 +654,7 @@ class ApiService {
       businessId: string,
       email: string,
       name: string,
+      mobile: string,
       role: string
     ): Promise<{
       data: {
@@ -558,7 +669,7 @@ class ApiService {
         headers: {
           'X-Business-ID': businessId,
         },
-        body: JSON.stringify({ email, name, role }),
+        body: JSON.stringify({ email, name, mobile, role }),
       });
     },
 
