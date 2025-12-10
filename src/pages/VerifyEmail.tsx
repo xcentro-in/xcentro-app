@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, CheckCircle2, XCircle, Smartphone } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Phone, Shield, ArrowLeft } from 'lucide-react';
 import { apiService } from '@/services/api';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState<'loading' | 'mobile-input' | 'otp-input' | 'success' | 'error'>('loading');
+  const [status, setStatus] = useState<'loading' | 'mobile-verification' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
   const [otp, setOtp] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [otpTimer, setOtpTimer] = useState(0);
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isLoadingOtp, setIsLoadingOtp] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [countdown, setCountdown] = useState(0);
 
   // Store URL params for later use
   const uid = searchParams.get('uid') || '';
@@ -28,7 +30,7 @@ const VerifyEmail = () => {
     // Check if we have the required params for mobile verification flow
     if (uid && token && sig) {
       // New flow: verify email with mobile
-      setStatus('mobile-input');
+      setStatus('mobile-verification');
       setMessage('Please enter your mobile number to complete verification');
     } else {
       // Old flow: just token-based email verification (backward compatibility)
@@ -42,13 +44,13 @@ const VerifyEmail = () => {
     }
   }, [searchParams]);
 
-  // Countdown timer for OTP expiry
+  // Countdown timer effect
   useEffect(() => {
-    if (otpTimer > 0) {
-      const timer = setTimeout(() => setOtpTimer(otpTimer - 1), 1000);
+    if (countdown > 0) {
+      const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     }
-  }, [otpTimer]);
+  }, [countdown]);
 
   const verifyEmailOnly = async (emailToken: string) => {
     try {
@@ -66,56 +68,38 @@ const VerifyEmail = () => {
     }
   };
 
-  const handleMobileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate mobile number (10 digits)
-    if (!/^\d{10}$/.test(mobileNumber)) {
+  const handleSendOtp = async () => {
+    if (mobileNumber.length !== 10) {
       toast.error('Please enter a valid 10-digit mobile number');
       return;
     }
 
-    setIsSubmitting(true);
+    setIsLoadingOtp(true);
     try {
       const response = await apiService.auth.verifyEmailWithMobile(uid, token, sig, mobileNumber);
       toast.success(response.message || 'OTP sent to your mobile number');
-      setStatus('otp-input');
-      setOtpTimer(600); // 10 minutes = 600 seconds
+      setIsOtpSent(true);
+      setCountdown(600); // 10 minutes = 600 seconds
     } catch (error: any) {
       toast.error(error.message || 'Failed to send OTP');
     } finally {
-      setIsSubmitting(false);
+      setIsLoadingOtp(false);
     }
   };
 
-  const handleResendOtp = async () => {
-    setIsSubmitting(true);
-    try {
-      const response = await apiService.auth.verifyEmailWithMobile(uid, token, sig, mobileNumber);
-      toast.success(response.message || 'OTP resent successfully');
-      setOtpTimer(600);
-      setOtp(''); // Clear previous OTP
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to resend OTP');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleOtpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate OTP (6 digits)
-    if (!/^\d{6}$/.test(otp)) {
-      toast.error('Please enter a valid 6-digit OTP');
+  const handleVerifyOtp = async () => {
+    if (otp.length !== 6) {
+      toast.error('Please enter the 6-digit OTP');
       return;
     }
 
-    setIsSubmitting(true);
+    setIsVerifying(true);
     try {
       const response = await apiService.auth.verifyMobileOtp(uid, otp);
       setStatus('success');
       setMessage(response.message || 'Mobile number verified successfully. You can now log in.');
+
+      toast.success('Verification successful!');
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
@@ -124,14 +108,14 @@ const VerifyEmail = () => {
     } catch (error: any) {
       toast.error(error.message || 'Invalid or expired OTP');
     } finally {
-      setIsSubmitting(false);
+      setIsVerifying(false);
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const handleResendOtp = () => {
+    setOtp('');
+    setCountdown(600);
+    handleSendOtp();
   };
 
   return (
@@ -140,113 +124,119 @@ const VerifyEmail = () => {
         <CardHeader className="space-y-1 text-center">
           <div className="flex justify-center mb-4">
             <img
-              src="https://ik.imagekit.io/mddzdzy9m/Xcentro/logo_dark_transparent.png?updatedAt=1763483534131=w-200,h-200,c-at_max"
+              src="https://ik.imagekit.io/mddzdzy9m/Xcentro/logo_dark_transparent.png?updatedAt=1763483534131&tr=w-200,h-200,c-at_max"
               alt="Xcentro Logo"
               className="h-24 w-auto object-contain"
             />
           </div>
+          <h1 className="text-2xl font-bold">
+            {status === 'loading'
+              ? "Verifying Email"
+              : status === 'mobile-verification'
+                ? "Verify Mobile Number"
+                : status === 'success'
+                  ? "Verification Complete!"
+                  : "Verification Failed"
+            }
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {status === 'loading'
+              ? "Please wait while we verify your email address..."
+              : status === 'mobile-verification'
+                ? (isOtpSent
+                    ? `Enter the OTP sent to ${mobileNumber}`
+                    : "Enter your mobile number to receive OTP")
+                : status === 'success'
+                  ? message
+                  : ""
+            }
+          </p>
         </CardHeader>
         <CardContent className="text-center">
           {status === 'loading' && (
-            <>
-              <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifying Email</h1>
-              <p className="text-muted-foreground">Please wait while we verify your email address...</p>
-            </>
+            <Loader2 className="w-16 h-16 text-blue-600 animate-spin mx-auto mb-4" />
           )}
 
-          {status === 'mobile-input' && (
-            <>
-              <Smartphone className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Verify Mobile Number</h1>
-              <p className="text-muted-foreground mb-6">{message}</p>
-              <form onSubmit={handleMobileSubmit} className="space-y-4 text-left">
-                <div className="space-y-2">
-                  <Label htmlFor="mobile">Mobile Number</Label>
+          {status === 'mobile-verification' && (
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="mobile" className="text-sm font-medium">
+                  Mobile Number
+                </label>
+                <div className="relative mt-2">
+                  <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="mobile"
                     type="tel"
-                    placeholder="9876543210"
-                    value={mobileNumber}
-                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit mobile number"
                     maxLength={10}
-                    required
+                    value={mobileNumber}
+                    onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, ''))}
+                    disabled={isOtpSent}
+                    className="pl-10"
                   />
-                  <p className="text-xs text-muted-foreground">Enter your 10-digit mobile number</p>
                 </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending OTP...
-                    </>
-                  ) : (
-                    'Send OTP'
-                  )}
-                </Button>
-              </form>
-            </>
-          )}
+              </div>
 
-          {status === 'otp-input' && (
-            <>
-              <Smartphone className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Enter OTP</h1>
-              <p className="text-muted-foreground mb-6">
-                We've sent a 6-digit OTP to {mobileNumber}
-              </p>
-              <form onSubmit={handleOtpSubmit} className="space-y-4 text-left">
-                <div className="space-y-2">
-                  <Label htmlFor="otp">OTP</Label>
-                  <Input
-                    id="otp"
-                    type="text"
-                    placeholder="123456"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    maxLength={6}
-                    className="text-center text-2xl tracking-widest"
-                    required
-                  />
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-muted-foreground">
-                      {otpTimer > 0 ? `OTP expires in ${formatTime(otpTimer)}` : 'OTP expired'}
-                    </span>
-                    {otpTimer === 0 && (
-                      <button
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={isSubmitting}
-                        className="text-primary hover:underline"
-                      >
-                        Resend OTP
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    'Verify OTP'
-                  )}
+              {!isOtpSent ? (
+                <Button
+                  onClick={handleSendOtp}
+                  disabled={mobileNumber.length !== 10 || isLoadingOtp}
+                  className="w-full"
+                >
+                  {isLoadingOtp ? "Sending..." : "Get OTP"}
                 </Button>
-                {otpTimer > 0 && (
+              ) : (
+                <>
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">
+                      Enter OTP
+                    </label>
+                    <div className="flex justify-center">
+                      <InputOTP
+                        maxLength={6}
+                        value={otp}
+                        onChange={(value) => setOtp(value)}
+                      >
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} />
+                          <InputOTPSlot index={1} />
+                          <InputOTPSlot index={2} />
+                          <InputOTPSlot index={3} />
+                          <InputOTPSlot index={4} />
+                          <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                  </div>
+
                   <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={handleResendOtp}
-                    disabled={isSubmitting}
+                    onClick={handleVerifyOtp}
+                    disabled={otp.length !== 6 || isVerifying}
                     className="w-full"
                   >
-                    Resend OTP
+                    <Shield className="mr-2 h-4 w-4" />
+                    {isVerifying ? "Verifying..." : "Verify Mobile Number"}
                   </Button>
-                )}
-              </form>
-            </>
+
+                  <div className="text-center">
+                    {countdown > 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        Resend OTP in {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
+                      </p>
+                    ) : (
+                      <Button
+                        variant="link"
+                        onClick={handleResendOtp}
+                        disabled={isLoadingOtp}
+                      >
+                        Resend OTP
+                      </Button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
 
           {status === 'success' && (
