@@ -8,6 +8,7 @@
  * - Cookie-based authentication (httpOnly cookies)
  * - Custom event emission for auth state changes
  */
+import { toast } from 'sonner';
 
 import { rateLimitManager } from '@/lib/rateLimitManager';
 
@@ -173,6 +174,21 @@ class ApiService {
               error.status = 401;
               throw error;
             }
+          } else if (errorData.error === 'SESSION_INVALIDATED' || errorData.error === 'REFRESH_TOKEN_EXPIRED') {
+            // Session invalidated (logged out from another device) or refresh token expired
+            this.handleSessionExpired();
+
+            // Show appropriate toast notification
+            if (errorData.error === 'SESSION_INVALIDATED') {
+              toast.info('You’ve signed in on another device. You’ve been logged out here.');
+            } else {
+              toast.info('Your session has expired. Please login again.');
+            }
+
+            const error: any = new Error('Session expired. Please login again.');
+            error.code = 'SESSION_EXPIRED';
+            error.status = 401;
+            throw error;
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
             // No valid auth - emit event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
@@ -283,6 +299,21 @@ class ApiService {
               error.status = 401;
               throw error;
             }
+          } else if (errorData.error === 'SESSION_INVALIDATED' || errorData.error === 'REFRESH_TOKEN_EXPIRED') {
+            // Session invalidated (logged out from another device) or refresh token expired
+            this.handleSessionExpired();
+
+            // Show appropriate toast notification
+            if (errorData.error === 'SESSION_INVALIDATED') {
+              toast.info('Login detected from another device. Logging you out here.');
+            } else {
+              toast.info('Your session has expired. Please login again.');
+            }
+
+            const error: any = new Error('Session expired. Please login again.');
+            error.code = 'SESSION_EXPIRED';
+            error.status = 401;
+            throw error;
           } else if (errorData.error === 'MISSING_TOKEN' || errorData.error === 'INVALID_TOKEN') {
             // No valid auth - emit event for AuthContext to handle
             window.dispatchEvent(new CustomEvent('api:unauthorized', {
@@ -315,7 +346,7 @@ class ApiService {
 
   // Auth endpoints - TODO: Implement when backend is ready
   auth = {
-    login: async (email: string, password: string): Promise<{
+    login: async (email: string, password: string, callingDevice: 'web' | 'mobile' = 'web'): Promise<{
       data: {
         accessToken: string;
         refreshToken: string;
@@ -327,7 +358,7 @@ class ApiService {
 
       return this.request('/v1/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, calling_device: callingDevice }),
       });
     },
 
