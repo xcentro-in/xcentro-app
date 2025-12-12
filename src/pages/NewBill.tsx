@@ -311,18 +311,15 @@ const NewBill = () => {
       return false;
     }
 
-    // Date validation
-    const invoiceDate = new Date(billData.invoiceDate);
-    const dueDate = new Date(billData.dueDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Date validation - compare date strings to avoid timezone issues
+    const todayStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    if (invoiceDate > today) {
+    if (billData.invoiceDate > todayStr) {
       toast.error("Invoice date cannot be in the future");
       return false;
     }
 
-    if (dueDate < invoiceDate) {
+    if (billData.dueDate < billData.invoiceDate) {
       toast.error("Due date must be on or after invoice date");
       return false;
     }

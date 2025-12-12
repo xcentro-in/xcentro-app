@@ -109,6 +109,11 @@ interface BillSummary {
   cgst: number;
   sgst: number;
   igst: number;
+  // Discount information
+  discountType?: 'amount' | 'percentage';
+  discountValue?: number;
+  discountAmount?: number;
+  grossAmount?: number; // Subtotal + GST (before discount)
 }
 
 // Line item interface for edit mode
@@ -255,7 +260,7 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     vendorName: voucher.payee.name,
     vendorAddress: '', // Not provided in response
     vendorGstin: voucher.payee.gstin || '',
-    amount: voucher.gross_amount / 100, // Convert paise to rupees
+    amount: voucher.net_amount / 100, // Convert paise to rupees (net amount after discount)
     dueDate: voucher.invoice_due_date || '',
     billDate: voucher.invoice_date || '',
     status: calculatePaymentStatus(), // @deprecated
@@ -286,6 +291,17 @@ const mapVoucherToBill = (response: VoucherDetailsResponseAPI): BillSummary => {
     cgst: voucher.cgst_amount / 100,
     sgst: voucher.sgst_amount / 100,
     igst: igstAmount / 100,
+    // Discount information (from financial_details)
+    discountType: hasFinancialDetails && voucher.financial_details.discount
+      ? voucher.financial_details.discount.type as 'amount' | 'percentage'
+      : undefined,
+    discountValue: hasFinancialDetails && voucher.financial_details.discount
+      ? voucher.financial_details.discount.value
+      : undefined,
+    discountAmount: hasFinancialDetails && voucher.financial_details.discount
+      ? voucher.financial_details.discount.amount / 100
+      : undefined,
+    grossAmount: voucher.gross_amount / 100,
   };
 };
 
@@ -1806,8 +1822,23 @@ const BillDetailPage = () => {
                         </div>
                       )}
                       <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Gross Amount (Subtotal + GST)</span>
+                        <span className="font-medium">{formatCurrency(bill.grossAmount || 0)}</span>
+                      </div>
+                      {bill.discountAmount && bill.discountAmount > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">
+                            Discount {bill.discountType === 'percentage'
+                              ? `(${bill.discountValue}%)`
+                              : ''}
+                          </span>
+                          <span className="font-medium text-green-600">- {formatCurrency(bill.discountAmount)}</span>
+                        </div>
+                      )}
+                      <Separator />
                       <div className="flex justify-between items-center pt-2">
-                        <span className="text-lg font-semibold">Total Amount</span>
+                        <span className="text-lg font-semibold">Net Amount</span>
                         <span className="text-2xl font-bold text-primary">{formatCurrency(bill.amount)}</span>
                       </div>
                     </div>

@@ -242,7 +242,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="vendor">Vendor</SelectItem>
-              <SelectItem value="biller">Biller</SelectItem>
+              {/* <SelectItem value="biller">Biller</SelectItem> */} 
               <SelectItem value="employee">Employee</SelectItem>
             </SelectContent>
           </Select>
