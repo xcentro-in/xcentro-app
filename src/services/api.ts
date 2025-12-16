@@ -11,6 +11,7 @@
 import { toast } from 'sonner';
 
 import { rateLimitManager } from '@/lib/rateLimitManager';
+import { turnstileManager } from '@/services/turnstileManager';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -99,7 +100,7 @@ class ApiService {
 
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit & { requireTurnstile?: boolean } = {},
     isRetry: boolean = false
   ): Promise<T> {
     // Guard: If session already expired, reject immediately
@@ -118,6 +119,24 @@ class ApiService {
       'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
+
+    // Turnstile integration: Add CF-Turnstile-Token header if explicitly requested
+    if (options.requireTurnstile && turnstileManager.isEnabled()) {
+      try {
+        console.log(`[ApiService] Generating Turnstile token for ${endpoint}`);
+        const turnstileToken = await turnstileManager.getToken();
+        headers['CF-Turnstile-Token'] = turnstileToken;
+      } catch (error) {
+        console.error('[ApiService] Turnstile token generation failed:', error);
+
+        const turnstileError: any = new Error(
+          'Security verification failed. Please refresh and try again.'
+        );
+        turnstileError.code = 'TURNSTILE_VERIFICATION_FAILED';
+        turnstileError.status = 403;
+        throw turnstileError;
+      }
+    }
 
     // Merge caller's headers AFTER defaults (caller's headers take precedence)
     if (options.headers) {
@@ -154,6 +173,21 @@ class ApiService {
           error.code = 'rate_limited';
           error.status = 429;
           error.retryAfter = retryAfterSecs;
+          throw error;
+        }
+
+        // Handle 403 errors - Turnstile verification failures
+        if (response.status === 403 && errorData.error === 'TURNSTILE_VERIFICATION_FAILED') {
+          console.warn('[ApiService] Turnstile verification failed from backend');
+
+          // Reset widget to allow retry
+          turnstileManager.reset();
+
+          const error: any = new Error(
+            errorData.message || 'Security verification failed'
+          );
+          error.code = 'TURNSTILE_VERIFICATION_FAILED';
+          error.status = 403;
           throw error;
         }
 
@@ -225,7 +259,7 @@ class ApiService {
    */
   private async requestBlob(
     endpoint: string,
-    options: RequestInit = {},
+    options: RequestInit & { requireTurnstile?: boolean } = {},
     isRetry: boolean = false
   ): Promise<Blob> {
     // Guard: If session already expired, reject immediately
@@ -243,6 +277,24 @@ class ApiService {
     const headers: Record<string, string> = {
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
+
+    // Turnstile integration: Add CF-Turnstile-Token header if explicitly requested
+    if (options.requireTurnstile && turnstileManager.isEnabled()) {
+      try {
+        console.log(`[ApiService] Generating Turnstile token for ${endpoint}`);
+        const turnstileToken = await turnstileManager.getToken();
+        headers['CF-Turnstile-Token'] = turnstileToken;
+      } catch (error) {
+        console.error('[ApiService] Turnstile token generation failed:', error);
+
+        const turnstileError: any = new Error(
+          'Security verification failed. Please refresh and try again.'
+        );
+        turnstileError.code = 'TURNSTILE_VERIFICATION_FAILED';
+        turnstileError.status = 403;
+        throw turnstileError;
+      }
+    }
 
     // Merge caller's headers AFTER defaults
     if (options.headers) {
@@ -279,6 +331,21 @@ class ApiService {
           error.code = 'rate_limited';
           error.status = 429;
           error.retryAfter = retryAfterSecs;
+          throw error;
+        }
+
+        // Handle 403 errors - Turnstile verification failures
+        if (response.status === 403 && errorData.error === 'TURNSTILE_VERIFICATION_FAILED') {
+          console.warn('[ApiService] Turnstile verification failed from backend');
+
+          // Reset widget to allow retry
+          turnstileManager.reset();
+
+          const error: any = new Error(
+            errorData.message || 'Security verification failed'
+          );
+          error.code = 'TURNSTILE_VERIFICATION_FAILED';
+          error.status = 403;
           throw error;
         }
 
@@ -359,6 +426,7 @@ class ApiService {
       return this.request('/v1/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password, calling_device: callingDevice }),
+        requireTurnstile: true, // Bot protection for login
       });
     },
 
@@ -366,6 +434,7 @@ class ApiService {
       return this.request('/v1/auth/signup', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
+        requireTurnstile: true, // Bot protection for signup
       });
     },
 
@@ -396,6 +465,7 @@ class ApiService {
       return this.request('/v1/auth/reset-password', {
         method: 'POST',
         body: JSON.stringify({ token, newPassword }),
+        requireTurnstile: true,
       });
     },
 
@@ -408,16 +478,6 @@ class ApiService {
       });
     },
 
-    changePassword: async (oldPassword: string, newPassword: string): Promise<{
-      data: null;
-      message: string;
-    }> => {
-      return this.request('/v1/auth/change-password', {
-        method: 'POST',
-        body: JSON.stringify({ oldPassword, newPassword }),
-      });
-    },
-
     verifyEmail: async (token: string): Promise<{
       data: null;
       message: string;
@@ -425,6 +485,7 @@ class ApiService {
       return this.request('/v1/auth/verify-email', {
         method: 'POST',
         body: JSON.stringify({ token }),
+        requireTurnstile: true,
       });
     },
 
@@ -441,6 +502,7 @@ class ApiService {
       return this.request('/v1/auth/verify-email-with-mobile', {
         method: 'POST',
         body: JSON.stringify({ uid, token, sig, mobileNumber }),
+        requireTurnstile: true,
       });
     },
 
@@ -454,6 +516,7 @@ class ApiService {
       return this.request('/v1/auth/verify-mobile-otp', {
         method: 'POST',
         body: JSON.stringify({ uid, otp }),
+        requireTurnstile: true,
       });
     },
 
@@ -469,6 +532,7 @@ class ApiService {
       return this.request('/v1/auth/send-invite-otp', {
         method: 'POST',
         body: JSON.stringify({ uid, token, sig }),
+        requireTurnstile: true,
       });
     },
 
@@ -485,6 +549,7 @@ class ApiService {
       return this.request('/v1/auth/reset-password-with-otp', {
         method: 'POST',
         body: JSON.stringify({ uid, token, sig, otp, newPassword }),
+        requireTurnstile: true,
       });
     },
 
@@ -495,6 +560,7 @@ class ApiService {
     }> => {
       return this.request('/v1/auth/generate-mobile-otp', {
         method: 'POST',
+        requireTurnstile: true,
       });
     },
 
@@ -509,6 +575,7 @@ class ApiService {
       return this.request('/v1/auth/change-password', {
         method: 'POST',
         body: JSON.stringify({ oldPassword, newPassword, otp }),
+        requireTurnstile: true,
       });
     },
 
@@ -567,6 +634,7 @@ class ApiService {
         method: 'POST',
         headers,
         body: JSON.stringify({ name, dob, taxId, nationalId }),
+        requireTurnstile: true,
       });
     },
 
@@ -604,6 +672,7 @@ class ApiService {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
+        requireTurnstile: true,
       });
     },
 
@@ -701,6 +770,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ email, name, mobile, role }),
+        requireTurnstile: true,
       });
     },
 
@@ -718,6 +788,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ userId, newRole }),
+        requireTurnstile: true,
       });
     },
 
@@ -734,6 +805,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ userId }),
+        requireTurnstile: true,
       });
     },
 
@@ -831,6 +903,7 @@ class ApiService {
         headers: {
           'X-Business-ID': bid,
         },
+        requireTurnstile: true,
       });
     },
 
@@ -1044,6 +1117,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(payeeData),
+        requireTurnstile: true, // Bot protection for creating payees
       });
     },
 
@@ -1101,6 +1175,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ is_active: isActive }),
+        requireTurnstile: true,
       });
     },
 
@@ -1442,6 +1517,7 @@ class ApiService {
       return this.request('/v1/process_payment/get_payment_sources_with_fees', {
         method: 'POST',
         body: JSON.stringify(params),
+        requireTurnstile: true,
       });
     },
     tokenize: async (businessId: string, cardDetails: {
@@ -1459,6 +1535,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ card_details: cardDetails }),
+        requireTurnstile: true
       });
     },
     list: async (businessId: string, params: { limit: number; offset: number }) => {
@@ -1491,6 +1568,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(params),
+        requireTurnstile: true, // Bot protection for payment processing
       });
     },
     retryPayment: async (businessId: string, params: {
@@ -1502,6 +1580,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(params),
+        requireTurnstile: true,
       });
     }
   };
