@@ -43,8 +43,11 @@ jobs:
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:mvp
+          # --- ADD THIS SECTION ---
           build-args: |
-            VITE_API_URL=${{ secrets.STAGING_BACKEND_URL }}
+            VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+          # ------------------------
 
       - name: Image built successfully
         run: |
