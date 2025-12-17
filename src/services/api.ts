@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 import { rateLimitManager } from '@/lib/rateLimitManager';
 import { turnstileManager } from '@/services/turnstileManager';
+import { handleErrorResponse, displayNetworkError } from '@/lib/errorHandler';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
 
@@ -101,7 +102,9 @@ class ApiService {
   private async request<T>(
     endpoint: string,
     options: RequestInit & { requireTurnstile?: boolean } = {},
-    isRetry: boolean = false
+    isRetry: boolean = false,
+    setContentType: boolean = true,
+    contentType: string = 'application/json'
   ): Promise<T> {
     // Guard: If session already expired, reject immediately
     if (this.isSessionExpired) {
@@ -114,9 +117,8 @@ class ApiService {
     // Use instance token if available, fallback to localStorage
     const token = this.authToken || localStorage.getItem('auth-token');
 
-    // Build headers: start with defaults, then merge caller's headers
+    // Build headers
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
 
@@ -136,6 +138,12 @@ class ApiService {
         turnstileError.status = 403;
         throw turnstileError;
       }
+    }
+    // Handle Content-Type based on setContentType parameter
+    // - If true: accept whatever caller provides in headers (or none for file uploads)
+    // - If false: use the contentType parameter (defaults to 'application/json')
+    if (setContentType) {
+      headers['Content-Type'] = contentType;
     }
 
     // Merge caller's headers AFTER defaults (caller's headers take precedence)
@@ -199,7 +207,7 @@ class ApiService {
 
             if (refreshSucceeded) {
               // Retry original request with new token
-              return this.request<T>(endpoint, options, true);
+              return this.request<T>(endpoint, options, true, setContentType, contentType);
             } else {
               // Refresh failed - session expired
               this.handleSessionExpired();
@@ -236,15 +244,27 @@ class ApiService {
           }
         }
 
-        // For all other errors, just throw the error
+        // For all other errors, show toast if applicable and throw
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
         error.code = errorData.error;
         error.status = response.status;
+
+        // Show toast if this is a displayable server error (skips auth/rate-limit errors)
+        handleErrorResponse(errorData, response.status, errorData.error);
+
         throw error;
       }
 
       return response.json();
     } catch (error) {
+      // Check if this is a network error (not an API error we already handled)
+      const isNetworkError = error instanceof TypeError ||
+                             (error instanceof Error && !error.hasOwnProperty('status'));
+
+      if (isNetworkError) {
+        displayNetworkError();
+      }
+
       // Only log non-auth errors
       if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
         console.error('[ApiService] Request failed:', error);
@@ -394,15 +414,27 @@ class ApiService {
           }
         }
 
-        // For all other errors, just throw the error
+        // For all other errors, show toast if applicable and throw
         const error: any = new Error(errorData.message || `HTTP ${response.status}`);
         error.code = errorData.error;
         error.status = response.status;
+
+        // Show toast if this is a displayable server error (skips auth/rate-limit errors)
+        handleErrorResponse(errorData, response.status, errorData.error);
+
         throw error;
       }
 
       return response.blob();
     } catch (error) {
+      // Check if this is a network error (not an API error we already handled)
+      const isNetworkError = error instanceof TypeError ||
+                             (error instanceof Error && !error.hasOwnProperty('status'));
+
+      if (isNetworkError) {
+        displayNetworkError();
+      }
+
       // Only log non-auth errors
       if (error instanceof Error && !(error as any).code?.includes('MISSING_TOKEN')) {
         console.error('[ApiService] Blob request failed:', error);
@@ -1069,8 +1101,7 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: formData,
-        credentials: 'include', // Include cookies for authentication
-      });
+      }, false, false); // setContentType = true to allow browser to set multipart/form-data
     },
   };
 
