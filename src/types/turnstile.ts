@@ -69,12 +69,12 @@ export interface TurnstileRenderOptions {
 
   /**
    * Widget size
-   * - 'normal': Standard visible widget
-   * - 'invisible': No visible UI (programmatic only)
-   * - 'compact': Smaller visible widget
+   * - 'normal': Standard widget size (~300x65px)
+   * - 'compact': Smaller widget size (~150x140px)
+   * - 'flexible': Responsive sizing
    * @default 'normal'
    */
-  size?: 'normal' | 'invisible' | 'compact';
+  size?: 'normal' | 'compact' | 'flexible';
 
   /**
    * Execution mode
@@ -83,6 +83,15 @@ export interface TurnstileRenderOptions {
    * @default 'render'
    */
   execution?: 'render' | 'execute';
+
+  /**
+   * Appearance mode - controls when the widget is visible
+   * - 'always': Widget always visible (default)
+   * - 'execute': Widget appears only during execution
+   * - 'interaction-only': Widget appears only when interaction needed
+   * @default 'always'
+   */
+  appearance?: 'always' | 'execute' | 'interaction-only';
 
   /**
    * Callback when token is successfully generated
@@ -174,16 +183,6 @@ export interface TurnstileWidget {
    * Timestamp when widget was created
    */
   createdAt: number;
-
-  /**
-   * Last generated token (for caching)
-   */
-  lastToken: string | null;
-
-  /**
-   * Timestamp when last token was generated
-   */
-  lastTokenTimestamp: number | null;
 }
 
 /**

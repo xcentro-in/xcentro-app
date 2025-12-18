@@ -1,14 +1,15 @@
 /**
  * Cloudflare Turnstile Manager
  *
- * Singleton class managing invisible Turnstile widget lifecycle and token generation.
+ * Singleton class managing Turnstile widget lifecycle and token generation.
  *
  * Features:
  * - Automatic widget initialization on first use
- * - Token caching (4-minute reuse to avoid unnecessary challenges)
+ * - Fresh token generation for each API call (tokens are single-use)
  * - Promise caching to prevent simultaneous executions
  * - Production-only (disabled when VITE_TURNSTILE_SITE_KEY not set)
  * - Automatic cleanup on logout
+ * - Managed mode: shows challenge only when Cloudflare detects risk
  *
  * Usage:
  * ```typescript
@@ -16,17 +17,14 @@
  *
  * if (turnstileManager.isEnabled()) {
  *   const token = await turnstileManager.getToken();
- *   // Use token in API request header
+ *   // Use token in API request header (single-use, valid for 5 minutes)
  * }
  * ```
  */
 
 import type { TurnstileConfig, TurnstileWidget } from '@/types/turnstile';
 
-// Token caching constants
-const TOKEN_CACHE_DURATION = 240000; // 4 minutes (240 seconds)
-const TOKEN_EXPIRATION = 300000; // 5 minutes (Cloudflare enforced)
-const SAFETY_MARGIN = 60000; // 1 minute buffer before expiration
+// Token generation timeout
 const TOKEN_GENERATION_TIMEOUT = 30000; // 30 seconds max for token generation
 
 class TurnstileManager {
@@ -111,14 +109,56 @@ class TurnstileManager {
   }
 
   /**
-   * Internal token generation with caching and execution
+   * Show widget overlay and backdrop
+   * @private
+   */
+  private showWidget(): void {
+    const backdrop = document.getElementById('turnstile-backdrop');
+    const container = this.widget?.container;
+
+    if (backdrop) {
+      backdrop.style.display = 'block';
+    }
+
+    if (container) {
+      container.style.display = 'block';
+    }
+
+    console.log('[Turnstile] Widget overlay shown');
+  }
+
+  /**
+   * Hide widget overlay and backdrop
+   * @private
+   */
+  private hideWidget(): void {
+    const backdrop = document.getElementById('turnstile-backdrop');
+    const container = this.widget?.container;
+
+    if (backdrop) {
+      backdrop.style.display = 'none';
+    }
+
+    if (container) {
+      container.style.display = 'none';
+    }
+
+    console.log('[Turnstile] Widget overlay hidden');
+  }
+
+  /**
+   * Internal token generation with execution
+   *
+   * Note: Tokens are single-use and cannot be cached.
+   * Each token can only be validated once by the backend.
    *
    * Flow:
-   * 1. Check cached token (< 4 minutes old)
-   * 2. If cache miss, ensure script loaded
-   * 3. Ensure widget initialized
-   * 4. Execute challenge to get new token
-   * 5. Cache token for reuse
+   * 1. Ensure script loaded
+   * 2. Ensure widget initialized
+   * 3. Show widget overlay
+   * 4. Execute challenge to get fresh token
+   * 5. Hide widget overlay
+   * 6. Return token (single-use, valid for 5 minutes)
    *
    * @private
    */
@@ -129,19 +169,12 @@ class TurnstileManager {
     // Ensure widget is initialized
     await this.ensureWidgetInitialized();
 
-    // Check cached token (< 4 minutes old)
-    if (this.widget?.lastToken && this.widget.lastTokenTimestamp) {
-      const age = Date.now() - this.widget.lastTokenTimestamp;
-      if (age < TOKEN_CACHE_DURATION) {
-        console.log(`[Turnstile] Using cached token (age: ${Math.round(age / 1000)}s)`);
-        return this.widget.lastToken;
-      } else {
-        console.log(`[Turnstile] Cached token expired (age: ${Math.round(age / 1000)}s), generating new token`);
-      }
-    }
+    // Show widget overlay (if Cloudflare shows challenge, user will see it)
+    this.showWidget();
 
-    // Generate new token via challenge execution
-    console.log('[Turnstile] Generating new token...');
+    // Generate fresh token via challenge execution
+    // NOTE: Tokens are single-use - always generate fresh token for each API call
+    console.log('[Turnstile] Generating fresh token...');
     return new Promise<string>((resolve, reject) => {
       const timeout = setTimeout(() => {
         const error = new Error(`[Turnstile] Token generation timeout (${TOKEN_GENERATION_TIMEOUT / 1000}s)`);
@@ -160,18 +193,19 @@ class TurnstileManager {
           callback: (token: string) => {
             clearTimeout(timeout);
 
-            // Cache token with timestamp
-            if (this.widget) {
-              this.widget.lastToken = token;
-              this.widget.lastTokenTimestamp = Date.now();
-            }
-
             console.log('[Turnstile] Token generated successfully');
+
+            // Hide widget overlay
+            this.hideWidget();
+
             resolve(token);
           },
           'error-callback': (error: string) => {
             clearTimeout(timeout);
             console.error('[Turnstile] Challenge error:', error);
+
+            // Hide widget overlay
+            this.hideWidget();
 
             const challengeError = new Error(`[Turnstile] Challenge failed: ${error}`);
             reject(challengeError);
@@ -180,6 +214,10 @@ class TurnstileManager {
       } catch (error) {
         clearTimeout(timeout);
         console.error('[Turnstile] Execution error:', error);
+
+        // Hide widget overlay
+        this.hideWidget();
+
         reject(error);
       }
     });
@@ -246,7 +284,7 @@ class TurnstileManager {
   /**
    * Ensure widget is initialized in DOM
    *
-   * Creates invisible widget container and renders Turnstile widget.
+   * Creates centered overlay widget container and renders Turnstile widget.
    * Widget stays in DOM for entire session (better performance).
    *
    * @private
@@ -257,18 +295,39 @@ class TurnstileManager {
       return;
     }
 
+    // Create backdrop
+    let backdrop = document.getElementById('turnstile-backdrop') as HTMLElement;
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'turnstile-backdrop';
+      backdrop.style.position = 'fixed';
+      backdrop.style.top = '0';
+      backdrop.style.left = '0';
+      backdrop.style.width = '100%';
+      backdrop.style.height = '100%';
+      backdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      backdrop.style.zIndex = '9998';
+      backdrop.style.display = 'none';
+      document.body.appendChild(backdrop);
+    }
+
     // Create or reuse container
     let container = document.getElementById('turnstile-widget') as HTMLElement;
     if (!container) {
       container = document.createElement('div');
       container.id = 'turnstile-widget';
 
-      // Position off-screen (invisible widget has no UI anyway)
+      // Center overlay positioning
       container.style.position = 'fixed';
-      container.style.top = '-9999px';
-      container.style.left = '-9999px';
-      container.style.pointerEvents = 'none';
-      container.style.zIndex = '-1';
+      container.style.top = '50%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+      container.style.zIndex = '9999';
+      container.style.padding = '24px';
+      container.style.background = 'white';
+      container.style.borderRadius = '12px';
+      container.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+      container.style.display = 'none'; // Hidden by default
 
       document.body.appendChild(container);
       console.log('[Turnstile] Widget container created');
@@ -278,7 +337,8 @@ class TurnstileManager {
     const widgetId = window.turnstile!.render(container, {
       sitekey: this.config.siteKey,
       theme: 'light',
-      size: 'invisible', // No visible UI
+      size: 'compact', // Compact widget size (150x140px)
+      appearance: 'execute', // Widget appears during execution
       execution: 'execute', // Programmatic control (call execute() manually)
     });
 
@@ -287,8 +347,6 @@ class TurnstileManager {
       id: widgetId,
       container,
       createdAt: Date.now(),
-      lastToken: null,
-      lastTokenTimestamp: null,
     };
 
     console.log('[Turnstile] Widget initialized:', widgetId);
@@ -298,16 +356,12 @@ class TurnstileManager {
    * Reset widget state
    *
    * Call this after a verification failure to allow retry.
-   * Clears cached token and resets widget state.
+   * Resets widget state for next token generation.
    */
   reset(): void {
     if (!this.widget) {
       return;
     }
-
-    // Clear cached token
-    this.widget.lastToken = null;
-    this.widget.lastTokenTimestamp = null;
 
     // Reset widget if API available
     if (window.turnstile) {
@@ -360,10 +414,6 @@ class TurnstileManager {
       scriptLoaded: this.isScriptLoaded,
       widgetInitialized: !!this.widget,
       widgetId: this.widget?.id,
-      hasCachedToken: !!this.widget?.lastToken,
-      cachedTokenAge: this.widget?.lastTokenTimestamp
-        ? Math.round((Date.now() - this.widget.lastTokenTimestamp) / 1000)
-        : null,
     };
   }
 }

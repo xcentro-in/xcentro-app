@@ -1540,14 +1540,16 @@ class ApiService {
         },
       });
     },
-    getPaymentSourcesWithFees: async (params: {
-      business_id: string;
+    getPaymentSourcesWithFees: async (business_id: string, params: {
       payment_context: string;
       base_amount: number;
     }) => {
       return this.request('/v1/process_payment/get_payment_sources_with_fees', {
         method: 'POST',
         body: JSON.stringify(params),
+        headers: {
+          'X-Business-ID': business_id,
+        },
         requireTurnstile: true,
       });
     },
