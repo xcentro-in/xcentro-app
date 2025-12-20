@@ -99,6 +99,27 @@ class ApiService {
     this.isSessionExpired = false;
   }
 
+  /**
+   * Read CSRF token from csrf_token cookie
+   * @returns CSRF token value or null if not found
+   */
+  private getCSRFToken(): string | null {
+    const cookies = document.cookie.split(';');
+
+    console.log('[ApiService] All cookies:', document.cookie);
+
+    for (const cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'csrf_token') {
+        console.log('[ApiService] Found CSRF token:', value);
+        return decodeURIComponent(value);
+      }
+    }
+
+    console.warn('[ApiService] CSRF token not found in cookies. This may be because the csrf_token cookie has HttpOnly=true flag, which prevents JavaScript from reading it.');
+    return null;
+  }
+
   private async request<T>(
     endpoint: string,
     options: RequestInit & { requireTurnstile?: boolean } = {},
@@ -121,6 +142,15 @@ class ApiService {
     const headers: Record<string, string> = {
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
+
+    // CSRF protection: Add X-CSRF-Token header if cookie is present
+    const csrfToken = this.getCSRFToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+      console.log('[ApiService] Added X-CSRF-Token header for', endpoint);
+    } else {
+      console.warn('[ApiService] No CSRF token available for', endpoint);
+    }
 
     // Turnstile integration: Add CF-Turnstile-Token header if explicitly requested
     if (options.requireTurnstile && turnstileManager.isEnabled()) {
@@ -297,6 +327,15 @@ class ApiService {
     const headers: Record<string, string> = {
       ...(token && { 'Authorization': `Bearer ${token}` }),
     };
+
+    // CSRF protection: Add X-CSRF-Token header if cookie is present
+    const csrfToken = this.getCSRFToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+      console.log('[ApiService] Added X-CSRF-Token header for', endpoint);
+    } else {
+      console.warn('[ApiService] No CSRF token available for', endpoint);
+    }
 
     // Turnstile integration: Add CF-Turnstile-Token header if explicitly requested
     if (options.requireTurnstile && turnstileManager.isEnabled()) {

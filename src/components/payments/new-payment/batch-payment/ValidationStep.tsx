@@ -33,7 +33,10 @@ const ValidationStep = ({
 }: ValidationStepProps) => {
   const { user } = useAuth();
   const { businessId, businessName } = useCurrentBusiness();
-  const { matched, ambiguous, not_found } = uploadResponse.data;
+  // Handle null values from API - convert to empty arrays
+  const matched = uploadResponse.data.matched || [];
+  const ambiguous = uploadResponse.data.ambiguous || [];
+  const not_found = uploadResponse.data.not_found || [];
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalSelectedAmount = useMemo(() => {

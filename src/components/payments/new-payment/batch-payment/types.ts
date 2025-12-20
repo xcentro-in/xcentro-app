@@ -70,9 +70,9 @@ export interface BatchUploadResponse {
     matched_count: number;
     ambiguous_count: number;
     not_found_count: number;
-    matched: MatchedPayment[];
-    ambiguous: AmbiguousPayment[];
-    not_found: NotFoundPayment[];
+    matched: MatchedPayment[] | null;
+    ambiguous: AmbiguousPayment[] | null;
+    not_found: NotFoundPayment[] | null;
     total_amount: number; // in paise
     file_name: string;
     uploaded_at: string; // ISO 8601

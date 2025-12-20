@@ -37,7 +37,9 @@ const BatchPaymentForm = ({ onStepChange }: BatchPaymentFormComponentProps) => {
   const handleSelectAll = () => {
     if (!uploadResponse) return;
 
-    const allMatchedRowNumbers = uploadResponse.data.matched.map(p => p.row_number.toString());
+    // Handle null matched array from API
+    const matched = uploadResponse.data.matched || [];
+    const allMatchedRowNumbers = matched.map(p => p.row_number.toString());
 
     setState(prev => ({
       ...prev,
