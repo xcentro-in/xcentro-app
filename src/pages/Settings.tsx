@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { 
+import {
   User, Building, CreditCard, BellRing, BadgeCheck,
-  Users, Shield, Globe, HelpCircle, ChevronLeft, ChevronRight
+  Users, Shield, Globe, /* HelpCircle, */ ChevronLeft, ChevronRight
 } from "lucide-react";
 import AccountSettings from "@/components/settings/AccountSettings";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import SecuritySettings from "@/components/settings/SecuritySettings";
 import IntegrationSettings from "@/components/settings/IntegrationSettings";
-import SupportSettings from "@/components/settings/SupportSettings";
+// import SupportSettings from "@/components/settings/SupportSettings"; // VAPT: Disabled - No support ticket system implemented
 import SubscriptionSettings from "@/components/settings/SubscriptionSettings";
 import SettingsHeader from "@/components/settings/SettingsHeader";
 import BusinessesTab from "@/components/settings/BusinessesTab";
@@ -37,7 +37,7 @@ const Settings = () => {
     { id: "users", label: "User Access", icon: <Users className="h-4 w-4" /> },
     { id: "security", label: "Security", icon: <Shield className="h-4 w-4" /> },
     { id: "integration", label: "Integrations", icon: <Globe className="h-4 w-4" /> },
-    { id: "support", label: "Support", icon: <HelpCircle className="h-4 w-4" /> },
+    // { id: "support", label: "Support", icon: <HelpCircle className="h-4 w-4" /> }, // VAPT: Disabled - No support ticket system
   ];
 
   const renderTabContent = () => {
@@ -50,7 +50,7 @@ const Settings = () => {
       case "users": return <UsersTab />;
       case "security": return <SecuritySettings />;
       case "integration": return <IntegrationSettings />;
-      case "support": return <SupportSettings />;
+      // case "support": return <SupportSettings />; // VAPT: Disabled - No support ticket system
       default: return <AccountSettings />;
     }
   };
