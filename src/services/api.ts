@@ -289,7 +289,7 @@ class ApiService {
     } catch (error) {
       // Check if this is a network error (not an API error we already handled)
       const isNetworkError = error instanceof TypeError ||
-                             (error instanceof Error && !error.hasOwnProperty('status'));
+        (error instanceof Error && !error.hasOwnProperty('status'));
 
       if (isNetworkError) {
         displayNetworkError();
@@ -468,7 +468,7 @@ class ApiService {
     } catch (error) {
       // Check if this is a network error (not an API error we already handled)
       const isNetworkError = error instanceof TypeError ||
-                             (error instanceof Error && !error.hasOwnProperty('status'));
+        (error instanceof Error && !error.hasOwnProperty('status'));
 
       if (isNetworkError) {
         displayNetworkError();
@@ -674,6 +674,48 @@ class ApiService {
         method: 'POST',
         body: JSON.stringify({ mobileNumber, otp }),
       });
+    },
+
+    // Resend endpoints with rate limiting
+    resendVerification: async (
+      email: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/resend-verification', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+        requireTurnstile: true,
+      });
+    },
+
+    resendMobileOtp: async (
+      email: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/resend-mobile-otp', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
+        requireTurnstile: true,
+      });
+    },
+
+    resendInviteOtp: async (
+      uid: string,
+      token: string,
+      sig: string
+    ): Promise<{
+      data: null;
+      message: string;
+    }> => {
+      return this.request('/v1/auth/resend-invite-otp', {
+        method: 'POST',
+        body: JSON.stringify({ uid, token, sig }),
+        requireTurnstile: true,
+      });
     }
   };
 
@@ -841,6 +883,26 @@ class ApiService {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify({ email, name, mobile, role }),
+        requireTurnstile: true,
+      });
+    },
+
+    // Resend invite email to user
+    resendInvite: async (
+      businessId: string,
+      email: string
+    ): Promise<{
+      data: {
+        email: string;
+      };
+      message: string;
+    }> => {
+      return this.request('/v1/business/resend-invite', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ email }),
         requireTurnstile: true,
       });
     },
@@ -1032,8 +1094,8 @@ class ApiService {
     // Returns full details when kyb_in_progress, minimal when completed/verified
     getOnboardingStatus: async (): Promise<{
       data: {
-        kybInitiated: boolean; kybStatus: string 
-};
+        kybInitiated: boolean; kybStatus: string
+      };
       message: string;
     }> => {
       return this.request('/v1/business/onboard/status', {
@@ -1113,15 +1175,16 @@ class ApiService {
 
   // Batch Payments endpoints
   batchPayments = {
-    downloadTemplate: async (businessId: string): 
-    Promise<{
-      data: {
-        download_url?: string;
-        expires_in?: number;
-        filename?: string
-      };
-      message: string;
-      status: string;}> => {
+    downloadTemplate: async (businessId: string):
+      Promise<{
+        data: {
+          download_url?: string;
+          expires_in?: number;
+          filename?: string
+        };
+        message: string;
+        status: string;
+      }> => {
       return this.request('/v1/batch_payments/template', {
         method: 'GET',
         headers: {
@@ -1136,7 +1199,7 @@ class ApiService {
 
       return this.request('/v1/batch_payments/upload', {
         method: 'POST',
-        headers : {
+        headers: {
           'X-Business-ID': businessId,
         },
         body: formData,
@@ -1722,7 +1785,7 @@ class ApiService {
     }) => {
       return this.request('/v1/vouchers/draft', {
         method: 'POST',
-        headers : {
+        headers: {
           'X-Business-ID': businessId,
         },
         body: JSON.stringify(params),

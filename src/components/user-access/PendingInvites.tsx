@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import {
   Clock,
   RefreshCw,
-  XCircle
+  XCircle,
+  Loader2
 } from "lucide-react";
 import {
   AlertDialog,
@@ -31,12 +32,16 @@ interface PendingInvitesProps {
   invites: UserInvite[];
   onResendInvite: (inviteId: string) => void;
   onCancelInvite: (inviteId: string) => void;
+  resendingInviteId?: string | null;
+  resendCooldowns?: Record<string, number>;
 }
 
 const PendingInvites = ({
   invites,
   onResendInvite,
-  onCancelInvite
+  onCancelInvite,
+  resendingInviteId = null,
+  resendCooldowns = {}
 }: PendingInvitesProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [inviteToCancel, setInviteToCancel] = useState<UserInvite | null>(null);
@@ -109,15 +114,29 @@ const PendingInvites = ({
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      {/* TODO: Implement resend invite functionality */}
-                      {/* <Button
+                      <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onResendInvite(invite.id)}
+                        disabled={resendingInviteId === invite.id || (resendCooldowns[invite.id] || 0) > 0}
                       >
-                        <RefreshCw className="h-4 w-4 mr-1" />
-                        <span className="hidden sm:inline">Resend</span>
-                      </Button> */}
+                        {resendingInviteId === invite.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            <span className="hidden sm:inline">Sending...</span>
+                          </>
+                        ) : (resendCooldowns[invite.id] || 0) > 0 ? (
+                          <>
+                            <Clock className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">{resendCooldowns[invite.id]}s</span>
+                          </>
+                        ) : (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            <span className="hidden sm:inline">Resend</span>
+                          </>
+                        )}
+                      </Button>
                       <Button
                         variant="destructive"
                         size="sm"

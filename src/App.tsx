@@ -68,110 +68,111 @@ function App() {
         <AuthProvider>
           <PageTitleProvider>
             <Router>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ForgotPassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ForgotPassword />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
+                <Route path="/set-password" element={<ForgotPassword />} />
 
-              {/* Protected routes outside sidebar */}
-              <Route path="/onboarding-choice" element={
-                <ProtectedRoute>
-                  <OnboardingChoice />
-                </ProtectedRoute>
-              } />
-              <Route path="/onboarding" element={
-                <ProtectedRoute>
-                  <UserOnboarding />
-                </ProtectedRoute>
-              } />
-              <Route path="/business-onboarding" element={
-                <ProtectedRoute>
-                  <BusinessOnboarding />
-                </ProtectedRoute>
-              } />
-              <Route path="/pending-approval" element={
-                <ProtectedRoute>
-                  <PendingApproval />
-                </ProtectedRoute>
-              } />
-              <Route path="/payment-processing" element={
-                <ProtectedRoute>
-                  <PaymentProcessing />
-                </ProtectedRoute>
-              } />
+                {/* Protected routes outside sidebar */}
+                <Route path="/onboarding-choice" element={
+                  <ProtectedRoute>
+                    <OnboardingChoice />
+                  </ProtectedRoute>
+                } />
+                <Route path="/onboarding" element={
+                  <ProtectedRoute>
+                    <UserOnboarding />
+                  </ProtectedRoute>
+                } />
+                <Route path="/business-onboarding" element={
+                  <ProtectedRoute>
+                    <BusinessOnboarding />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pending-approval" element={
+                  <ProtectedRoute>
+                    <PendingApproval />
+                  </ProtectedRoute>
+                } />
+                <Route path="/payment-processing" element={
+                  <ProtectedRoute>
+                    <PaymentProcessing />
+                  </ProtectedRoute>
+                } />
 
-              {/* Main app routes with sidebar */}
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <BusinessProvider>
-                    <SidebarProvider>
-                      <Layout />
-                    </SidebarProvider>
-                  </BusinessProvider>
-                </ProtectedRoute>
-              }>
-                <Route index element={<DashboardV2 />} />
-                <Route path="payments" element={<Payments />} />
-                <Route path="payment-calendar" element={<PaymentCalendar />} />
-                <Route path="payees" element={<PayeeManagement />} />
-                <Route path="payees/:payeeId" element={<PayeeHistory />} />
-                <Route path="bills" element={<Bills />} />
-                <Route path="bills/new" element={<NewBill />} />
-                <Route path="bills/:billId" element={<BillDetailPage />} />
-                <Route path="approvals" element={<ApprovalInbox />} />
-                {AnalyticsEnabled && (
-                  <>
-                  <Route path="insights" element={<Insights />} />
-                  <Route path="cash-flow-projection" element={<CashFlowProjection />} />
-                  <Route path="gst-reports" element={<GSTReports />} />
-                  <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
-                  <Route path="payroll-report" element={<PayrollReport />} />
-                  </>
-                )}
-                <Route path="new-payment" element={<NewPayment />} />
-                <Route path="payments/:id" element={<TransactionDetails />} />
-                {RewardsEnabled && (
-                  <>
-                  <Route path="rewards" element={<Rewards />} />
-                  <Route path="rewards/history" element={<RewardsInsights />} />
-                  <Route path="rewards/milestones" element={<MilestoneRewards />} />
-                  <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
-                  <Route path="rewards/redeem" element={<RedemptionFlow />} />
-                  </>
-                )}
-                {ReferralEnabled && (
-                  <Route path="network" element={<Network />} />
-                )}
-                {CreditCardBillEnabled && (
-                  <>
-                  <Route path="credit-cards" element={<CreditCards />} />
-                  <Route path="credit-card-bills" element={<CreditCardBills />} />
-                  <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
-                  </>
-                )}
-                <Route path="wallet" element={<WalletManagement />} />
-                <Route path="wallet/add" element={<AddPaymentMethod />} />
-              </Route>
+                {/* Main app routes with sidebar */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <BusinessProvider>
+                      <SidebarProvider>
+                        <Layout />
+                      </SidebarProvider>
+                    </BusinessProvider>
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<DashboardV2 />} />
+                  <Route path="payments" element={<Payments />} />
+                  <Route path="payment-calendar" element={<PaymentCalendar />} />
+                  <Route path="payees" element={<PayeeManagement />} />
+                  <Route path="payees/:payeeId" element={<PayeeHistory />} />
+                  <Route path="bills" element={<Bills />} />
+                  <Route path="bills/new" element={<NewBill />} />
+                  <Route path="bills/:billId" element={<BillDetailPage />} />
+                  <Route path="approvals" element={<ApprovalInbox />} />
+                  {AnalyticsEnabled && (
+                    <>
+                      <Route path="insights" element={<Insights />} />
+                      <Route path="cash-flow-projection" element={<CashFlowProjection />} />
+                      <Route path="gst-reports" element={<GSTReports />} />
+                      <Route path="gst-payment-history" element={<GSTPaymentHistory />} />
+                      <Route path="payroll-report" element={<PayrollReport />} />
+                    </>
+                  )}
+                  <Route path="new-payment" element={<NewPayment />} />
+                  <Route path="payments/:id" element={<TransactionDetails />} />
+                  {RewardsEnabled && (
+                    <>
+                      <Route path="rewards" element={<Rewards />} />
+                      <Route path="rewards/history" element={<RewardsInsights />} />
+                      <Route path="rewards/milestones" element={<MilestoneRewards />} />
+                      <Route path="rewards/redeem/:categoryId" element={<RedemptionFlow />} />
+                      <Route path="rewards/redeem" element={<RedemptionFlow />} />
+                    </>
+                  )}
+                  {ReferralEnabled && (
+                    <Route path="network" element={<Network />} />
+                  )}
+                  {CreditCardBillEnabled && (
+                    <>
+                      <Route path="credit-cards" element={<CreditCards />} />
+                      <Route path="credit-card-bills" element={<CreditCardBills />} />
+                      <Route path="credit-card-analytics" element={<CreditCardAnalytics />} />
+                    </>
+                  )}
+                  <Route path="wallet" element={<WalletManagement />} />
+                  <Route path="wallet/add" element={<AddPaymentMethod />} />
+                </Route>
 
-              <Route path="/settings" element={
-                <ProtectedRoute>
-                  <BusinessProvider>
-                    <SidebarProvider>
-                      <SettingsLayout />
-                    </SidebarProvider>
-                  </BusinessProvider>
-                </ProtectedRoute>
-              }>
-                <Route index element={<Settings />} />
-                <Route path="*" element={<Settings />} />
-              </Route>
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <BusinessProvider>
+                      <SidebarProvider>
+                        <SettingsLayout />
+                      </SidebarProvider>
+                    </BusinessProvider>
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<Settings />} />
+                  <Route path="*" element={<Settings />} />
+                </Route>
 
-              {/* 404 route outside sidebar */}
-              <Route path="*" element={<NotFound />} />
-                </Routes>
+                {/* 404 route outside sidebar */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
             </Router>
           </PageTitleProvider>
         </AuthProvider>
