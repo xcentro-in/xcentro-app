@@ -59,18 +59,18 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
     setIfscValid(null);
 
     try {
-      // Call Razorpay IFSC API
-      const response = await fetch(`https://ifsc.razorpay.com/${value}`);
+      // Call backend IFSC validation API
+      const response = await payeesAPI.validateIfsc(value);
 
-      if (!response.ok) {
+      if (response.status !== 'success') {
         throw new Error('Invalid IFSC code');
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       // Store bank name and branch name separately
-      setBankName(data.BANK);
-      setBranchName(data.BRANCH);
+      setBankName(data.bank);
+      setBranchName(data.branch);
       setIfscValid(true);
 
     } catch (error) {
