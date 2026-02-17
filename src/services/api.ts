@@ -1419,6 +1419,30 @@ class ApiService {
           'X-Business-ID': businessId,
         },
       });
+    },
+
+    // Validate IFSC code and get bank details
+    validateIfsc: async (ifscCode: string): Promise<{
+      status: string;
+      data: {
+        ifsc: string;
+        bank: string;
+        branch: string;
+        address: string;
+        city: string;
+        contact: string;
+        micr: string;
+        features: {
+          rtgs: boolean;
+          neft: boolean;
+          imps: boolean;
+          upi: boolean;
+        };
+      };
+    }> => {
+      return this.request(`/v1/payees/validate-ifsc/${ifscCode}`, {
+        method: 'GET',
+      });
     }
   };
 
