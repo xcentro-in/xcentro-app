@@ -9,6 +9,9 @@ import Clarity from '@microsoft/clarity';
 
 const isEnabled = (): boolean => localStorage.getItem('analytics-opt-out') !== 'true';
 
+// Stored so setCustomPageId can call Clarity.identify without needing the caller to pass it again
+let _userId: string = '';
+
 /**
  * Identify the current user to Clarity.
  * Links session recordings to your internal user IDs so you can:
@@ -20,7 +23,23 @@ const isEnabled = (): boolean => localStorage.getItem('analytics-opt-out') !== '
  */
 export const identifyUser = (userId: string, name?: string): void => {
   if (!isEnabled() || !userId) return;
+  _userId = userId;
   Clarity.identify(userId, undefined, undefined, name);
+};
+
+/**
+ * Set a human-readable page label for the current view.
+ * Unlike the URL, this survives SPA navigation where the route doesn't change
+ * but the content does (e.g. /new-payment showing quick vs payroll flow).
+ *
+ * Recorded as the customPageId in Clarity — visible in Recordings filters.
+ * Call once per logical page/flow change.
+ *
+ * @param pageId  Short descriptive label, e.g. "bill-detail", "new-payment-payroll"
+ */
+export const setCustomPageId = (pageId: string): void => {
+  if (!isEnabled() || !_userId) return;
+  Clarity.identify(_userId, undefined, pageId);
 };
 
 /**

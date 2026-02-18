@@ -33,6 +33,7 @@ import { EmptyPayees } from "./EmptyPayees";
 import { useAuth } from "@/contexts/AuthContext";
 import TablePagination from "@/components/payee-history/TablePagination";
 import { payeesAPI } from "@/services/api";
+import { trackEvent } from "@/lib/analytics";
 
 interface PayeeListProps {
   onAddPayee?: () => void;
@@ -122,6 +123,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
     try {
       // Make the API call in the background
       await payeesAPI.updateStatus(businessId, id, isActive);
+      trackEvent(isActive ? 'payee_activated' : 'payee_deactivated');
 
       // On success: show success toast, payee stays removed (it's in the other tab now)
       toast.success(isActive ? "Payee marked as active" : "Payee marked as inactive");
