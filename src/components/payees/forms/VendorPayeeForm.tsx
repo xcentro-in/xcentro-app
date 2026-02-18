@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import PayeeTags from "./components/PayeeTags";
 import BankDetailsSection from "./components/BankDetailsSection";
 
@@ -138,6 +139,7 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
 
       // Check response status
       if (response.status === 'success') {
+        trackEvent('payee_added_vendor');
         // Show success state on button
         setIsSuccess(true);
 

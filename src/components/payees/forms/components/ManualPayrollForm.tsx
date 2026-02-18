@@ -9,6 +9,7 @@ import { XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
+import { trackEvent } from "@/lib/analytics";
 import ManualPayrollBankDetails from "./ManualPayrollBankDetails";
 
 interface ManualPayrollFormProps {
@@ -133,6 +134,7 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;
 
+      trackEvent('payee_added_employee');
       // Navigate immediately to document upload step
       // Flag will be updated automatically when PayeeList renders and detects payees exist
       onEmployeeCreated({

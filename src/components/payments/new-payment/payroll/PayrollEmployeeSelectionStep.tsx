@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 interface PayrollEmployeeSelectionStepProps {
   employees: Employee[];
@@ -79,6 +80,7 @@ const PayrollEmployeeSelectionStep = ({
         // Extract voucher IDs from response
         const voucherIds = response.data.vouchers.map((v: any) => v.voucher_id);
 
+        trackEvent('voucher_created');
         toast.success(`Successfully created ${voucherIds.length} voucher(s) for payroll`);
 
         // Pass voucher IDs to parent

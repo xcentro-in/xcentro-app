@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 const AnalyticsSection = () => {
   // Toggle is ON by default (user allows analytics)
@@ -23,7 +24,8 @@ const AnalyticsSection = () => {
       localStorage.removeItem('analytics-opt-out');
       toast.success("Analytics enabled. Thank you for helping us improve Xcentro!");
     } else {
-      // User disables analytics - set opt-out flag
+      // Fire event BEFORE setting the opt-out flag so Clarity still receives it
+      trackEvent('opt_out_analytics');
       localStorage.setItem('analytics-opt-out', 'true');
       toast.info("Analytics disabled. Changes will take effect on next page refresh.");
     }
