@@ -13,6 +13,7 @@ import PayrollPaymentForm from "@/components/payments/new-payment/payroll/Payrol
 import PaymentCategorySelection from "@/components/payments/new-payment/selection/PaymentCategorySelection";
 import InvoicePaymentForm from "@/components/payments/new-payment/invoice-payment/InvoicePaymentForm";
 import { useLocation, useNavigate } from "react-router-dom";
+import { setCustomPageId } from "@/lib/analytics";
 
 type PaymentCategory = "selection" | "single" | "batch" | "gst" | "creditcard" | "payroll" | "invoice";
 
@@ -66,10 +67,21 @@ const NewPayment = () => {
     }
   }, [locationState]);
 
-  // Update page title when category changes
+  // Update page title and Clarity customPageId when category changes
   useEffect(() => {
     setTitle(paymentTitles[paymentCategory]);
-    
+
+    const pageIdMap: Record<PaymentCategory, string> = {
+      selection:  'new-payment-selection',
+      single:     'new-payment-quick',
+      batch:      'new-payment-batch',
+      gst:        'new-payment-gst',
+      creditcard: 'new-payment-creditcard',
+      payroll:    'new-payment-payroll',
+      invoice:    'new-payment-invoice',
+    };
+    setCustomPageId(pageIdMap[paymentCategory]);
+
     // Clean up title when component unmounts
     return () => {
       setTitle('');
