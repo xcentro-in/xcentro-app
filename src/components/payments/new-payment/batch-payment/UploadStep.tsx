@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { batchPaymentsAPI } from "@/services/api";
+import { trackEvent } from "@/lib/analytics";
 
 import { BatchUploadResponse } from "./types";
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +34,7 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
 
     try {
       const response = await batchPaymentsAPI.upload(businessId, selectedFile);
+      trackEvent('batch_csv_uploaded');
       setUploadResponse(response as BatchUploadResponse);
       toast.success(`File processed: ${response.data.matched_count} matched, ${response.data.ambiguous_count} ambiguous, ${response.data.not_found_count} not found`);
       setStep(2); // Move to validation step

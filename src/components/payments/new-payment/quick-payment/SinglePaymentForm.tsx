@@ -5,6 +5,7 @@ import { toast } from "@/hooks/use-toast";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { voucherAPI } from "@/services/api";
 import { GetVoucherDraftResponse, UpdateVoucherRequest } from "@/types/voucher";
+import { trackEvent } from "@/lib/analytics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVendors } from "@/hooks/useVendors";
 import { Payee } from "@/types/payee";
@@ -149,6 +150,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           });
 
           // Store voucher_id and initial form state
+          trackEvent('voucher_created');
           setVoucherId(response.data.voucher_id);
           initialFormState.current = getCurrentFormState();
 

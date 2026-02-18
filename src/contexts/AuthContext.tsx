@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { AuthState, AuthUser, LoginResponse } from '@/types/auth';
 import { authAPI, userAPI } from '@/services/api';
+import { identifyUser, setTag } from '@/lib/analytics';
 
 export interface UserRole {
   userId: string;
@@ -290,6 +291,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUserRolesState(roles);
       setOnboardingStatus(combinedOnboardingStatus);
       dispatch({ type: 'SET_USER', payload: user });
+
+      // Step 5: Identify user and tag session in Clarity
+      identifyUser(user.id, user.name);
+      setTag('userRole', primaryRole?.role || 'unknown');
+      setTag('businessId', businessId);
+      setTag('kybStatus', combinedOnboardingStatus.kybStatus || 'unknown');
 
       console.log('[AuthContext] User initialized successfully');
     } catch (error: any) {

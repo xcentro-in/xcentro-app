@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { canViewFeature } from "@/lib/featureFlags";
+import { trackEvent } from "@/lib/analytics";
 import { getCardNetworkLogo } from "@/lib/cardNetworks";
 import PaymentScheduleSelector from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
 import { PaymentType } from "@/types/payments";
@@ -184,6 +185,7 @@ const PaymentMethodAndReviewStep = ({
       return;
     }
 
+    trackEvent('payment_initiated');
     setIsProcessingPayment(true);
 
     try {
@@ -207,17 +209,20 @@ const PaymentMethodAndReviewStep = ({
       if (response.data?.redirect_url) {
         const redirectUrl = response.data.redirect_url;
 
+        trackEvent('payment_submitted');
         toast.success("Payment initiated successfully!");
 
         // Navigate to payment processing page with redirect URL
         navigate('/payment-processing', { state: { redirectUrl } });
       } else {
         // Fallback: if no redirect URL, show success and complete
+        trackEvent('payment_submitted');
         toast.success("Payment processed successfully!");
         setIsProcessingPayment(false);
         onSubmit();
       }
     } catch (error) {
+      trackEvent('payment_failed');
       console.error("Payment error:", error);
       toast.error("Payment failed", {
         description: error instanceof Error ? error.message : "Please try again"

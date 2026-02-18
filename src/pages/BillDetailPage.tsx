@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
+import { trackEvent } from "@/lib/analytics";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -425,6 +426,7 @@ const BillDetailPage = () => {
       if (!billId || !businessId) return;
 
       try {
+        trackEvent('bill_detail_viewed');
         setIsLoading(true);
         setError(null);
 

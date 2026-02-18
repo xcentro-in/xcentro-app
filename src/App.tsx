@@ -52,7 +52,11 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { BusinessProvider } from "./contexts/BusinessContext";
 import { PageTitleProvider } from "./contexts/PageTitleContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { usePageTracking } from "./hooks/usePageTracking";
 
+// Renders nothing — fires setCustomPageId on every route change.
+// Must live inside <Router> so useLocation is available.
+const PageTracker = () => { usePageTracking(); return null; };
 
 const queryClient = new QueryClient()
 
@@ -68,6 +72,7 @@ function App() {
         <AuthProvider>
           <PageTitleProvider>
             <Router>
+              <PageTracker />
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<Login />} />

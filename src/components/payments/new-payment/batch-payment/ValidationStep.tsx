@@ -8,6 +8,7 @@ import { BatchUploadResponse, VoucherCreationResponse, MatchedPayment } from "./
 import { CheckCircle, AlertTriangle, XCircle, Upload, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import { voucherAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
@@ -103,6 +104,7 @@ const ValidationStep = ({
 
       // Check response status
       if (response.status === 'success' && response.data.vouchers) {
+        trackEvent('voucher_created');
         // Show success toast with actual count from response
         const newCount = response.data.vouchers.length;
         const alreadyProcessedCount = selectedPayments.length - newPaymentsToProcess.length;
