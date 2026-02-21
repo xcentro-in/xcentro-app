@@ -7,7 +7,9 @@
  */
 import Clarity from '@microsoft/clarity';
 
-const isEnabled = (): boolean => localStorage.getItem('analytics-opt-out') !== 'true';
+const isEnabled = (): boolean =>
+  localStorage.getItem('analytics-opt-out') !== 'true' &&
+  typeof (window as any).clarity === 'function';
 
 // Stored so setCustomPageId can call Clarity.identify without needing the caller to pass it again
 let _userId: string = '';
@@ -51,7 +53,7 @@ export const setCustomPageId = (pageId: string): void => {
  */
 export const setTag = (key: string, value: string): void => {
   if (!isEnabled()) return;
-  Clarity.set(key, value);
+  Clarity.setTag(key, value);
 };
 
 /**
