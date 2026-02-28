@@ -10,7 +10,7 @@
  * 3. 2+ businesses, no confirmed selection → show BusinessSelectorModal (needsModal flag)
  * 4. KYB incomplete on selected business → /business-onboarding
  * 5. KYC incomplete (global) OR kyc_needed on selected business → /onboarding
- * 6. role === "none" → /pending-approval
+ * 6. role === "none" or role === "" → /pending-approval
  * 7. Fully onboarded → allow through
  */
 
@@ -99,8 +99,8 @@ export const determineUserRoute = (
     return createDecision(true, ROUTES.USER_ONBOARDING, 'KYC incomplete or required');
   }
 
-  // Step 7: Role check
-  if (selectedBusiness.role === 'none') {
+  // Step 7: Role check — "none" or "" both mean role not yet assigned
+  if (selectedBusiness.role === 'none' || selectedBusiness.role === '') {
     if (currentPath === ROUTES.PENDING_APPROVAL) {
       return createDecision(false, currentPath, 'Already on pending approval');
     }

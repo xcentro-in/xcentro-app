@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { apiService, userAPI, businessAPI } from '@/services/api';
+import { useState, useEffect, useRef } from 'react';
+import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useBusiness } from '@/contexts/BusinessContext';
 import { useCurrentBusiness } from './useCurrentBusiness';
 import { isStatusComplete } from '@/constants/onboarding';
 import { format } from 'date-fns';
@@ -44,12 +43,14 @@ export interface DashboardData {
 }
 
 export const useDashboard = () => {
-  const { user, updateUser } = useAuth();
-  const { updateBusinessDetails } = useBusiness();
+  const { user } = useAuth();
   const { businessId } = useCurrentBusiness();
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const hasFetchedRef = useRef(false);
+  const lastBusinessIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -58,31 +59,20 @@ export const useDashboard = () => {
         return;
       }
 
+      // Reset guard on genuine business switch (different businessId than last time)
+      if (lastBusinessIdRef.current !== null && lastBusinessIdRef.current !== businessId) {
+        hasFetchedRef.current = false;
+      }
+      lastBusinessIdRef.current = businessId;
+
+      if (hasFetchedRef.current) return;
+      hasFetchedRef.current = true;
+
       try {
         setIsLoading(true);
         setError(null);
 
-        const [dashboardRes, profileRes, businessRes] = await Promise.allSettled([
-          apiService.dashboard.getData(),
-          userAPI.getProfile(),
-          businessAPI.getBusiness(),
-        ]);
-
-        if (profileRes.status === 'fulfilled' && profileRes.value?.data) {
-          const p = profileRes.value.data;
-          updateUser({ name: p.name, email: p.email, mobile: p.mobile, taxId: p.taxId, maskedNationalId: p.maskedNationalId });
-        }
-
-        if (businessRes.status === 'fulfilled' && businessRes.value?.data) {
-          const b = businessRes.value.data;
-          updateBusinessDetails({ gstin: b.gstin, pan: b.pan, businessType: b.businessType });
-        }
-
-        if (dashboardRes.status === 'rejected') {
-          throw dashboardRes.reason;
-        }
-
-        const response = dashboardRes.value;
+        const response = await apiService.dashboard.getData();
 
         // Transform API response to component-friendly format with null checks
         const transformed: DashboardData = {

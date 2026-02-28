@@ -61,7 +61,6 @@ const TopNav = () => {
   }, [fetchUnreadCount]);
   
   const handleLogout = () => {
-    // TODO: This will call the actual backend logout API
     authLogout();
 
     // Show success toast
@@ -70,8 +69,9 @@ const TopNav = () => {
       description: "You have been logged out of your account.",
     });
 
-    // Redirect to login page (or home page)
-    navigate("/");
+    // Navigate directly to login — ProtectedRoute redirect would briefly
+    // remount the current page's hooks (e.g. useDashboard) before redirecting
+    navigate("/login");
   };
   
   return (
