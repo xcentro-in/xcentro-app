@@ -129,28 +129,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Step 1: establish session cookies only
       await authAPI.login(email, password);
 
-      // Step 2: load full session state + onboarding flags in parallel
-      const [sessionResponse, onboardingResponse] = await Promise.allSettled([
-        authAPI.verifySession(),
-        authAPI.getOnboardingStatus(),
-      ]);
-
-      if (sessionResponse.status === 'rejected') throw sessionResponse.reason;
-      const session = sessionResponse.value.data;
-
+      // Step 2: verify session — onboarding flags bootstrapped in Layout
+      const sessionResponse = await authAPI.verifySession();
+      const session = sessionResponse.data;
       applySession(session);
-
-      if (onboardingResponse.status === 'fulfilled') {
-        const flags = onboardingResponse.value?.data;
-        if (flags) {
-          dispatch({ type: 'UPDATE_USER', payload: {
-            hasAddedPaymentMethod: flags.hasAddedPaymentMethod,
-            hasAddedVendor: flags.hasAddedVendor,
-            hasCreatedFirstPayment: flags.hasCreatedFirstPayment,
-            showDashboard: flags.showDashboard,
-          }});
-        }
-      }
 
       // Analytics
       identifyUser(session.uid, '');
@@ -285,28 +267,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       console.log('[AuthContext] Restoring session via verify-session');
       try {
-        const [sessionResponse, onboardingResponse] = await Promise.allSettled([
-          authAPI.verifySession(),
-          authAPI.getOnboardingStatus(),
-        ]);
-
-        if (sessionResponse.status === 'rejected') {
-          throw sessionResponse.reason;
-        }
-
-        applySession(sessionResponse.value.data);
-
-        if (onboardingResponse.status === 'fulfilled') {
-          const flags = onboardingResponse.value?.data;
-          if (flags) {
-            dispatch({ type: 'UPDATE_USER', payload: {
-              hasAddedPaymentMethod: flags.hasAddedPaymentMethod,
-              hasAddedVendor: flags.hasAddedVendor,
-              hasCreatedFirstPayment: flags.hasCreatedFirstPayment,
-              showDashboard: flags.showDashboard,
-            }});
-          }
-        }
+        const sessionResponse = await authAPI.verifySession();
+        applySession(sessionResponse.data);
 
         console.log('[AuthContext] Session restored successfully');
       } catch (error: any) {
