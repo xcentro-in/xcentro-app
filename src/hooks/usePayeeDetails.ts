@@ -118,7 +118,7 @@ export const usePayeeDetails = (payeeId: string) => {
       setError(null);
 
       // Call real API
-      const response: GetPayeeDetailsResponse = await payeesAPI.getDetails(businessId, payeeId);
+      const response: GetPayeeDetailsResponse = await payeesAPI.getDetails(payeeId);
 
       if (response.status !== 'success' || !response.data) {
         throw new Error(response.message || 'Failed to fetch payee details');

@@ -53,8 +53,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       // Step 1: Get presigned S3 URL
       setUploadStatus({ status: 'getting_url', message: 'Getting upload URL...' });
       const presignedResponse = await payeesAPI.getEmployeeDocPresignedUrl(
-        employeeData.relation_id,
-        businessId
+        employeeData.relation_id
       );
 
       if (!presignedResponse.data.upload_url) {
@@ -74,8 +73,7 @@ const EmployeeDocumentUploadStep = ({ employeeData, onUploadComplete }: Employee
       setUploadStatus({ status: 'confirming', message: 'Confirming upload...' });
 
       const confirmResponse = await payeesAPI.confirmEmployeeDocUpload(
-        employeeData.relation_id,
-        businessId
+        employeeData.relation_id
       );
 
       if (confirmResponse.status === 'success') {

@@ -134,8 +134,7 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
         }
       };
 
-      // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(businessId, requestBody);
+      const response = await payeesAPI.create(requestBody);
 
       // Check response status
       if (response.status === 'success') {

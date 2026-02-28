@@ -158,7 +158,6 @@ export const usePayeeTransactions = (
 
       // Call real API
       const response: GetPayeeVouchersResponse = await payeesAPI.getTransactions(
-        businessId,
         payeeId,
         {
           status: status !== 'all' ? status : undefined,

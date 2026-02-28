@@ -1,38 +1,29 @@
 /**
  * Centralized Onboarding Router Service
  *
- * Single source of truth for determining user routing based on onboarding status.
- * Eliminates race conditions and duplicate API calls by using data from AuthContext.
+ * Single source of truth for determining user routing based on session state.
+ * All data comes from AuthContext (verify-session response) — no extra API calls.
  *
- * Flow:
+ * Routing order:
  * 1. Not authenticated → /login
- * 2. No roles:
- *    - KYB incomplete → /business-onboarding
- *    - KYC incomplete → /onboarding
- *    - Both complete → /pending-approval (waiting for role assignment)
- * 3. Has roles:
- *    - KYC needed → /onboarding
- *    - Role = "none" → /pending-approval
- *    - Fully onboarded → /dashboard (or any app page)
+ * 2. No businesses → /business-onboarding (brand new user)
+ * 3. 2+ businesses, no confirmed selection → show BusinessSelectorModal (needsModal flag)
+ * 4. KYB incomplete on selected business → /business-onboarding
+ * 5. KYC incomplete (global) OR kyc_needed on selected business → /onboarding
+ * 6. role === "none" → /pending-approval
+ * 7. Fully onboarded → allow through
  */
 
-import { UserRole } from '@/contexts/AuthContext';
-import { AuthUser } from '@/types/auth';
+import { SessionBusiness, AuthUser } from '@/types/auth';
 import { isStatusComplete } from '@/constants/onboarding';
-
-export interface OnboardingStatus {
-  kybStatus?: string;
-  kybInitiated?: boolean;
-  kycStatus?: string;
-}
 
 export interface RoutingDecision {
   shouldNavigate: boolean;
   targetRoute: string;
   reason: string;
+  needsModal?: boolean;
 }
 
-// Route constants
 const ROUTES = {
   LOGIN: '/login',
   DASHBOARD: '/',
@@ -41,7 +32,6 @@ const ROUTES = {
   PENDING_APPROVAL: '/pending-approval',
 } as const;
 
-// Pages that don't require full app access (onboarding/auth flows)
 const AUTH_PAGES = [
   '/login',
   '/signup',
@@ -50,91 +40,78 @@ const AUTH_PAGES = [
   '/reset-password',
   '/business-onboarding',
   '/onboarding',
-  '/pending-approval'
+  '/pending-approval',
 ];
 
-/**
- * Determine target route based on user onboarding status
- */
-const getTargetRoute = (
-  userRoles: UserRole[],
-  onboardingStatus: OnboardingStatus | null
-): { route: string; reason: string } => {
-  const hasRoles = userRoles && userRoles.length > 0;
-
-  // No roles: Check KYB → KYC → Pending
-  if (!hasRoles) {
-    const isKybComplete = isStatusComplete(onboardingStatus?.kybStatus);
-    const isKycComplete = isStatusComplete(onboardingStatus?.kycStatus);
-
-    if (!isKybComplete) {
-      return { route: ROUTES.BUSINESS_ONBOARDING, reason: 'Business onboarding incomplete' };
-    }
-    if (!isKycComplete) {
-      return { route: ROUTES.USER_ONBOARDING, reason: 'User KYC incomplete' };
-    }
-    return { route: ROUTES.PENDING_APPROVAL, reason: 'Waiting for role assignment' };
-  }
-
-  // Has roles: Check KYC needed → Role "none" → Fully onboarded
-  const primaryRole = userRoles[0];
-
-  if (primaryRole.kycNeeded) {
-    return { route: ROUTES.USER_ONBOARDING, reason: 'User KYC verification required' };
-  }
-  if (primaryRole.role === 'none') {
-    return { route: ROUTES.PENDING_APPROVAL, reason: 'Pending role approval' };
-  }
-  return { route: ROUTES.DASHBOARD, reason: 'User fully onboarded' };
-};
-
-/**
- * Create routing decision
- */
-const createRoutingDecision = (
+const createDecision = (
   shouldNavigate: boolean,
   targetRoute: string,
-  reason: string
-): RoutingDecision => ({
-  shouldNavigate,
-  targetRoute,
-  reason
-});
+  reason: string,
+  needsModal = false
+): RoutingDecision => ({ shouldNavigate, targetRoute, reason, needsModal });
 
 /**
- * Determine the correct route for a user based on their authentication and onboarding status
+ * Determine the correct route for a user based on their session state.
  */
 export const determineUserRoute = (
   currentPath: string,
   user: AuthUser | null,
-  userRoles: UserRole[],
-  onboardingStatus: OnboardingStatus | null
+  businesses: SessionBusiness[],
+  activeBid: string | null,
+  _onboardingStatus: any, // kept for signature compatibility, not used for routing
+  needsBusinessSelection = false
 ): RoutingDecision => {
-  // Not authenticated → Login
+  // Step 1: Not authenticated
   if (!user) {
     const shouldNavigate = currentPath !== ROUTES.LOGIN;
-    return createRoutingDecision(shouldNavigate, ROUTES.LOGIN, 'User not authenticated');
+    return createDecision(shouldNavigate, ROUTES.LOGIN, 'User not authenticated');
   }
 
-  // Determine target route based on user status
-  const { route: targetRoute, reason } = getTargetRoute(userRoles, onboardingStatus);
-
-  // Already on target route
-  if (currentPath === targetRoute) {
-    return createRoutingDecision(false, currentPath, `Already on ${currentPath}`);
-  }
-
-  // Fully onboarded: Allow all app pages, only redirect if on auth page
-  if (targetRoute === ROUTES.DASHBOARD) {
-    const isOnAuthPage = AUTH_PAGES.includes(currentPath);
-    if (isOnAuthPage) {
-      return createRoutingDecision(true, ROUTES.DASHBOARD, 'Redirect to dashboard');
+  // Step 2: No businesses — brand new user
+  if (!businesses || businesses.length === 0) {
+    if (currentPath === ROUTES.BUSINESS_ONBOARDING) {
+      return createDecision(false, currentPath, 'Already on business onboarding');
     }
-    return createRoutingDecision(false, currentPath, 'Accessing app page');
+    return createDecision(true, ROUTES.BUSINESS_ONBOARDING, 'No businesses — fresh user');
   }
 
-  // Navigate to onboarding/pending route
-  return createRoutingDecision(true, targetRoute, reason);
+  // Step 3: Multiple businesses, user hasn't confirmed selection yet
+  if (needsBusinessSelection) {
+    return createDecision(false, currentPath, 'Business selection required', true);
+  }
+
+  // Step 4: Find selected business
+  const selectedBusiness = businesses.find(b => b.bid === activeBid) || businesses[0];
+
+  // Step 5: KYB check (selected business only)
+  if (!isStatusComplete(selectedBusiness.kyb_status)) {
+    if (currentPath === ROUTES.BUSINESS_ONBOARDING) {
+      return createDecision(false, currentPath, 'Already on business onboarding');
+    }
+    return createDecision(true, ROUTES.BUSINESS_ONBOARDING, 'KYB incomplete');
+  }
+
+  // Step 6: KYC check (global user-level + per-business flag)
+  if (!isStatusComplete(user.kyc_status) || selectedBusiness.kyc_needed) {
+    if (currentPath === ROUTES.USER_ONBOARDING) {
+      return createDecision(false, currentPath, 'Already on user onboarding');
+    }
+    return createDecision(true, ROUTES.USER_ONBOARDING, 'KYC incomplete or required');
+  }
+
+  // Step 7: Role check
+  if (selectedBusiness.role === 'none') {
+    if (currentPath === ROUTES.PENDING_APPROVAL) {
+      return createDecision(false, currentPath, 'Already on pending approval');
+    }
+    return createDecision(true, ROUTES.PENDING_APPROVAL, 'Pending role approval');
+  }
+
+  // Step 8: Fully onboarded — allow through
+  if (AUTH_PAGES.includes(currentPath)) {
+    return createDecision(true, ROUTES.DASHBOARD, 'Redirect authenticated user to dashboard');
+  }
+  return createDecision(false, currentPath, 'User fully onboarded');
 };
 
 /**

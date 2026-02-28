@@ -62,7 +62,7 @@ export const useApprovalInbox = (status: ApprovalAction) => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getApprovalInbox(businessId, status);
+      const response = await voucherAPI.getApprovalInbox(status);
 
       // Validate response structure
       if (

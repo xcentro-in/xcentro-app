@@ -128,8 +128,7 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
         }
       };
 
-      // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(businessId, requestBody);
+      const response = await payeesAPI.create(requestBody);
 
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;

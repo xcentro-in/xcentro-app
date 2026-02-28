@@ -59,7 +59,7 @@ const PaymentMethodAndReviewStep = ({
   const { businessId, businessName } = useCurrentBusiness();
 
   // Get user's role for the current business
-  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+  const currentUserRole = userRoles?.find(role => role.businessId === businessId)?.role || '';
 
   // Create feature flag compatible user object
   const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
@@ -203,7 +203,7 @@ const PaymentMethodAndReviewStep = ({
       };
 
       // Make payment API call
-      const response = await processPaymentAPI.makeCardPayment(businessId, paymentPayload);
+      const response = await processPaymentAPI.makeCardPayment(paymentPayload);
 
       // Extract redirect URL from response
       if (response.data?.redirect_url) {

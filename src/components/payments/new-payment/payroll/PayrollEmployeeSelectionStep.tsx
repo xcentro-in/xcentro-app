@@ -74,7 +74,7 @@ const PayrollEmployeeSelectionStep = ({
       }));
 
       // Call bulk voucher creation API
-      const response = await voucherAPI.createMultiple(businessId, vouchers);
+      const response = await voucherAPI.createMultiple(vouchers);
 
       if (response.status === "success" && response.data.vouchers) {
         // Extract voucher IDs from response

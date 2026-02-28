@@ -165,7 +165,7 @@ export const useBills = (filters: BillsFilters = {}) => {
       const offset = (page - 1) * limit;
 
       // Call real API
-      const response = await voucherAPI.list(businessId, {
+      const response = await voucherAPI.list({
         status: status !== 'all' ? status : undefined,
         limit,
         offset,
@@ -242,7 +242,7 @@ export const useBills = (filters: BillsFilters = {}) => {
 
     try {
       // Call actual API to get voucher details
-      const response = await voucherAPI.getDetails(businessId, billId);
+      const response = await voucherAPI.getDetails(billId);
 
       // Extract data from response wrapper
       const voucherDetail = (response as any).data as VoucherDetailResponseAPI;
@@ -265,10 +265,9 @@ export const useBills = (filters: BillsFilters = {}) => {
 
     try {
       const response = await voucherAPI.requestApproval(
-        businessId,
         billId,
         approverUserId,
-        '' // Empty remarks for now
+        ''
       );
 
       // Type the response

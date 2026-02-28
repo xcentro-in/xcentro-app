@@ -27,7 +27,7 @@ const WalletManagement = () => {
   const { cards, bankAccounts, isLoading, error } = useWallet();
 
   // Get user's role for the current business
-  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+  const currentUserRole = userRoles?.find(role => role.businessId === businessId)?.role || '';
 
   // Create feature flag compatible user object
   const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
@@ -115,7 +115,7 @@ const WalletManagement = () => {
     debounceTimersRef.current[cardId] = setTimeout(async () => {
       try {
         // Call API to update card status
-        await walletAPI.updateCardStatus(businessId, cardId, newEnabledState);
+        await walletAPI.updateCardStatus(cardId, newEnabledState);
         // Show success toast
         toast.success(
           newEnabledState ? 'Card enabled successfully' : 'Card disabled successfully'
