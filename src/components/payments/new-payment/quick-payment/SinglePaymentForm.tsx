@@ -131,9 +131,7 @@ const SinglePaymentForm = ({ onStepChange }: SinglePaymentFormProps) => {
           const amountInPaise = parseFloat(amount) * 100;
           const financialDetails = createFinancialDetails(amountInPaise, description);
 
-          const response: GetVoucherDraftResponse = await voucherAPI.createDraft
-          (
-            businessId,
+          const response: GetVoucherDraftResponse = await voucherAPI.createDraft(
             {
             relation_id: selectedPayee,
             invoice_number: invoiceReference || undefined,

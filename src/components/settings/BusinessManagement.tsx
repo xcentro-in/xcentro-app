@@ -58,7 +58,7 @@ const BusinessManagement = () => {
       for (let i = 0; i < userRoles.length; i++) {
         const role = userRoles[i];
         try {
-          const response = await businessAPI.getBusiness(role.businessId);
+          const response = await businessAPI.getBusiness();
           const businessData = response.data;
 
           setBusinesses(prev => prev.map(business => 
@@ -126,7 +126,7 @@ const BusinessManagement = () => {
     ));
 
     try {
-      const response = await businessAPI.getBusiness(role.businessId);
+      const response = await businessAPI.getBusiness();
       const businessData = response.data;
 
       setBusinesses(prev => prev.map(business => 

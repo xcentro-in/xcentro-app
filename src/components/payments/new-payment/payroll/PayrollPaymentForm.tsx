@@ -29,7 +29,7 @@ const PayrollPaymentForm = ({ onStepChange }: PayrollPaymentFormProps) => {
 
       try {
         setIsLoading(true);
-        const response = await employeesAPI.getAll(businessId);
+        const response = await employeesAPI.getAll();
 
         if (response.status === 'success' && response.data?.employees) {
           setEmployees(response.data.employees);

@@ -92,7 +92,7 @@ const ApprovalInbox = () => {
 
     try {
       setActionLoading(true);
-      await voucherAPI.approveVoucher(businessId, id, user.id, "Approved");
+      await voucherAPI.approveVoucher(id, user.id, "Approved");
       trackEvent('voucher_approved');
       toast.success("Bill approved successfully");
 
@@ -121,7 +121,7 @@ const ApprovalInbox = () => {
 
     try {
       setActionLoading(true);
-      await voucherAPI.rejectVoucher(businessId, transaction.id, user.id, reason);
+      await voucherAPI.rejectVoucher(transaction.id, user.id, reason);
       trackEvent('voucher_rejected');
       toast.success("Bill rejected");
 
@@ -150,7 +150,7 @@ const ApprovalInbox = () => {
 
     try {
       setActionLoading(true);
-      await voucherAPI.requestChanges(businessId, transaction.id, user.id, reason);
+      await voucherAPI.requestChanges(transaction.id, user.id, reason);
       trackEvent('voucher_changes_requested');
       toast.success("Changes requested");
 
@@ -180,7 +180,6 @@ const ApprovalInbox = () => {
     try {
       setActionLoading(true);
       const response = await voucherAPI.batchApprove(
-        businessId,
         voucherIds,
         user.id,
         'Batch Approved'

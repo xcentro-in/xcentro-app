@@ -29,7 +29,7 @@ const TopNav = () => {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const { title } = usePageTitle();
   const { user, logout: authLogout } = useAuth();
-  const { selectedBusiness, availableBusinesses, switchBusiness } = useBusiness();
+  const { selectedBusiness, availableBusinesses, switchBusiness, isLoading: businessSwitching } = useBusiness();
   
   const hasMultipleBusinesses = availableBusinesses.length > 1;
   
@@ -99,7 +99,7 @@ const TopNav = () => {
                   <DropdownMenuItem 
                     key={business.bid} 
                     className="flex items-center gap-2 py-2 cursor-pointer"
-                    onClick={() => switchBusiness(business.bid)}
+                    onClick={() => !businessSwitching && switchBusiness(business.bid)}
                   >
                     <div className="h-8 w-8 rounded bg-indigo-100 flex items-center justify-center">
                       <Building className="h-4 w-4 text-indigo-600" />

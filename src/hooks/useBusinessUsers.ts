@@ -26,7 +26,7 @@ export function useBusinessUsers(businessId: string | undefined): UseBusinessUse
       setIsLoading(true);
       setError(null);
 
-      const response = await businessAPI.getUsers(businessId);
+      const response = await businessAPI.getUsers();
       const users = response.data;
 
       // Filter users based on kycNeeded

@@ -89,7 +89,7 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
       // Load each business details individually
       for (const role of userRoles) {
         try {
-          const response = await businessAPI.getBusiness(role.businessId);
+          const response = await businessAPI.getBusiness();
           const businessData = response.data;
 
           setBusinesses(prev => prev.map(business =>
@@ -173,7 +173,6 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
       } else {
         // Invite new user
         const response = await userAPI.inviteUser(
-          selectedBusinessId,
           data.email,
           data.name,
           data.mobile,

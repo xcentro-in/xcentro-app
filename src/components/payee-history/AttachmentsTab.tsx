@@ -36,7 +36,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
 
       setIsLoading(true);
       try {
-        const response = await payeesAPI.getEmployeeDocument(businessId, relationId);
+        const response = await payeesAPI.getEmployeeDocument(relationId);
 
         if (response.data.has_document && response.data.download_url) {
           setDocumentUrl(response.data.download_url);
@@ -76,8 +76,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
       // Step 1: Get presigned S3 URL
       setUploadStatus({ status: 'getting_url', message: 'Getting upload URL...' });
       const presignedResponse = await payeesAPI.getEmployeeDocPresignedUrl(
-        relationId,
-        businessId
+        relationId
       );
 
       if (!presignedResponse.data.upload_url) {
@@ -97,8 +96,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
       setUploadStatus({ status: 'confirming', message: 'Confirming upload...' });
 
       const confirmResponse = await payeesAPI.confirmEmployeeDocUpload(
-        relationId,
-        businessId
+        relationId
       );
 
       if (confirmResponse.status === 'success') {
@@ -111,7 +109,7 @@ const AttachmentsTab = ({ relationId, payeeId, accountId, employeeName }: Attach
         toast.success("Remuneration document uploaded successfully");
 
         // Refresh document data
-        const response = await payeesAPI.getEmployeeDocument(businessId, relationId);
+        const response = await payeesAPI.getEmployeeDocument(relationId);
         if (response.data.has_document && response.data.download_url) {
           setDocumentUrl(response.data.download_url);
         }

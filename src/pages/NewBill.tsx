@@ -414,7 +414,6 @@ const NewBill = () => {
 
       // Call API to create voucher
       const response: GetVoucherDraftResponse = await voucherAPI.createDraft(
-        businessId,
         { ...voucherPayload }
         );
 

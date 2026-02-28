@@ -33,7 +33,7 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
     setIsProcessing(true);
 
     try {
-      const response = await batchPaymentsAPI.upload(businessId, selectedFile);
+      const response = await batchPaymentsAPI.upload(selectedFile);
       trackEvent('batch_csv_uploaded');
       setUploadResponse(response as BatchUploadResponse);
       toast.success(`File processed: ${response.data.matched_count} matched, ${response.data.ambiguous_count} ambiguous, ${response.data.not_found_count} not found`);
@@ -55,7 +55,7 @@ const UploadStep = ({ setStep, setUploadResponse }: UploadStepProps) => {
     setIsDownloading(true);
     try {
       // Get presigned S3 URL from backend
-      const response = await batchPaymentsAPI.downloadTemplate(businessId);
+      const response = await batchPaymentsAPI.downloadTemplate();
 
       if (response.status === "success" && response.data.download_url) {
         // Fetch the file from S3 URL as blob

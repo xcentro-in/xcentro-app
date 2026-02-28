@@ -8,16 +8,15 @@ import { useAuth } from '@/contexts/AuthContext';
  * - Returns selectedBusiness.bid from BusinessContext (supports multi-business users)
  *
  * For users in onboarding:
- * - Returns userRoles[0].businessId (first/primary role)
- * - Or null if no roles yet
+ * - Returns activeBid from AuthContext
+ * - Or null if no active business
  *
  * @returns businessId string or null
  */
 export const useCurrentBusiness = (): { businessId: string | null; businessName: string | null } => {
   const { selectedBusiness } = useBusiness();
-  const { userRoles } = useAuth();
+  const { activeBid, businesses } = useAuth();
 
-  // Prefer selectedBusiness from BusinessContext (fully onboarded users)
   if (selectedBusiness) {
     return {
       businessId: selectedBusiness.bid,
@@ -25,15 +24,14 @@ export const useCurrentBusiness = (): { businessId: string | null; businessName:
     };
   }
 
-  // Fallback to primary role from userRoles (during/after onboarding, before BusinessContext loads)
-  if (userRoles && userRoles.length > 0) {
+  if (activeBid && businesses && businesses.length > 0) {
+    const activeBusiness = businesses.find(b => b.bid === activeBid);
     return {
-      businessId: userRoles[0].businessId,
-      businessName: null, // Name not available from roles alone
+      businessId: activeBid,
+      businessName: activeBusiness?.name || null,
     };
   }
 
-  // No business context available
   return {
     businessId: null,
     businessName: null,

@@ -61,7 +61,7 @@ const TransactionDetails = () => {
       }
 
       try {
-        const response = await processPaymentAPI.getDetails(businessId, id);
+        const response = await processPaymentAPI.getDetails(id);
         setPayment(response.data);
       } catch (err) {
         console.error("Error fetching payment details:", err);

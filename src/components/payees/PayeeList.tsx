@@ -122,7 +122,7 @@ const PayeeList = ({ onAddPayee }: PayeeListProps) => {
 
     try {
       // Make the API call in the background
-      await payeesAPI.updateStatus(businessId, id, isActive);
+      await payeesAPI.updateStatus(id, isActive);
       trackEvent(isActive ? 'payee_activated' : 'payee_deactivated');
 
       // On success: show success toast, payee stays removed (it's in the other tab now)

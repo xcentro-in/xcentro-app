@@ -100,7 +100,7 @@ const ValidationStep = ({
       });
 
       // Call API to create multiple vouchers (only for new payments)
-      const response = await voucherAPI.createMultiple(businessId, vouchers) as VoucherCreationResponse;
+      const response = await voucherAPI.createMultiple(vouchers) as VoucherCreationResponse;
 
       // Check response status
       if (response.status === 'success' && response.data.vouchers) {
