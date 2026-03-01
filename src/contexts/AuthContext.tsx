@@ -261,6 +261,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const publicPaths = ['/login', '/signup', '/forgot-password', '/reset-password', '/verify-email'];
       if (publicPaths.includes(window.location.pathname)) {
         console.log('[AuthContext] On public page, skipping session restore');
+        setBusinessesState([]);
+        setActiveBidState(null);
+        setActiveRoleState(null);
+        setNeedsBusinessSelection(false);
+        setOnboardingStatus(null);
         dispatch({ type: 'LOGOUT' });
         return;
       }

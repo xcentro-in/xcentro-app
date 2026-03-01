@@ -91,7 +91,7 @@ export const determineUserRoute = (
     return createDecision(true, ROUTES.BUSINESS_ONBOARDING, 'KYB incomplete');
   }
 
-  // Step 6: KYC check (global user-level only — kyc_needed is not used for routing)
+  // Step 6: KYC check (global user-level, from verify-session kyc_status)
   if (!isStatusComplete(user.kyc_status)) {
     if (currentPath === ROUTES.USER_ONBOARDING) {
       return createDecision(false, currentPath, 'Already on user onboarding');

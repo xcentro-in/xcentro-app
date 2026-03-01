@@ -506,7 +506,6 @@ class ApiService {
           name: string;
           role: string;
           kyb_status: string;
-          kyc_needed: boolean;
         }>;
         active_bid: string;
       };
@@ -522,7 +521,6 @@ class ApiService {
         bid: string;
         role: string;
         kyb_status: string;
-        kyc_needed: boolean;
       };
     }> => {
       return this.request('/v1/auth/switch-business', {
@@ -939,7 +937,7 @@ class ApiService {
         name: string;
         role: string;
         roleClaim: string;
-        kycNeeded: boolean;
+        kycStatus: string;
         addedAt: string;
         updatedAt: string;
       }>;
