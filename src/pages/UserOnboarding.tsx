@@ -9,7 +9,7 @@ import { parseISO, isValid } from "date-fns";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 // import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
-import { userAPI } from "@/services/api";
+import { userAPI, authAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { openAndMonitorPopup } from "@/lib/popupUtils";
 import { isKycComplete, validateAadhaar, validatePAN, ONBOARDING_STATUS } from "@/constants/onboarding";
@@ -47,11 +47,6 @@ const UserOnboarding = () => {
   const [isPopupBlocked, setIsPopupBlocked] = useState(false);
   const [hasApiError, setHasApiError] = useState(false);
   const popupCheckIntervalRef = useRef<number | null>(null);
-
-  // Determine flow type
-  // Note: BusinessOnboarding stores in localStorage, not sessionStorage
-  const businessId = localStorage.getItem("business-id");
-  const isJoinFlow = !businessId;
 
   const progress = (currentStep / steps.length) * 100;
 
@@ -221,8 +216,8 @@ const UserOnboarding = () => {
       if (isKycComplete(completeResponse.data.status)) {
         toast.success("User onboarding completed successfully!");
 
-        localStorage.removeItem('business-id');
-
+        // Refresh JWT so verify-session sees kyc_completed in token claims
+        await authAPI.refresh();
         // Re-verify session so ProtectedRoute sees updated kyc_status
         await refreshSession();
 

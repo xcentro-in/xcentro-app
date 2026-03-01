@@ -155,8 +155,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('[AuthContext] Logout API call failed:', error);
     }
 
-    localStorage.removeItem('business-id');
-    localStorage.removeItem('user-data');
 
     setBusinessesState([]);
     setActiveBidState(null);
@@ -293,9 +291,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handleUnauthorized = () => {
       if (isHandlingSessionExpiry || !state.isAuthenticated) return;
       console.log('[AuthContext] Unauthorized access detected, logging out');
-      localStorage.removeItem('business-id');
-      localStorage.removeItem('user-data');
-      setBusinessesState([]);
+        setBusinessesState([]);
       setActiveBidState(null);
       setActiveRoleState(null);
       setNeedsBusinessSelection(false);
@@ -310,9 +306,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       console.log('[AuthContext] Session expired, clearing state');
       isHandlingSessionExpiry = true;
-      localStorage.removeItem('business-id');
-      localStorage.removeItem('user-data');
-      setBusinessesState([]);
+        setBusinessesState([]);
       setActiveBidState(null);
       setActiveRoleState(null);
       setNeedsBusinessSelection(false);

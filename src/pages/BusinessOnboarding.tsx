@@ -8,7 +8,7 @@ import BusinessBasicInfoForm from "@/components/business/BusinessBasicInfoForm";
 import BusinessTypeForm from "@/components/business/BusinessTypeForm";
 import BusinessDocumentsForm from "@/components/business/BusinessDocumentsForm";
 import BusinessReviewForm from "@/components/business/BusinessReviewForm";
-import { businessAPI } from "@/services/api";
+import { businessAPI, authAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   toBackendBusinessType,
@@ -89,9 +89,6 @@ const BusinessOnboarding = () => {
       if (kybInitiated && !isKybComplete(kybStatus)) {
         console.log('[BusinessOnboarding] Pre-filling form from onboarding status:', kybStatus);
         setBusinessId(bid || "");
-        if (bid) {
-          localStorage.setItem('business-id', bid);
-        }
 
         // Auto-fill Step 1: Basic Info
         setFormData((prev) => ({
@@ -154,9 +151,7 @@ const BusinessOnboarding = () => {
           const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
           bid = initResponse.data.bid;
 
-          // Store bid in state and localStorage
           setBusinessId(bid);
-          localStorage.setItem('business-id', bid);
         } catch (initError: any) {
           // Handle 409 Conflict: Business already exists
           if (initError.status === 409) {
@@ -170,7 +165,6 @@ const BusinessOnboarding = () => {
 
               if (bid) {
                 setBusinessId(bid);
-                localStorage.setItem('business-id', bid);
 
                 // Pre-fill form with existing data
                 setFormData((prev) => ({
@@ -204,13 +198,13 @@ const BusinessOnboarding = () => {
       // Step 2: Handle document upload if deed is required
       if (requiresDeedUpload(formData.type) && formData.documents.deed) {
         // Get presigned URL
-        const uploadUrlResponse = await businessAPI.getUploadUrl();
+        const uploadUrlResponse = await businessAPI.getUploadUrl(bid);
         const uploadUrl = uploadUrlResponse.data.url;
         // Upload file to S3
         await businessAPI.uploadToS3(uploadUrl, formData.documents.deed);
 
         // Confirm upload
-        await businessAPI.confirmUpload();
+        await businessAPI.confirmUpload(bid);
       }
 
       // If deed is required, verify it has been uploaded before proceeding
@@ -236,6 +230,8 @@ const BusinessOnboarding = () => {
 
       toast.success("Business onboarding completed successfully!");
 
+      // Refresh JWT so verify-session sees kyb_completed in token claims
+      await authAPI.refresh();
       // Re-verify session so ProtectedRoute sees updated kyb_status
       await refreshSession();
 
