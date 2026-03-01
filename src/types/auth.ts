@@ -35,7 +35,6 @@ export interface SessionBusiness {
   name: string;
   role: string;       // "owner" | "admin" | "manager" | "auditor" | "none" | ""
   kyb_status: string; // "kyc_not_started" | "kyc_in_progress" | "kyc_completed" | "kyc_verified" | "kyc_needs_update" | "kyc_rejected"
-  kyc_needed: boolean;
 }
 
 // Kept for BusinessContext compatibility
@@ -44,7 +43,6 @@ export interface BusinessInLogin {
   name: string;
   role: string;
   kyb_status: string;
-  kyc_needed: boolean;
 }
 
 export interface SwitchBusinessResponse {
@@ -53,7 +51,6 @@ export interface SwitchBusinessResponse {
     bid: string;
     role: string;
     kyb_status: string;
-    kyc_needed: boolean;
   };
 }
 

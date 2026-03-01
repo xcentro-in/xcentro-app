@@ -13,7 +13,6 @@ export interface BusinessDetails {
   userRole: BusinessRole;
   permissions?: UserPermissions;
   kyb_status?: string;
-  kyc_needed?: boolean;
 }
 
 interface BusinessState {
@@ -45,7 +44,6 @@ export const BusinessProvider: React.FC<{ children: ReactNode }> = ({ children }
     name: b.name,
     userRole: b.role as BusinessRole,
     kyb_status: b.kyb_status,
-    kyc_needed: b.kyc_needed,
     gstin: '',
     pan: '',
     businessType: '',
