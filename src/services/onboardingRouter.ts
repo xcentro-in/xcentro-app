@@ -9,7 +9,7 @@
  * 2. No businesses → /business-onboarding (brand new user)
  * 3. 2+ businesses, no confirmed selection → show BusinessSelectorModal (needsModal flag)
  * 4. KYB incomplete on selected business → /business-onboarding
- * 5. KYC incomplete (global) OR kyc_needed on selected business → /onboarding
+ * 5. KYC incomplete (global user-level) → /onboarding
  * 6. role === "none" or role === "" → /pending-approval
  * 7. Fully onboarded → allow through
  */
@@ -91,12 +91,12 @@ export const determineUserRoute = (
     return createDecision(true, ROUTES.BUSINESS_ONBOARDING, 'KYB incomplete');
   }
 
-  // Step 6: KYC check (global user-level + per-business flag)
-  if (!isStatusComplete(user.kyc_status) || selectedBusiness.kyc_needed) {
+  // Step 6: KYC check (global user-level only — kyc_needed is not used for routing)
+  if (!isStatusComplete(user.kyc_status)) {
     if (currentPath === ROUTES.USER_ONBOARDING) {
       return createDecision(false, currentPath, 'Already on user onboarding');
     }
-    return createDecision(true, ROUTES.USER_ONBOARDING, 'KYC incomplete or required');
+    return createDecision(true, ROUTES.USER_ONBOARDING, 'KYC incomplete');
   }
 
   // Step 7: Role check — "none" or "" both mean role not yet assigned
