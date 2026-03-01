@@ -84,8 +84,6 @@ class ApiService {
 
     // Clear local storage
     localStorage.removeItem('auth-token');
-    localStorage.removeItem('business-id');
-    localStorage.removeItem('user-data');
     this.authToken = null;
 
     // Emit event for AuthContext to handle cleanup (only once)
@@ -515,6 +513,10 @@ class ApiService {
       });
     },
 
+    refresh: async (): Promise<boolean> => {
+      return this.refreshAccessToken();
+    },
+
     switchBusiness: async (targetBid: string): Promise<{
       message: string;
       data: {
@@ -878,6 +880,7 @@ class ApiService {
 
     // Resend invite email to user
     resendInvite: async (
+      _businessId: string,
       email: string
     ): Promise<{
       data: {
@@ -908,6 +911,7 @@ class ApiService {
 
     // Remove user from business
     removeUser: async (
+      _businessId: string,
       userId: string
     ): Promise<{
       message: string;
@@ -966,13 +970,13 @@ class ApiService {
     },
 
     // Get presigned URL for deed upload
-    getUploadUrl: async (): Promise<{
+    getUploadUrl: async (bid: string): Promise<{
       data: {
         url: string;
       };
       message: string;
     }> => {
-      return this.request('/v1/business/onboard/upload', {
+      return this.request(`/v1/business/onboard/upload?bid=${bid}`, {
         method: 'GET',
       });
     },
@@ -993,13 +997,13 @@ class ApiService {
     },
 
     // Confirm upload completion
-    confirmUpload: async (): Promise<{
+    confirmUpload: async (bid: string): Promise<{
       data: {
         url: string;
       };
       message: string;
     }> => {
-      return this.request('/v1/business/onboard/confirm-upload', {
+      return this.request(`/v1/business/onboard/confirm-upload?bid=${bid}`, {
         method: 'POST',
         requireTurnstile: true,
       });
