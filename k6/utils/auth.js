@@ -15,6 +15,7 @@ export function authParams(jar, csrfToken, extraHeaders) {
       ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {}),
       ...(extraHeaders || {}),
     },
+    tags: { login: 'false' },
   };
 }
 
@@ -30,8 +31,9 @@ export function authParams(jar, csrfToken, extraHeaders) {
  * jar.cookiesForURL() looks up staging-api.xcentro.in but the cookie is scoped
  * to Domain=xcentro.in, which may not match depending on k6 version.
  */
-export function loginUser(creds) {
-  const jar = http.cookieJar();
+export function loginUser(creds, tags) {
+  const jar = new http.CookieJar();  // isolated jar — not the shared VU-default jar
+  const extraTags = tags || {};
 
   const loginRes = http.post(
     `${BASE_URL}/v1/auth/login`,
@@ -39,6 +41,7 @@ export function loginUser(creds) {
     {
       jar,
       headers: { 'Content-Type': 'application/json' },
+      tags: extraTags,
     }
   );
 
@@ -66,7 +69,7 @@ export function loginUser(creds) {
 
   const sessionRes = http.get(
     `${BASE_URL}/v1/auth/verify-session`,
-    authParams(jar, csrfToken)
+    { ...authParams(jar, csrfToken), tags: extraTags }
   );
 
   check(sessionRes, { 'verify-session 200': r => r.status === 200 });

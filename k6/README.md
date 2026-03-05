@@ -13,42 +13,89 @@ export const MANAGER = { email: '...', password: '...' };
 ## Scripts
 
 ### `admin_journey.js`
-Single-user full flow as admin/owner:
-1. Login
-2. Get vendors → pick one (VU rotation)
-3. Create draft voucher (unique ref per VU+iteration)
-4. Get payment sources → pick one (VU rotation)
-5. Make payment
-6. Complete mock 3DS (GET page → POST callback)
-7. Check approval inbox → approve any pending vouchers
-8. Read calendar, dashboard, payment list
-9. Logout
 
-Owner role skips the approval step on their own vouchers — they pay directly.
+Single-user full flow as admin/owner. Login happens once per VU and is reused across all iterations.
+
+```mermaid
+flowchart TD
+    A([setup: —]) --> B
+
+    subgraph VU["VU lifecycle (runs N iterations)"]
+        B{session\nnull?} -->|yes, first iter| C[POST /auth/login\nGET /auth/verify-session\ntag: login=true]
+        C --> D[store session]
+        D --> E
+        B -->|no, reuse| E
+
+        E[GET /payees/vendors] --> F[POST /vouchers/draft\nunique ref per VU+ITER]
+        F --> G[POST /process_payment\n/get_payment_sources_with_fees]
+        G --> H[POST /process_payment\n/make_payment]
+        H --> I{redirect_url\nin response?}
+        I -->|yes| J[Mock 3DS\nGET page → POST callback]
+        I -->|no| K
+        J --> K[GET /vouchers/approval-inbox]
+        K --> L[POST /vouchers/:id\n/request-approval × N]
+        L --> M[GET /vouchers/calendar]
+        M --> N[GET /dashboard]
+        N --> O[GET /process_payment/list]
+        O --> P{more\niters?}
+        P -->|yes| E
+        P -->|no| Q
+    end
+
+    Q([teardown: POST /auth/logout\ntag: login=true])
+```
+
+> Owner role pays directly — no separate approval step needed on own vouchers.
 
 ---
 
 ### `manager_journey.js`
-Cross-user flow in one iteration (2 logins per VU):
 
-**Manager session:**
-1. Login
-2. Create draft voucher
-3. Request approval → sends to admin
-4. Logout
+Cross-user flow: manager creates a voucher and requests approval, admin approves and pays it. Both sessions are logged in once per VU.
 
-**Admin session:**
-5. Login
-6. Find voucher in approval inbox (matched by `uniqueRef`, falls back to first pending)
-7. Approve voucher
-8. Get payment sources → pay
-9. Complete mock 3DS
-10. Read calendar, dashboard, payment list
-11. Logout
+```mermaid
+flowchart TD
+    A([setup: POST /auth/login\nfetch adminUserId]) --> B
 
-`setup()` runs once before VUs start to fetch `adminUserId` (needed for the approval request).
+    subgraph VU["VU lifecycle (runs N iterations)"]
+        B{mgrSession\nnull?} -->|yes, first iter| C[POST /auth/login\nGET /auth/verify-session\ntag: login=true]
+        C --> D[store mgrSession]
+        D --> E
+        B -->|no, reuse| E
 
-> Note: manager_journey does 2 logins per iteration — at `--vus 10` it generates roughly double the auth traffic vs admin_journey.
+        subgraph PART1["PART 1 — Manager"]
+            E[GET /payees/vendors] --> F[POST /vouchers/draft\nunique ref per VU+ITER]
+            F --> G[POST /vouchers/:id\n/request-approval\naction=pending → adminUserId]
+        end
+
+        G --> H
+
+        H{admSession\nnull?} -->|yes, first iter| I[POST /auth/login\nGET /auth/verify-session\ntag: login=true]
+        I --> J[store admSession]
+        J --> K
+        H -->|no, reuse| K
+
+        subgraph PART2["PART 2 — Admin"]
+            K[GET /vouchers/approval-inbox] --> L[POST /vouchers/:id\n/request-approval\naction=approved]
+            L --> M[POST /process_payment\n/get_payment_sources_with_fees]
+            M --> N[POST /process_payment\n/make_payment]
+            N --> O{redirect_url\nin response?}
+            O -->|yes| P[Mock 3DS\nGET page → POST callback]
+            O -->|no| Q
+            P --> Q[GET /vouchers/calendar]
+            Q --> R[GET /dashboard]
+            R --> S[GET /process_payment/list]
+        end
+
+        S --> T{more\niters?}
+        T -->|yes| E
+        T -->|no| U
+    end
+
+    U([teardown: POST /auth/logout × 2\nadmin + manager\ntag: login=true])
+```
+
+> Login count: `--vus 10` → 10 manager + 10 admin logins total (vs ~1200 per-iteration logins before).
 
 ---
 
@@ -105,13 +152,15 @@ k6 run --vus 10 --duration 5m --env BASE_URL=https://other.xcentro.in k6/admin_j
 At the end of each iteration you'll see:
 
 ```
-[VU 1 ITER 0] SLOWEST: make_payment 843ms | FASTEST: logout 31ms
+[VU 1 ITER 0] SLOWEST: make_payment 843ms | FASTEST: get_sources 312ms
 [VU 1 ITER 0] All steps ranked:
   1. make_payment: 843ms
   2. get_sources: 312ms
   3. create_voucher: 201ms
   ...
 ```
+
+Login is omitted from per-iteration timing after the first iteration (session is reused). Logout only appears in `teardown()`.
 
 ---
 

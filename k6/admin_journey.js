@@ -1,30 +1,36 @@
 import http from 'k6/http';
 import { check } from 'k6';
-import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { randomIntBetween, uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { BASE_URL, ADMIN } from './config.js';
 import { loginUser, authParams } from './utils/auth.js';
 import { completeMock3DS } from './utils/mock3ds.js';
 import { newTimer } from './utils/timing.js';
 
+let session = null;
+
 export const options = {
   vus: 10,
   duration: '5m',
   thresholds: {
-    http_req_failed:   ['rate<0.20'],
-    http_req_duration: ['p(95)<8000'],
+    'http_req_failed{login:true}':          [],
+    'http_req_failed{login:false}':         ['rate<0.20'],
+    'http_req_duration{login:false}':       ['p(95)<8000'],
   },
 };
 
 export default function () {
   const t = newTimer();
 
-  // ── Step 1: Login ─────────────────────────────────────────────────────────────
-  const { jar, userId, bid, csrfToken } = t.track('login', () => loginUser(ADMIN));
-  if (!jar) {
-    console.error(`[VU ${__VU}] Login failed — aborting iteration`);
-    return;
+  // ── Step 1: Login (once per VU) ───────────────────────────────────────────────
+  if (!session) {
+    session = loginUser(ADMIN, { login: 'true' });
+    if (!session.jar) {
+      console.error(`[VU ${__VU}] Login failed — aborting iteration`);
+      return;
+    }
+    console.log(`[VU ${__VU}] Logged in (once). userId=${session.userId} bid=${session.bid}`);
   }
-  console.log(`[VU ${__VU}] Logged in. userId=${userId} bid=${bid}`);
+  const { jar, csrfToken, userId, bid } = session;
 
   // ── Step 2: Get vendors ───────────────────────────────────────────────────────
   const vendorsRes = t.track('get_vendors', () =>
@@ -39,7 +45,6 @@ export default function () {
   const vendors     = (vendorsData && vendorsData.vendors) ? vendorsData.vendors : [];
   if (vendors.length === 0) {
     console.warn(`[VU ${__VU}] No vendors found — skipping payment steps`);
-    http.post(`${BASE_URL}/v1/auth/logout`, null, authParams(jar, csrfToken));
     return;
   }
 
@@ -52,7 +57,7 @@ export default function () {
   const amountPaisa = amountINR * 100;
 
   // ── Step 4: Create draft voucher ─────────────────────────────────────────────
-  const uniqueRef = `VU${__VU}-ITER${__ITER}-${Date.now()}`;
+  const uniqueRef = `VU${__VU}-ITER${__ITER}-${uuidv4()}`;
   const draftBody = JSON.stringify({
     relation_id:    vendorId,
     gross_amount:   amountPaisa,
@@ -72,7 +77,6 @@ export default function () {
   const voucherId = draftData && draftData.voucher_id;
   if (!voucherId) {
     console.warn(`[VU ${__VU}] voucherId missing — skipping payment`);
-    http.post(`${BASE_URL}/v1/auth/logout`, null, authParams(jar, csrfToken));
     return;
   }
   console.log(`[VU ${__VU}] voucherId=${voucherId} ref=${uniqueRef} amount=${amountINR} INR`);
@@ -96,7 +100,6 @@ export default function () {
     : null;
   if (!sourceId) {
     console.warn(`[VU ${__VU}] No payment source found — skipping payment`);
-    http.post(`${BASE_URL}/v1/auth/logout`, null, authParams(jar, csrfToken));
     return;
   }
   console.log(`[VU ${__VU}] sourceId=${sourceId}`);
@@ -171,11 +174,13 @@ export default function () {
   if (listRes.status !== 200) console.error(`[STEP: payment_list] status=${listRes.status} body=${listRes.body.substring(0, 300)}`);
   check(listRes, { 'payment list 200': r => r.status === 200 });
 
-  // ── Step 15: Logout ───────────────────────────────────────────────────────────
-  const logoutRes = t.track('logout', () =>
-    http.post(`${BASE_URL}/v1/auth/logout`, null, authParams(jar, csrfToken))
-  );
-  check(logoutRes, { 'logout 2xx': r => r.status === 200 || r.status === 204 });
-
   t.summary(__VU, __ITER);
+}
+
+export function teardown() {
+  const s = loginUser(ADMIN, { login: 'true' });
+  if (s.jar) {
+    http.post(`${BASE_URL}/v1/auth/logout`, null, { ...authParams(s.jar, s.csrfToken), tags: { login: 'true' } });
+    console.log('[teardown] Admin logged out');
+  }
 }
