@@ -1987,7 +1987,56 @@ class ApiService {
           'X-Business-ID': businessId,
         },
       });
-    }
+    },
+
+    // Upload voucher document (Invoice / Purchase Order PDF/image)
+    uploadDocument: async (businessId: string, file: File, docType?: string) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (docType) {
+        formData.append('doc_type', docType);
+      }
+
+      // setContentType = false so the browser auto-sets multipart boundary
+      return this.request('/v1/vouchers/upload', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: formData,
+      }, false, false);
+    },
+
+    // Check document processing status (used for polling during extraction)
+    checkStatus: async (businessId: string, documentId: string): Promise<{ data: { status: string } }> => {
+      return this.request(`/v1/vouchers/${documentId}/status`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get extracted draft data for HITL review
+    getDraftData: async (businessId: string, documentId: string): Promise<any> => {
+      return this.request(`/v1/vouchers/${documentId}/draft`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Submit validated / corrected data after HITL review
+    validateDocument: async (businessId: string, documentId: string, draftData: any): Promise<any> => {
+      return this.request(`/v1/vouchers/${documentId}/validate`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify({ draft_data: draftData }),
+      });
+    },
   };
 
   // Vendors endpoints
