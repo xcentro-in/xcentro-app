@@ -14,13 +14,12 @@ const ACCEPTED_TYPES = [
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 interface UploadDraggerProps {
-  onUpload: (file: File, docType: string) => void;
+  onUpload: (file: File) => void;
   isUploading: boolean;
 }
 
 const UploadDragger = ({ onUpload, isUploading }: UploadDraggerProps) => {
   const [file, setFile] = useState<File | null>(null);
-  const [docType, setDocType] = useState("INVOICE");
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +83,7 @@ const UploadDragger = ({ onUpload, isUploading }: UploadDraggerProps) => {
 
   const handleSubmit = () => {
     if (file) {
-      onUpload(file, docType);
+      onUpload(file);
     }
   };
 
@@ -101,34 +100,6 @@ const UploadDragger = ({ onUpload, isUploading }: UploadDraggerProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Document type selection */}
-      <Card>
-        <CardContent className="p-6">
-          <Label className="text-base font-medium">Document Type</Label>
-          <p className="text-sm text-muted-foreground mb-4">
-            Select the type of document you are uploading
-          </p>
-          <RadioGroup
-            value={docType}
-            onValueChange={setDocType}
-            className="flex gap-4"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="INVOICE" id="type-invoice" />
-              <Label htmlFor="type-invoice" className="font-normal cursor-pointer">
-                Invoice
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="PURCHASE_ORDER" id="type-po" />
-              <Label htmlFor="type-po" className="font-normal cursor-pointer">
-                Purchase Order
-              </Label>
-            </div>
-          </RadioGroup>
-        </CardContent>
-      </Card>
-
       {/* Dropzone */}
       <Card>
         <CardContent className="p-6">

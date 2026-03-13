@@ -1700,6 +1700,33 @@ class ApiService {
       });
     },
 
+    listDocuments: async (businessId: string, page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/documents?page=${page}&limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    listInvoices: async (businessId: string, page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/invoices?page=${page}&limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    listPurchaseOrders: async (businessId: string, page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/purchase-orders?page=${page}&limit=${limit}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     getVoucherCounts: async (businessId: string) => {
       return this.request('/v1/vouchers/counts', {
         method: 'GET',

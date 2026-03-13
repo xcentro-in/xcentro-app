@@ -7,79 +7,31 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  CheckCircle2,
   Pencil,
-  AlertTriangle,
-  Info,
   Plus,
   X,
   Send,
 } from "lucide-react";
+import { ExtractedData, ExtractedLineItem } from "./InvoiceReviewForm";
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                             */
-/* ------------------------------------------------------------------ */
-
-export interface ExtractedLineItem {
-  description: string;
-  quantity: number;
-  rate: number;
-  amount: number;
-}
-
-export interface ExtractedData {
-  vendor_name: string;
-  invoice_number: string;
-  invoice_date: string;
-  due_date: string;
-  currency: string;
-  subtotal: number;
-  tax_amount: number;
-  discount: number;
-  discount_type: 'FLAT' | 'PERCENTAGE';
-  total_amount: number;
-  notes: string;
-  line_items: ExtractedLineItem[];
-}
-
-interface ExtractionReviewFormProps {
+interface PurchaseOrderReviewFormProps {
   data: ExtractedData;
   onSubmit: (corrected: ExtractedData) => void;
   isSubmitting: boolean;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                           */
-/* ------------------------------------------------------------------ */
-
-/* ------------------------------------------------------------------ */
-/*  Helpers                                                           */
-/* ------------------------------------------------------------------ */
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                         */
-/* ------------------------------------------------------------------ */
-
-const ExtractionReviewForm = ({
+const PurchaseOrderReviewForm = ({
   data,
   onSubmit,
   isSubmitting,
-}: ExtractionReviewFormProps) => {
+}: PurchaseOrderReviewFormProps) => {
   const [form, setForm] = useState<ExtractedData>({ ...data });
   const [editedFields, setEditedFields] = useState<Set<string>>(new Set());
 
-  /* Track which fields the user has manually changed */
   const markEdited = (field: string) => {
     setEditedFields((prev) => new Set(prev).add(field));
   };
 
-  /* Generic scalar field handler */
   const updateField = <K extends keyof ExtractedData>(
     key: K,
     value: ExtractedData[K]
@@ -87,8 +39,6 @@ const ExtractionReviewForm = ({
     setForm((prev) => ({ ...prev, [key]: value }));
     markEdited(key);
   };
-
-  /* ---- Line item helpers ---- */
 
   const updateLineItem = (
     idx: number,
@@ -98,12 +48,9 @@ const ExtractionReviewForm = ({
     setForm((prev) => {
       const items = [...prev.line_items];
       const item = { ...items[idx], [field]: value };
-
-      // Recalculate amount when quantity or rate changes
       if (field === "quantity" || field === "rate") {
         item.amount = Number(item.quantity) * Number(item.rate);
       }
-
       items[idx] = item;
       return { ...prev, line_items: items };
     });
@@ -127,8 +74,6 @@ const ExtractionReviewForm = ({
     }));
   };
 
-  /* ---- Recalculate totals from line items ---- */
-
   const computedSubtotal = form.line_items.reduce(
     (sum, li) => sum + Number(li.amount),
     0
@@ -139,8 +84,6 @@ const ExtractionReviewForm = ({
     : Number(form.discount);
 
   const computedTotal = computedSubtotal - discountAmount + Number(form.tax_amount);
-
-  /* ---- Render helpers ---- */
 
   const EditedBadge = ({ field }: { field: string }) => {
     if (!editedFields.has(field)) return null;
@@ -153,10 +96,6 @@ const ExtractionReviewForm = ({
       </Badge>
     );
   };
-
-  /* ---- Render helpers ---- */
-
-
 
   const handleSubmit = () => {
     const corrected: ExtractedData = {
@@ -174,10 +113,9 @@ const ExtractionReviewForm = ({
         <CardContent className="p-6">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-lg font-semibold">Review Extracted Data</h3>
+              <h3 className="text-lg font-semibold">Review Purchase Order</h3>
               <p className="text-sm text-muted-foreground mt-1">
-                Verify the fields below and correct anything that looks off.
-                Confidence scores indicate how certain the extraction was.
+                Verify the PO details and correct anything that looks off.
               </p>
             </div>
             <Badge
@@ -190,13 +128,12 @@ const ExtractionReviewForm = ({
         </CardContent>
       </Card>
 
-      {/* Vendor & invoice header fields */}
+      {/* PO header fields */}
       <Card>
         <CardContent className="p-6">
-          <h4 className="text-base font-medium mb-4">Invoice Details</h4>
+          <h4 className="text-base font-medium mb-4">PO Details</h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {/* Vendor name */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <Label htmlFor="vendor_name">Vendor / Supplier</Label>
@@ -209,10 +146,9 @@ const ExtractionReviewForm = ({
               />
             </div>
 
-            {/* Invoice number */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <Label htmlFor="invoice_number">Invoice Number</Label>
+                <Label htmlFor="invoice_number">PO Number</Label>
                 <EditedBadge field="invoice_number" />
               </div>
               <Input
@@ -222,10 +158,9 @@ const ExtractionReviewForm = ({
               />
             </div>
 
-            {/* Invoice date */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <Label htmlFor="invoice_date">Invoice Date</Label>
+                <Label htmlFor="invoice_date">PO Date</Label>
                 <EditedBadge field="invoice_date" />
               </div>
               <Input
@@ -236,21 +171,6 @@ const ExtractionReviewForm = ({
               />
             </div>
 
-            {/* Due date */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <Label htmlFor="due_date">Due Date</Label>
-                <EditedBadge field="due_date" />
-              </div>
-              <Input
-                id="due_date"
-                type="date"
-                value={form.due_date}
-                onChange={(e) => updateField("due_date", e.target.value)}
-              />
-            </div>
-
-            {/* Currency */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <Label htmlFor="currency">Currency</Label>
@@ -264,7 +184,6 @@ const ExtractionReviewForm = ({
             </div>
           </div>
 
-          {/* Notes */}
           <div className="mt-5">
             <div className="flex items-center justify-between mb-1.5">
               <Label htmlFor="notes">Notes / Remarks</Label>
@@ -380,7 +299,6 @@ const ExtractionReviewForm = ({
               </span>
             </div>
 
-            {/* Discount */}
             <div className="flex justify-between text-sm items-center">
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Discount</span>
@@ -415,10 +333,9 @@ const ExtractionReviewForm = ({
               </div>
             </div>
 
-            {/* Tax */}
             <div className="flex justify-between text-sm items-center">
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Tax / GST</span>
+                <span className="text-muted-foreground">Tax</span>
                 <EditedBadge field="tax_amount" />
               </div>
               <Input
@@ -468,4 +385,4 @@ const ExtractionReviewForm = ({
   );
 };
 
-export default ExtractionReviewForm;
+export default PurchaseOrderReviewForm;

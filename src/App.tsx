@@ -39,6 +39,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import PaymentProcessing from "./pages/PaymentProcessing";
 import VoucherUpload from "./pages/VoucherUpload";
+import Vouchers from "./pages/Vouchers";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -120,6 +121,7 @@ function App() {
                 <Route path="payees" element={<PayeeManagement />} />
                 <Route path="payees/:payeeId" element={<PayeeHistory />} />
                 <Route path="bills" element={<Bills />} />
+                <Route path="vouchers" element={<Vouchers />} />
                 <Route path="vouchers/upload" element={<VoucherUpload />} />
                 <Route path="bills/new" element={<NewBill />} />
                 <Route path="bills/:billId" element={<BillDetailPage />} />

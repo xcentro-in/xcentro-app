@@ -10,9 +10,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import UploadDragger from "@/components/vouchers/UploadDragger";
 import ProcessingStatus from "@/components/vouchers/ProcessingStatus";
-import ExtractionReviewForm, {
-  type ExtractedData,
-} from "@/components/vouchers/ExtractionReviewForm";
+import ExtractionReviewContainer from "@/components/vouchers/ExtractionReviewContainer";
+import { type ExtractedData } from "@/components/vouchers/InvoiceReviewForm";
 
 /* ------------------------------------------------------------------ */
 /*  Stage machine                                                     */
@@ -58,7 +57,7 @@ const VoucherUpload = () => {
 
   /* ---- Upload handler ---- */
 
-  const handleUpload = async (file: File, docType: string) => {
+  const handleUpload = async (file: File) => {
     if (!businessId) {
       toast.error("Business context not available");
       return;
@@ -68,7 +67,7 @@ const VoucherUpload = () => {
     setUploadedFileName(file.name);
 
     try {
-      const resp = (await voucherAPI.uploadDocument(businessId, file, docType)) as {
+      const resp = (await voucherAPI.uploadDocument(businessId, file)) as {
         data?: { document_id?: string };
       };
       setDocumentId(resp.data?.document_id ?? "");
@@ -289,7 +288,7 @@ const VoucherUpload = () => {
               )}
 
               {extractedData && !isDraftLoading && !draftError && (
-                <ExtractionReviewForm
+                <ExtractionReviewContainer
                   data={extractedData}
                   onSubmit={handleReviewSubmit}
                   isSubmitting={isSubmitting}
