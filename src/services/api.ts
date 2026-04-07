@@ -2064,6 +2064,57 @@ class ApiService {
         body: JSON.stringify({ draft_data: draftData }),
       });
     },
+
+    // Get presigned URL to view the original document
+    getDocumentUrl: async (businessId: string, documentId: string): Promise<{ data: { url: string } }> => {
+      return this.request(`/v1/vouchers/${documentId}/url`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Quick-create a vendor payee from document review context (no bank verification)
+    quickCreateVendor: async (businessId: string, data: { display_name: string; gstin?: string; contact_email?: string; contact_phone?: string }) => {
+      return this.request('/v1/vouchers/vendors/quick-create', {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+        body: JSON.stringify(data),
+      });
+    },
+
+    // Get line items for an extracted invoice (amounts in rupees)
+    getInvoiceLineItems: async (businessId: string, invoiceId: string) => {
+      return this.request(`/v1/vouchers/invoices/${invoiceId}/line-items`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Get line items for a purchase order (amounts in rupees)
+    getPOLineItems: async (businessId: string, poId: string) => {
+      return this.request(`/v1/vouchers/purchase-orders/${poId}/line-items`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // List PO-Invoice match results
+    listMatchResults: async (businessId: string, page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/match-results?page=${page}&limit=${limit}&business_id=${businessId}`, {
+        method: 'GET',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
   };
 
   // Vendors endpoints

@@ -25,15 +25,21 @@ export interface VoucherStatusResponse {
 
 /** A single line item inside the extracted draft */
 export interface DraftLineItem {
+  sku?: string;
   description: string;
   quantity: number;
+  qty_received?: number;
   rate: number;
   amount: number;
+  gst_rate?: number;
+  gst_amount?: number;
 }
 
 /** The editable payload returned by the extraction worker */
 export interface DraftData {
   vendor_name: string;
+  vendor_gstin?: string;
+  buyer_gstin?: string;
   invoice_number: string;
   invoice_date: string;
   due_date: string;
@@ -43,18 +49,67 @@ export interface DraftData {
   discount: number;
   discount_type: 'FLAT' | 'PERCENTAGE';
   total_amount: number;
+  net_amount?: number;
+  po_number?: string;
   notes: string;
   doc_type: VoucherDocType;
   line_items: DraftLineItem[];
+  sgst?: number;
+  cgst?: number;
+  igst?: number;
+  gst_type?: 'cgst_sgst' | 'igst';
+  shipping?: number;
+  round_off?: boolean;
+  round_off_amount?: number;
+  payee_id?: string | null;
+  confidence_scores?: Record<string, number>;
+  /** Optional single document-level GST rate (%) used when line items lack individual rates */
+  gst_rate?: number;
+}
+
+/** Payee resolution hint returned alongside the draft */
+export interface PayeeResolutionHint {
+  payee_id: string | null;
+  status: 'VERIFIED' | 'NOT_FOUND';
+  confidence: 'HIGH' | 'LOW';
+  matched_via?: 'gstin' | 'name_fuzzy';
+  suggested_data?: {
+    legal_name?: string;
+    gst_status?: string;
+    vendor_gstin?: string;
+  };
+}
+
+/** Business resolution hint returned alongside the draft */
+export interface BusinessResolutionHint {
+  business_id: string | null;
+  resolved_via: 'header' | 'gstin_match' | 'unresolved';
+}
+
+/** Inner data object from GET /v1/vouchers/:document_id/draft */
+export interface VoucherDraftData {
+  document_id: string;
+  doc_type: VoucherDocType;
+  document_status: VoucherDocumentStatus;
+  draft_data: DraftData;
+  validated_data: DraftData | null;
+  processed_by: string;
+  payee_resolution?: PayeeResolutionHint;
+  business_resolution?: BusinessResolutionHint;
 }
 
 /** Response from GET /v1/vouchers/:document_id/draft */
 export interface VoucherDraftResponse {
-  document_id: string;
-  status: VoucherDocumentStatus;
-  doc_type: VoucherDocType;
-  draft_data: DraftData;
-  processed_by: string;
+  status: 'success' | 'error';
+  data: VoucherDraftData;
+}
+
+/** Response from GET /v1/vouchers/:document_id/status */
+export interface VoucherStatusDataResponse {
+  status: 'success' | 'error';
+  data: {
+    document_status: VoucherDocumentStatus;
+  };
 }
 
 /** Request body for POST /v1/vouchers/:document_id/validate */

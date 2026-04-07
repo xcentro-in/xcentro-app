@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -8,15 +9,18 @@ import {
   TableRow
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Clock, CheckCircle, AlertCircle, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock, CheckCircle, AlertCircle, FileText, ExternalLink, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { voucherAPI } from "@/services/api";
+import { useCurrentBusiness } from "@/hooks/useCurrentBusiness";
 
 interface VoucherDocument {
   id: string;
   file_name?: string;
   s3_path?: string;
   status: string;
-  created_at: string;
+  uploaded_at: string;
   doc_type?: string | null;
 }
 
@@ -26,6 +30,10 @@ interface VoucherDocumentsTableProps {
 }
 
 const VoucherDocumentsTable = ({ documents, isLoading = false }: VoucherDocumentsTableProps) => {
+  const navigate = useNavigate();
+  const { businessId } = useCurrentBusiness();
+  const [loadingDocId, setLoadingDocId] = useState<string | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'QUEUED':
@@ -60,6 +68,18 @@ const VoucherDocumentsTable = ({ documents, isLoading = false }: VoucherDocument
     }
   };
 
+  const handleViewPdf = async (e: React.MouseEvent, docId: string) => {
+    e.stopPropagation();
+    if (!businessId) return;
+    setLoadingDocId(docId);
+    try {
+      const resp = await (voucherAPI as any).getDocumentUrl(businessId, docId) as any;
+      window.open(resp?.data?.url, '_blank');
+    } finally {
+      setLoadingDocId(null);
+    }
+  };
+
   return (
     <div className="rounded-md border overflow-hidden">
       <Table>
@@ -69,19 +89,24 @@ const VoucherDocumentsTable = ({ documents, isLoading = false }: VoucherDocument
             <TableHead>Uploaded At</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>View</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {documents.length > 0 ? (
             documents.map((doc) => (
-              <TableRow key={doc.id}>
+              <TableRow
+                key={doc.id}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => navigate(`/vouchers/upload?documentId=${doc.id}`)}
+              >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                     {doc.file_name || doc.s3_path?.split('/').pop() || 'Unnamed Document'}
                   </div>
                 </TableCell>
-                <TableCell>{doc.created_at ? new Date(doc.created_at).toLocaleString() : "-"}</TableCell>
+                <TableCell>{doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : "-"}</TableCell>
                 <TableCell>
                   {doc.doc_type ? (
                     <Badge variant="outline" className="capitalize">
@@ -102,11 +127,24 @@ const VoucherDocumentsTable = ({ documents, isLoading = false }: VoucherDocument
                     </span>
                   </Badge>
                 </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => handleViewPdf(e, doc.id)}
+                    disabled={loadingDocId === doc.id}
+                  >
+                    {loadingDocId === doc.id
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <ExternalLink className="h-4 w-4" />
+                    }
+                  </Button>
+                </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-8">
+              <TableCell colSpan={5} className="text-center py-8">
                 <div className="text-muted-foreground">
                   {isLoading ? "Loading documents..." : "No documents found"}
                 </div>

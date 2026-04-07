@@ -12,6 +12,8 @@ interface PayeeAutocompleteInputProps {
   className?: string;
   error?: string;
   onAddNewVendor?: () => void;
+  placeholder?: string;
+  entityName?: string;
 }
 
 const PayeeAutocompleteInput = ({
@@ -20,7 +22,9 @@ const PayeeAutocompleteInput = ({
   favoritePayees = [],
   className,
   error,
-  onAddNewVendor
+  onAddNewVendor,
+  placeholder = "Search and select payee...",
+  entityName = "Vendor"
 }: PayeeAutocompleteInputProps) => {
   const { user } = useAuth();
   const { businessId, businessName } = useCurrentBusiness();
@@ -124,7 +128,7 @@ const PayeeAutocompleteInput = ({
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search and select payee..."
+          placeholder={placeholder}
           className={cn(
             "flex h-14 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-base ring-offset-background transition-all duration-200",
             "placeholder:text-muted-foreground",
@@ -154,7 +158,7 @@ const PayeeAutocompleteInput = ({
           {isLoading ? (
             <div className="p-3 text-sm text-muted-foreground text-center">
               <Loader2 className="h-4 w-4 animate-spin inline mr-2" />
-              Loading vendors...
+              Loading {entityName.toLowerCase()}s...
             </div>
           ) : vendorsError ? (
             <div className="p-3 text-sm text-destructive text-center">
@@ -162,7 +166,7 @@ const PayeeAutocompleteInput = ({
             </div>
           ) : sortedPayees.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground text-center">
-              No vendors found
+              No {entityName.toLowerCase()}s found
             </div>
           ) : (
             sortedPayees.map((vendor, index) => (
@@ -207,7 +211,7 @@ const PayeeAutocompleteInput = ({
               }}
             >
               <Plus className="h-4 w-4" />
-              <span className="font-medium">Add New Vendor</span>
+              <span className="font-medium">Add New {entityName}</span>
             </div>
           </div>
         </div>

@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle2, Upload, FileText, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useCurrentBusiness } from "@/hooks/useCurrentBusiness";
+import { useBusiness } from "@/contexts/BusinessContext";
 import { toast } from "sonner";
 import { voucherAPI } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
@@ -11,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import UploadDragger from "@/components/vouchers/UploadDragger";
 import ProcessingStatus from "@/components/vouchers/ProcessingStatus";
 import ExtractionReviewContainer from "@/components/vouchers/ExtractionReviewContainer";
-import { type ExtractedData } from "@/components/vouchers/InvoiceReviewForm";
+import { type ExtractedData, type PayeeResolution, type BusinessResolution } from "@/components/vouchers/InvoiceReviewForm";
 
 /* ------------------------------------------------------------------ */
 /*  Stage machine                                                     */
@@ -25,14 +26,20 @@ type Stage = "UPLOAD" | "PROCESSING" | "REVIEW" | "SUCCESS";
 
 const VoucherUpload = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { setTitle } = usePageTitle();
   const { businessId } = useCurrentBusiness();
+  const { selectedBusiness } = useBusiness();
 
-  const [stage, setStage] = useState<Stage>("UPLOAD");
+  // If we arrive with a documentId query param, jump straight to REVIEW
+  const initialDocumentId = searchParams.get("documentId") ?? "";
+  const initialStage: Stage = initialDocumentId ? "REVIEW" : "UPLOAD";
+
+  const [stage, setStage] = useState<Stage>(initialStage);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState("");
-  const [documentId, setDocumentId] = useState("");
+  const [documentId, setDocumentId] = useState(initialDocumentId);
 
   // Set page title
   useState(() => {
@@ -135,18 +142,23 @@ const VoucherUpload = () => {
     const resp = draftResponse as any;
     
     // The backend sometimes wraps in { data: ... } or returns directly
-    const draftPayload = resp?.draft_data || resp?.data?.draft_data;
+    const dataPayload = resp?.data || resp;
+    const validatedPayload = dataPayload?.validated_data;
+    const draftPayload = dataPayload?.draft_data;
     
-    // Also, if the entire response IS the draft data (e.g. it has `invoice_number` directly)
-    const draft = draftPayload || (resp?.invoice_number ? resp : null);
+    // Priority: validated_data > draft_data > root payload
+    const draft = validatedPayload || draftPayload || (dataPayload?.invoice_number ? dataPayload : null);
     
     if (!draft) return null;
 
     return {
       vendor_name: draft.vendor_name ?? "",
+      vendor_gstin: draft.vendor_gstin ?? undefined,
+      buyer_gstin: draft.buyer_gstin || selectedBusiness?.gstin || undefined,
+      po_number: draft.po_number ?? "",
       invoice_number: draft.invoice_number ?? "",
       invoice_date: draft.invoice_date ?? "",
-      due_date: draft.due_date ?? "",
+      due_date: draft.invoice_due_date ?? draft.due_date ?? "",
       currency: draft.currency ?? "INR",
       subtotal: draft.subtotal ?? 0,
       tax_amount: draft.tax_amount ?? 0,
@@ -154,13 +166,70 @@ const VoucherUpload = () => {
       discount_type: draft.discount_type ?? 'FLAT',
       total_amount: draft.total_amount ?? 0,
       notes: draft.notes ?? "",
-      line_items: (draft.line_items ?? []).map((li: any) => ({
-        description: li.description ?? "",
-        quantity: li.quantity ?? 0,
-        rate: li.rate ?? li.unit_price ?? 0,
-        amount: li.amount ?? li.total ?? 0,
-      })),
+      doc_type: draft.doc_type ?? undefined,
+      sgst: draft.sgst ?? 0,
+      cgst: draft.cgst ?? 0,
+      igst: draft.igst ?? 0,
+      shipping: draft.shipping ?? 0,
+      confidence_scores: draft.confidence_scores ?? undefined,
+      gst_type: draft.gst_type ?? 'cgst_sgst',
+      round_off: draft.round_off ?? false,
+      round_off_amount: draft.round_off_amount ?? 0,
+      line_items: (() => {
+        const rawItems: any[] = draft.line_items ?? [];
+        // Detect if all line items lack individual GST rates
+        const allLackGstRate = rawItems.every((li: any) => !li.tax_rate && li.tax_rate !== 0 && !li.gst_rate && li.gst_rate !== 0);
+        // Infer a single document-level GST rate from tax_amount/subtotal when items have no per-item rates
+        let inferredGstRate = 0;
+        if (allLackGstRate && draft.subtotal > 0 && draft.tax_amount > 0) {
+          // Prefer explicit top-level gst_rate if provided by extraction
+          inferredGstRate = draft.gst_rate
+            ? Number(draft.gst_rate)
+            : Math.round((draft.tax_amount / draft.subtotal) * 100);
+        }
+        return rawItems.map((li: any) => {
+          const qty = li.quantity ?? 0;
+          const rate = li.rate ?? li.unit_price ?? 0;
+          const amount = li.amount ?? li.total ?? (qty * rate);
+          const gstRate = li.tax_rate ?? li.gst_rate ?? inferredGstRate;
+          const gstAmount = li.gst_amount ?? (amount * gstRate) / 100;
+          return {
+            description: li.description ?? "",
+            quantity: qty,
+            rate: rate,
+            amount: amount,
+            gst_rate: gstRate,
+            gst_amount: gstAmount,
+          };
+        });
+      })(),
     } satisfies ExtractedData;
+  })();
+
+  /* ---- Parse resolution data from draft response ---- */
+
+  const payeeResolution: PayeeResolution | null = (() => {
+    if (!draftResponse) return null;
+    const resp = draftResponse as any;
+    const resolution = resp?.data?.payee_resolution || resp?.payee_resolution;
+    if (!resolution) return null;
+    return {
+      payee_id: resolution.payee_id ?? null,
+      status: resolution.status ?? 'NOT_FOUND',
+      confidence: resolution.confidence ?? 'LOW',
+      suggested_data: resolution.suggested_data,
+    };
+  })();
+
+  const businessResolution: BusinessResolution | null = (() => {
+    if (!draftResponse) return null;
+    const resp = draftResponse as any;
+    const resolution = resp?.data?.business_resolution || resp?.business_resolution;
+    if (!resolution) return null;
+    return {
+      business_id: resolution.business_id ?? null,
+      resolved_via: resolution.resolved_via ?? 'unknown',
+    };
   })();
 
   /* ---- Render ---- */
@@ -173,10 +242,10 @@ const VoucherUpload = () => {
           variant="ghost"
           className="w-fit pl-0 hover:pl-0 hover:bg-transparent -ml-2 text-muted-foreground"
           size="icon"
-          onClick={() => navigate("/bills")}
+          onClick={() => navigate("/vouchers")}
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Bills
+          Back to Vouchers
         </Button>
 
         {/* Stage indicator pills */}
@@ -292,6 +361,9 @@ const VoucherUpload = () => {
                   data={extractedData}
                   onSubmit={handleReviewSubmit}
                   isSubmitting={isSubmitting}
+                  payeeResolution={payeeResolution}
+                  businessResolution={businessResolution}
+                  businessId={businessId}
                 />
               )}
             </>
@@ -315,8 +387,8 @@ const VoucherUpload = () => {
                 <Button variant="outline" onClick={resetFlow}>
                   Upload Another
                 </Button>
-                <Button onClick={() => navigate("/bills")}>
-                  Go to Bills
+                <Button onClick={() => navigate("/vouchers")}>
+                  Go to Vouchers
                 </Button>
               </div>
             </div>

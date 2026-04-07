@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
-import { cn } from "@/lib/utils";
 
 interface Invoice {
   id: string;
@@ -17,6 +17,8 @@ interface Invoice {
   inv_date: string;
   document_id: string;
   total_amount: number;
+  po_number?: string;
+  match_status?: string;
 }
 
 interface InvoicesTableProps {
@@ -25,18 +27,7 @@ interface InvoicesTableProps {
 }
 
 const InvoicesTable = ({ invoices, isLoading = false }: InvoicesTableProps) => {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'open':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="rounded-md border overflow-hidden">
@@ -44,25 +35,43 @@ const InvoicesTable = ({ invoices, isLoading = false }: InvoicesTableProps) => {
         <TableHeader>
           <TableRow className="bg-muted/50">
             <TableHead>Invoice Number</TableHead>
+            <TableHead>PO Number</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Document ID</TableHead>
-            <TableHead className="text-right">Amount</TableHead>
+            <TableHead>Match Status</TableHead>
+            <TableHead className="text-right">Total Amount</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {invoices.length > 0 ? (
             invoices.map((invoice) => (
-              <TableRow key={invoice.id}>
-                <TableCell className="font-mono">
+              <TableRow
+                key={invoice.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => navigate(`/vouchers/invoices/${invoice.id}`, { state: { invoice } })}
+              >
+                <TableCell className="font-mono font-medium">
                   {invoice.inv_id || (invoice as any).invoice_number || '-'}
                 </TableCell>
+                <TableCell className="font-mono font-medium">
+                  {invoice.po_number || '-'}
+                </TableCell>
                 <TableCell>
-                  {(invoice.inv_date || (invoice as any).invoice_date || (invoice as any).invoice_due_date || (invoice as any).due_date) 
-                    ? new Date(invoice.inv_date || (invoice as any).invoice_date || (invoice as any).invoice_due_date || (invoice as any).due_date).toLocaleDateString() 
+                  {(invoice.inv_date || (invoice as any).invoice_date || (invoice as any).invoice_due_date || (invoice as any).due_date)
+                    ? new Date(invoice.inv_date || (invoice as any).invoice_date || (invoice as any).invoice_due_date || (invoice as any).due_date).toLocaleDateString()
                     : "-"}
                 </TableCell>
-                <TableCell className="font-mono text-xs">
-                  {invoice.document_id || invoice.id || '-'}
+                <TableCell>
+                  {invoice.match_status ? (
+                    <Badge variant="outline" className={
+                      invoice.match_status === 'MATCHED' ? 'bg-green-100 text-green-800 border-green-200' :
+                      invoice.match_status === 'PENDING_MATCH' ? 'bg-blue-100 text-blue-800 border-blue-200' :
+                      invoice.match_status === 'ORPHAN_INVOICE' ? 'bg-red-100 text-red-800 border-red-200' :
+                      invoice.match_status === 'MISMATCH' ? 'bg-red-100 text-red-800 border-red-200' :
+                      'bg-gray-100 text-gray-800 border-gray-200'
+                    }>
+                      {invoice.match_status.toLowerCase().replace(/_/g, ' ')}
+                    </Badge>
+                  ) : '-'}
                 </TableCell>
                 <TableCell className="text-right font-medium">
                   {formatCurrency(invoice.total_amount)}
@@ -71,7 +80,7 @@ const InvoicesTable = ({ invoices, isLoading = false }: InvoicesTableProps) => {
             ))
           ) : (
             <TableRow>
-              <TableCell colSpan={4} className="text-center py-8">
+              <TableCell colSpan={5} className="text-center py-8">
                 <div className="text-muted-foreground">
                   {isLoading ? "Loading invoices..." : "No invoices found"}
                 </div>

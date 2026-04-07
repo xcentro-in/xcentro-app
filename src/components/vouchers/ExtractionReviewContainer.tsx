@@ -4,20 +4,28 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import InvoiceReviewForm from "./InvoiceReviewForm";
 import PurchaseOrderReviewForm from "./PurchaseOrderReviewForm";
-import { type ExtractedData } from "./InvoiceReviewForm";
+import { type ExtractedData, type PayeeResolution, type BusinessResolution } from "./InvoiceReviewForm";
 
 interface ExtractionReviewContainerProps {
   data: ExtractedData;
   onSubmit: (corrected: ExtractedData) => void;
   isSubmitting: boolean;
+  payeeResolution?: PayeeResolution | null;
+  businessResolution?: BusinessResolution | null;
+  businessId?: string;
 }
 
 const ExtractionReviewContainer = ({
   data,
   onSubmit,
   isSubmitting,
+  payeeResolution,
+  businessResolution,
+  businessId,
 }: ExtractionReviewContainerProps) => {
-  const [docType, setDocType] = useState<"INVOICE" | "PURCHASE_ORDER">("INVOICE");
+  const [docType, setDocType] = useState<"INVOICE" | "PURCHASE_ORDER">(
+    data.doc_type === "PURCHASE_ORDER" ? "PURCHASE_ORDER" : "INVOICE"
+  );
 
   const handleSubmit = (corrected: ExtractedData) => {
     // Append doc_type to the data before submitting
@@ -63,12 +71,18 @@ const ExtractionReviewContainer = ({
           data={data}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          payeeResolution={payeeResolution}
+          businessResolution={businessResolution}
+          businessId={businessId}
         />
       ) : (
         <PurchaseOrderReviewForm
           data={data}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          payeeResolution={payeeResolution}
+          businessResolution={businessResolution}
+          businessId={businessId}
         />
       )}
     </div>

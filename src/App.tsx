@@ -40,6 +40,9 @@ import VerifyEmail from "./pages/VerifyEmail";
 import PaymentProcessing from "./pages/PaymentProcessing";
 import VoucherUpload from "./pages/VoucherUpload";
 import Vouchers from "./pages/Vouchers";
+import MatchResultDetailPage from "./pages/MatchResultDetailPage";
+import InvoiceDetailPage from "./pages/InvoiceDetailPage";
+import PurchaseOrderDetailPage from "./pages/PurchaseOrderDetailPage";
 
 import Layout from "./components/Layout";
 import { Toaster } from "./components/ui/sonner";
@@ -123,6 +126,9 @@ function App() {
                 <Route path="bills" element={<Bills />} />
                 <Route path="vouchers" element={<Vouchers />} />
                 <Route path="vouchers/upload" element={<VoucherUpload />} />
+                <Route path="vouchers/match-results/:matchResultId" element={<MatchResultDetailPage />} />
+                <Route path="vouchers/invoices/:invoiceId" element={<InvoiceDetailPage />} />
+                <Route path="vouchers/purchase-orders/:poId" element={<PurchaseOrderDetailPage />} />
                 <Route path="bills/new" element={<NewBill />} />
                 <Route path="bills/:billId" element={<BillDetailPage />} />
                 <Route path="approvals" element={<ApprovalInbox />} />
