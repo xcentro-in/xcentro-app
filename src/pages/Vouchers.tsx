@@ -23,7 +23,7 @@ const Vouchers = () => {
   }, [setTitle]);
 
   // Fetch Documents
-  const { data: docsResponse, isLoading: isDocsLoading } = useQuery({
+  const { data: docsResponse, isLoading: isDocsLoading, refetch: refetchDocs } = useQuery({
     queryKey: ["voucher-documents", businessId],
     queryFn: () => businessId ? voucherAPI.listDocuments(businessId) : null,
     enabled: !!businessId && activeTab === "documents",
@@ -88,7 +88,7 @@ const Vouchers = () => {
               <CardTitle>Recent Documents</CardTitle>
             </CardHeader>
             <CardContent>
-              <VoucherDocumentsTable documents={documents} isLoading={isDocsLoading} />
+              <VoucherDocumentsTable documents={documents} isLoading={isDocsLoading} onRefetch={refetchDocs} />
             </CardContent>
           </Card>
         </TabsContent>

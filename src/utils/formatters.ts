@@ -26,7 +26,8 @@ export const formatCurrency = (amount: number, isPrecise: boolean = true): strin
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: currency,
-    maximumFractionDigits: (isPrecise)? 2 : 0,
+    minimumFractionDigits: isPrecise ? 2 : 0,
+    maximumFractionDigits: isPrecise ? 2 : 0,
   }).format(amount);
 };
 

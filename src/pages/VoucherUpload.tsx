@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, CheckCircle2, Upload, FileText, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, CheckCircle2, Upload, FileText, Loader2, Copy } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useCurrentBusiness } from "@/hooks/useCurrentBusiness";
@@ -13,12 +15,25 @@ import UploadDragger from "@/components/vouchers/UploadDragger";
 import ProcessingStatus from "@/components/vouchers/ProcessingStatus";
 import ExtractionReviewContainer from "@/components/vouchers/ExtractionReviewContainer";
 import { type ExtractedData, type PayeeResolution, type BusinessResolution } from "@/components/vouchers/InvoiceReviewForm";
+import type { VoucherDraftResponse } from "@/types/voucher-document";
+import { transformDraftToExtractedData } from "@/services/transformers/voucherDraft";
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                           */
+/* ------------------------------------------------------------------ */
+
+const IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'tif']);
+
+function isImageUrl(url: string): boolean {
+  const ext = url.split('?')[0].split('.').pop()?.toLowerCase() ?? '';
+  return IMAGE_EXTENSIONS.has(ext);
+}
 
 /* ------------------------------------------------------------------ */
 /*  Stage machine                                                     */
 /* ------------------------------------------------------------------ */
 
-type Stage = "UPLOAD" | "PROCESSING" | "REVIEW" | "SUCCESS";
+type Stage = "UPLOAD" | "PROCESSING" | "DUPLICATE" | "REVIEW" | "SUCCESS";
 
 /* ------------------------------------------------------------------ */
 /*  Page component                                                    */
@@ -52,15 +67,23 @@ const VoucherUpload = () => {
     data: draftResponse,
     isLoading: isDraftLoading,
     error: draftError,
-  } = useQuery({
+  } = useQuery<VoucherDraftResponse>({
     queryKey: ["voucher-draft", documentId],
     queryFn: async () => {
       if (!businessId) throw new Error("Business context missing");
-      return voucherAPI.getDraftData(businessId, documentId);
+      return voucherAPI.getDraftData(businessId, documentId) as Promise<VoucherDraftResponse>;
     },
     enabled: stage === "REVIEW" && !!documentId && !!businessId,
     staleTime: Infinity, // Don't refetch — user will be editing this data
   });
+
+  const { data: docUrlResponse, isLoading: isDocUrlLoading } = useQuery({
+    queryKey: ["voucher-doc-url", documentId],
+    queryFn: () => voucherAPI.getDocumentUrl(businessId!, documentId),
+    enabled: (stage === "REVIEW" || stage === "DUPLICATE") && !!documentId && !!businessId,
+    staleTime: 4 * 60 * 1000, // re-fetch before presigned URL expires
+  });
+  const documentUrl: string | null = docUrlResponse?.data?.url ?? null;
 
   /* ---- Upload handler ---- */
 
@@ -74,12 +97,20 @@ const VoucherUpload = () => {
     setUploadedFileName(file.name);
 
     try {
-      const resp = (await voucherAPI.uploadDocument(businessId, file)) as {
-        data?: { document_id?: string };
-      };
-      setDocumentId(resp.data?.document_id ?? "");
-      toast.success("Document uploaded successfully");
-      setStage("PROCESSING");
+      const resp = await voucherAPI.uploadDocument(businessId, file);
+      const newDocId = resp.data?.document_id;
+      if (!newDocId) {
+        // Response lacked the document_id — don't advance to PROCESSING or
+        // we'll poll against nothing.
+        throw new Error("Upload succeeded but server did not return a document_id");
+      }
+      setDocumentId(newDocId);
+      if (resp.data?.is_duplicate) {
+        setStage("DUPLICATE");
+      } else {
+        toast.success("Document uploaded successfully");
+        setStage("PROCESSING");
+      }
     } catch (err: any) {
       console.error("Upload failed:", err);
       toast.error("Upload failed", {
@@ -137,74 +168,13 @@ const VoucherUpload = () => {
 
   /* ---- Extract draft data into the shape ExtractionReviewForm expects ---- */
 
-  const extractedData: ExtractedData | null = (() => {
-    if (!draftResponse) return null;
-    const resp = draftResponse as any;
-    
-    // The backend sometimes wraps in { data: ... } or returns directly
-    const dataPayload = resp?.data || resp;
-    const validatedPayload = dataPayload?.validated_data;
-    const draftPayload = dataPayload?.draft_data;
-    
-    // Priority: validated_data > draft_data > root payload
-    const draft = validatedPayload || draftPayload || (dataPayload?.invoice_number ? dataPayload : null);
-    
-    if (!draft) return null;
+  /* ---- Derive document status from draft response ---- */
+  const documentStatus = draftResponse?.data?.document_status ?? "";
+  const isAlreadyValidated = documentStatus === 'VALIDATED';
 
-    return {
-      vendor_name: draft.vendor_name ?? "",
-      vendor_gstin: draft.vendor_gstin ?? undefined,
-      buyer_gstin: draft.buyer_gstin || selectedBusiness?.gstin || undefined,
-      po_number: draft.po_number ?? "",
-      invoice_number: draft.invoice_number ?? "",
-      invoice_date: draft.invoice_date ?? "",
-      due_date: draft.invoice_due_date ?? draft.due_date ?? "",
-      currency: draft.currency ?? "INR",
-      subtotal: draft.subtotal ?? 0,
-      tax_amount: draft.tax_amount ?? 0,
-      discount: draft.discount ?? 0,
-      discount_type: draft.discount_type ?? 'FLAT',
-      total_amount: draft.total_amount ?? 0,
-      notes: draft.notes ?? "",
-      doc_type: draft.doc_type ?? undefined,
-      sgst: draft.sgst ?? 0,
-      cgst: draft.cgst ?? 0,
-      igst: draft.igst ?? 0,
-      shipping: draft.shipping ?? 0,
-      confidence_scores: draft.confidence_scores ?? undefined,
-      gst_type: draft.gst_type ?? 'cgst_sgst',
-      round_off: draft.round_off ?? false,
-      round_off_amount: draft.round_off_amount ?? 0,
-      line_items: (() => {
-        const rawItems: any[] = draft.line_items ?? [];
-        // Detect if all line items lack individual GST rates
-        const allLackGstRate = rawItems.every((li: any) => !li.tax_rate && li.tax_rate !== 0 && !li.gst_rate && li.gst_rate !== 0);
-        // Infer a single document-level GST rate from tax_amount/subtotal when items have no per-item rates
-        let inferredGstRate = 0;
-        if (allLackGstRate && draft.subtotal > 0 && draft.tax_amount > 0) {
-          // Prefer explicit top-level gst_rate if provided by extraction
-          inferredGstRate = draft.gst_rate
-            ? Number(draft.gst_rate)
-            : Math.round((draft.tax_amount / draft.subtotal) * 100);
-        }
-        return rawItems.map((li: any) => {
-          const qty = li.quantity ?? 0;
-          const rate = li.rate ?? li.unit_price ?? 0;
-          const amount = li.amount ?? li.total ?? (qty * rate);
-          const gstRate = li.tax_rate ?? li.gst_rate ?? inferredGstRate;
-          const gstAmount = li.gst_amount ?? (amount * gstRate) / 100;
-          return {
-            description: li.description ?? "",
-            quantity: qty,
-            rate: rate,
-            amount: amount,
-            gst_rate: gstRate,
-            gst_amount: gstAmount,
-          };
-        });
-      })(),
-    } satisfies ExtractedData;
-  })();
+  const extractedData: ExtractedData | null = transformDraftToExtractedData(draftResponse, {
+    buyerGstinFallback: selectedBusiness?.gstin,
+  });
 
   /* ---- Parse resolution data from draft response ---- */
 
@@ -250,12 +220,19 @@ const VoucherUpload = () => {
 
         {/* Stage indicator pills */}
         <div className="hidden sm:flex items-center gap-1 text-xs">
-          {(["UPLOAD", "PROCESSING", "REVIEW", "SUCCESS"] as Stage[]).map(
+          {(stage === "DUPLICATE"
+            ? (["UPLOAD", "DUPLICATE"] as Stage[])
+            : (["UPLOAD", "PROCESSING", "REVIEW", "SUCCESS"] as Stage[])
+          ).map(
             (s, i) => {
-              const labels = ["Upload", "Processing", "Review", "Done"];
+              const labels = stage === "DUPLICATE"
+                ? ["Upload", "Duplicate"]
+                : ["Upload", "Processing", "Review", "Done"];
               const isActive = s === stage;
-              const isDone =
-                ["UPLOAD", "PROCESSING", "REVIEW", "SUCCESS"].indexOf(stage) > i;
+              const stageOrder = stage === "DUPLICATE"
+                ? ["UPLOAD", "DUPLICATE"]
+                : ["UPLOAD", "PROCESSING", "REVIEW", "SUCCESS"];
+              const isDone = stageOrder.indexOf(stage) > i;
 
               return (
                 <div key={s} className="flex items-center gap-1">
@@ -287,59 +264,185 @@ const VoucherUpload = () => {
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 overflow-auto bg-muted/30">
-        <div className="max-w-3xl mx-auto p-6">
-          {/* Page heading */}
-          {stage !== "SUCCESS" && (
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold flex items-center gap-2">
-                {stage === "UPLOAD" && (
-                  <>
-                    <Upload className="h-6 w-6 text-primary" />
-                    Upload Voucher Document
-                  </>
-                )}
-                {stage === "PROCESSING" && (
-                  <>
-                    <FileText className="h-6 w-6 text-primary" />
-                    Extracting Data…
-                  </>
-                )}
-                {stage === "REVIEW" && (
-                  <>
-                    <FileText className="h-6 w-6 text-primary" />
-                    Review & Validate
-                  </>
-                )}
-              </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {stage === "UPLOAD" &&
-                  "Upload an invoice or purchase order PDF/image to automatically extract its data."}
-                {stage === "PROCESSING" &&
-                  "Please wait while we extract data from your document."}
-                {stage === "REVIEW" &&
-                  "Verify the extracted fields and make corrections if needed before submitting."}
-              </p>
+      {/* Main content — overflow-auto for non-REVIEW; REVIEW gets explicit height so each column scrolls independently */}
+      <div className={stage === "REVIEW" ? "flex-1" : "flex-1 overflow-auto bg-muted/30"}>
+
+        {/* UPLOAD / PROCESSING / DUPLICATE / SUCCESS — narrow centered layout */}
+        {stage !== "REVIEW" && (
+          <div className="max-w-3xl mx-auto p-6">
+            {/* Page heading */}
+            {stage !== "SUCCESS" && (
+              <div className="mb-6">
+                <h2 className="text-2xl font-semibold flex items-center gap-2">
+                  {stage === "UPLOAD" && (
+                    <>
+                      <Upload className="h-6 w-6 text-primary" />
+                      Upload Voucher Document
+                    </>
+                  )}
+                  {stage === "PROCESSING" && (
+                    <>
+                      <FileText className="h-6 w-6 text-primary" />
+                      Extracting Data…
+                    </>
+                  )}
+                  {stage === "DUPLICATE" && (
+                    <>
+                      <Copy className="h-6 w-6 text-amber-500" />
+                      Duplicate Document Detected
+                    </>
+                  )}
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {stage === "UPLOAD" &&
+                    "Upload an invoice or purchase order PDF/image to automatically extract its data."}
+                  {stage === "PROCESSING" &&
+                    "Please wait while we extract data from your document."}
+                  {stage === "DUPLICATE" &&
+                    "This file has already been uploaded. The document stored on record is shown below."}
+                </p>
+              </div>
+            )}
+
+            {stage === "UPLOAD" && (
+              <UploadDragger onUpload={handleUpload} isUploading={isUploading} />
+            )}
+
+            {stage === "PROCESSING" && (
+              <ProcessingStatus
+                fileName={uploadedFileName}
+                documentId={documentId}
+                onComplete={handleProcessingComplete}
+                onFailed={handleProcessingFailed}
+              />
+            )}
+
+            {stage === "DUPLICATE" && (
+              <div className="space-y-4">
+                <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                  <Copy className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800">Already uploaded</AlertTitle>
+                  <AlertDescription className="text-amber-700">
+                    A document with identical content was previously uploaded and is shown below.
+                    The file you just submitted has <strong>not</strong> been stored again.
+                  </AlertDescription>
+                </Alert>
+
+                {/* Existing document preview */}
+                <div className="rounded-lg border overflow-hidden bg-white" style={{ height: "60vh" }}>
+                  {isDocUrlLoading && (
+                    <div className="flex flex-col gap-3 p-4 h-full">
+                      <Skeleton className="h-8 w-3/4" />
+                      <Skeleton className="flex-1 w-full" />
+                    </div>
+                  )}
+                  {!isDocUrlLoading && documentUrl && (
+                    isImageUrl(documentUrl)
+                      ? <div className="w-full h-full overflow-auto"><img src={documentUrl} className="w-full h-auto block" alt="Existing Document" /></div>
+                      : <iframe src={documentUrl} className="w-full h-full border-0 block" title="Existing Document" />
+                  )}
+                  {!isDocUrlLoading && !documentUrl && (
+                    <div className="flex items-center justify-center h-full text-muted-foreground text-sm p-8">
+                      <div className="text-center space-y-2">
+                        <FileText className="h-10 w-10 mx-auto opacity-40" />
+                        <p>Preview unavailable for the existing document.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <Button onClick={() => setStage("REVIEW")}>
+                    Review Existing Document
+                  </Button>
+                  <Button variant="outline" onClick={resetFlow}>
+                    Upload a Different Document
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {stage === "SUCCESS" && (
+              <div className="text-center py-16 space-y-6">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mx-auto">
+                  <CheckCircle2 className="h-10 w-10 text-green-600" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-semibold">
+                    Document Validated Successfully
+                  </h2>
+                  <p className="text-muted-foreground mt-2 max-w-md mx-auto">
+                    The extracted data has been reviewed, corrected if needed, and
+                    saved with status <strong>VALIDATED</strong>.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <Button variant="outline" onClick={resetFlow}>
+                    Upload Another
+                  </Button>
+                  <Button onClick={() => navigate("/vouchers")}>
+                    Go to Vouchers
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* REVIEW — explicit height flex row so each column scrolls independently.
+            61px = top-bar height (p-3 × 2 + h-9 button + 1px border).
+            The PDF fills its column height; the iframe's own scroll handles page navigation.
+            The form column overflows independently on the right. */}
+        {stage === "REVIEW" && (
+          <div className="flex" style={{ height: "calc(100vh - 61px)" }}>
+
+            {/* Left: document preview — fixed height, no overflow. iframe handles PDF scroll; image container scrolls for tall images. */}
+            <div className="hidden lg:flex flex-col w-1/2 flex-shrink-0 h-full border-r">
+              {isDocUrlLoading && (
+                <div className="flex flex-col gap-3 p-4 h-full">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="flex-1 w-full" />
+                </div>
+              )}
+              {!isDocUrlLoading && documentUrl && (
+                isImageUrl(documentUrl)
+                  ? <div className="w-full h-full overflow-auto"><img src={documentUrl} className="w-full h-auto block" alt="Original Document" /></div>
+                  : <iframe src={documentUrl} className="w-full flex-1 border-0 block" title="Original Document" />
+              )}
+              {!isDocUrlLoading && !documentUrl && (
+                <div className="flex items-center justify-center h-full text-muted-foreground text-sm p-8">
+                  <div className="text-center space-y-2">
+                    <FileText className="h-10 w-10 mx-auto opacity-40" />
+                    <p>Document preview unavailable.</p>
+                    <p className="text-xs">You can still review and submit the extracted data on the right.</p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Stage views */}
-          {stage === "UPLOAD" && (
-            <UploadDragger onUpload={handleUpload} isUploading={isUploading} />
-          )}
+            {/* Right: Review form — scrolls independently within the same fixed height */}
+            <div className="w-full lg:w-1/2 h-full overflow-auto p-6">
+              {/* Heading */}
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Review & Validate
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Verify the extracted fields and make corrections if needed before submitting.
+                </p>
+              </div>
 
-          {stage === "PROCESSING" && (
-            <ProcessingStatus
-              fileName={uploadedFileName}
-              documentId={documentId}
-              onComplete={handleProcessingComplete}
-              onFailed={handleProcessingFailed}
-            />
-          )}
+              {/* Mobile-only: compact document viewer above the form */}
+              <div className="lg:hidden mb-6 rounded-lg border overflow-hidden" style={{ height: "50vh" }}>
+                {documentUrl
+                  ? (isImageUrl(documentUrl)
+                      ? <div className="w-full h-full overflow-auto"><img src={documentUrl} className="w-full h-auto block" alt="Original Document" /></div>
+                      : <iframe src={documentUrl} className="w-full h-full border-0 block" title="Original Document" />)
+                  : <div className="flex items-center justify-center h-full text-muted-foreground text-sm">Preview unavailable</div>
+                }
+              </div>
 
-          {stage === "REVIEW" && (
-            <>
               {isDraftLoading && (
                 <div className="flex flex-col items-center justify-center py-16 gap-3">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -364,36 +467,13 @@ const VoucherUpload = () => {
                   payeeResolution={payeeResolution}
                   businessResolution={businessResolution}
                   businessId={businessId}
+                  isAlreadyValidated={isAlreadyValidated}
                 />
               )}
-            </>
-          )}
-
-          {stage === "SUCCESS" && (
-            <div className="text-center py-16 space-y-6">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-green-100 mx-auto">
-                <CheckCircle2 className="h-10 w-10 text-green-600" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-semibold">
-                  Document Validated Successfully
-                </h2>
-                <p className="text-muted-foreground mt-2 max-w-md mx-auto">
-                  The extracted data has been reviewed, corrected if needed, and
-                  saved with status <strong>VALIDATED</strong>.
-                </p>
-              </div>
-              <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" onClick={resetFlow}>
-                  Upload Another
-                </Button>
-                <Button onClick={() => navigate("/vouchers")}>
-                  Go to Vouchers
-                </Button>
-              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

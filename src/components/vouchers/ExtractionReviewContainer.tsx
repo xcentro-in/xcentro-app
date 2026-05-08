@@ -13,6 +13,7 @@ interface ExtractionReviewContainerProps {
   payeeResolution?: PayeeResolution | null;
   businessResolution?: BusinessResolution | null;
   businessId?: string;
+  isAlreadyValidated?: boolean;
 }
 
 const ExtractionReviewContainer = ({
@@ -22,6 +23,7 @@ const ExtractionReviewContainer = ({
   payeeResolution,
   businessResolution,
   businessId,
+  isAlreadyValidated = false,
 }: ExtractionReviewContainerProps) => {
   const [docType, setDocType] = useState<"INVOICE" | "PURCHASE_ORDER">(
     data.doc_type === "PURCHASE_ORDER" ? "PURCHASE_ORDER" : "INVOICE"
@@ -65,8 +67,8 @@ const ExtractionReviewContainer = ({
         </CardContent>
       </Card>
 
-      {/* Conditional Forms */}
-      {docType === "INVOICE" ? (
+      {/* Both forms stay mounted so edits survive a doc-type switch */}
+      <div className={docType === "INVOICE" ? "" : "hidden"}>
         <InvoiceReviewForm
           data={data}
           onSubmit={handleSubmit}
@@ -74,8 +76,10 @@ const ExtractionReviewContainer = ({
           payeeResolution={payeeResolution}
           businessResolution={businessResolution}
           businessId={businessId}
+          isAlreadyValidated={isAlreadyValidated}
         />
-      ) : (
+      </div>
+      <div className={docType === "PURCHASE_ORDER" ? "" : "hidden"}>
         <PurchaseOrderReviewForm
           data={data}
           onSubmit={handleSubmit}
@@ -83,8 +87,9 @@ const ExtractionReviewContainer = ({
           payeeResolution={payeeResolution}
           businessResolution={businessResolution}
           businessId={businessId}
+          isAlreadyValidated={isAlreadyValidated}
         />
-      )}
+      </div>
     </div>
   );
 };

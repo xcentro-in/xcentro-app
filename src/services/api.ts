@@ -2017,7 +2017,7 @@ class ApiService {
     },
 
     // Upload voucher document (Invoice / Purchase Order PDF/image)
-    uploadDocument: async (businessId: string, file: File, docType?: string) => {
+    uploadDocument: async (businessId: string, file: File, docType?: string): Promise<import('@/types/voucher-document').VoucherUploadResponse> => {
       const formData = new FormData();
       formData.append('file', file);
       if (docType) {
@@ -2035,7 +2035,7 @@ class ApiService {
     },
 
     // Check document processing status (used for polling during extraction)
-    checkStatus: async (businessId: string, documentId: string): Promise<{ data: { status: string } }> => {
+    checkStatus: async (businessId: string, documentId: string): Promise<import('@/types/voucher-document').VoucherStatusDataResponse> => {
       return this.request(`/v1/vouchers/${documentId}/status`, {
         method: 'GET',
         headers: {
@@ -2066,7 +2066,7 @@ class ApiService {
     },
 
     // Get presigned URL to view the original document
-    getDocumentUrl: async (businessId: string, documentId: string): Promise<{ data: { url: string } }> => {
+    getDocumentUrl: async (businessId: string, documentId: string): Promise<import('@/types/voucher-document').VoucherDocumentUrlResponse> => {
       return this.request(`/v1/vouchers/${documentId}/url`, {
         method: 'GET',
         headers: {
@@ -2075,8 +2075,28 @@ class ApiService {
       });
     },
 
+    // Retry a failed document (re-enqueue for extraction)
+    retryDocument: async (businessId: string, documentId: string) => {
+      return this.request(`/v1/vouchers/${documentId}/retry`, {
+        method: 'POST',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
+    // Delete a failed document from DB and S3
+    deleteDocument: async (businessId: string, documentId: string) => {
+      return this.request(`/v1/vouchers/documents/${documentId}`, {
+        method: 'DELETE',
+        headers: {
+          'X-Business-ID': businessId,
+        },
+      });
+    },
+
     // Quick-create a vendor payee from document review context (no bank verification)
-    quickCreateVendor: async (businessId: string, data: { display_name: string; gstin?: string; contact_email?: string; contact_phone?: string }) => {
+    quickCreateVendor: async (businessId: string, data: { display_name: string; gstin?: string; contact_email?: string; contact_phone?: string }): Promise<import('@/types/voucher-document').QuickCreateVendorResponse> => {
       return this.request('/v1/vouchers/vendors/quick-create', {
         method: 'POST',
         headers: {

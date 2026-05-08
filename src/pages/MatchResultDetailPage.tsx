@@ -103,11 +103,44 @@ const MatchResultDetailPage = () => {
   const invoiceItems: LineItem[] = (invoiceLineItemsResp as any)?.data ?? [];
   const poItems: LineItem[] = (poLineItemsResp as any)?.data ?? [];
 
-  const maxRows = Math.max(poItems.length, invoiceItems.length);
-  const lineItemRows = Array.from({ length: maxRows }, (_, i) => ({
-    po: poItems[i] ?? null,
-    inv: invoiceItems[i] ?? null,
-  }));
+  // Extract matched pairs from match_notes for intelligent line item ordering
+  const lineItemsMatch = matchResult.match_notes?.line_items_match as
+    | { matched_pairs?: { invoice_item_id: string; po_item_id: string; method: string }[]; unmatched_invoice?: string[] }
+    | undefined;
+
+  let lineItemRows: { po: LineItem | null; inv: LineItem | null; matched: boolean }[];
+
+  if (lineItemsMatch?.matched_pairs?.length) {
+    const usedPOIds = new Set<string>();
+    const usedInvIds = new Set<string>();
+
+    // Matched rows first
+    const matchedRows = lineItemsMatch.matched_pairs.map((pair) => {
+      const po = poItems.find((p) => p.id === pair.po_item_id) ?? null;
+      const inv = invoiceItems.find((i) => i.id === pair.invoice_item_id) ?? null;
+      if (po) usedPOIds.add(po.id);
+      if (inv) usedInvIds.add(inv.id);
+      return { po, inv, matched: true };
+    });
+
+    // Unmatched items below
+    const unmatchedPO = poItems
+      .filter((p) => !usedPOIds.has(p.id))
+      .map((p) => ({ po: p, inv: null as LineItem | null, matched: false }));
+    const unmatchedInv = invoiceItems
+      .filter((i) => !usedInvIds.has(i.id))
+      .map((i) => ({ po: null as LineItem | null, inv: i, matched: false }));
+
+    lineItemRows = [...matchedRows, ...unmatchedPO, ...unmatchedInv];
+  } else {
+    // Fallback: index-based pairing for old records without matched_pairs
+    const maxRows = Math.max(poItems.length, invoiceItems.length);
+    lineItemRows = Array.from({ length: maxRows }, (_, i) => ({
+      po: poItems[i] ?? null,
+      inv: invoiceItems[i] ?? null,
+      matched: false,
+    }));
+  }
 
   const openPdf = async (docId: string) => {
     if (!businessId || !docId) return;
@@ -120,7 +153,14 @@ const MatchResultDetailPage = () => {
     }
   };
 
-  const variance = matchResult.invoice_amount - matchResult.po_amount;
+  // Use the snapshot remaining balance from match time if available
+  const snapshotBalance = typeof matchResult.match_notes?.po_remaining_balance_at_match === "number"
+    ? matchResult.match_notes.po_remaining_balance_at_match as number
+    : null;
+  const hasSnapshot = snapshotBalance !== null;
+  const isPartiallyInvoiced = hasSnapshot && snapshotBalance < matchResult.po_amount;
+  const poCompareAmount = isPartiallyInvoiced ? snapshotBalance : matchResult.po_amount;
+  const variance = matchResult.invoice_amount - poCompareAmount;
   const hasVariance = Math.abs(variance) > 0.01;
 
   return (
@@ -148,13 +188,16 @@ const MatchResultDetailPage = () => {
         </Badge>
       </div>
 
-      {matchResult.match_notes && Object.keys(matchResult.match_notes).length > 0 && (
+      {matchResult.match_notes &&
+        Object.keys(matchResult.match_notes).some((k) => k !== "line_items_match" && k !== "po_remaining_balance_at_match") && (
         <Card className="border-amber-200 bg-amber-50/50">
           <CardContent className="p-4 text-sm text-amber-800">
             <span className="font-medium">Match notes: </span>
-            {Object.entries(matchResult.match_notes).map(([k, v]) => (
-              <span key={k}>{k}: {String(v)} </span>
-            ))}
+            {Object.entries(matchResult.match_notes)
+              .filter(([k]) => k !== "line_items_match" && k !== "po_remaining_balance_at_match")
+              .map(([k, v]) => (
+                <span key={k}>{k}: {typeof v === "object" ? JSON.stringify(v) : String(v)} </span>
+              ))}
           </CardContent>
         </Card>
       )}
@@ -205,6 +248,7 @@ const MatchResultDetailPage = () => {
             label="Date"
             poValue={matchResult.po_date ? new Date(matchResult.po_date).toLocaleDateString() : "-"}
             invValue={matchResult.invoice_date ? new Date(matchResult.invoice_date).toLocaleDateString() : "-"}
+            highlight={false}
           />
           <CompareRow
             label="Vendor"
@@ -215,7 +259,15 @@ const MatchResultDetailPage = () => {
             label="Total Amount"
             poValue={formatCurrency(matchResult.po_amount)}
             invValue={formatCurrency(matchResult.invoice_amount)}
+            highlight={!isPartiallyInvoiced}
           />
+          {isPartiallyInvoiced && (
+            <CompareRow
+              label="Remaining Balance"
+              poValue={formatCurrency(snapshotBalance!)}
+              invValue={formatCurrency(matchResult.invoice_amount)}
+            />
+          )}
           <CompareRow
             label="Status"
             highlight={false}
@@ -268,6 +320,7 @@ const MatchResultDetailPage = () => {
                   <div className="grid grid-cols-[180px_1fr_1fr] gap-0 bg-muted/20 border-b">
                     <div className="px-4 py-1.5 text-xs font-semibold text-muted-foreground border-r col-span-3">
                       Line item {idx + 1}
+                      {row.matched && <span className="ml-2 text-green-600">(matched)</span>}
                       {!row.po && <span className="ml-2 text-amber-600">(no PO line)</span>}
                       {!row.inv && <span className="ml-2 text-amber-600">(no invoice line)</span>}
                     </div>

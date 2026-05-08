@@ -66,20 +66,27 @@ const ProcessingStatus = ({
 
   const { data, error } = useQuery({
     queryKey: ["voucher-status", documentId],
+    enabled: !!businessId && !!documentId,
     queryFn: async () => {
       if (!businessId) throw new Error("Business context missing");
-      const resp = await voucherAPI.checkStatus(businessId, documentId);
-      return resp as unknown as { data: { status: VoucherDocumentStatus } };
+      return voucherAPI.checkStatus(businessId, documentId);
     },
+    // Back off on transient network errors: 3s→6s→12s→24s→30s cap.
+    retry: 4,
+    retryDelay: (attempt) => Math.min(3000 * 2 ** attempt, 30_000),
     refetchInterval: (query) => {
-      const resp = query.state.data as any;
-      const status = resp?.document_status || resp?.data?.document_status || resp?.status;
+      const status = query.state.data?.data?.document_status;
       if (status && TERMINAL_STATUSES.includes(status)) return false;
-      return 3000;
+      // If polling has been erroring, slow it down proportionally to the
+      // number of consecutive failures.
+      const fails = query.state.errorUpdateCount ?? 0;
+      if (fails === 0) return 3_000;
+      return Math.min(3_000 * Math.pow(2, Math.min(fails, 4)), 30_000);
     },
+    refetchIntervalInBackground: false,
   });
 
-  const backendStatus = ((data as any)?.document_status || (data as any)?.data?.document_status || (data as any)?.status) as VoucherDocumentStatus | undefined;
+  const backendStatus = data?.data?.document_status;
 
   // Drive stepper from backend status
   useEffect(() => {

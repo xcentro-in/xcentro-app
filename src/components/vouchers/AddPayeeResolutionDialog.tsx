@@ -56,14 +56,14 @@ const AddPayeeResolutionDialog = ({
 
     setIsSubmitting(true);
     try {
-      const resp = await (voucherAPI as any).quickCreateVendor(businessId, {
+      const resp = await voucherAPI.quickCreateVendor(businessId, {
         display_name: displayName.trim(),
         gstin: gstin.trim() || undefined,
         contact_email: contactEmail.trim() || undefined,
         contact_phone: contactPhone.trim() || undefined,
       });
 
-      const newPayeeId = resp?.data?.payee_id ?? resp?.payee_id ?? "";
+      const newPayeeId = resp?.data?.payee_id ?? "";
       toast.success("Payee created successfully");
       onPayeeCreated(newPayeeId, displayName.trim(), gstin.trim() || undefined);
       onOpenChange(false);

@@ -116,3 +116,46 @@ export interface VoucherStatusDataResponse {
 export interface VoucherValidateRequest {
   draft_data: DraftData;
 }
+
+/** Response from POST /v1/vouchers/:document_id/upload */
+export interface VoucherUploadResponse {
+  status: 'success' | 'error';
+  data: {
+    document_id: string;
+    s3_path: string;
+    status: VoucherDocumentStatus;
+    message?: string;
+    is_duplicate?: boolean;
+  };
+}
+
+/** Response from GET /v1/vouchers/:document_id/url (presigned) */
+export interface VoucherDocumentUrlResponse {
+  status: 'success' | 'error';
+  data: {
+    url: string;
+    expires_in_seconds?: number;
+  };
+}
+
+/** Response from POST /v1/payees/vendors/quick-create */
+export interface QuickCreateVendorResponse {
+  status: 'success' | 'error';
+  data: {
+    payee_id: string;
+    business_id: string;
+    account_id?: string | null;
+    gstin?: string;
+    legal_name?: string;
+  };
+}
+
+/** Row in the documents list returned by GET /v1/vouchers/documents */
+export interface VoucherDocumentListItem {
+  id: string;
+  file_name?: string;
+  s3_path?: string;
+  status: VoucherDocumentStatus;
+  uploaded_at: string;
+  doc_type?: VoucherDocType | null;
+}
