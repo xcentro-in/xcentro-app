@@ -19,7 +19,7 @@ export const useWallet = () => {
     setError(null);
 
     try {
-      const response = await walletAPI.fetch(businessId);
+      const response = await walletAPI.fetch();
       // Ensure the response matches GetWalletResponse structure
       if (
         response &&

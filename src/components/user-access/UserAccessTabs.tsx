@@ -35,11 +35,34 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [userToRevoke, setUserToRevoke] = useState<User | null>(null);
   const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+  const [resendingInviteId, setResendingInviteId] = useState<string | null>(null);
+  const [resendCooldowns, setResendCooldowns] = useState<Record<string, number>>({});
   const { userRoles } = useAuth();
 
   // State for business selection
   const [selectedBusinessId, setSelectedBusinessId] = useState<string>("");
   const [businesses, setBusinesses] = useState<Array<{ id: string; name: string; isLoading: boolean }>>([]);
+
+  // Cooldown timer for resend invites (60s between resends)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setResendCooldowns(prev => {
+        const updated = { ...prev };
+        let hasChanges = false;
+
+        Object.keys(updated).forEach(key => {
+          if (updated[key] > 0) {
+            updated[key] -= 1;
+            hasChanges = true;
+          }
+        });
+
+        return hasChanges ? updated : prev;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Initialize businesses from userRoles
   useEffect(() => {
@@ -66,7 +89,7 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
       // Load each business details individually
       for (const role of userRoles) {
         try {
-          const response = await businessAPI.getBusiness(role.businessId);
+          const response = await businessAPI.getBusiness();
           const businessData = response.data;
 
           setBusinesses(prev => prev.map(business =>
@@ -150,7 +173,6 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
       } else {
         // Invite new user
         const response = await userAPI.inviteUser(
-          selectedBusinessId,
           data.email,
           data.name,
           data.mobile,
@@ -223,9 +245,50 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
     }
   };
 
-  const handleResendInvitation = (inviteId: string) => {
-    // TODO: Implement resend invite functionality
-    toast.success("Invitation has been resent");
+  const handleResendInvitation = async (inviteId: string) => {
+    if (!selectedBusinessId) {
+      toast.error("Please select a business first.");
+      return;
+    }
+
+    // Check cooldown
+    if (resendCooldowns[inviteId] > 0) {
+      toast.error(`Please wait ${resendCooldowns[inviteId]}s before resending`);
+      return;
+    }
+
+    // Find the invite to get the email
+    const invite = pendingInvites.find(i => i.id === inviteId);
+    if (!invite) {
+      toast.error("Invite not found");
+      return;
+    }
+
+    setResendingInviteId(inviteId);
+
+    try {
+      const response = await userAPI.resendInvite(selectedBusinessId, invite.email);
+      toast.success(response.message || "Invitation email resent successfully");
+
+      // Set 60s cooldown for this invite
+      setResendCooldowns(prev => ({ ...prev, [inviteId]: 60 }));
+    } catch (error: any) {
+      console.error("Failed to resend invitation:", error);
+
+      if (error.status === 429) {
+        // Rate limit error - set cooldown based on retry-after
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldowns(prev => ({ ...prev, [inviteId]: retryAfter }));
+      } else if (error.status === 400 && error.message?.includes("already activated")) {
+        toast.error("User has already activated their account. No need to resend.");
+      } else if (error.status === 404) {
+        toast.error("User not found in this business");
+      } else {
+        toast.error(error?.message || "Failed to resend invitation. Please try again.");
+      }
+    } finally {
+      setResendingInviteId(null);
+    }
   };
 
   // Show loading state
@@ -316,6 +379,8 @@ const UserAccessTabs = ({ users: propUsers, pendingInvites: propInvites }: UserA
                 invites={pendingInvites}
                 onCancelInvite={handleCancelInvitation}
                 onResendInvite={handleResendInvitation}
+                resendingInviteId={resendingInviteId}
+                resendCooldowns={resendCooldowns}
               />
             </TabsContent>
           </Tabs>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
+import { trackEvent } from "@/lib/analytics";
 import { usePageTitle } from "@/contexts/PageTitleContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -312,7 +313,7 @@ const BillDetailPage = () => {
   const { businessId, businessName } = useCurrentBusiness();
 
   // Get user's role for the current business
-  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+  const currentUserRole = userRoles?.find(role => role.businessId === businessId)?.role || '';
 
   // Create feature flag compatible user object
   const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
@@ -425,11 +426,12 @@ const BillDetailPage = () => {
       if (!billId || !businessId) return;
 
       try {
+        trackEvent('bill_detail_viewed');
         setIsLoading(true);
         setError(null);
 
         // Fetch voucher details (includes header + details tab)
-        const response = await voucherAPI.getDetails(businessId, billId);
+        const response = await voucherAPI.getDetails(billId);
         const voucherResponse = response as VoucherDetailsResponseAPI;
 
         // Map to BillSummary
@@ -466,7 +468,7 @@ const BillDetailPage = () => {
 
     try {
       setLoadingTabs(prev => ({ ...prev, activity: true }));
-      const response = await voucherAPI.getActivity(businessId, billId);
+      const response = await voucherAPI.getActivity(billId);
       setActivityData(response as VoucherActivityResponseAPI);
       setLoadedTabs(prev => ({ ...prev, activity: true }));
     } catch (err) {
@@ -482,7 +484,7 @@ const BillDetailPage = () => {
 
     try {
       setLoadingTabs(prev => ({ ...prev, payment: true }));
-      const response = await voucherAPI.getPayment(businessId, billId);
+      const response = await voucherAPI.getPayment(billId);
       setPaymentData(response as VoucherPaymentResponseAPI);
       setLoadedTabs(prev => ({ ...prev, payment: true }));
     } catch (err) {
@@ -498,7 +500,7 @@ const BillDetailPage = () => {
 
     try {
       setLoadingTabs(prev => ({ ...prev, accounting: true }));
-      const response = await voucherAPI.getAccounting(businessId, billId);
+      const response = await voucherAPI.getAccounting(billId);
       setAccountingData(response as VoucherAccountingResponseAPI);
       setLoadedTabs(prev => ({ ...prev, accounting: true }));
     } catch (err) {
@@ -661,7 +663,7 @@ const BillDetailPage = () => {
 
     try {
       setIsDeleting(true);
-      await voucherAPI.deleteVoucher(businessId, billId);
+      await voucherAPI.deleteVoucher(billId);
       toast.success("Bill deleted successfully");
       // Navigate back to bills list
       navigate('/bills');
@@ -681,7 +683,7 @@ const BillDetailPage = () => {
 
     try {
       setIsRequestingApproval(true);
-      await voucherAPI.requestApproval(businessId, billId, user.id);
+      await voucherAPI.requestApproval(billId, user.id);
       toast.success("Approval request sent successfully");
 
       // Update local bill state to reflect pending approval
@@ -793,12 +795,12 @@ const BillDetailPage = () => {
       }
 
       // Call API to update voucher
-      await voucherAPI.updateVoucher(businessId, billId, payload);
+      await voucherAPI.updateVoucher(billId, payload);
 
       toast.success("Bill updated successfully");
 
       // Reload bill data to show updated values
-      const response = await voucherAPI.getDetails(businessId, billId);
+      const response = await voucherAPI.getDetails(billId);
       const voucherResponse = response as VoucherDetailsResponseAPI;
       const mappedBill = mapVoucherToBill(voucherResponse);
       setBill(mappedBill);

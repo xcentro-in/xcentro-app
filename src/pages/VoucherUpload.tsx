@@ -71,7 +71,7 @@ const VoucherUpload = () => {
     queryKey: ["voucher-draft", documentId],
     queryFn: async () => {
       if (!businessId) throw new Error("Business context missing");
-      return voucherAPI.getDraftData(businessId, documentId) as Promise<VoucherDraftResponse>;
+      return voucherAPI.getDraftData(documentId) as Promise<VoucherDraftResponse>;
     },
     enabled: stage === "REVIEW" && !!documentId && !!businessId,
     staleTime: Infinity, // Don't refetch — user will be editing this data
@@ -79,7 +79,7 @@ const VoucherUpload = () => {
 
   const { data: docUrlResponse, isLoading: isDocUrlLoading } = useQuery({
     queryKey: ["voucher-doc-url", documentId],
-    queryFn: () => voucherAPI.getDocumentUrl(businessId!, documentId),
+    queryFn: () => voucherAPI.getDocumentUrl(documentId),
     enabled: (stage === "REVIEW" || stage === "DUPLICATE") && !!documentId && !!businessId,
     staleTime: 4 * 60 * 1000, // re-fetch before presigned URL expires
   });
@@ -97,7 +97,7 @@ const VoucherUpload = () => {
     setUploadedFileName(file.name);
 
     try {
-      const resp = await voucherAPI.uploadDocument(businessId, file);
+      const resp = await voucherAPI.uploadDocument(file);
       const newDocId = resp.data?.document_id;
       if (!newDocId) {
         // Response lacked the document_id — don't advance to PROCESSING or
@@ -145,7 +145,7 @@ const VoucherUpload = () => {
 
     setIsSubmitting(true);
     try {
-      await voucherAPI.validateDocument(businessId, documentId, corrected);
+      await voucherAPI.validateDocument(documentId, corrected);
       toast.success("Document validated and saved!");
       setStage("SUCCESS");
     } catch (err: any) {

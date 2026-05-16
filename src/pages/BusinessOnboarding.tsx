@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, Building, Check, Upload, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import BusinessBasicInfoForm from "@/components/business/BusinessBasicInfoForm";
 import BusinessTypeForm from "@/components/business/BusinessTypeForm";
 import BusinessDocumentsForm from "@/components/business/BusinessDocumentsForm";
 import BusinessReviewForm from "@/components/business/BusinessReviewForm";
-import { businessAPI } from "@/services/api";
+import { businessAPI, authAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   toBackendBusinessType,
@@ -60,15 +60,23 @@ const steps = ["Basic Info", "Business Details", "Documents", "Review"];
 
 const BusinessOnboarding = () => {
   const navigate = useNavigate();
-  const { initializeUser, onboardingStatus } = useAuth();
+  const { initializeUser, refreshSession, onboardingStatus } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
   const [businessId, setBusinessId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  // We rely on context now, so local fetching state is initially false
-  const [isFetchingStatus, setIsFetchingStatus] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const hasTriedLoading = useRef(false);
 
   const progress = (currentStep / steps.length) * 100;
+
+  // Lazy-load onboarding detail for form pre-fill (only on first mount)
+  useEffect(() => {
+    if (onboardingStatus !== null || hasTriedLoading.current) return;
+    hasTriedLoading.current = true;
+    setIsLoadingDetail(true);
+    initializeUser().catch(() => {}).finally(() => setIsLoadingDetail(false));
+  }, []);
 
   // Pre-fill form from AuthContext data (no API call needed)
   useEffect(() => {
@@ -81,9 +89,6 @@ const BusinessOnboarding = () => {
       if (kybInitiated && !isKybComplete(kybStatus)) {
         console.log('[BusinessOnboarding] Pre-filling form from onboarding status:', kybStatus);
         setBusinessId(bid || "");
-        if (bid) {
-          localStorage.setItem('business-id', bid);
-        }
 
         // Auto-fill Step 1: Basic Info
         setFormData((prev) => ({
@@ -146,9 +151,7 @@ const BusinessOnboarding = () => {
           const initResponse = await businessAPI.initOnboarding(formData.name, formData.gstin);
           bid = initResponse.data.bid;
 
-          // Store bid in state and localStorage
           setBusinessId(bid);
-          localStorage.setItem('business-id', bid);
         } catch (initError: any) {
           // Handle 409 Conflict: Business already exists
           if (initError.status === 409) {
@@ -162,7 +165,6 @@ const BusinessOnboarding = () => {
 
               if (bid) {
                 setBusinessId(bid);
-                localStorage.setItem('business-id', bid);
 
                 // Pre-fill form with existing data
                 setFormData((prev) => ({
@@ -219,21 +221,20 @@ const BusinessOnboarding = () => {
       // Convert frontend business type to backend format
       const backendBusinessType = toBackendBusinessType(formData.type);
       const completeResponse = await businessAPI.completeOnboarding(
-        bid,
         backendBusinessType,
         undefined, // PAN removed - backend derives from GSTIN
         requiresCIN(formData.type) ? formData.documents.cin : undefined,
-        formData.model, // Business model
-        formData.turnover // Business turnover
+        formData.model,
+        formData.turnover
       );
 
       toast.success("Business onboarding completed successfully!");
 
-      // Re-initialize user data to get fresh roles and onboarding status
-      await initializeUser();
+      // Refresh JWT so verify-session sees kyb_completed in token claims
+      await authAPI.refresh();
+      // Re-verify session so ProtectedRoute sees updated kyb_status
+      await refreshSession();
 
-      // Navigate to root - ProtectedRoute will handle routing based on onboarding status
-      // ProtectedRoute will immediately redirect to the correct route (KYC/Dashboard)
       navigate("/", { replace: true });
     } catch (error: any) {
       const errorMessage = error?.message || "Failed to complete business onboarding. Please try again.";
@@ -269,8 +270,8 @@ const BusinessOnboarding = () => {
     });
   };
 
-  // Show loading state while fetching status
-  if (isFetchingStatus) {
+  // Show loading state while lazy-loading onboarding detail for pre-fill
+  if (isLoadingDetail) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
         <div className="flex items-center justify-center min-h-[400px]">

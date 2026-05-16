@@ -14,9 +14,10 @@ if (localStorage.getItem('analytics-opt-out') === null) {
 // 2. Check if user has opted out
 const isOptedOut = localStorage.getItem('analytics-opt-out') === 'true';
 
-// 3. Only initialize Clarity if they haven't opted out
-if (!isOptedOut) {
-    Clarity.init('ugdurm12ym');
+// 3. Only initialize Clarity in production builds, when opted in, and when key is set
+const clarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID;
+if (import.meta.env.PROD && !isOptedOut && clarityProjectId) {
+    Clarity.init(clarityProjectId);
 }
 
 createRoot(document.getElementById("root")!).render(<App />);

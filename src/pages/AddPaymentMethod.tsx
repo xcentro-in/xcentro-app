@@ -64,7 +64,7 @@ const AddPaymentMethod = () => {
   const { businessId, businessName } = useCurrentBusiness();
 
   // Get user's role for the current business
-  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+  const currentUserRole = userRoles?.find(role => role.businessId === businessId)?.role || '';
 
   // Create feature flag compatible user object
   const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
@@ -252,7 +252,7 @@ const AddPaymentMethod = () => {
 
         // All validations passed - proceed with tokenization
         // Call tokenize API
-        const response = await processPaymentAPI.tokenize(businessId, {
+        const response = await processPaymentAPI.tokenize({
           card_number: cleanCardNumber,
           expiry_month: expiryMonth,
           expiry_year: expiryYear,

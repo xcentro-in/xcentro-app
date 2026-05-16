@@ -54,7 +54,7 @@ export const PayeeDetailsDrawer = ({
       setAccDetailsError(null);
 
       try {
-        const response = await payeesAPI.getAccountDetails(businessId, payee.id);
+        const response = await payeesAPI.getAccountDetails(payee.id);
         setAccountDetails(response.data);
       } catch (error: any) {
         console.error("Failed to fetch account details:", error);

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LockIcon, Pencil, Loader2, Smartphone } from "lucide-react";
+import { LockIcon, Pencil, Loader2, Smartphone, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { authAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const PasswordSection = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [passwordInfo, setPasswordInfo] = useState<PasswordInfo>({
     currentPassword: "",
     newPassword: "",
@@ -36,6 +37,14 @@ const PasswordSection = () => {
     }
   }, [otpTimer]);
 
+  // Resend cooldown timer (60s between resends)
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const handleEditPassword = () => {
     setPasswordInfo({
       currentPassword: "",
@@ -45,6 +54,7 @@ const PasswordSection = () => {
     });
     setOtpSent(false);
     setOtpTimer(0);
+    setResendCooldown(0);
     setEditingPassword(true);
   };
 
@@ -52,6 +62,7 @@ const PasswordSection = () => {
     setEditingPassword(false);
     setOtpSent(false);
     setOtpTimer(0);
+    setResendCooldown(0);
   };
 
   const validatePassword = (password: string): { isValid: boolean; message?: string } => {
@@ -117,9 +128,14 @@ const PasswordSection = () => {
       toast.success(response.message || "OTP sent to your registered mobile number");
       setOtpSent(true);
       setOtpTimer(600); // 10 minutes = 600 seconds
+      setResendCooldown(60); // 60s cooldown before resend
     } catch (error: any) {
       console.error("OTP generation failed:", error);
-      if (error.message) {
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else if (error.message) {
         toast.error(error.message);
       } else {
         toast.error("Failed to send OTP. Please try again.");
@@ -130,15 +146,24 @@ const PasswordSection = () => {
   };
 
   const handleResendOtp = async () => {
+    if (resendCooldown > 0 || isLoading) return;
+
     setIsLoading(true);
     try {
       const response = await authAPI.generateMobileOtp();
       toast.success(response.message || "OTP resent successfully");
       setOtpTimer(600);
+      setResendCooldown(60);
       setPasswordInfo({ ...passwordInfo, otp: "" }); // Clear previous OTP
     } catch (error: any) {
       console.error("OTP resend failed:", error);
-      toast.error(error.message || "Failed to resend OTP");
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(error.message || "Failed to resend OTP");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -307,16 +332,22 @@ const PasswordSection = () => {
                 <span className="text-muted-foreground">
                   {otpTimer > 0 ? `OTP expires in ${formatTime(otpTimer)}` : 'OTP expired'}
                 </span>
-                {otpTimer === 0 && (
-                  <button
-                    type="button"
-                    onClick={handleResendOtp}
-                    disabled={isLoading}
-                    className="text-primary hover:underline"
-                  >
-                    Resend OTP
-                  </button>
-                )}
+                <Button
+                  type="button"
+                  variant="link"
+                  size="sm"
+                  onClick={handleResendOtp}
+                  disabled={resendCooldown > 0 || isLoading}
+                  className="h-auto p-0 text-xs"
+                >
+                  <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+                  {isLoading
+                    ? "Sending..."
+                    : resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend OTP"
+                  }
+                </Button>
               </div>
             </div>
           )}
@@ -354,9 +385,24 @@ const PasswordSection = () => {
               )}
             </Button>
           )}
-          {otpTimer > 0 && otpSent && (
-            <Button variant="ghost" onClick={handleResendOtp} disabled={isLoading}>
-              Resend OTP
+          {otpSent && (
+            <Button variant="outline" onClick={handleResendOtp} disabled={resendCooldown > 0 || isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : resendCooldown > 0 ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Resend OTP in {resendCooldown}s
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Resend OTP
+                </>
+              )}
             </Button>
           )}
         </CardFooter>

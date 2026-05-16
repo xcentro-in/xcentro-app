@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { authAPI } from "@/services/api";
 import { toast } from "sonner";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { AuroraBackground } from "@/components/ui/aurora-background";
-import { Mail, Lock, KeyRound, Smartphone, Loader2 } from 'lucide-react';
+import { Mail, Lock, KeyRound, Smartphone, Loader2, RefreshCw } from 'lucide-react';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -40,6 +40,7 @@ const ForgotPassword = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const query = new URLSearchParams(location.search);
   const uid = query.get("uid") || "";
@@ -57,20 +58,20 @@ const ForgotPassword = () => {
   });
 
   // Countdown timer for OTP expiry
-  useState(() => {
+  useEffect(() => {
     if (otpTimer > 0) {
-      const timer = setInterval(() => {
-        setOtpTimer(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
+      const timer = setTimeout(() => setOtpTimer(otpTimer - 1), 1000);
+      return () => clearTimeout(timer);
     }
-  });
+  }, [otpTimer]);
+
+  // Resend cooldown timer (60s between resends)
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const handleForgotPassword = async (values: ForgotPasswordFormValues) => {
     setIsSubmitting(true);
@@ -96,26 +97,47 @@ const ForgotPassword = () => {
       toast.success(response.message || "OTP sent to your registered mobile number");
       setOtpSent(true);
       setOtpTimer(600); // 10 minutes = 600 seconds
+      setResendCooldown(60); // 60s cooldown before resend
     } catch (err: any) {
-      toast.error(err.message || "Failed to send OTP. Please ensure you have a mobile number registered.");
+      if (err.status === 403) {
+        toast.error("Invalid invitation link. Please contact your administrator.");
+      } else if (err.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = err.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(err.message || "Failed to send OTP. Please ensure you have a mobile number registered.");
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleResendOtp = async () => {
+  const handleResendOtp = useCallback(async () => {
+    if (resendCooldown > 0 || isSubmitting) return;
+
     setIsSubmitting(true);
     try {
-      const response = await authAPI.sendInviteOtp(uid, token, sig);
+      // Use dedicated resend endpoint
+      const response = await authAPI.resendInviteOtp(uid, token, sig);
       toast.success(response.message || "OTP resent successfully");
       setOtpTimer(600);
+      setResendCooldown(60);
       resetPasswordForm.setValue('otp', ''); // Clear previous OTP
     } catch (err: any) {
-      toast.error(err.message || "Failed to resend OTP");
+      if (err.status === 403) {
+        toast.error("Invalid invitation link. Please contact your administrator.");
+      } else if (err.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = err.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(err.message || "Failed to resend OTP");
+      }
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [uid, token, sig, resendCooldown, isSubmitting]);
 
   const handleResetPassword = async (values: ResetPasswordFormValues) => {
     if (!uid || !token || !sig) {
@@ -210,16 +232,22 @@ const ForgotPassword = () => {
                             <span className="text-muted-foreground">
                               {otpTimer > 0 ? `OTP expires in ${formatTime(otpTimer)}` : 'OTP expired'}
                             </span>
-                            {otpTimer === 0 && (
-                              <button
-                                type="button"
-                                onClick={handleResendOtp}
-                                disabled={isSubmitting}
-                                className="text-primary hover:underline"
-                              >
-                                Resend OTP
-                              </button>
-                            )}
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              onClick={handleResendOtp}
+                              disabled={resendCooldown > 0 || isSubmitting}
+                              className="h-auto p-0 text-xs"
+                            >
+                              <RefreshCw className={`h-3 w-3 mr-1 ${isSubmitting ? 'animate-spin' : ''}`} />
+                              {isSubmitting
+                                ? "Sending..."
+                                : resendCooldown > 0
+                                  ? `Resend in ${resendCooldown}s`
+                                  : "Resend OTP"
+                              }
+                            </Button>
                           </div>
                           <FormMessage />
                         </FormItem>
@@ -270,17 +298,30 @@ const ForgotPassword = () => {
                         "Reset Password"
                       )}
                     </Button>
-                    {otpTimer > 0 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        onClick={handleResendOtp}
-                        disabled={isSubmitting}
-                        className="w-full"
-                      >
-                        Resend OTP
-                      </Button>
-                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleResendOtp}
+                      disabled={resendCooldown > 0 || isSubmitting}
+                      className="w-full"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : resendCooldown > 0 ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Resend OTP in {resendCooldown}s
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Resend OTP
+                        </>
+                      )}
+                    </Button>
                   </form>
                 </Form>
               )}
@@ -289,13 +330,13 @@ const ForgotPassword = () => {
         ) : (
           <>
             <CardHeader className="space-y-1 text-center">
-                <div className="flex justify-center mb-4">
-                    <Mail className="h-16 w-16 text-primary" />
-                </div>
-                <h1 className="text-2xl font-bold">Forgot Password</h1>
-                <p className="text-sm text-muted-foreground">
-                    Enter your email to receive a reset link.
-                </p>
+              <div className="flex justify-center mb-4">
+                <Mail className="h-16 w-16 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold">Forgot Password</h1>
+              <p className="text-sm text-muted-foreground">
+                Enter your email to receive a reset link.
+              </p>
             </CardHeader>
             <CardContent>
               <Form {...forgotPasswordForm}>
@@ -331,7 +372,7 @@ const ForgotPassword = () => {
             </CardContent>
           </>
         )}
-         <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-muted-foreground">
             Remember your password?{" "}
             <a href="/login" className="underline text-primary">

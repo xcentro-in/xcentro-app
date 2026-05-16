@@ -69,7 +69,7 @@ const ProcessingStatus = ({
     enabled: !!businessId && !!documentId,
     queryFn: async () => {
       if (!businessId) throw new Error("Business context missing");
-      return voucherAPI.checkStatus(businessId, documentId);
+      return voucherAPI.checkStatus(documentId);
     },
     // Back off on transient network errors: 3s→6s→12s→24s→30s cap.
     retry: 4,

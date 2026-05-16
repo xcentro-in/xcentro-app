@@ -77,7 +77,7 @@ export const useUnpaidVouchers = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getUnpaidVouchers(businessId) as UnpaidVouchersResponse;
+      const response = await voucherAPI.getUnpaidVouchers() as UnpaidVouchersResponse;
 
       const mappedInvoices = response.bills.map(mapVoucherToInvoice);
       setInvoices(mappedInvoices);

@@ -85,13 +85,13 @@ const MatchResultDetailPage = () => {
 
   const { data: invoiceLineItemsResp, isLoading: isLoadingInvItems } = useQuery({
     queryKey: ["invoice-line-items", matchResult?.invoice_id],
-    queryFn: () => (voucherAPI as any).getInvoiceLineItems(businessId!, matchResult!.invoice_id),
+    queryFn: () => voucherAPI.getInvoiceLineItems(matchResult!.invoice_id),
     enabled: !!businessId && !!matchResult?.invoice_id,
   });
 
   const { data: poLineItemsResp, isLoading: isLoadingPOItems } = useQuery({
     queryKey: ["po-line-items", matchResult?.purchase_order_id],
-    queryFn: () => (voucherAPI as any).getPOLineItems(businessId!, matchResult!.purchase_order_id!),
+    queryFn: () => voucherAPI.getPOLineItems(matchResult!.purchase_order_id!),
     enabled: !!businessId && !!matchResult?.purchase_order_id,
   });
 
@@ -146,7 +146,7 @@ const MatchResultDetailPage = () => {
     if (!businessId || !docId) return;
     setLoadingDocId(docId);
     try {
-      const resp = await (voucherAPI as any).getDocumentUrl(businessId, docId) as any;
+      const resp = await voucherAPI.getDocumentUrl(docId);
       window.open(resp?.data?.url, "_blank");
     } finally {
       setLoadingDocId(null);

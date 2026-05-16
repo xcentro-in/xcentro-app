@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { voucherAPI } from "@/services/api";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 interface PayrollEmployeeSelectionStepProps {
   employees: Employee[];
@@ -73,12 +74,13 @@ const PayrollEmployeeSelectionStep = ({
       }));
 
       // Call bulk voucher creation API
-      const response = await voucherAPI.createMultiple(businessId, vouchers);
+      const response = await voucherAPI.createMultiple(vouchers);
 
       if (response.status === "success" && response.data.vouchers) {
         // Extract voucher IDs from response
         const voucherIds = response.data.vouchers.map((v: any) => v.voucher_id);
 
+        trackEvent('voucher_created');
         toast.success(`Successfully created ${voucherIds.length} voucher(s) for payroll`);
 
         // Pass voucher IDs to parent

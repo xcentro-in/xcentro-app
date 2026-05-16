@@ -47,6 +47,7 @@ jobs:
           build-args: |
             VITE_TURNSTILE_SITE_KEY=${{ secrets.VITE_TURNSTILE_SITE_KEY }}
             VITE_API_URL=${{ secrets.VITE_API_URL }}
+            VITE_CLARITY_PROJECT_ID=${{ secrets.VITE_CLARITY_PROJECT_ID }}
           # ------------------------
 
       - name: Image built successfully

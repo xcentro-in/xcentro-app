@@ -107,7 +107,7 @@ const VoucherDocumentsTable = ({ documents, isLoading = false, onRefetch }: Vouc
       await Promise.all(
         [...retryingDocIds].map(async (docId) => {
           try {
-            const resp = await voucherAPI.checkStatus(businessId, docId);
+            const resp = await voucherAPI.checkStatus(docId);
             const status = resp?.data?.document_status;
             if (status && TERMINAL_STATUSES.has(status)) {
               completed.add(docId);
@@ -191,7 +191,7 @@ const VoucherDocumentsTable = ({ documents, isLoading = false, onRefetch }: Vouc
     if (!businessId) return;
     setLoadingDocId(docId);
     try {
-      const resp = await voucherAPI.getDocumentUrl(businessId, docId);
+      const resp = await voucherAPI.getDocumentUrl(docId);
       const url = resp?.data?.url;
       if (url) window.open(url, "_blank", "noopener,noreferrer");
     } finally {
@@ -204,7 +204,7 @@ const VoucherDocumentsTable = ({ documents, isLoading = false, onRefetch }: Vouc
     if (!businessId) return;
     setActionLoadingId(docId);
     try {
-      await voucherAPI.retryDocument(businessId, docId);
+      await voucherAPI.retryDocument(docId);
       setRetryingDocIds((prev) => new Set([...prev, docId]));
       onRefetch?.();
     } finally {
@@ -217,7 +217,7 @@ const VoucherDocumentsTable = ({ documents, isLoading = false, onRefetch }: Vouc
     const docId = deleteDialogId;
     setActionLoadingId(docId);
     try {
-      await voucherAPI.deleteDocument(businessId, docId);
+      await voucherAPI.deleteDocument(docId);
       onRefetch?.();
     } finally {
       if (isMounted.current) {

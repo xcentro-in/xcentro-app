@@ -17,6 +17,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { processPaymentAPI } from "@/services/api";
 import { toast } from "sonner";
 import { canViewFeature } from "@/lib/featureFlags";
+import { trackEvent } from "@/lib/analytics";
 import { getCardNetworkLogo } from "@/lib/cardNetworks";
 import PaymentScheduleSelector from "@/components/payments/new-payment/shared/common/PaymentScheduleSelector";
 import { PaymentType } from "@/types/payments";
@@ -58,7 +59,7 @@ const PaymentMethodAndReviewStep = ({
   const { businessId, businessName } = useCurrentBusiness();
 
   // Get user's role for the current business
-  const currentUserRole = userRoles.find(role => role.businessId === businessId)?.role || '';
+  const currentUserRole = userRoles?.find(role => role.businessId === businessId)?.role || '';
 
   // Create feature flag compatible user object
   const featureFlagUser = { id: user?.id || '', role: currentUserRole as any };
@@ -184,6 +185,7 @@ const PaymentMethodAndReviewStep = ({
       return;
     }
 
+    trackEvent('payment_initiated');
     setIsProcessingPayment(true);
 
     try {
@@ -201,23 +203,26 @@ const PaymentMethodAndReviewStep = ({
       };
 
       // Make payment API call
-      const response = await processPaymentAPI.makeCardPayment(businessId, paymentPayload);
+      const response = await processPaymentAPI.makeCardPayment(paymentPayload);
 
       // Extract redirect URL from response
       if (response.data?.redirect_url) {
         const redirectUrl = response.data.redirect_url;
 
+        trackEvent('payment_submitted');
         toast.success("Payment initiated successfully!");
 
         // Navigate to payment processing page with redirect URL
         navigate('/payment-processing', { state: { redirectUrl } });
       } else {
         // Fallback: if no redirect URL, show success and complete
+        trackEvent('payment_submitted');
         toast.success("Payment processed successfully!");
         setIsProcessingPayment(false);
         onSubmit();
       }
     } catch (error) {
+      trackEvent('payment_failed');
       console.error("Payment error:", error);
       toast.error("Payment failed", {
         description: error instanceof Error ? error.message : "Please try again"

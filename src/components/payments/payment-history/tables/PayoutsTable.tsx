@@ -142,7 +142,7 @@ const PayoutsTable: React.FC<PayoutsTableProps> = ({
 
     try {
       // Make retry payment API call
-      const response = await processPaymentAPI.retryPayment(businessId, {
+      const response = await processPaymentAPI.retryPayment({
         original_payment_id: payoutId
       });
 

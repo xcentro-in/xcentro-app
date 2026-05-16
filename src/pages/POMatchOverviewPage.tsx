@@ -83,7 +83,7 @@ const InvoiceMatchSection = ({
 
   const { data: invoiceLineItemsResp, isLoading: isLoadingInvItems } = useQuery({
     queryKey: ["invoice-line-items", match.invoice_id],
-    queryFn: () => (voucherAPI as any).getInvoiceLineItems(businessId, match.invoice_id),
+    queryFn: () => voucherAPI.getInvoiceLineItems(match.invoice_id),
     enabled: !!businessId && !!match.invoice_id && expanded,
   });
 
@@ -128,7 +128,7 @@ const InvoiceMatchSection = ({
     if (!businessId || !docId) return;
     setLoadingDocId(docId);
     try {
-      const resp = await (voucherAPI as any).getDocumentUrl(businessId, docId) as any;
+      const resp = await voucherAPI.getDocumentUrl(docId);
       window.open(resp?.data?.url, "_blank");
     } finally {
       setLoadingDocId(null);
@@ -291,7 +291,7 @@ const POMatchOverviewPage = () => {
 
   const { data: poLineItemsResp, isLoading: isLoadingPOItems } = useQuery({
     queryKey: ["po-line-items", poGroup?.poKey],
-    queryFn: () => (voucherAPI as any).getPOLineItems(businessId!, poGroup!.poKey),
+    queryFn: () => voucherAPI.getPOLineItems(poGroup!.poKey),
     enabled: !!businessId && !!poGroup?.poKey,
   });
 
@@ -311,7 +311,7 @@ const POMatchOverviewPage = () => {
     if (!businessId || !docId) return;
     setLoadingDocId(docId);
     try {
-      const resp = await (voucherAPI as any).getDocumentUrl(businessId, docId) as any;
+      const resp = await voucherAPI.getDocumentUrl(docId);
       window.open(resp?.data?.url, "_blank");
     } finally {
       setLoadingDocId(null);

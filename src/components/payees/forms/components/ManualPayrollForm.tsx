@@ -9,6 +9,7 @@ import { XCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
+import { trackEvent } from "@/lib/analytics";
 import ManualPayrollBankDetails from "./ManualPayrollBankDetails";
 
 interface ManualPayrollFormProps {
@@ -59,18 +60,18 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
     setIfscValid(null);
 
     try {
-      // Call Razorpay IFSC API
-      const response = await fetch(`https://ifsc.razorpay.com/${value}`);
+      // Call backend IFSC validation API
+      const response = await payeesAPI.validateIfsc(value);
 
-      if (!response.ok) {
+      if (response.status !== 'success') {
         throw new Error('Invalid IFSC code');
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       // Store bank name and branch name separately
-      setBankName(data.BANK);
-      setBranchName(data.BRANCH);
+      setBankName(data.bank);
+      setBranchName(data.branch);
       setIfscValid(true);
 
     } catch (error) {
@@ -127,12 +128,12 @@ const ManualPayrollForm = ({ onEmployeeCreated }: ManualPayrollFormProps) => {
         }
       };
 
-      // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(businessId, requestBody);
+      const response = await payeesAPI.create(requestBody);
 
       // API returns nested response: { status, message, data: { relation_id, payee_id, ... } }
       const employeeData = response.data || response;
 
+      trackEvent('payee_added_employee');
       // Navigate immediately to document upload step
       // Flag will be updated automatically when PayeeList renders and detects payees exist
       onEmployeeCreated({

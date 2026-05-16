@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { businessAPI } from '@/services/api';
 import { User, UserInvite } from '@/types/user';
+import { isStatusComplete } from '@/constants/onboarding';
 
 interface UseBusinessUsersReturn {
   activeUsers: User[];
@@ -26,34 +27,32 @@ export function useBusinessUsers(businessId: string | undefined): UseBusinessUse
       setIsLoading(true);
       setError(null);
 
-      const response = await businessAPI.getUsers(businessId);
+      const response = await businessAPI.getUsers();
       const users = response.data;
 
-      // Filter users based on kycNeeded
+      // Active = kyc_completed or kyc_verified; anything else = pending
       const active: User[] = [];
       const pending: UserInvite[] = [];
 
       users.forEach((user) => {
-        if (user.kycNeeded) {
-          // User needs KYC - goes to pending invites
+        if (!isStatusComplete(user.kycStatus)) {
           pending.push({
             id: user.userId,
             email: user.email,
             name: user.name,
-            role: user.role as any, // Backend returns lowercase, type will handle it
+            role: user.role as any,
             addedAt: user.addedAt,
-            kycNeeded: user.kycNeeded,
+            kycNeeded: true,
           });
         } else {
-          // User is active
           active.push({
             id: user.userId,
             email: user.email,
             name: user.name,
             role: user.role as any,
-            status: 'active', // All users with kycNeeded: false are active
+            status: 'active',
             addedAt: user.addedAt,
-            kycNeeded: user.kycNeeded,
+            kycNeeded: false,
           });
         }
       });

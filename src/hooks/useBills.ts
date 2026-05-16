@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentBusiness } from './useCurrentBusiness';
+import { trackEvent } from '@/lib/analytics';
 import { Invoice } from '@/data/mockInvoices';
 import { DateRange } from 'react-day-picker';
 import { voucherAPI } from '@/services/api';
@@ -164,7 +165,7 @@ export const useBills = (filters: BillsFilters = {}) => {
       const offset = (page - 1) * limit;
 
       // Call real API
-      const response = await voucherAPI.list(businessId, {
+      const response = await voucherAPI.list({
         status: status !== 'all' ? status : undefined,
         limit,
         offset,
@@ -221,6 +222,8 @@ export const useBills = (filters: BillsFilters = {}) => {
       // Simulate payment success
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      trackEvent('bill_paid');
+
       // Refresh bills data after payment
       await fetchBills();
 
@@ -239,7 +242,7 @@ export const useBills = (filters: BillsFilters = {}) => {
 
     try {
       // Call actual API to get voucher details
-      const response = await voucherAPI.getDetails(businessId, billId);
+      const response = await voucherAPI.getDetails(billId);
 
       // Extract data from response wrapper
       const voucherDetail = (response as any).data as VoucherDetailResponseAPI;
@@ -262,10 +265,9 @@ export const useBills = (filters: BillsFilters = {}) => {
 
     try {
       const response = await voucherAPI.requestApproval(
-        businessId,
         billId,
         approverUserId,
-        '' // Empty remarks for now
+        ''
       );
 
       // Type the response
@@ -277,6 +279,8 @@ export const useBills = (filters: BillsFilters = {}) => {
         action: string;
         action_taken_at: string | null;
       };
+
+      trackEvent('approval_requested');
 
       // Note: We don't refresh bills here - let the component handle optimistic update
       // await fetchBills();

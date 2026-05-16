@@ -45,7 +45,7 @@ const InvoiceDetailPage = () => {
 
   const { data: draftResponse, isLoading } = useQuery({
     queryKey: ["voucher-draft", invoiceRow?.document_id],
-    queryFn: () => voucherAPI.getDraftData(businessId!, invoiceRow!.document_id),
+    queryFn: () => voucherAPI.getDraftData(invoiceRow!.document_id),
     enabled: !!businessId && !!invoiceRow?.document_id,
     staleTime: Infinity,
   });
@@ -103,7 +103,7 @@ const InvoiceDetailPage = () => {
     if (!businessId || !invoiceRow.document_id) return;
     setLoadingDoc(true);
     try {
-      const resp = await (voucherAPI as any).getDocumentUrl(businessId, invoiceRow.document_id) as any;
+      const resp = await voucherAPI.getDocumentUrl(invoiceRow.document_id);
       window.open(resp?.data?.url, "_blank");
     } finally {
       setLoadingDoc(false);

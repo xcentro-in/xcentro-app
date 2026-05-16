@@ -15,7 +15,7 @@ export const useVendors = (businessId?: string) => {
       setError(null);
 
       try {
-        const response: GetVendorsResponse = await vendorsAPI.getAll(businessId);
+        const response: GetVendorsResponse = await vendorsAPI.getAll();
         // Handle null or empty data from backend
         if (!response.data || !response.data.vendors) {
           setVendors([]);
@@ -41,7 +41,7 @@ export const useVendors = (businessId?: string) => {
     setError(null);
 
     try {
-      const response: GetVendorsResponse = await vendorsAPI.getAll(businessId);
+      const response: GetVendorsResponse = await vendorsAPI.getAll();
       // Handle null or empty data from backend
       if (!response.data || !response.data.vendors) {
         setVendors([]);

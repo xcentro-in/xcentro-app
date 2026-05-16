@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Loader2, CheckCircle2, XCircle, Phone, Shield, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Phone, Shield, RefreshCw } from 'lucide-react';
 import { apiService } from '@/services/api';
+import { authAPI } from '@/services/api';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,11 +21,15 @@ const VerifyEmail = () => {
   const [isLoadingOtp, setIsLoadingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Store URL params for later use
   const uid = searchParams.get('uid') || '';
   const token = searchParams.get('token') || '';
   const sig = searchParams.get('sig') || '';
+
+  // Get email from localStorage (stored during signup)
+  const userEmail = localStorage.getItem('signup-email') || '';
 
   useEffect(() => {
     // Check if we have the required params for mobile verification flow
@@ -44,13 +49,21 @@ const VerifyEmail = () => {
     }
   }, [searchParams]);
 
-  // Countdown timer effect
+  // OTP expiry countdown timer
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
     }
   }, [countdown]);
+
+  // Resend cooldown timer (60s between resends)
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
 
   const verifyEmailOnly = async (emailToken: string) => {
     try {
@@ -80,8 +93,15 @@ const VerifyEmail = () => {
       toast.success(response.message || 'OTP sent to your mobile number');
       setIsOtpSent(true);
       setCountdown(600); // 10 minutes = 600 seconds
+      setResendCooldown(60); // 60s cooldown before resend is allowed
     } catch (error: any) {
-      toast.error(error.message || 'Failed to send OTP');
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(error.message || 'Failed to send OTP');
+      }
     } finally {
       setIsLoadingOtp(false);
     }
@@ -101,6 +121,9 @@ const VerifyEmail = () => {
 
       toast.success('Verification successful!');
 
+      // Clean up stored email
+      localStorage.removeItem('signup-email');
+
       // Redirect to login after 2 seconds
       setTimeout(() => {
         navigate('/login');
@@ -112,11 +135,30 @@ const VerifyEmail = () => {
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = useCallback(async () => {
+    if (resendCooldown > 0 || isLoadingOtp) return;
+
+    setIsLoadingOtp(true);
     setOtp('');
-    setCountdown(600);
-    handleSendOtp();
-  };
+    try {
+      // Use dedicated resend endpoint
+      const response = await authAPI.resendMobileOtp(userEmail);
+      toast.success(response.message || 'OTP resent to your mobile number');
+      setResendCooldown(60);
+      // Reset OTP expiry countdown
+      setCountdown(600);
+    } catch (error: any) {
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(error.message || 'Failed to resend OTP');
+      }
+    } finally {
+      setIsLoadingOtp(false);
+    }
+  }, [userEmail, resendCooldown, isLoadingOtp]);
 
   return (
     <AuroraBackground>
@@ -144,8 +186,8 @@ const VerifyEmail = () => {
               ? "Please wait while we verify your email address..."
               : status === 'mobile-verification'
                 ? (isOtpSent
-                    ? `Enter the OTP sent to ${mobileNumber}`
-                    : "Enter your mobile number to receive OTP")
+                  ? `Enter the OTP sent to ${mobileNumber}`
+                  : "Enter your mobile number to receive OTP")
                 : status === 'success'
                   ? message
                   : ""
@@ -219,20 +261,27 @@ const VerifyEmail = () => {
                     {isVerifying ? "Verifying..." : "Verify Mobile Number"}
                   </Button>
 
-                  <div className="text-center">
-                    {countdown > 0 ? (
+                  <div className="text-center space-y-1">
+                    {countdown > 0 && (
                       <p className="text-sm text-muted-foreground">
-                        Resend OTP in {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
+                        OTP expires in {Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}
                       </p>
-                    ) : (
-                      <Button
-                        variant="link"
-                        onClick={handleResendOtp}
-                        disabled={isLoadingOtp}
-                      >
-                        Resend OTP
-                      </Button>
                     )}
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleResendOtp}
+                      disabled={resendCooldown > 0 || isLoadingOtp}
+                      className="h-auto p-0 text-xs"
+                    >
+                      <RefreshCw className={`h-3 w-3 mr-1 ${isLoadingOtp ? 'animate-spin' : ''}`} />
+                      {isLoadingOtp
+                        ? "Sending..."
+                        : resendCooldown > 0
+                          ? `Resend OTP in ${resendCooldown}s`
+                          : "Resend OTP"
+                      }
+                    </Button>
                   </div>
                 </>
               )}

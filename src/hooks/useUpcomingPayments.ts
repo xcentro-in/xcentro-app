@@ -96,7 +96,6 @@ export const useUpcomingPayments = (params: UpcomingPaymentsParams = {}) => {
         if (month) {
           const [year, monthNum] = month.split('-').map(Number);
           const response = await apiService.voucher.getCalendar(
-            businessId,
             year,
             monthNum
           );

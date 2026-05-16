@@ -5,17 +5,17 @@
  * Used across BusinessOnboarding, UserOnboarding, AuthContext, and routing logic.
  */
 
-// Onboarding status values (both KYB and KYC use same statuses)
+// Onboarding status values — matches backend exactly (used for both KYB and KYC)
 export const ONBOARDING_STATUS = {
-  NOT_STARTED: 'kyc_not_started',
-  INITIATED: 'kyc_initiated',
-  COMPLETED: 'kyc_completed',
-  VERIFIED: 'kyc_verified',
-  FAILED: 'kyc_failed',
-  REJECTED: 'kyc_rejected',
+  NOT_STARTED:  'kyc_not_started',
+  IN_PROGRESS:  'kyc_in_progress',
+  COMPLETED:    'kyc_completed',
+  VERIFIED:     'kyc_verified',
+  NEEDS_UPDATE: 'kyc_needs_update',
+  REJECTED:     'kyc_rejected',
 } as const;
 
-// Completed status values array
+// Statuses that mean onboarding is done — allow routing to next step
 const COMPLETED_STATUSES = [
   ONBOARDING_STATUS.COMPLETED,
   ONBOARDING_STATUS.VERIFIED,

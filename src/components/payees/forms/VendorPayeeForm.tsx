@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentBusiness } from '@/hooks/useCurrentBusiness';
 import { payeesAPI } from "@/services/api";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 import PayeeTags from "./components/PayeeTags";
 import BankDetailsSection from "./components/BankDetailsSection";
 
@@ -65,19 +66,19 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
     setIfscValid(null);
 
     try {
-      // Call Razorpay IFSC API
-      const response = await fetch(`https://ifsc.razorpay.com/${value}`);
+      // Call backend IFSC validation API
+      const response = await payeesAPI.validateIfsc(value);
 
-      if (!response.ok) {
+      if (response.status !== 'success') {
         throw new Error('Invalid IFSC code');
       }
 
-      const data = await response.json();
+      const data = response.data;
 
       // Store bank name and branch name separately
-      setBankName(data.BANK); // Only bank name
-      setBranchName(data.BRANCH); // Only branch name
-      setBankAddress(data.ADDRESS);
+      setBankName(data.bank); // Only bank name
+      setBranchName(data.branch); // Only branch name
+      setBankAddress(data.address);
       setIfscValid(true);
 
     } catch (error) {
@@ -133,11 +134,11 @@ const BankPayeeForm = ({ onSubmit }: BankPayeeFormProps) => {
         }
       };
 
-      // Make API call with X-Business-ID header
-      const response = await payeesAPI.create(businessId, requestBody);
+      const response = await payeesAPI.create(requestBody);
 
       // Check response status
       if (response.status === 'success') {
+        trackEvent('payee_added_vendor');
         // Show success state on button
         setIsSuccess(true);
 

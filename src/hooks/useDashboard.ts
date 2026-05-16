@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { apiService } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentBusiness } from './useCurrentBusiness';
+import { isStatusComplete } from '@/constants/onboarding';
 import { format } from 'date-fns';
 
 // Helper to convert paise to rupees
@@ -48,18 +49,30 @@ export const useDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const hasFetchedRef = useRef(false);
+  const lastBusinessIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!businessId) {
+      if (!businessId || !isStatusComplete(user?.kyc_status)) {
         setIsLoading(false);
         return;
       }
+
+      // Reset guard on genuine business switch (different businessId than last time)
+      if (lastBusinessIdRef.current !== null && lastBusinessIdRef.current !== businessId) {
+        hasFetchedRef.current = false;
+      }
+      lastBusinessIdRef.current = businessId;
+
+      if (hasFetchedRef.current) return;
+      hasFetchedRef.current = true;
 
       try {
         setIsLoading(true);
         setError(null);
 
-        const response = await apiService.dashboard.getData(businessId);
+        const response = await apiService.dashboard.getData();
 
         // Transform API response to component-friendly format with null checks
         const transformed: DashboardData = {

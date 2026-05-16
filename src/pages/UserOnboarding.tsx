@@ -9,7 +9,7 @@ import { parseISO, isValid } from "date-fns";
 import KYCDetailsForm from "@/components/onboarding/KYCDetailsForm";
 // import RoleSelectionForm from "@/components/onboarding/RoleSelectionForm";
 import ReviewDetailsForm from "@/components/onboarding/ReviewDetailsForm";
-import { userAPI } from "@/services/api";
+import { userAPI, authAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { openAndMonitorPopup } from "@/lib/popupUtils";
 import { isKycComplete, validateAadhaar, validatePAN, ONBOARDING_STATUS } from "@/constants/onboarding";
@@ -36,24 +36,27 @@ const steps = ["KYC Details", "Review"];
 
 const UserOnboarding = () => {
   const navigate = useNavigate();
-  const { initializeUser, onboardingStatus, userRoles } = useAuth();
+  const { initializeUser, refreshSession, onboardingStatus, businesses, activeBid } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<UserFormData>(initialFormData);
   const [isLoading, setIsLoading] = useState(false);
-  // Rely on context, no local fetch state needed
-  const [isFetchingStatus, setIsFetchingStatus] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const hasTriedLoading = useRef(false);
   const [aadhaarPopup, setAadhaarPopup] = useState<Window | null>(null);
   const [aadhaarLink, setAadhaarLink] = useState("");
   const [isPopupBlocked, setIsPopupBlocked] = useState(false);
   const [hasApiError, setHasApiError] = useState(false);
   const popupCheckIntervalRef = useRef<number | null>(null);
 
-  // Determine flow type
-  // Note: BusinessOnboarding stores in localStorage, not sessionStorage
-  const businessId = localStorage.getItem("business-id");
-  const isJoinFlow = !businessId;
-
   const progress = (currentStep / steps.length) * 100;
+
+  // Lazy-load onboarding detail for form pre-fill (only on first mount)
+  useEffect(() => {
+    if (onboardingStatus !== null || hasTriedLoading.current) return;
+    hasTriedLoading.current = true;
+    setIsLoadingDetail(true);
+    initializeUser().catch(() => {}).finally(() => setIsLoadingDetail(false));
+  }, []);
 
   // Debug: Log formData changes
   useEffect(() => {
@@ -191,33 +194,33 @@ const UserOnboarding = () => {
       let isInvitedUser = false;
       let existingRole = "owner"; // Default role for new business flow
 
-      if (userRoles && userRoles.length > 0) {
-        isInvitedUser = true;
-        existingRole = userRoles[0].role;
+      if (businesses && businesses.length > 0) {
+        const role = businesses[0].role;
+        if (role && role !== '') {
+          isInvitedUser = true;
+          existingRole = role;
+        }
+        // role === "" means backend hasn't assigned one yet (fresh owner pre-KYC) → keep "owner"
       }
 
       // For invited users: use their existing role
       // For new business: use "owner"
       const claimedRole = existingRole;
 
-      // Call complete onboarding API
+      // Call complete onboarding API — bid required since JWT has bid: "" pre-KYC
       const completeResponse = await userAPI.completeOnboarding(
         claimedRole,
-        isInvitedUser ? undefined : (businessId || undefined),
-        undefined // gstin removed from form
+        activeBid || undefined
       );
 
       if (isKycComplete(completeResponse.data.status)) {
         toast.success("User onboarding completed successfully!");
 
-        // Clear business-id from localStorage since onboarding is complete
-        localStorage.removeItem('business-id');
+        // Refresh JWT so verify-session sees kyc_completed in token claims
+        await authAPI.refresh();
+        // Re-verify session so ProtectedRoute sees updated kyc_status
+        await refreshSession();
 
-        // Re-initialize user data to get fresh roles and onboarding status
-        await initializeUser();
-
-        // Navigate to root - ProtectedRoute will handle routing based on onboarding status
-        // ProtectedRoute will immediately redirect to the correct route (Dashboard/Pending)
         navigate("/", { replace: true });
       } else {
         toast.error("KYC verification incomplete. Please try again.");
@@ -260,8 +263,7 @@ const UserOnboarding = () => {
         formData.name,
         apiDateFormat,
         formData.panNumber,
-        aadhaarForApi,
-        businessId || undefined
+        aadhaarForApi
       );
 
       setAadhaarLink(initResponse.data.aadhaarLink);
@@ -299,8 +301,8 @@ const UserOnboarding = () => {
     }
   };
 
-  // Show loading state while fetching status
-  if (isFetchingStatus) {
+  // Show loading state while lazy-loading onboarding detail for pre-fill
+  if (isLoadingDetail) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 md:px-0">
         <div className="flex items-center justify-center min-h-[400px]">

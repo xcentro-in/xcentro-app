@@ -89,7 +89,7 @@ export const usePayees = (params?: UsePayeesParams) => {
 
       try {
         // Call real API with pagination params
-        const response: GetPayeesResponse = await payeesAPI.getAll(businessId, {
+        const response: GetPayeesResponse = await payeesAPI.getAll({
           page: params?.page,
           page_size: params?.page_size,
           search: params?.search,

@@ -16,8 +16,8 @@ export const usePaymentSources = () => {
     setError(null);
 
     try {
-      const { business_id, ...apiParams } = params;
-      const response = await processPaymentAPI.getPaymentSourcesWithFees(business_id, apiParams) as GetPaymentSourcesResponse;
+      const { business_id: _, ...apiParams } = params;
+      const response = await processPaymentAPI.getPaymentSourcesWithFees(apiParams) as GetPaymentSourcesResponse;
       setData(response);
       return response;
     } catch (err) {

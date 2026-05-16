@@ -14,6 +14,7 @@ import { usePageTitle } from "@/contexts/PageTitleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { voucherAPI } from "@/services/api";
+import { trackEvent } from "@/lib/analytics";
 import { EXPENSE_CATEGORIES } from "@/constants/expenseCategories";
 import { PAYMENT_TERMS } from "@/constants/paymentTerms";
 import { GST_RATES, GST_TYPES, GSTType } from "@/constants/gstRates";
@@ -413,10 +414,10 @@ const NewBill = () => {
 
       // Call API to create voucher
       const response: GetVoucherDraftResponse = await voucherAPI.createDraft(
-        businessId,
         { ...voucherPayload }
         );
 
+      trackEvent('voucher_created');
       toast.success("Bill created successfully", {
         description: `Bill #${response.data.voucher_number} has been saved as draft`
       });

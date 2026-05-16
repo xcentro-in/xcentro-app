@@ -80,7 +80,7 @@ export const usePaymentList = ({ limit, offset }: UsePaymentListParams) => {
     setError(null);
 
     try {
-      const response = await processPaymentAPI.list(businessId, { limit, offset });
+      const response = await processPaymentAPI.list({ limit, offset });
 
       // The API returns the data directly (not wrapped in a "data" field)
       if (

@@ -31,7 +31,7 @@ export const useApprovalCounts = () => {
       setIsLoading(true);
       setError(null);
 
-      const response = await voucherAPI.getApprovalCounts(businessId);
+      const response = await voucherAPI.getApprovalCounts();
 
       // Validate response structure
       if (

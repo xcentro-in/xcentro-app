@@ -43,7 +43,7 @@ const PurchaseOrderDetailPage = () => {
 
   const { data: draftResponse, isLoading } = useQuery({
     queryKey: ["voucher-draft", poRow?.document_id],
-    queryFn: () => voucherAPI.getDraftData(businessId!, poRow!.document_id),
+    queryFn: () => voucherAPI.getDraftData(poRow!.document_id),
     enabled: !!businessId && !!poRow?.document_id,
     staleTime: Infinity,
   });
@@ -101,7 +101,7 @@ const PurchaseOrderDetailPage = () => {
     if (!businessId || !poRow.document_id) return;
     setLoadingDoc(true);
     try {
-      const resp = await (voucherAPI as any).getDocumentUrl(businessId, poRow.document_id) as any;
+      const resp = await voucherAPI.getDocumentUrl(poRow.document_id);
       window.open(resp?.data?.url, "_blank");
     } finally {
       setLoadingDoc(false);

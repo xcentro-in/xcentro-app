@@ -37,7 +37,7 @@ interface AddPayeeResolutionDialogProps {
 const AddPayeeResolutionDialog = ({
   open,
   onOpenChange,
-  businessId,
+  businessId: _businessId,
   defaultVendorName = "",
   defaultGstin = "",
   onPayeeCreated,
@@ -56,7 +56,7 @@ const AddPayeeResolutionDialog = ({
 
     setIsSubmitting(true);
     try {
-      const resp = await voucherAPI.quickCreateVendor(businessId, {
+      const resp = await voucherAPI.quickCreateVendor({
         display_name: displayName.trim(),
         gstin: gstin.trim() || undefined,
         contact_email: contactEmail.trim() || undefined,

@@ -3,6 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { BarChart3 } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
+
+const IS_DEV = import.meta.env.DEV;
 
 const AnalyticsSection = () => {
   // Toggle is ON by default (user allows analytics)
@@ -23,7 +26,8 @@ const AnalyticsSection = () => {
       localStorage.removeItem('analytics-opt-out');
       toast.success("Analytics enabled. Thank you for helping us improve Xcentro!");
     } else {
-      // User disables analytics - set opt-out flag
+      // Fire event BEFORE setting the opt-out flag so Clarity still receives it
+      trackEvent('opt_out_analytics');
       localStorage.setItem('analytics-opt-out', 'true');
       toast.info("Analytics disabled. Changes will take effect on next page refresh.");
     }
@@ -47,14 +51,15 @@ const AnalyticsSection = () => {
                 className="text-primary hover:underline font-medium"
               >
               privacy policy {" "}
-              </a> 
+              </a>
               has more details.
             </CardDescription>
           </div>
           <div className="ml-6">
             <Switch
-              checked={analyticsEnabled}
+              checked={IS_DEV ? false : analyticsEnabled}
               onCheckedChange={handleToggleChange}
+              disabled={IS_DEV}
               aria-label="Toggle analytics"
             />
           </div>
@@ -66,9 +71,11 @@ const AnalyticsSection = () => {
           <div>
             <p className="font-medium">Usage Analytics</p>
             <p className="text-sm text-muted-foreground">
-              {analyticsEnabled
-                ? "Currently collecting anonymized usage data to improve your experience"
-                : "Analytics disabled. We are not collecting any usage data"}
+              {IS_DEV
+                ? "Analytics are disabled in development mode and will not run locally"
+                : analyticsEnabled
+                  ? "Currently collecting anonymized usage data to improve your experience"
+                  : "Analytics disabled. We are not collecting any usage data"}
             </p>
           </div>
         </div>

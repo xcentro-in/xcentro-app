@@ -25,7 +25,7 @@ const Vouchers = () => {
   // Fetch Documents
   const { data: docsResponse, isLoading: isDocsLoading, refetch: refetchDocs } = useQuery({
     queryKey: ["voucher-documents", businessId],
-    queryFn: () => businessId ? voucherAPI.listDocuments(businessId) : null,
+    queryFn: () => voucherAPI.listDocuments(),
     enabled: !!businessId && activeTab === "documents",
   });
 
@@ -41,21 +41,21 @@ const Vouchers = () => {
   // Fetch Invoices
   const { data: invoicesResponse, isLoading: isInvoicesLoading } = useQuery({
     queryKey: ["voucher-invoices", businessId, billsFilters.page],
-    queryFn: () => businessId ? voucherAPI.listInvoices(businessId, billsFilters.page, billsFilters.limit) : null,
+    queryFn: () => voucherAPI.listInvoices(billsFilters.page, billsFilters.limit),
     enabled: !!businessId && activeTab === "invoices",
   });
 
   // Fetch Purchase Orders
   const { data: posResponse, isLoading: isPosLoading } = useQuery({
     queryKey: ["voucher-pos", businessId],
-    queryFn: () => businessId ? voucherAPI.listPurchaseOrders(businessId) : null,
+    queryFn: () => voucherAPI.listPurchaseOrders(),
     enabled: !!businessId && activeTab === "pos",
   });
 
   // Fetch Match Results
   const { data: matchResultsResponse, isLoading: isMatchResultsLoading } = useQuery({
     queryKey: ["voucher-match-results", businessId],
-    queryFn: () => businessId ? (voucherAPI as any).listMatchResults(businessId) : null,
+    queryFn: () => voucherAPI.listMatchResults(),
     enabled: !!businessId && activeTab === "match-results",
   });
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Mail, Lock, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { AuroraBackground } from "@/components/ui/aurora-background";
 import { authAPI } from "@/services/api";
@@ -28,6 +28,9 @@ const Signup = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verificationMessage, setVerificationMessage] = useState("");
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
 
   const form = useForm<Step1FormValues>({
     resolver: zodResolver(step1Schema),
@@ -38,15 +41,30 @@ const Signup = () => {
     },
   });
 
+  // Cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
   const handleSubmit = async (values: Step1FormValues) => {
     setIsSubmitting(true);
 
     try {
       const response = await authAPI.signup(values.email, values.password);
+      setSubmittedEmail(values.email);
+      // Store email for VerifyEmail page resend flow
+      localStorage.setItem('signup-email', values.email);
       setVerificationMessage(response.message);
       setShowSuccess(true);
       toast.success("Account created successfully!");
     } catch (error: any) {
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        return;
+      }
       const errorMessage = error?.message || "Failed to create account. Please try again.";
       toast.error(errorMessage);
       console.error("Signup error:", error);
@@ -54,6 +72,27 @@ const Signup = () => {
       setIsSubmitting(false);
     }
   };
+
+  const handleResendEmail = useCallback(async () => {
+    if (resendCooldown > 0 || isResending) return;
+
+    setIsResending(true);
+    try {
+      const response = await authAPI.resendVerification(submittedEmail);
+      toast.success(response.message || "Verification email sent successfully!");
+      setResendCooldown(60);
+    } catch (error: any) {
+      if (error.status === 429) {
+        // RateLimitPopup handles the UI; just set cooldown
+        const retryAfter = error.retryAfter || 60;
+        setResendCooldown(retryAfter);
+      } else {
+        toast.error(error.message || "Failed to resend verification email. Please try again.");
+      }
+    } finally {
+      setIsResending(false);
+    }
+  }, [submittedEmail, resendCooldown, isResending]);
 
   return (
     <AuroraBackground>
@@ -215,12 +254,21 @@ const Signup = () => {
 
               <div className="text-xs text-muted-foreground">
                 Didn't receive the email?{" "}
-                <button
-                  onClick={() => toast.info("Please check your spam folder or contact support")}
-                  className="text-primary underline"
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={handleResendEmail}
+                  disabled={resendCooldown > 0 || isResending}
+                  className="h-auto p-0 text-xs"
                 >
-                  Get help
-                </button>
+                  <RefreshCw className={`h-3 w-3 mr-1 ${isResending ? 'animate-spin' : ''}`} />
+                  {isResending
+                    ? "Sending..."
+                    : resendCooldown > 0
+                      ? `Resend in ${resendCooldown}s`
+                      : "Resend Verification Email"
+                  }
+                </Button>
               </div>
             </div>
           )}
