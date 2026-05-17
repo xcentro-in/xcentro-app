@@ -1677,6 +1677,24 @@ class ApiService {
       });
     },
 
+    listDocuments: async (page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/documents?page=${page}&limit=${limit}`, {
+        method: 'GET',
+      });
+    },
+
+    listInvoices: async (page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/invoices?page=${page}&limit=${limit}`, {
+        method: 'GET',
+      });
+    },
+
+    listPurchaseOrders: async (page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/purchase-orders?page=${page}&limit=${limit}`, {
+        method: 'GET',
+      });
+    },
+
     getVoucherCounts: async () => {
       return this.request('/v1/vouchers/counts', {
         method: 'GET',
@@ -1882,7 +1900,94 @@ class ApiService {
       return this.request(`/v1/vouchers/calendar?year=${year}&month=${month}`, {
         method: 'GET',
       });
-    }
+    },
+
+    // Upload voucher document (Invoice / Purchase Order PDF/image)
+    uploadDocument: async (file: File, docType?: string): Promise<import('@/types/voucher-document').VoucherUploadResponse> => {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (docType) {
+        formData.append('doc_type', docType);
+      }
+
+      // setContentType = false so the browser auto-sets multipart boundary
+      return this.request('/v1/vouchers/upload', {
+        method: 'POST',
+        body: formData,
+      }, false, false);
+    },
+
+    // Check document processing status (used for polling during extraction)
+    checkStatus: async (documentId: string): Promise<import('@/types/voucher-document').VoucherStatusDataResponse> => {
+      return this.request(`/v1/vouchers/${documentId}/status`, {
+        method: 'GET',
+      });
+    },
+
+    // Get extracted draft data for HITL review
+    getDraftData: async (documentId: string): Promise<any> => {
+      return this.request(`/v1/vouchers/${documentId}/draft`, {
+        method: 'GET',
+      });
+    },
+
+    // Submit validated / corrected data after HITL review
+    validateDocument: async (documentId: string, draftData: any): Promise<any> => {
+      return this.request(`/v1/vouchers/${documentId}/validate`, {
+        method: 'POST',
+        body: JSON.stringify({ draft_data: draftData }),
+      });
+    },
+
+    // Get presigned URL to view the original document
+    getDocumentUrl: async (documentId: string): Promise<import('@/types/voucher-document').VoucherDocumentUrlResponse> => {
+      return this.request(`/v1/vouchers/${documentId}/url`, {
+        method: 'GET',
+      });
+    },
+
+    // Retry a failed document (re-enqueue for extraction)
+    retryDocument: async (documentId: string) => {
+      return this.request(`/v1/vouchers/${documentId}/retry`, {
+        method: 'POST',
+      });
+    },
+
+    // Delete a failed document from DB and S3
+    deleteDocument: async (documentId: string) => {
+      return this.request(`/v1/vouchers/documents/${documentId}`, {
+        method: 'DELETE',
+      });
+    },
+
+    // Quick-create a vendor payee from document review context (no bank verification)
+    quickCreateVendor: async (data: { display_name: string; gstin?: string; contact_email?: string; contact_phone?: string }): Promise<import('@/types/voucher-document').QuickCreateVendorResponse> => {
+      return this.request('/v1/vouchers/vendors/quick-create', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+
+    // Get line items for an extracted invoice (amounts in rupees)
+    getInvoiceLineItems: async (invoiceId: string) => {
+      return this.request(`/v1/vouchers/invoices/${invoiceId}/line-items`, {
+        method: 'GET',
+      });
+    },
+
+    // Get line items for a purchase order (amounts in rupees)
+    getPOLineItems: async (poId: string) => {
+      return this.request(`/v1/vouchers/purchase-orders/${poId}/line-items`, {
+        method: 'GET',
+      });
+    },
+
+    // List PO-Invoice match results
+    listMatchResults: async (page: number = 1, limit: number = 20) => {
+      return this.request(`/v1/vouchers/match-results?page=${page}&limit=${limit}`, {
+        method: 'GET',
+      });
+    },
   };
 
   // Vendors endpoints
